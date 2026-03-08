@@ -9,7 +9,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Verify auth
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -36,40 +35,47 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Use Firecrawl search to find businesses on Google Maps
-    const searchQuery = `${query} ${zone} La Réunion site:google.com/maps OR site:pagesjaunes.fr`;
+    // Two parallel searches: Google Maps for addresses + Pages Jaunes for contact details
+    const searches = [
+      `${query} ${zone} La Réunion adresse téléphone email`,
+      `${query} ${zone} 974 La Réunion site:pagesjaunes.fr`,
+    ];
 
-    console.log('Searching prospects:', searchQuery);
+    console.log('Searching prospects with queries:', searches);
 
-    const response = await fetch('https://api.firecrawl.dev/v1/search', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        query: searchQuery,
-        limit: 20,
-        scrapeOptions: {
-          formats: ['markdown'],
-        },
-      }),
-    });
+    const responses = await Promise.all(
+      searches.map((q) =>
+        fetch('https://api.firecrawl.dev/v1/search', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: q,
+            limit: 15,
+            scrapeOptions: {
+              formats: ['markdown'],
+              onlyMainContent: true,
+            },
+          }),
+        }).then((r) => r.json())
+      )
+    );
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error('Firecrawl API error:', data);
-      return new Response(
-        JSON.stringify({ success: false, error: data.error || `Erreur Firecrawl: ${response.status}` }),
-        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    // Merge results from both searches
+    const allResults: SearchResult[] = [];
+    for (const data of responses) {
+      if (data.data) {
+        allResults.push(...data.data);
+      }
     }
 
-    // Parse the results to extract business information
-    const prospects = parseSearchResults(data.data || [], query, zone);
+    console.log(`Raw results: ${allResults.length}`);
 
-    console.log(`Found ${prospects.length} prospects`);
+    const prospects = parseSearchResults(allResults, query, zone);
+
+    console.log(`Parsed ${prospects.length} prospects`);
 
     return new Response(
       JSON.stringify({ success: true, prospects }),
@@ -97,6 +103,7 @@ interface ParsedProspect {
   address?: string;
   city?: string;
   phone?: string;
+  email?: string;
   website?: string;
   sector?: string;
   rating?: number;
@@ -105,73 +112,135 @@ interface ParsedProspect {
 }
 
 function parseSearchResults(results: SearchResult[], query: string, zone: string): ParsedProspect[] {
-  const prospects: ParsedProspect[] = [];
-  const seen = new Set<string>();
+  const prospectMap = new Map<string, ParsedProspect>();
 
   for (const result of results) {
     if (!result.title) continue;
 
-    // Clean the title to get business name
     let businessName = result.title
       .replace(/ - Google Maps$/i, '')
       .replace(/ \| Pages Jaunes$/i, '')
       .replace(/ - Avis.*$/i, '')
+      .replace(/ - Horaires.*$/i, '')
+      .replace(/ à [\w-]+.*$/i, '')
       .replace(/\s*\(.*?\)\s*/g, ' ')
+      .replace(/\s+/g, ' ')
       .trim();
 
     if (!businessName || businessName.length < 2) continue;
 
-    // Dedupe
-    const key = businessName.toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
+    const key = businessName.toLowerCase().replace(/[^a-zà-ÿ0-9]/g, '');
+    if (key.length < 2) continue;
 
-    const prospect: ParsedProspect = {
+    // Get or create prospect entry (merge data from multiple sources)
+    const existing = prospectMap.get(key);
+    const prospect: ParsedProspect = existing || {
       business_name: businessName,
       city: zone,
       sector: query,
     };
 
-    // Extract info from markdown content
     const content = result.markdown || result.description || '';
 
-    // Try to extract phone number (French format)
-    const phoneMatch = content.match(/(?:0[1-9])[\s.-]?(?:\d{2}[\s.-]?){4}/);
-    if (phoneMatch) {
-      prospect.phone = phoneMatch[0].replace(/[\s.-]/g, '');
+    // --- Extract phone (French formats: 0X XX XX XX XX, +262 X XX XX XX XX) ---
+    const phonePatterns = [
+      /(?:\+262|0262)[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}/,  // Réunion landline
+      /(?:06|07)\d[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}/,       // Mobile
+      /(?:0[1-9])[\s.-]?(?:\d{2}[\s.-]?){4}/,                   // General French
+    ];
+    if (!prospect.phone) {
+      for (const pattern of phonePatterns) {
+        const match = content.match(pattern);
+        if (match) {
+          prospect.phone = match[0].replace(/[\s.-]/g, '');
+          break;
+        }
+      }
     }
 
-    // Try to extract rating
-    const ratingMatch = content.match(/(\d[.,]\d)\s*(?:\/\s*5|étoile|star)/i);
-    if (ratingMatch) {
-      prospect.rating = parseFloat(ratingMatch[1].replace(',', '.'));
+    // --- Extract email ---
+    if (!prospect.email) {
+      const emailMatch = content.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+      if (emailMatch) {
+        const email = emailMatch[0].toLowerCase();
+        // Skip generic/spam emails
+        if (!email.includes('example') && !email.includes('noreply') && !email.includes('pagesjaunes') && !email.includes('google')) {
+          prospect.email = email;
+        }
+      }
     }
 
-    // Try to extract reviews count
-    const reviewsMatch = content.match(/(\d+)\s*(?:avis|review|commentaire)/i);
-    if (reviewsMatch) {
-      prospect.reviews_count = parseInt(reviewsMatch[1]);
+    // --- Extract address (multiple patterns for Réunion addresses) ---
+    if (!prospect.address) {
+      const addressPatterns = [
+        // Numbered street addresses: "12 rue des Lilas, 97400 Saint-Denis"
+        /(\d{1,4}[\s,]*(?:rue|avenue|ave|boulevard|blvd|chemin|impasse|allée|route|rte|place|lot|résidence|lotissement|zone|za|zi|zac)[^,\n]{3,60})/i,
+        // Addresses with postal code: "97400 Saint-Denis" or similar
+        /(\d{1,4}[^,\n]{3,40},?\s*974\d{2}\s+[A-ZÀ-Ÿ][\wÀ-ÿ-]+)/i,
+        // Just postal code + city
+        /(974\d{2}\s+[A-ZÀ-Ÿ][\wÀ-ÿ\s-]{2,30})/,
+        // "Adresse :" pattern from structured pages
+        /(?:adresse|localisation|situé)\s*[:\-–]\s*([^\n]{5,80})/i,
+      ];
+      for (const pattern of addressPatterns) {
+        const match = content.match(pattern);
+        if (match) {
+          let addr = (match[1] || match[0]).trim();
+          // Clean up trailing punctuation
+          addr = addr.replace(/[,;.]+$/, '').trim();
+          if (addr.length >= 5 && addr.length <= 120) {
+            prospect.address = addr;
+            break;
+          }
+        }
+      }
     }
 
-    // Extract address patterns
-    const addressMatch = content.match(/(\d+[^,\n]{5,50}(?:rue|avenue|boulevard|chemin|impasse|allée|route|place|lot)[^,\n]{3,50})/i);
-    if (addressMatch) {
-      prospect.address = addressMatch[1].trim();
+    // --- Extract rating ---
+    if (!prospect.rating) {
+      const ratingPatterns = [
+        /(\d[.,]\d)\s*(?:\/\s*5|étoile|star|★)/i,
+        /note\s*[:\-–]?\s*(\d[.,]\d)/i,
+        /(\d[.,]\d)\s*sur\s*5/i,
+      ];
+      for (const pattern of ratingPatterns) {
+        const match = content.match(pattern);
+        if (match) {
+          prospect.rating = parseFloat(match[1].replace(',', '.'));
+          break;
+        }
+      }
     }
 
-    // Google Maps URL
-    if (result.url?.includes('google.com/maps')) {
+    // --- Extract reviews count ---
+    if (!prospect.reviews_count) {
+      const reviewsMatch = content.match(/(\d+)\s*(?:avis|review|commentaire|note)/i);
+      if (reviewsMatch) {
+        prospect.reviews_count = parseInt(reviewsMatch[1]);
+      }
+    }
+
+    // --- Google Maps URL ---
+    if (!prospect.google_maps_url && result.url?.includes('google.com/maps')) {
       prospect.google_maps_url = result.url;
     }
 
-    // Website from description
-    const urlMatch = content.match(/(?:www\.|https?:\/\/)([^\s,]+\.[a-z]{2,})/i);
-    if (urlMatch && !urlMatch[0].includes('google') && !urlMatch[0].includes('pagesjaunes')) {
-      prospect.website = urlMatch[0].startsWith('http') ? urlMatch[0] : `https://${urlMatch[0]}`;
+    // --- Website ---
+    if (!prospect.website) {
+      const urlMatch = content.match(/(?:site\s*(?:web|internet)?\s*[:\-–]?\s*)?(?:https?:\/\/|www\.)([\w.-]+\.[a-z]{2,}(?:\/[\w.-]*)?)/i);
+      if (urlMatch) {
+        const domain = urlMatch[1].toLowerCase();
+        if (!domain.includes('google') && !domain.includes('pagesjaunes') && !domain.includes('facebook') && !domain.includes('instagram')) {
+          prospect.website = domain.startsWith('http') ? domain : `https://${domain}`;
+        }
+      }
     }
 
-    prospects.push(prospect);
+    prospectMap.set(key, prospect);
   }
 
-  return prospects;
+  // Filter: only keep prospects with at least an address or phone
+  return Array.from(prospectMap.values()).filter(
+    (p) => p.address || p.phone || p.email
+  );
 }

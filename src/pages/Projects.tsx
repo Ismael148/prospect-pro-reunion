@@ -128,15 +128,14 @@ export default function Projects() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Date de début</Label>
-                  <Input type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Date de fin prévue</Label>
-                  <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} />
-                </div>
+              <div className="space-y-2">
+                <Label>Date de signature (début)</Label>
+                <Input type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
+                {form.pack_type && (
+                  <p className="text-xs text-muted-foreground">
+                    Deadline auto : {PACK_DEADLINE_DAYS[form.pack_type] || 15} jours
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Description</Label>

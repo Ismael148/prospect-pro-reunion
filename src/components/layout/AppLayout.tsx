@@ -8,7 +8,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         <main className="flex-1 flex flex-col">
-          <header className="h-14 border-b flex items-center px-4 gap-2 bg-card">
+          <header className="h-14 border-b border-border/50 flex items-center px-5 gap-2 glass sticky top-0 z-30">
             <SidebarTrigger />
             <div className="ml-auto">
               <NotificationBell />

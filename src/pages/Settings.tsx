@@ -1,5 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
+import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,10 +10,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { User, Shield, Bell, Palette, Save, Loader2 } from "lucide-react";
+import { User, Shield, Bell, Palette, Save, Loader2, Moon, Sun } from "lucide-react";
 
 export default function Settings() {
   const { profile, user, roles, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   const [fullName, setFullName] = useState(profile?.full_name || "");
   const [phone, setPhone] = useState(profile?.phone || "");
@@ -178,6 +180,34 @@ export default function Settings() {
             {changingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <Shield className="w-4 h-4" />}
             Changer le mot de passe
           </Button>
+        </CardContent>
+      </Card>
+
+      {/* Appearance */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <Palette className="w-5 h-5 text-primary" />
+            <div>
+              <CardTitle>Apparence</CardTitle>
+              <CardDescription>Personnalisez l'interface</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {theme === "dark" ? <Moon className="w-5 h-5 text-muted-foreground" /> : <Sun className="w-5 h-5 text-warning" />}
+              <div>
+                <p className="text-sm font-medium">Mode sombre</p>
+                <p className="text-xs text-muted-foreground">Basculer entre le thème clair et sombre</p>
+              </div>
+            </div>
+            <Switch
+              checked={theme === "dark"}
+              onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+            />
+          </div>
         </CardContent>
       </Card>
 

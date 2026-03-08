@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -7,36 +6,25 @@ import {
   useCreateDeliverable, useUpdateDeliverable,
 } from "@/hooks/use-projects";
 import {
-  PROJECT_STATUS_LABELS, PROJECT_STATUS_COLORS,
-  TASK_STATUS_LABELS, TASK_STATUS_COLORS,
-  TASK_PRIORITY_LABELS, TASK_PRIORITY_COLORS,
-  DELIVERABLE_STATUS_LABELS, DELIVERABLE_STATUS_COLORS,
-  PACK_DELIVERABLES,
+  PROJECT_STATUS_LABELS, PACK_LABELS,
+  PACK_DELIVERABLES, PACK_CHECKLISTS,
 } from "@/lib/constants";
-import { PACK_LABELS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
-} from "@/components/ui/dialog";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import {
-  ArrowLeft, Plus, Loader2, Building2, Calendar,
-  ListTodo, Package, CheckCircle2, Circle, Clock, AlertTriangle,
-} from "lucide-react";
+import { ArrowLeft, Loader2, Building2, Calendar } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
+import ProjectTimeline from "@/components/projects/ProjectTimeline";
+import ProjectTaskList from "@/components/projects/ProjectTaskList";
+import ProjectDeliverables from "@/components/projects/ProjectDeliverables";
 
 type ProjectStatus = Database["public"]["Enums"]["project_status"];
 type TaskStatus = Database["public"]["Enums"]["task_status"];
-type TaskPriority = Database["public"]["Enums"]["task_priority"];
 type DeliverableStatus = Database["public"]["Enums"]["deliverable_status"];
 
 export default function ProjectDetail() {
@@ -52,11 +40,6 @@ export default function ProjectDetail() {
   const createDeliverable = useCreateDeliverable();
   const updateDeliverable = useUpdateDeliverable();
 
-  const [taskOpen, setTaskOpen] = useState(false);
-  const [deliverableOpen, setDeliverableOpen] = useState(false);
-  const [taskForm, setTaskForm] = useState({ title: "", description: "", priority: "moyenne" as TaskPriority, due_date: "" });
-  const [deliverableForm, setDeliverableForm] = useState({ name: "", description: "" });
-
   const handleStatusChange = async (status: ProjectStatus) => {
     if (!project) return;
     try {
@@ -65,27 +48,9 @@ export default function ProjectDetail() {
     } catch { toast.error("Erreur"); }
   };
 
-  const handleAddTask = async () => {
-    if (!taskForm.title.trim()) { toast.error("Titre requis"); return; }
-    try {
-      await createTask.mutateAsync({
-        project_id: id!,
-        title: taskForm.title,
-        description: taskForm.description || null,
-        priority: taskForm.priority,
-        due_date: taskForm.due_date || null,
-        sort_order: (tasks?.length || 0) + 1,
-      });
-      toast.success("Tâche ajoutée");
-      setTaskOpen(false);
-      setTaskForm({ title: "", description: "", priority: "moyenne", due_date: "" });
-    } catch { toast.error("Erreur"); }
-  };
-
   const handleTaskStatusChange = async (taskId: string, status: TaskStatus) => {
     try {
       await updateTask.mutateAsync({ id: taskId, status });
-      // Recalculate progress
       const updatedTasks = tasks?.map((t) => t.id === taskId ? { ...t, status } : t) || [];
       const done = updatedTasks.filter((t) => t.status === "termine").length;
       const progress = updatedTasks.length > 0 ? Math.round((done / updatedTasks.length) * 100) : 0;
@@ -93,24 +58,47 @@ export default function ProjectDetail() {
     } catch { toast.error("Erreur"); }
   };
 
-  const handleAddDeliverable = async () => {
-    if (!deliverableForm.name.trim()) { toast.error("Nom requis"); return; }
+  const handleAutoGenerateChecklist = async () => {
+    if (!project) return;
+    const checklist = PACK_CHECKLISTS[project.pack_type] || [];
+    if (!checklist.length) { toast.error("Pas de checklist pour ce pack"); return; }
     try {
-      await createDeliverable.mutateAsync({
-        project_id: id!,
-        name: deliverableForm.name,
-        description: deliverableForm.description || null,
-      });
+      for (let i = 0; i < checklist.length; i++) {
+        const item = checklist[i];
+        const dueDate = project.start_date
+          ? new Date(new Date(project.start_date).getTime() + item.dayOffset * 86400000).toISOString().split("T")[0]
+          : null;
+        await createTask.mutateAsync({
+          project_id: id!,
+          title: item.title,
+          description: `[${item.category}] ${item.description || ""}`.trim(),
+          priority: item.priority,
+          due_date: dueDate,
+          sort_order: item.dayOffset * 100 + i,
+        });
+      }
+      toast.success(`${checklist.length} tâches webmaster créées`);
+    } catch { toast.error("Erreur lors de la génération"); }
+  };
+
+  const handleAddTask = async (task: Parameters<typeof createTask.mutateAsync>[0]) => {
+    try {
+      await createTask.mutateAsync(task);
+      toast.success("Tâche ajoutée");
+    } catch { toast.error("Erreur"); }
+  };
+
+  const handleAddDeliverable = async (d: Parameters<typeof createDeliverable.mutateAsync>[0]) => {
+    try {
+      await createDeliverable.mutateAsync(d);
       toast.success("Livrable ajouté");
-      setDeliverableOpen(false);
-      setDeliverableForm({ name: "", description: "" });
     } catch { toast.error("Erreur"); }
   };
 
   const handleAutoCreateDeliverables = async () => {
     if (!project) return;
     const packDeliverables = PACK_DELIVERABLES[project.pack_type] || [];
-    if (!packDeliverables.length) { toast.error("Pas de livrables prédéfinis pour ce pack"); return; }
+    if (!packDeliverables.length) { toast.error("Pas de livrables prédéfinis"); return; }
     try {
       for (const name of packDeliverables) {
         await createDeliverable.mutateAsync({ project_id: id!, name });
@@ -213,149 +201,33 @@ export default function ProjectDetail() {
         </Card>
       </div>
 
+      {/* Timeline */}
+      {tasks && tasks.length > 0 && (
+        <ProjectTimeline tasks={tasks} startDate={project.start_date} />
+      )}
+
       {/* Tasks */}
-      <Card className="border-0 shadow-md shadow-primary/5">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2"><ListTodo className="w-5 h-5" /> Tâches</CardTitle>
-          <Dialog open={taskOpen} onOpenChange={setTaskOpen}>
-            <DialogTrigger asChild><Button size="sm"><Plus className="w-4 h-4 mr-1" />Ajouter</Button></DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Nouvelle tâche</DialogTitle></DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="space-y-2">
-                  <Label>Titre *</Label>
-                  <Input value={taskForm.title} onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Description</Label>
-                  <Input value={taskForm.description} onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })} />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Priorité</Label>
-                    <Select value={taskForm.priority} onValueChange={(v) => setTaskForm({ ...taskForm, priority: v as TaskPriority })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(TASK_PRIORITY_LABELS).map(([k, v]) => (
-                          <SelectItem key={k} value={k}>{v}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Échéance</Label>
-                    <Input type="date" value={taskForm.due_date} onChange={(e) => setTaskForm({ ...taskForm, due_date: e.target.value })} />
-                  </div>
-                </div>
-                <Button onClick={handleAddTask} disabled={createTask.isPending}>
-                  {createTask.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Ajouter
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </CardHeader>
-        <CardContent>
-          {!tasks?.length ? (
-            <p className="text-muted-foreground text-sm text-center py-4">Aucune tâche</p>
-          ) : (
-            <div className="space-y-2">
-              {tasks.map((task) => {
-                const PriorityIcon = task.priority === "urgente" ? AlertTriangle : task.priority === "haute" ? AlertTriangle : Clock;
-                return (
-                  <div key={task.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                    <Checkbox
-                      checked={task.status === "termine"}
-                      onCheckedChange={(checked) =>
-                        handleTaskStatusChange(task.id, checked ? "termine" : "a_faire")
-                      }
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-medium ${task.status === "termine" ? "line-through text-muted-foreground" : ""}`}>
-                        {task.title}
-                      </p>
-                      {task.description && <p className="text-xs text-muted-foreground">{task.description}</p>}
-                    </div>
-                    <PriorityIcon className={`w-4 h-4 shrink-0 ${TASK_PRIORITY_COLORS[task.priority]}`} />
-                    <Select value={task.status} onValueChange={(v) => handleTaskStatusChange(task.id, v as TaskStatus)}>
-                      <SelectTrigger className="w-28 h-7 text-xs"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(TASK_STATUS_LABELS).map(([k, v]) => (
-                          <SelectItem key={k} value={k}>{v}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <ProjectTaskList
+        projectId={id!}
+        packType={project.pack_type}
+        startDate={project.start_date}
+        tasks={tasks}
+        onAddTask={handleAddTask}
+        onTaskStatusChange={handleTaskStatusChange}
+        onAutoGenerate={handleAutoGenerateChecklist}
+        isCreating={createTask.isPending}
+      />
 
       {/* Deliverables */}
-      <Card className="border-0 shadow-md shadow-primary/5">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2"><Package className="w-5 h-5" /> Livrables</CardTitle>
-          <div className="flex gap-2">
-            {!deliverables?.length && PACK_DELIVERABLES[project.pack_type]?.length > 0 && (
-              <Button size="sm" variant="outline" onClick={handleAutoCreateDeliverables}>
-                Générer depuis le pack
-              </Button>
-            )}
-            <Dialog open={deliverableOpen} onOpenChange={setDeliverableOpen}>
-              <DialogTrigger asChild><Button size="sm"><Plus className="w-4 h-4 mr-1" />Ajouter</Button></DialogTrigger>
-              <DialogContent>
-                <DialogHeader><DialogTitle>Nouveau livrable</DialogTitle></DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="space-y-2">
-                    <Label>Nom *</Label>
-                    <Input value={deliverableForm.name} onChange={(e) => setDeliverableForm({ ...deliverableForm, name: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Description</Label>
-                    <Input value={deliverableForm.description} onChange={(e) => setDeliverableForm({ ...deliverableForm, description: e.target.value })} />
-                  </div>
-                  <Button onClick={handleAddDeliverable} disabled={createDeliverable.isPending}>
-                    {createDeliverable.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    Ajouter
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {!deliverables?.length ? (
-            <p className="text-muted-foreground text-sm text-center py-4">Aucun livrable</p>
-          ) : (
-            <div className="space-y-2">
-              {deliverables.map((d) => {
-                const StatusIcon = d.status === "approuve" ? CheckCircle2 : d.status === "rejete" ? AlertTriangle : Circle;
-                return (
-                  <div key={d.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                    <StatusIcon className={`w-5 h-5 shrink-0 ${
-                      d.status === "approuve" ? "text-success" : d.status === "rejete" ? "text-destructive" : "text-muted-foreground"
-                    }`} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">{d.name}</p>
-                      {d.description && <p className="text-xs text-muted-foreground">{d.description}</p>}
-                    </div>
-                    <Select value={d.status} onValueChange={(v) => handleDeliverableStatusChange(d.id, v as DeliverableStatus)}>
-                      <SelectTrigger className="w-32 h-7 text-xs"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(DELIVERABLE_STATUS_LABELS).map(([k, v]) => (
-                          <SelectItem key={k} value={k}>{v}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <ProjectDeliverables
+        projectId={id!}
+        packType={project.pack_type}
+        deliverables={deliverables}
+        onAdd={handleAddDeliverable}
+        onStatusChange={handleDeliverableStatusChange}
+        onAutoCreate={handleAutoCreateDeliverables}
+        isCreating={createDeliverable.isPending}
+      />
     </div>
   );
 }

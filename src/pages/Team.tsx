@@ -11,8 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Loader2, UserPlus, Shield, Phone, MapPin, Users } from "lucide-react";
+import { Loader2, UserPlus, Shield, Phone, MapPin, Users, Copy, Check, Link2, Key } from "lucide-react";
 import { Navigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import type { Database } from "@/integrations/supabase/types";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
@@ -43,6 +44,14 @@ const ROLE_COLORS: Record<AppRole, string> = {
   commercial_terrain: "bg-warning/10 text-warning-foreground border-warning/20",
 };
 
+interface InviteResult {
+  invite_link: string;
+  temp_password: string;
+  full_name: string;
+  email: string;
+  role: AppRole;
+}
+
 export default function Team() {
   const { hasRole, user } = useAuth();
   const [members, setMembers] = useState<TeamMember[]>([]);
@@ -50,6 +59,8 @@ export default function Team() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviting, setInviting] = useState(false);
   const [inviteForm, setInviteForm] = useState({ email: "", full_name: "", role: "agent_telephonique" as AppRole });
+  const [inviteResult, setInviteResult] = useState<InviteResult | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
   const isAdmin = hasRole("admin");
 
   const fetchMembers = async () => {
@@ -78,6 +89,13 @@ export default function Team() {
     return <Navigate to="/" replace />;
   }
 
+  const handleCopy = async (text: string, field: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopied(field);
+    toast.success("Copié !");
+    setTimeout(() => setCopied(null), 2000);
+  };
+
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     setInviting(true);
@@ -87,9 +105,16 @@ export default function Team() {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
+
+      setInviteResult({
+        invite_link: data.invite_link || "",
+        temp_password: data.temp_password || "",
+        full_name: inviteForm.full_name,
+        email: inviteForm.email,
+        role: inviteForm.role,
+      });
+
       toast.success(`${inviteForm.full_name} a été invité avec succès`);
-      setInviteOpen(false);
-      setInviteForm({ email: "", full_name: "", role: "agent_telephonique" });
       fetchMembers();
     } catch (err: any) {
       toast.error(err.message || "Erreur lors de l'invitation");
@@ -97,8 +122,13 @@ export default function Team() {
     setInviting(false);
   };
 
+  const handleCloseInvite = () => {
+    setInviteOpen(false);
+    setInviteResult(null);
+    setInviteForm({ email: "", full_name: "", role: "agent_telephonique" });
+  };
+
   const handleRoleChange = async (userId: string, newRole: AppRole) => {
-    // Remove existing roles then add new one
     const { error: deleteError } = await supabase
       .from("user_roles")
       .delete()
@@ -134,58 +164,138 @@ export default function Team() {
           </p>
         </div>
 
-        <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+        <Dialog open={inviteOpen} onOpenChange={(open) => {
+          if (!open) handleCloseInvite();
+          else setInviteOpen(true);
+        }}>
           <DialogTrigger asChild>
             <Button>
               <UserPlus className="w-4 h-4 mr-2" />
               Inviter un membre
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Inviter un nouveau membre</DialogTitle>
+              <DialogTitle>
+                {inviteResult ? "🎉 Invitation créée" : "Inviter un nouveau membre"}
+              </DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleInvite} className="space-y-4 mt-2">
-              <div className="space-y-2">
-                <Label>Nom complet</Label>
-                <Input
-                  placeholder="Jean Dupont"
-                  value={inviteForm.full_name}
-                  onChange={(e) => setInviteForm({ ...inviteForm, full_name: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Email</Label>
-                <Input
-                  type="email"
-                  placeholder="jean@exemple.com"
-                  value={inviteForm.email}
-                  onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Rôle</Label>
-                <Select
-                  value={inviteForm.role}
-                  onValueChange={(v) => setInviteForm({ ...inviteForm, role: v as AppRole })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="admin">Administrateur</SelectItem>
-                    <SelectItem value="agent_telephonique">Agent téléphonique</SelectItem>
-                    <SelectItem value="commercial_terrain">Commercial terrain</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button type="submit" className="w-full" disabled={inviting}>
-                {inviting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
-                Envoyer l'invitation
-              </Button>
-            </form>
+
+            {inviteResult ? (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-4 mt-2"
+              >
+                <div className="rounded-lg bg-success/10 border border-success/20 p-4 space-y-2">
+                  <p className="text-sm font-medium text-success">
+                    {inviteResult.full_name} ({ROLE_LABELS[inviteResult.role]})
+                  </p>
+                  <p className="text-xs text-muted-foreground">{inviteResult.email}</p>
+                </div>
+
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Partagez ces identifiants avec l'agent pour qu'il puisse se connecter :
+                  </p>
+
+                  {/* Email */}
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Email de connexion</Label>
+                    <div className="flex gap-2">
+                      <Input value={inviteResult.email} readOnly className="text-sm bg-muted" />
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        onClick={() => handleCopy(inviteResult.email, "email")}
+                      >
+                        {copied === "email" ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Password */}
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Key className="w-3 h-3" /> Mot de passe temporaire
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input value={inviteResult.temp_password} readOnly className="text-sm bg-muted font-mono" />
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        onClick={() => handleCopy(inviteResult.temp_password, "password")}
+                      >
+                        {copied === "password" ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Quick copy all */}
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => handleCopy(
+                      `Bonjour ${inviteResult.full_name} !\n\nVoici tes accès à la plateforme Adamkom :\n\n🔗 Lien : ${window.location.origin}/auth\n📧 Email : ${inviteResult.email}\n🔑 Mot de passe : ${inviteResult.temp_password}\n\nConnecte-toi et change ton mot de passe dès que possible.`,
+                      "all"
+                    )}
+                  >
+                    {copied === "all" ? <Check className="w-4 h-4 mr-2 text-success" /> : <Copy className="w-4 h-4 mr-2" />}
+                    Copier le message complet
+                  </Button>
+
+                  <p className="text-xs text-muted-foreground text-center">
+                    L'agent pourra se connecter avec ces identifiants sur la page de connexion.
+                  </p>
+                </div>
+
+                <Button onClick={handleCloseInvite} className="w-full">
+                  Fermer
+                </Button>
+              </motion.div>
+            ) : (
+              <form onSubmit={handleInvite} className="space-y-4 mt-2">
+                <div className="space-y-2">
+                  <Label>Nom complet</Label>
+                  <Input
+                    placeholder="Jean Dupont"
+                    value={inviteForm.full_name}
+                    onChange={(e) => setInviteForm({ ...inviteForm, full_name: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input
+                    type="email"
+                    placeholder="jean@exemple.com"
+                    value={inviteForm.email}
+                    onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Rôle</Label>
+                  <Select
+                    value={inviteForm.role}
+                    onValueChange={(v) => setInviteForm({ ...inviteForm, role: v as AppRole })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="admin">Administrateur</SelectItem>
+                      <SelectItem value="agent_telephonique">Agent téléphonique</SelectItem>
+                      <SelectItem value="commercial_terrain">Commercial terrain</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button type="submit" className="w-full" disabled={inviting}>
+                  {inviting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                  Créer l'invitation
+                </Button>
+              </form>
+            )}
           </DialogContent>
         </Dialog>
       </div>

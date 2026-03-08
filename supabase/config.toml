@@ -2,3 +2,6 @@ project_id = "qaxlpmxekcvbrcnqopbp"
 
 [functions.search-prospects]
 verify_jwt = false
+
+[functions.invite-user]
+verify_jwt = false

@@ -1,5 +1,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from "../_shared/cors.ts";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -8,35 +12,59 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("Missing authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // Verify caller is admin
+    // Verify caller is authenticated
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: { user } } = await userClient.auth.getUser();
-    if (!user) throw new Error("Not authenticated");
 
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const callerId = claimsData.claims.sub;
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
-    
+
     // Check admin role
     const { data: isAdmin } = await adminClient.rpc("has_role", {
-      _user_id: user.id,
+      _user_id: callerId,
       _role: "admin",
     });
-    if (!isAdmin) throw new Error("Admin access required");
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: "Admin access required" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const { email, full_name, role } = await req.json();
-    if (!email || !full_name || !role) throw new Error("Missing fields");
+    if (!email || !full_name || !role) {
+      return new Response(JSON.stringify({ error: "Missing fields: email, full_name, role" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    // Create user via admin API
+    // Create user with a temporary password
+    const tempPassword = crypto.randomUUID().slice(0, 16) + "!A1";
     const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
       email,
-      password: crypto.randomUUID().slice(0, 12),
+      password: tempPassword,
       email_confirm: true,
       user_metadata: { full_name },
     });
@@ -50,17 +78,34 @@ Deno.serve(async (req) => {
     });
     if (roleError) throw roleError;
 
-    // Send password reset so user can set their own password
-    await adminClient.auth.admin.generateLink({
-      type: "recovery",
+    // Generate a magic link so the user can set their password
+    const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+      type: "magiclink",
       email,
+      options: {
+        redirectTo: `${supabaseUrl.replace('.supabase.co', '.lovable.app')}/`,
+      },
     });
 
+    // Build the invite link from the generated token
+    let inviteLink = "";
+    if (linkData?.properties?.hashed_token) {
+      inviteLink = `${supabaseUrl}/auth/v1/verify?token=${linkData.properties.hashed_token}&type=magiclink&redirect_to=${encodeURIComponent(req.headers.get("origin") || supabaseUrl)}`;
+    } else if (linkData?.properties?.action_link) {
+      inviteLink = linkData.properties.action_link;
+    }
+
     return new Response(
-      JSON.stringify({ success: true, user_id: newUser.user.id }),
+      JSON.stringify({
+        success: true,
+        user_id: newUser.user.id,
+        invite_link: inviteLink,
+        temp_password: tempPassword,
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {
+    console.error("invite-user error:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }

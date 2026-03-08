@@ -141,14 +141,15 @@ export default function Projects() {
                 <Label>Description</Label>
                 <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} />
               </div>
-              {form.pack_type && PACK_DELIVERABLES[form.pack_type]?.length > 0 && (
+              {form.pack_type && PACK_MODULES[form.pack_type]?.length > 0 && (
                 <div className="rounded-lg bg-muted/50 p-3">
-                  <p className="text-xs font-medium text-muted-foreground mb-2">Livrables inclus dans ce pack :</p>
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Modules inclus dans ce pack :</p>
                   <ul className="text-sm space-y-1">
-                    {PACK_DELIVERABLES[form.pack_type].map((d, i) => (
+                    {PACK_MODULES[form.pack_type].map((m, i) => (
                       <li key={i} className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                        {d}
+                        <span>{m.icon}</span>
+                        <span>{m.name}</span>
+                        <span className="text-xs text-muted-foreground ml-auto">{m.tasks.length} tâches • {m.deadlineDays}j</span>
                       </li>
                     ))}
                   </ul>

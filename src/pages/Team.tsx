@@ -74,6 +74,10 @@ export default function Team() {
     fetchMembers();
   }, []);
 
+  if (!isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     setInviting(true);

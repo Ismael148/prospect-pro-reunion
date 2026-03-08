@@ -84,6 +84,14 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/equipe"
+              element={
+                <ProtectedRoute>
+                  <AppLayout><Team /></AppLayout>
+                </ProtectedRoute>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

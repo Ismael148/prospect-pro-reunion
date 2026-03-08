@@ -14,6 +14,148 @@ export type Database = {
   }
   public: {
     Tables: {
+      client_activities: {
+        Row: {
+          activity_type: string
+          client_id: string
+          created_at: string
+          description: string | null
+          id: string
+          new_status: Database["public"]["Enums"]["pipeline_status"] | null
+          old_status: Database["public"]["Enums"]["pipeline_status"] | null
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          client_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          new_status?: Database["public"]["Enums"]["pipeline_status"] | null
+          old_status?: Database["public"]["Enums"]["pipeline_status"] | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          client_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          new_status?: Database["public"]["Enums"]["pipeline_status"] | null
+          old_status?: Database["public"]["Enums"]["pipeline_status"] | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_activities_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          address: string | null
+          assigned_to: string | null
+          city: string | null
+          company_name: string
+          created_at: string
+          created_by: string
+          id: string
+          notes: string | null
+          pack_type: Database["public"]["Enums"]["pack_type"] | null
+          pipeline_status: Database["public"]["Enums"]["pipeline_status"]
+          postal_code: string | null
+          sector: string | null
+          siret: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          assigned_to?: string | null
+          city?: string | null
+          company_name: string
+          created_at?: string
+          created_by: string
+          id?: string
+          notes?: string | null
+          pack_type?: Database["public"]["Enums"]["pack_type"] | null
+          pipeline_status?: Database["public"]["Enums"]["pipeline_status"]
+          postal_code?: string | null
+          sector?: string | null
+          siret?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          assigned_to?: string | null
+          city?: string | null
+          company_name?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          notes?: string | null
+          pack_type?: Database["public"]["Enums"]["pack_type"] | null
+          pipeline_status?: Database["public"]["Enums"]["pipeline_status"]
+          postal_code?: string | null
+          sector?: string | null
+          siret?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      contacts: {
+        Row: {
+          client_id: string
+          created_at: string
+          email: string | null
+          first_name: string
+          id: string
+          is_primary: boolean | null
+          last_name: string
+          phone: string | null
+          position: string | null
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          email?: string | null
+          first_name: string
+          id?: string
+          is_primary?: boolean | null
+          last_name: string
+          phone?: string | null
+          position?: string | null
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          email?: string | null
+          first_name?: string
+          id?: string
+          is_primary?: boolean | null
+          last_name?: string
+          phone?: string | null
+          position?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -77,6 +219,15 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "agent_telephonique" | "commercial_terrain"
+      pack_type: "star_bizness_numerik" | "star_bizness_nfc" | "autre"
+      pipeline_status:
+        | "nouveau"
+        | "contacte"
+        | "rdv_planifie"
+        | "proposition_envoyee"
+        | "negociation"
+        | "contrat_signe"
+        | "perdu"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -205,6 +356,16 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "agent_telephonique", "commercial_terrain"],
+      pack_type: ["star_bizness_numerik", "star_bizness_nfc", "autre"],
+      pipeline_status: [
+        "nouveau",
+        "contacte",
+        "rdv_planifie",
+        "proposition_envoyee",
+        "negociation",
+        "contrat_signe",
+        "perdu",
+      ],
     },
   },
 } as const

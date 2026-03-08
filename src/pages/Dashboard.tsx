@@ -29,7 +29,7 @@ export default function Dashboard() {
 
   const stats = [
     { title: "Clients", value: totalClients.toString(), icon: Users, color: "text-primary", path: "/clients" },
-    { title: "Nouveaux prospects", value: newProspects.toString(), icon: Search, color: "text-info", path: "/clients" },
+    { title: "Prospects", value: totalProspects.toString(), icon: Radar, color: "text-info", path: "/prospection" },
     { title: "Contrats signés", value: activeProjects.toString(), icon: FolderKanban, color: "text-success", path: "/pipeline" },
     { title: "Taux conversion", value: `${conversionRate}%`, icon: TrendingUp, color: "text-warning", path: "/pipeline" },
   ];

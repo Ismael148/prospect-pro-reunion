@@ -62,9 +62,7 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary text-primary-foreground mb-4">
-            <Zap className="w-7 h-7" />
-          </div>
+          <img src={logo} alt="Adamkom" className="w-20 h-20 mx-auto object-contain" />
           <h1 className="text-3xl font-bold tracking-tight">Adamkom</h1>
           <p className="text-muted-foreground">Plateforme de gestion clients & projets</p>
         </div>

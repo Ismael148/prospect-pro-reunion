@@ -59,9 +59,7 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-sidebar-primary text-sidebar-primary-foreground">
-            <Zap className="w-5 h-5" />
-          </div>
+          <img src={logo} alt="Adamkom" className="w-9 h-9 object-contain" />
           <div>
             <h2 className="font-semibold text-sm tracking-tight font-[Space_Grotesk]">Adamkom</h2>
             <p className="text-xs text-sidebar-foreground/60">Gestion & CRM</p>

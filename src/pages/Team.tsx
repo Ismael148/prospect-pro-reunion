@@ -50,10 +50,7 @@ export default function Team() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviting, setInviting] = useState(false);
   const [inviteForm, setInviteForm] = useState({ email: "", full_name: "", role: "agent_telephonique" as AppRole });
-
-  if (!hasRole("admin")) {
-    return <Navigate to="/" replace />;
-  }
+  const isAdmin = hasRole("admin");
 
   const fetchMembers = async () => {
     setLoading(true);

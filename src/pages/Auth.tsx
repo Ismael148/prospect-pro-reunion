@@ -4,10 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Loader2, Zap } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import logo from "@/assets/logo.webp";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -58,9 +59,7 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary text-primary-foreground mb-4">
-            <Zap className="w-7 h-7" />
-          </div>
+          <img src={logo} alt="Adamkom" className="w-20 h-20 mx-auto object-contain" />
           <h1 className="text-3xl font-bold tracking-tight">Adamkom</h1>
           <p className="text-muted-foreground">Plateforme de gestion clients & projets</p>
         </div>

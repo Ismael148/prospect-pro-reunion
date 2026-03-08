@@ -123,6 +123,7 @@ export function useSearchProspects() {
         address?: string;
         city?: string;
         phone?: string;
+        email?: string;
         website?: string;
         sector?: string;
         rating?: number;

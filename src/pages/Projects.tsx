@@ -51,14 +51,18 @@ export default function Projects() {
       toast.error("Client, nom et pack sont requis");
       return;
     }
+    // Auto-calculate due_date = start_date + pack deadline
+    const startDate = form.start_date || new Date().toISOString().split("T")[0];
+    const deadlineDays = PACK_DEADLINE_DAYS[form.pack_type] || 15;
+    const autoDeadline = new Date(new Date(startDate).getTime() + deadlineDays * 86400000).toISOString().split("T")[0];
     try {
       await createProject.mutateAsync({
         client_id: form.client_id,
         name: form.name,
         description: form.description || null,
         pack_type: form.pack_type as PackType,
-        start_date: form.start_date || null,
-        due_date: form.due_date || null,
+        start_date: startDate,
+        due_date: form.due_date || autoDeadline,
         created_by: user!.id,
         assigned_to: user!.id,
       });

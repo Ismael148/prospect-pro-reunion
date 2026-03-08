@@ -93,6 +93,14 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/parametres"
+              element={
+                <ProtectedRoute>
+                  <AppLayout><Settings /></AppLayout>
+                </ProtectedRoute>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

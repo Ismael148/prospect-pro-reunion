@@ -1,17 +1,19 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useClients } from "@/hooks/use-clients";
+import { useProspects } from "@/hooks/use-prospects";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Search, FolderKanban, TrendingUp } from "lucide-react";
+import { Users, Search, FolderKanban, TrendingUp, Radar } from "lucide-react";
 import { PIPELINE_LABELS, PIPELINE_COLORS, PIPELINE_ORDER } from "@/lib/constants";
 import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
   const { profile, roles } = useAuth();
   const { data: clients } = useClients();
+  const { data: prospects } = useProspects();
   const navigate = useNavigate();
 
   const totalClients = clients?.length || 0;
-  const newProspects = clients?.filter((c) => c.pipeline_status === "nouveau").length || 0;
+  const totalProspects = prospects?.length || 0;
   const activeProjects = clients?.filter((c) => c.pipeline_status === "contrat_signe").length || 0;
   const conversionRate = totalClients > 0
     ? Math.round((activeProjects / totalClients) * 100)

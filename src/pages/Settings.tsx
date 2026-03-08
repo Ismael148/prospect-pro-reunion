@@ -183,6 +183,34 @@ export default function Settings() {
         </CardContent>
       </Card>
 
+      {/* Appearance */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <Palette className="w-5 h-5 text-primary" />
+            <div>
+              <CardTitle>Apparence</CardTitle>
+              <CardDescription>Personnalisez l'interface</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {theme === "dark" ? <Moon className="w-5 h-5 text-muted-foreground" /> : <Sun className="w-5 h-5 text-warning" />}
+              <div>
+                <p className="text-sm font-medium">Mode sombre</p>
+                <p className="text-xs text-muted-foreground">Basculer entre le thème clair et sombre</p>
+              </div>
+            </div>
+            <Switch
+              checked={theme === "dark"}
+              onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Danger zone */}
       <Card className="border-destructive/30">
         <CardHeader>

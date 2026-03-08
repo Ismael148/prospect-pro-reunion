@@ -28,7 +28,7 @@ const menuItems = [
   { title: "Dashboard", icon: LayoutDashboard, path: "/" },
   { title: "Clients", icon: Users, path: "/clients" },
   { title: "Prospection", icon: Search, path: "/prospection" },
-  { title: "Projets", icon: FolderKanban, path: "/projets" },
+  { title: "Pipeline", icon: FolderKanban, path: "/pipeline" },
 ];
 
 const adminItems = [

@@ -1,16 +1,21 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useClients } from "@/hooks/use-clients";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Search, FolderKanban, TrendingUp } from "lucide-react";
-
-const stats = [
-  { title: "Clients", value: "0", icon: Users, color: "text-primary" },
-  { title: "Prospects", value: "0", icon: Search, color: "text-accent" },
-  { title: "Projets actifs", value: "0", icon: FolderKanban, color: "text-warning" },
-  { title: "Taux conversion", value: "0%", icon: TrendingUp, color: "text-success" },
-];
+import { PIPELINE_LABELS, PIPELINE_COLORS, PIPELINE_ORDER } from "@/lib/constants";
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
   const { profile, roles } = useAuth();
+  const { data: clients } = useClients();
+  const navigate = useNavigate();
+
+  const totalClients = clients?.length || 0;
+  const newProspects = clients?.filter((c) => c.pipeline_status === "nouveau").length || 0;
+  const activeProjects = clients?.filter((c) => c.pipeline_status === "contrat_signe").length || 0;
+  const conversionRate = totalClients > 0
+    ? Math.round((activeProjects / totalClients) * 100)
+    : 0;
 
   const roleLabel = roles.includes("admin")
     ? "Administrateur"
@@ -19,6 +24,21 @@ export default function Dashboard() {
     : roles.includes("agent_telephonique")
     ? "Agent téléphonique"
     : "Utilisateur";
+
+  const stats = [
+    { title: "Clients", value: totalClients.toString(), icon: Users, color: "text-primary", path: "/clients" },
+    { title: "Nouveaux prospects", value: newProspects.toString(), icon: Search, color: "text-info", path: "/clients" },
+    { title: "Contrats signés", value: activeProjects.toString(), icon: FolderKanban, color: "text-success", path: "/pipeline" },
+    { title: "Taux conversion", value: `${conversionRate}%`, icon: TrendingUp, color: "text-warning", path: "/pipeline" },
+  ];
+
+  // Pipeline summary
+  const pipelineSummary = PIPELINE_ORDER.map((status) => ({
+    status,
+    label: PIPELINE_LABELS[status],
+    count: clients?.filter((c) => c.pipeline_status === status).length || 0,
+    colors: PIPELINE_COLORS[status],
+  }));
 
   return (
     <div className="space-y-8">
@@ -33,7 +53,11 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat) => (
-          <Card key={stat.title} className="border-0 shadow-md shadow-primary/5">
+          <Card
+            key={stat.title}
+            className="border-0 shadow-md shadow-primary/5 cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => navigate(stat.path)}
+          >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {stat.title}
@@ -50,23 +74,57 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="border-0 shadow-md shadow-primary/5">
           <CardHeader>
-            <CardTitle className="text-lg">Activité récente</CardTitle>
+            <CardTitle className="text-lg">Pipeline</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground text-sm">
-              Aucune activité pour le moment. Commencez par ajouter des clients ou lancer une prospection.
-            </p>
+          <CardContent className="space-y-2">
+            {pipelineSummary.map((item) => (
+              <div key={item.status} className="flex items-center gap-3">
+                <div className={`px-2.5 py-1 rounded text-xs border font-medium min-w-[140px] ${item.colors}`}>
+                  {item.label}
+                </div>
+                <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-primary/60 transition-all"
+                    style={{ width: totalClients > 0 ? `${(item.count / totalClients) * 100}%` : "0%" }}
+                  />
+                </div>
+                <span className="text-sm font-medium w-8 text-right">{item.count}</span>
+              </div>
+            ))}
           </CardContent>
         </Card>
 
         <Card className="border-0 shadow-md shadow-primary/5">
           <CardHeader>
-            <CardTitle className="text-lg">Tâches à faire</CardTitle>
+            <CardTitle className="text-lg">Derniers clients</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground text-sm">
-              Aucune tâche en attente.
-            </p>
+            {!clients?.length ? (
+              <p className="text-muted-foreground text-sm">
+                Aucun client. Commencez par en ajouter un !
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {clients.slice(0, 5).map((client) => (
+                  <div
+                    key={client.id}
+                    className="flex items-center gap-3 cursor-pointer hover:bg-muted/50 rounded-lg p-2 -mx-2 transition-colors"
+                    onClick={() => navigate(`/clients/${client.id}`)}
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
+                      {client.company_name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{client.company_name}</p>
+                      <p className="text-xs text-muted-foreground">{client.city}</p>
+                    </div>
+                    <span className={`text-xs border px-2 py-0.5 rounded ${PIPELINE_COLORS[client.pipeline_status]}`}>
+                      {PIPELINE_LABELS[client.pipeline_status]}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

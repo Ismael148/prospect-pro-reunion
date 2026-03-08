@@ -123,146 +123,178 @@ export const PACK_DELIVERABLES: Record<string, string[]> = {
   autre: [],
 };
 
-// Webmaster checklist templates per pack type (with day offset from project start)
-export interface ChecklistItem {
+// ============ PROJECT MODULES ============
+
+export interface ModuleTask {
   title: string;
   description?: string;
-  dayOffset: number;
   priority: TaskPriority;
-  category: string;
 }
 
-export const CHECKLIST_CATEGORY_LABELS: Record<string, string> = {
-  admin: "📋 Administratif",
-  mail: "📧 Mail professionnel",
-  wordpress: "⚙️ WordPress",
-  theme: "🎨 Thème & Design",
-  contenu: "📝 Contenu & Images",
-  formulaire: "📬 Formulaires & SMTP",
-  securite: "🔒 Sécurité",
-  rgaa_rgpd: "♿ RGAA / RGPD",
-  chatbot: "🤖 Chatbot IA",
-  porteparole: "🗣️ Porte-Parole Virtuel",
-  seo: "🔍 SEO / Référencement",
-  nfc: "💳 Carte NFC & Affiches",
-  annuaire: "📒 Annuaire entreprises974",
-  reseaux: "📱 Réseaux sociaux",
-  qualite: "✅ Contrôle qualité",
-  formation: "📚 Formation client",
-};
+export interface ProjectModule {
+  id: string;
+  name: string;
+  icon: string;
+  deadlineDays: number; // days from project start
+  tasks: ModuleTask[];
+}
 
-export const CHECKLIST_CATEGORY_ORDER: string[] = [
-  "admin", "mail", "wordpress", "theme", "contenu", "formulaire",
-  "securite", "rgaa_rgpd", "chatbot", "porteparole", "seo",
-  "nfc", "annuaire", "reseaux", "qualite", "formation",
-];
-
-export const PACK_CHECKLISTS: Record<string, ChecklistItem[]> = {
+export const PACK_MODULES: Record<string, ProjectModule[]> = {
   star_bizness_numerik: [
-    // ADMIN
-    { title: "Récupérer infos client (logo, textes, photos, coordonnées)", dayOffset: 0, priority: "urgente", category: "admin" },
-    { title: "Stocker toutes les infos client dans le CRM", dayOffset: 0, priority: "haute", category: "admin" },
-
-    // MAIL PRO
-    { title: "Créer l'adresse e-mail pro : contact@[nom_de_domaine]", dayOffset: 0, priority: "urgente", category: "mail", description: "Mot de passe par défaut : $Contact148" },
-    { title: "Configurer le SMTP LWS sur WordPress (WP Mail SMTP)", dayOffset: 1, priority: "haute", category: "mail", description: "Serveur: mail.nomdedomaine.com | Port: 465 SSL ou 587 TLS" },
-    { title: "Tester l'envoi d'e-mail via le SMTP configuré", dayOffset: 1, priority: "haute", category: "mail" },
-
-    // WORDPRESS
-    { title: "Installer WordPress sur l'hébergement LWS", dayOffset: 0, priority: "urgente", category: "wordpress" },
-    { title: "Configurer les identifiants admin WordPress", dayOffset: 0, priority: "urgente", category: "wordpress" },
-
-    // THÈME & DESIGN
-    { title: "Choisir un thème optimisé sur Envato Elements ou GNU", dayOffset: 0, priority: "urgente", category: "theme", description: "Thème rapide, responsive, compatible extensions" },
-    { title: "Valider le thème choisi avec le responsable (Discord)", dayOffset: 0, priority: "haute", category: "theme" },
-    { title: "Installer et activer le thème validé", dayOffset: 1, priority: "urgente", category: "theme" },
-    { title: "Structurer le site avec Google AI selon infos client", dayOffset: 1, priority: "haute", category: "theme" },
-    { title: "Créer le Hero Banner (vidéo animée en arrière-plan)", dayOffset: 1, priority: "haute", category: "theme" },
-    { title: "Respecter la charte graphique client (couleurs, logo)", dayOffset: 1, priority: "haute", category: "theme" },
-    { title: "Ajouter des animations sur textes, boutons, images", dayOffset: 2, priority: "moyenne", category: "theme" },
-    { title: "Configurer le pied de page (fond sombre, infos clés)", dayOffset: 2, priority: "haute", category: "theme", description: "Footer: Tous droits réservés. Propulsé par Adamkom by JJP" },
-
-    // CONTENU & IMAGES
-    { title: "Optimiser les images (TinyPNG/Imagify, format WebP)", dayOffset: 1, priority: "haute", category: "contenu" },
-    { title: "Utiliser des visuels clairs et professionnels (Freepik si besoin)", dayOffset: 1, priority: "haute", category: "contenu" },
-    { title: "Créer la page d'accueil", dayOffset: 1, priority: "urgente", category: "contenu" },
-    { title: "Créer la page Services / Prestations", dayOffset: 1, priority: "haute", category: "contenu" },
-    { title: "Créer la page Contact", dayOffset: 1, priority: "haute", category: "contenu" },
-    { title: "Créer la page À propos", dayOffset: 2, priority: "moyenne", category: "contenu" },
-    { title: "Générer CGV, mentions légales, politique de confidentialité", dayOffset: 2, priority: "haute", category: "contenu", description: "Générer via Google IA" },
-
-    // FORMULAIRES & SMTP
-    { title: "Installer un formulaire de contact (WPForms/Fluent Forms)", dayOffset: 2, priority: "haute", category: "formulaire" },
-    { title: "Configurer l'autorépondeur lié au mail pro", dayOffset: 2, priority: "haute", category: "formulaire" },
-    { title: "Vérifier les notifications (Notif Admin + Notif Client)", dayOffset: 2, priority: "haute", category: "formulaire" },
-
-    // SÉCURITÉ
-    { title: "Installer un plugin de sécurité (Wordfence/Sucuri)", dayOffset: 2, priority: "haute", category: "securite" },
-    { title: "Configurer sauvegarde automatique (UpdraftPlus/BackupBuddy)", dayOffset: 2, priority: "haute", category: "securite" },
-    { title: "Installer WP Rocket pour la performance", dayOffset: 2, priority: "haute", category: "securite" },
-
-    // RGAA / RGPD
-    { title: "Installer l'outil d'inclusivité web (AdaBundle/RGAA)", dayOffset: 2, priority: "haute", category: "rgaa_rgpd", description: "Configurer sur AdaBundle, activer toutes les fonctionnalités" },
-    { title: "Ajouter la bannière de consentement cookies (Cookies Yes)", dayOffset: 2, priority: "haute", category: "rgaa_rgpd" },
-
-    // CHATBOT IA
-    { title: "Créer un workspace client sur AICoaches", dayOffset: 2, priority: "haute", category: "chatbot" },
-    { title: "Créer/choisir l'avatar coach IA adapté à l'activité", dayOffset: 2, priority: "haute", category: "chatbot", description: "Ajouter base prompt + infos entreprise" },
-    { title: "Configurer le widget chat (thème, apparence, messages)", dayOffset: 3, priority: "haute", category: "chatbot" },
-    { title: "Intégrer le script chatbot sur le site", dayOffset: 3, priority: "haute", category: "chatbot" },
-    { title: "Créer l'accès backoffice client sur AICoaches", dayOffset: 3, priority: "moyenne", category: "chatbot", description: "Credit: 80 tokens, Caractères: 80000" },
-
-    // PORTE-PAROLE VIRTUEL
-    { title: "Créer le script de présentation (30s max) via ChatGPT", dayOffset: 2, priority: "moyenne", category: "porteparole" },
-    { title: "Créer l'avatar parlant sur Synthesys (Fullbody, Waving Hand)", dayOffset: 2, priority: "moyenne", category: "porteparole", description: "Langue FR, décocher filigrane Synthesys" },
-    { title: "Intégrer le script Synthesys sur le site (bas droite)", dayOffset: 3, priority: "moyenne", category: "porteparole" },
-
-    // SEO
-    { title: "Créer/réclamer la fiche Google My Business", dayOffset: 1, priority: "urgente", category: "seo" },
-    { title: "Optimiser les balises SEO (title, meta description, alt)", dayOffset: 3, priority: "haute", category: "seo" },
-    { title: "Configurer le référencement local (NAP cohérent)", dayOffset: 3, priority: "haute", category: "seo" },
-    { title: "Optimiser la fiche GMB (horaires, catégories, photos)", dayOffset: 3, priority: "haute", category: "seo" },
-
-    // CARTE NFC & AFFICHES
-    { title: "Concevoir le design de la carte NFC personnalisée", dayOffset: 1, priority: "haute", category: "nfc" },
-    { title: "Créer la page de profil digital (liens, réseaux)", dayOffset: 2, priority: "haute", category: "nfc" },
-    { title: "Générer le QR Code personnalisé", dayOffset: 2, priority: "haute", category: "nfc" },
-    { title: "Créer les affiches connectées avec QR code", dayOffset: 2, priority: "moyenne", category: "nfc" },
-    { title: "Programmer/commander la carte NFC", dayOffset: 3, priority: "haute", category: "nfc" },
-    { title: "Tester le scan NFC et le lien QR Code", dayOffset: 3, priority: "haute", category: "nfc" },
-
-    // ANNUAIRE
-    { title: "Intégrer l'entreprise dans lesentreprises974.re", dayOffset: 3, priority: "haute", category: "annuaire" },
-
-    // RÉSEAUX SOCIAUX
-    { title: "Créer/optimiser les comptes réseaux sociaux client", dayOffset: 2, priority: "haute", category: "reseaux" },
-    { title: "Créer les visuels de lancement (bannières, posts)", dayOffset: 3, priority: "haute", category: "reseaux" },
-    { title: "Planifier les 2 premiers contenus visuels du mois", dayOffset: 3, priority: "moyenne", category: "reseaux" },
-
-    // CONTRÔLE QUALITÉ
-    { title: "Tester la compatibilité mobile et desktop", dayOffset: 3, priority: "urgente", category: "qualite" },
-    { title: "Vérifier le temps de chargement (< 3 secondes)", dayOffset: 3, priority: "urgente", category: "qualite" },
-    { title: "Vérifier tous les formulaires et autorépondeurs", dayOffset: 3, priority: "urgente", category: "qualite" },
-    { title: "Vérifier l'absence de fautes et la mise en page", dayOffset: 3, priority: "haute", category: "qualite" },
-    { title: "Présenter la première version au client (2-3 jours)", dayOffset: 3, priority: "urgente", category: "qualite" },
-
-    // FORMATION
-    { title: "Former le client à la gestion GMB", dayOffset: 3, priority: "haute", category: "formation" },
-    { title: "Former le client à l'utilisation NFC", dayOffset: 3, priority: "haute", category: "formation" },
-    { title: "Livrer le site et obtenir validation client", dayOffset: 3, priority: "urgente", category: "formation" },
+    {
+      id: "site",
+      name: "Création du site Internet",
+      icon: "🌐",
+      deadlineDays: 3,
+      tasks: [
+        { title: "Récupérer infos client (logo, textes, photos, coordonnées)", priority: "urgente" },
+        { title: "Créer l'adresse e-mail pro : contact@[nom_de_domaine]", priority: "urgente", description: "Mot de passe par défaut : $Contact148" },
+        { title: "Installer WordPress sur l'hébergement LWS", priority: "urgente" },
+        { title: "Configurer les identifiants admin WordPress", priority: "urgente" },
+        { title: "Configurer le SMTP LWS (WP Mail SMTP)", priority: "haute", description: "Serveur: mail.nomdedomaine.com | Port: 465 SSL ou 587 TLS" },
+        { title: "Choisir un thème optimisé (Envato Elements ou GNU)", priority: "urgente", description: "Thème rapide, responsive, compatible extensions" },
+        { title: "Valider le thème avec le responsable (Discord)", priority: "haute" },
+        { title: "Installer et activer le thème validé", priority: "urgente" },
+        { title: "Structurer le site avec Google AI", priority: "haute" },
+        { title: "Créer le Hero Banner (vidéo animée)", priority: "haute" },
+        { title: "Respecter la charte graphique client", priority: "haute" },
+        { title: "Optimiser les images (TinyPNG/Imagify, WebP)", priority: "haute" },
+        { title: "Créer la page d'accueil", priority: "urgente" },
+        { title: "Créer la page Services / Prestations", priority: "haute" },
+        { title: "Créer la page Contact", priority: "haute" },
+        { title: "Créer la page À propos", priority: "moyenne" },
+        { title: "Ajouter des animations sur textes, boutons, images", priority: "moyenne" },
+        { title: "Configurer le pied de page", priority: "haute", description: "Footer: Tous droits réservés. Propulsé par Adamkom by JJP" },
+        { title: "Générer CGV, mentions légales, politique de confidentialité", priority: "haute", description: "Générer via Google IA" },
+        { title: "Installer formulaire de contact (WPForms/Fluent Forms)", priority: "haute" },
+        { title: "Configurer l'autorépondeur lié au mail pro", priority: "haute" },
+        { title: "Vérifier les notifications (Admin + Client)", priority: "haute" },
+        { title: "Installer plugin sécurité (Wordfence/Sucuri)", priority: "haute" },
+        { title: "Configurer sauvegarde auto (UpdraftPlus)", priority: "haute" },
+        { title: "Installer WP Rocket (performance)", priority: "haute" },
+        { title: "Installer outil RGAA/inclusivité (AdaBundle)", priority: "haute", description: "Activer toutes les fonctionnalités" },
+        { title: "Ajouter bannière consentement cookies", priority: "haute" },
+        { title: "Tester compatibilité mobile et desktop", priority: "urgente" },
+        { title: "Vérifier temps de chargement (< 3 secondes)", priority: "urgente" },
+        { title: "Vérifier absence de fautes et mise en page", priority: "haute" },
+        { title: "Présenter la 1ère version au client", priority: "urgente" },
+      ],
+    },
+    {
+      id: "chatbot",
+      name: "Chatbot IA & Porte-Parole",
+      icon: "🤖",
+      deadlineDays: 5,
+      tasks: [
+        { title: "Créer workspace client sur AICoaches", priority: "haute" },
+        { title: "Créer/choisir l'avatar coach IA adapté", priority: "haute", description: "Base prompt + infos entreprise" },
+        { title: "Configurer le widget chat (thème, messages)", priority: "haute" },
+        { title: "Intégrer le script chatbot sur le site", priority: "haute" },
+        { title: "Créer l'accès backoffice client AICoaches", priority: "moyenne", description: "Credit: 80 tokens, Caractères: 80000" },
+        { title: "Créer script de présentation (30s max) via ChatGPT", priority: "moyenne" },
+        { title: "Créer avatar parlant Synthesys (Fullbody, Waving Hand)", priority: "moyenne", description: "Langue FR, décocher filigrane" },
+        { title: "Intégrer le script Synthesys sur le site (bas droite)", priority: "moyenne" },
+      ],
+    },
+    {
+      id: "nfc",
+      name: "Cartes Business NFC & Affiches connectées",
+      icon: "💳",
+      deadlineDays: 10,
+      tasks: [
+        { title: "Concevoir le design de la carte NFC personnalisée", priority: "haute" },
+        { title: "Créer la page de profil digital (liens, réseaux)", priority: "haute" },
+        { title: "Générer le QR Code personnalisé", priority: "haute" },
+        { title: "Créer les affiches connectées avec QR code", priority: "moyenne" },
+        { title: "Programmer/commander la carte NFC", priority: "haute" },
+        { title: "Tester le scan NFC et le lien QR Code", priority: "haute" },
+        { title: "Livrer la carte au client", priority: "urgente" },
+      ],
+    },
+    {
+      id: "seo",
+      name: "SEO & Google My Business",
+      icon: "🔍",
+      deadlineDays: 5,
+      tasks: [
+        { title: "Créer/réclamer la fiche Google My Business", priority: "urgente" },
+        { title: "Optimiser les balises SEO (title, meta, alt)", priority: "haute" },
+        { title: "Configurer le référencement local (NAP)", priority: "haute" },
+        { title: "Optimiser la fiche GMB (horaires, catégories, photos)", priority: "haute" },
+        { title: "Gérer le flux Google du client", priority: "haute" },
+      ],
+    },
+    {
+      id: "annuaire",
+      name: "Intégration Annuaire entreprises974",
+      icon: "📒",
+      deadlineDays: 7,
+      tasks: [
+        { title: "Créer la fiche entreprise sur lesentreprises974.re", priority: "haute" },
+        { title: "Remplir toutes les informations (description, contact, photos)", priority: "haute" },
+        { title: "Vérifier l'affichage et le lien vers le site", priority: "haute" },
+      ],
+    },
+    {
+      id: "reseaux",
+      name: "Réseaux sociaux & Publications",
+      icon: "📱",
+      deadlineDays: 10,
+      tasks: [
+        { title: "Créer/optimiser les comptes réseaux sociaux", priority: "haute" },
+        { title: "Créer les visuels de lancement (bannières, posts)", priority: "haute" },
+        { title: "Planifier les 2 premiers contenus visuels du mois", priority: "moyenne" },
+        { title: "Intégrer les chatbots sur les réseaux sociaux", priority: "haute" },
+      ],
+    },
+    {
+      id: "formation",
+      name: "Formation & Livraison client",
+      icon: "📚",
+      deadlineDays: 15,
+      tasks: [
+        { title: "Former le client à la gestion GMB", priority: "haute" },
+        { title: "Former le client à l'utilisation NFC", priority: "haute" },
+        { title: "Former le client aux réseaux sociaux", priority: "moyenne" },
+        { title: "Livrer le projet complet et obtenir validation", priority: "urgente" },
+      ],
+    },
   ],
   star_bizness_nfc: [
-    { title: "Récupérer les infos client (logo, coordonnées, réseaux)", dayOffset: 0, priority: "urgente", category: "admin" },
-    { title: "Concevoir le design de la carte NFC", dayOffset: 0, priority: "urgente", category: "nfc" },
-    { title: "Créer la page de profil digital", dayOffset: 0, priority: "urgente", category: "contenu" },
-    { title: "Intégrer les liens réseaux sociaux sur le profil", dayOffset: 1, priority: "haute", category: "contenu" },
-    { title: "Générer le QR Code personnalisé", dayOffset: 1, priority: "haute", category: "nfc" },
-    { title: "Créer les visuels de présentation", dayOffset: 1, priority: "moyenne", category: "contenu" },
-    { title: "Commander / programmer la carte NFC", dayOffset: 2, priority: "urgente", category: "nfc" },
-    { title: "Tester le scan NFC et le lien QR Code", dayOffset: 2, priority: "haute", category: "nfc" },
-    { title: "Créer les affiches connectées avec QR code", dayOffset: 2, priority: "moyenne", category: "nfc" },
-    { title: "Former le client à l'utilisation NFC", dayOffset: 3, priority: "haute", category: "formation" },
-    { title: "Livrer la carte et obtenir validation", dayOffset: 3, priority: "urgente", category: "qualite" },
+    {
+      id: "nfc",
+      name: "Carte NFC & Profil digital",
+      icon: "💳",
+      deadlineDays: 5,
+      tasks: [
+        { title: "Récupérer infos client (logo, coordonnées, réseaux)", priority: "urgente" },
+        { title: "Concevoir le design de la carte NFC", priority: "urgente" },
+        { title: "Créer la page de profil digital", priority: "urgente" },
+        { title: "Intégrer les liens réseaux sociaux", priority: "haute" },
+        { title: "Générer le QR Code personnalisé", priority: "haute" },
+        { title: "Créer les visuels de présentation", priority: "moyenne" },
+        { title: "Commander / programmer la carte NFC", priority: "urgente" },
+        { title: "Créer les affiches connectées avec QR code", priority: "moyenne" },
+        { title: "Tester le scan NFC et le lien QR Code", priority: "haute" },
+      ],
+    },
+    {
+      id: "formation",
+      name: "Formation & Livraison",
+      icon: "📚",
+      deadlineDays: 7,
+      tasks: [
+        { title: "Former le client à l'utilisation NFC", priority: "haute" },
+        { title: "Livrer la carte et obtenir validation", priority: "urgente" },
+      ],
+    },
   ],
   autre: [],
+};
+
+// Total project deadline per pack (in days)
+export const PACK_DEADLINE_DAYS: Record<string, number> = {
+  star_bizness_numerik: 15,
+  star_bizness_nfc: 7,
+  autre: 30,
 };

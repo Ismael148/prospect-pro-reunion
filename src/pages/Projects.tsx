@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProjects, useCreateProject } from "@/hooks/use-projects";
 import { useClients } from "@/hooks/use-clients";
-import { PACK_LABELS } from "@/lib/constants";
-import { PROJECT_STATUS_LABELS, PROJECT_STATUS_COLORS, PACK_DELIVERABLES } from "@/lib/constants";
+import { PACK_LABELS, PACK_MODULES, PACK_DEADLINE_DAYS } from "@/lib/constants";
+import { PROJECT_STATUS_LABELS, PROJECT_STATUS_COLORS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,14 +51,18 @@ export default function Projects() {
       toast.error("Client, nom et pack sont requis");
       return;
     }
+    // Auto-calculate due_date = start_date + pack deadline
+    const startDate = form.start_date || new Date().toISOString().split("T")[0];
+    const deadlineDays = PACK_DEADLINE_DAYS[form.pack_type] || 15;
+    const autoDeadline = new Date(new Date(startDate).getTime() + deadlineDays * 86400000).toISOString().split("T")[0];
     try {
       await createProject.mutateAsync({
         client_id: form.client_id,
         name: form.name,
         description: form.description || null,
         pack_type: form.pack_type as PackType,
-        start_date: form.start_date || null,
-        due_date: form.due_date || null,
+        start_date: startDate,
+        due_date: form.due_date || autoDeadline,
         created_by: user!.id,
         assigned_to: user!.id,
       });
@@ -124,28 +128,28 @@ export default function Projects() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Date de début</Label>
-                  <Input type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Date de fin prévue</Label>
-                  <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} />
-                </div>
+              <div className="space-y-2">
+                <Label>Date de signature (début)</Label>
+                <Input type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
+                {form.pack_type && (
+                  <p className="text-xs text-muted-foreground">
+                    Deadline auto : {PACK_DEADLINE_DAYS[form.pack_type] || 15} jours
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Description</Label>
                 <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} />
               </div>
-              {form.pack_type && PACK_DELIVERABLES[form.pack_type]?.length > 0 && (
+              {form.pack_type && PACK_MODULES[form.pack_type]?.length > 0 && (
                 <div className="rounded-lg bg-muted/50 p-3">
-                  <p className="text-xs font-medium text-muted-foreground mb-2">Livrables inclus dans ce pack :</p>
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Modules inclus dans ce pack :</p>
                   <ul className="text-sm space-y-1">
-                    {PACK_DELIVERABLES[form.pack_type].map((d, i) => (
+                    {PACK_MODULES[form.pack_type].map((m, i) => (
                       <li key={i} className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                        {d}
+                        <span>{m.icon}</span>
+                        <span>{m.name}</span>
+                        <span className="text-xs text-muted-foreground ml-auto">{m.tasks.length} tâches • {m.deadlineDays}j</span>
                       </li>
                     ))}
                   </ul>

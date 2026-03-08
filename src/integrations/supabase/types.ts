@@ -375,8 +375,12 @@ export type Database = {
       prospects: {
         Row: {
           address: string | null
+          appointment_date: string | null
+          appointment_time: string | null
           assigned_to: string | null
           business_name: string
+          callback_date: string | null
+          callback_notes: string | null
           city: string | null
           converted_client_id: string | null
           created_at: string
@@ -399,8 +403,12 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          appointment_date?: string | null
+          appointment_time?: string | null
           assigned_to?: string | null
           business_name: string
+          callback_date?: string | null
+          callback_notes?: string | null
           city?: string | null
           converted_client_id?: string | null
           created_at?: string
@@ -423,8 +431,12 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          appointment_date?: string | null
+          appointment_time?: string | null
           assigned_to?: string | null
           business_name?: string
+          callback_date?: string | null
+          callback_notes?: string | null
           city?: string | null
           converted_client_id?: string | null
           created_at?: string
@@ -516,6 +528,8 @@ export type Database = {
         | "qualifie"
         | "non_interesse"
         | "converti"
+        | "rdv_planifie"
+        | "a_rappeler"
       task_priority: "basse" | "moyenne" | "haute" | "urgente"
       task_status: "a_faire" | "en_cours" | "en_revision" | "termine"
     }
@@ -677,6 +691,8 @@ export const Constants = {
         "qualifie",
         "non_interesse",
         "converti",
+        "rdv_planifie",
+        "a_rappeler",
       ],
       task_priority: ["basse", "moyenne", "haute", "urgente"],
       task_status: ["a_faire", "en_cours", "en_revision", "termine"],

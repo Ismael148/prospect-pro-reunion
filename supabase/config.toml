@@ -1,1 +1,4 @@
 project_id = "qaxlpmxekcvbrcnqopbp"
+
+[functions.search-prospects]
+verify_jwt = false

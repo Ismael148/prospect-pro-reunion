@@ -1,17 +1,19 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useClients } from "@/hooks/use-clients";
+import { useProspects } from "@/hooks/use-prospects";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Search, FolderKanban, TrendingUp } from "lucide-react";
+import { Users, Search, FolderKanban, TrendingUp, Radar } from "lucide-react";
 import { PIPELINE_LABELS, PIPELINE_COLORS, PIPELINE_ORDER } from "@/lib/constants";
 import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
   const { profile, roles } = useAuth();
   const { data: clients } = useClients();
+  const { data: prospects } = useProspects();
   const navigate = useNavigate();
 
   const totalClients = clients?.length || 0;
-  const newProspects = clients?.filter((c) => c.pipeline_status === "nouveau").length || 0;
+  const totalProspects = prospects?.length || 0;
   const activeProjects = clients?.filter((c) => c.pipeline_status === "contrat_signe").length || 0;
   const conversionRate = totalClients > 0
     ? Math.round((activeProjects / totalClients) * 100)
@@ -27,7 +29,7 @@ export default function Dashboard() {
 
   const stats = [
     { title: "Clients", value: totalClients.toString(), icon: Users, color: "text-primary", path: "/clients" },
-    { title: "Nouveaux prospects", value: newProspects.toString(), icon: Search, color: "text-info", path: "/clients" },
+    { title: "Prospects", value: totalProspects.toString(), icon: Radar, color: "text-info", path: "/prospection" },
     { title: "Contrats signés", value: activeProjects.toString(), icon: FolderKanban, color: "text-success", path: "/pipeline" },
     { title: "Taux conversion", value: `${conversionRate}%`, icon: TrendingUp, color: "text-warning", path: "/pipeline" },
   ];

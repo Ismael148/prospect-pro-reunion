@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
 import ClientDetail from "./pages/ClientDetail";
 import Pipeline from "./pages/Pipeline";
+import Prospection from "./pages/Prospection";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -53,6 +54,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AppLayout><Pipeline /></AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/prospection"
+              element={
+                <ProtectedRoute>
+                  <AppLayout><Prospection /></AppLayout>
                 </ProtectedRoute>
               }
             />

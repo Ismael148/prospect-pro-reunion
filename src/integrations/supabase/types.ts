@@ -186,6 +186,89 @@ export type Database = {
         }
         Relationships: []
       }
+      prospects: {
+        Row: {
+          address: string | null
+          assigned_to: string | null
+          business_name: string
+          city: string | null
+          converted_client_id: string | null
+          created_at: string
+          created_by: string
+          email: string | null
+          google_maps_url: string | null
+          id: string
+          notes: string | null
+          phone: string | null
+          postal_code: string | null
+          rating: number | null
+          reviews_count: number | null
+          search_query: string | null
+          search_zone: string | null
+          sector: string | null
+          source: string | null
+          status: Database["public"]["Enums"]["prospect_status"]
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          assigned_to?: string | null
+          business_name: string
+          city?: string | null
+          converted_client_id?: string | null
+          created_at?: string
+          created_by: string
+          email?: string | null
+          google_maps_url?: string | null
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          rating?: number | null
+          reviews_count?: number | null
+          search_query?: string | null
+          search_zone?: string | null
+          sector?: string | null
+          source?: string | null
+          status?: Database["public"]["Enums"]["prospect_status"]
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          assigned_to?: string | null
+          business_name?: string
+          city?: string | null
+          converted_client_id?: string | null
+          created_at?: string
+          created_by?: string
+          email?: string | null
+          google_maps_url?: string | null
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          rating?: number | null
+          reviews_count?: number | null
+          search_query?: string | null
+          search_zone?: string | null
+          sector?: string | null
+          source?: string | null
+          status?: Database["public"]["Enums"]["prospect_status"]
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prospects_converted_client_id_fkey"
+            columns: ["converted_client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -228,6 +311,13 @@ export type Database = {
         | "negociation"
         | "contrat_signe"
         | "perdu"
+      prospect_status:
+        | "nouveau"
+        | "a_contacter"
+        | "contacte"
+        | "qualifie"
+        | "non_interesse"
+        | "converti"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -365,6 +455,14 @@ export const Constants = {
         "negociation",
         "contrat_signe",
         "perdu",
+      ],
+      prospect_status: [
+        "nouveau",
+        "a_contacter",
+        "contacte",
+        "qualifie",
+        "non_interesse",
+        "converti",
       ],
     },
   },

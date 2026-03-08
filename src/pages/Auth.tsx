@@ -9,9 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import logo from "@/assets/logo.webp";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner";
-import { Loader2, Zap } from "lucide-react";
 
 export default function Auth() {
   const navigate = useNavigate();

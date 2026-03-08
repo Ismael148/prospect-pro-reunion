@@ -8,6 +8,7 @@ import {
   Settings,
   LogOut,
   UserCircle,
+  Briefcase,
 } from "lucide-react";
 import logo from "@/assets/logo.webp";
 import {
@@ -29,6 +30,7 @@ const menuItems = [
   { title: "Clients", icon: Users, path: "/clients" },
   { title: "Prospection", icon: Search, path: "/prospection" },
   { title: "Pipeline", icon: FolderKanban, path: "/pipeline" },
+  { title: "Projets", icon: Briefcase, path: "/projets" },
 ];
 
 const adminItems = [

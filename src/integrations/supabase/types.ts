@@ -156,6 +156,53 @@ export type Database = {
           },
         ]
       }
+      deliverables: {
+        Row: {
+          approved_at: string | null
+          created_at: string
+          description: string | null
+          file_url: string | null
+          id: string
+          name: string
+          project_id: string
+          status: Database["public"]["Enums"]["deliverable_status"]
+          submitted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          created_at?: string
+          description?: string | null
+          file_url?: string | null
+          id?: string
+          name: string
+          project_id: string
+          status?: Database["public"]["Enums"]["deliverable_status"]
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          created_at?: string
+          description?: string | null
+          file_url?: string | null
+          id?: string
+          name?: string
+          project_id?: string
+          status?: Database["public"]["Enums"]["deliverable_status"]
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deliverables_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -185,6 +232,112 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      project_tasks: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: Database["public"]["Enums"]["task_priority"]
+          project_id: string
+          sort_order: number | null
+          status: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["task_priority"]
+          project_id: string
+          sort_order?: number | null
+          status?: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["task_priority"]
+          project_id?: string
+          sort_order?: number | null
+          status?: Database["public"]["Enums"]["task_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          assigned_to: string | null
+          client_id: string
+          created_at: string
+          created_by: string
+          description: string | null
+          due_date: string | null
+          id: string
+          name: string
+          pack_type: Database["public"]["Enums"]["pack_type"]
+          progress: number | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["project_status"]
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          client_id: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          name: string
+          pack_type: Database["public"]["Enums"]["pack_type"]
+          progress?: number | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["project_status"]
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          client_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          name?: string
+          pack_type?: Database["public"]["Enums"]["pack_type"]
+          progress?: number | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["project_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       prospects: {
         Row: {
@@ -302,6 +455,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "agent_telephonique" | "commercial_terrain"
+      deliverable_status:
+        | "en_attente"
+        | "en_cours"
+        | "soumis"
+        | "approuve"
+        | "rejete"
       pack_type: "star_bizness_numerik" | "star_bizness_nfc" | "autre"
       pipeline_status:
         | "nouveau"
@@ -311,6 +470,12 @@ export type Database = {
         | "negociation"
         | "contrat_signe"
         | "perdu"
+      project_status:
+        | "en_attente"
+        | "en_cours"
+        | "en_revision"
+        | "termine"
+        | "annule"
       prospect_status:
         | "nouveau"
         | "a_contacter"
@@ -318,6 +483,8 @@ export type Database = {
         | "qualifie"
         | "non_interesse"
         | "converti"
+      task_priority: "basse" | "moyenne" | "haute" | "urgente"
+      task_status: "a_faire" | "en_cours" | "en_revision" | "termine"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -446,6 +613,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "agent_telephonique", "commercial_terrain"],
+      deliverable_status: [
+        "en_attente",
+        "en_cours",
+        "soumis",
+        "approuve",
+        "rejete",
+      ],
       pack_type: ["star_bizness_numerik", "star_bizness_nfc", "autre"],
       pipeline_status: [
         "nouveau",
@@ -456,6 +630,13 @@ export const Constants = {
         "contrat_signe",
         "perdu",
       ],
+      project_status: [
+        "en_attente",
+        "en_cours",
+        "en_revision",
+        "termine",
+        "annule",
+      ],
       prospect_status: [
         "nouveau",
         "a_contacter",
@@ -464,6 +645,8 @@ export const Constants = {
         "non_interesse",
         "converti",
       ],
+      task_priority: ["basse", "moyenne", "haute", "urgente"],
+      task_status: ["a_faire", "en_cours", "en_revision", "termine"],
     },
   },
 } as const

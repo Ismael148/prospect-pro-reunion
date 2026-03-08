@@ -12,6 +12,8 @@ import Clients from "./pages/Clients";
 import ClientDetail from "./pages/ClientDetail";
 import Pipeline from "./pages/Pipeline";
 import Prospection from "./pages/Prospection";
+import Projects from "./pages/Projects";
+import ProjectDetail from "./pages/ProjectDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -62,6 +64,22 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AppLayout><Prospection /></AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/projets"
+              element={
+                <ProtectedRoute>
+                  <AppLayout><Projects /></AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/projets/:id"
+              element={
+                <ProtectedRoute>
+                  <AppLayout><ProjectDetail /></AppLayout>
                 </ProtectedRoute>
               }
             />

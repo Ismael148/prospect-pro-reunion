@@ -10,8 +10,6 @@ import {
   UserCircle,
 } from "lucide-react";
 import logo from "@/assets/logo.webp";
-  UserCircle,
-} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,

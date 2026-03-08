@@ -1,8 +1,9 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useClients } from "@/hooks/use-clients";
 import { useProspects } from "@/hooks/use-prospects";
+import { useProjects } from "@/hooks/use-projects";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Search, FolderKanban, TrendingUp, Radar } from "lucide-react";
+import { Users, FolderKanban, TrendingUp, Radar, Briefcase } from "lucide-react";
 import { PIPELINE_LABELS, PIPELINE_COLORS, PIPELINE_ORDER } from "@/lib/constants";
 import { useNavigate } from "react-router-dom";
 
@@ -10,13 +11,16 @@ export default function Dashboard() {
   const { profile, roles } = useAuth();
   const { data: clients } = useClients();
   const { data: prospects } = useProspects();
+  const { data: projects } = useProjects();
   const navigate = useNavigate();
 
   const totalClients = clients?.length || 0;
   const totalProspects = prospects?.length || 0;
-  const activeProjects = clients?.filter((c) => c.pipeline_status === "contrat_signe").length || 0;
+  const totalProjects = projects?.length || 0;
+  const activeProjects = projects?.filter((p: any) => p.status === "en_cours").length || 0;
+  const signedContracts = clients?.filter((c) => c.pipeline_status === "contrat_signe").length || 0;
   const conversionRate = totalClients > 0
-    ? Math.round((activeProjects / totalClients) * 100)
+    ? Math.round((signedContracts / totalClients) * 100)
     : 0;
 
   const roleLabel = roles.includes("admin")

@@ -44,6 +44,8 @@ export default function Clients() {
     try {
       await createClient.mutateAsync({
         company_name: form.company_name,
+        phone: form.phone || null,
+        email: form.email || null,
         address: form.address || null,
         city: form.city || null,
         postal_code: form.postal_code || null,
@@ -51,6 +53,9 @@ export default function Clients() {
         website: form.website || null,
         notes: form.notes || null,
         pack_type: form.pack_type || null,
+        pack_amount: packAmount || null,
+        payment_method: form.payment_method || null,
+        signature_date: form.signature_date || null,
         created_by: user!.id,
         assigned_to: user!.id,
       } as any);

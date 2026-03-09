@@ -9,6 +9,7 @@ import {
   LogOut,
   UserCircle,
   Briefcase,
+  Monitor,
 } from "lucide-react";
 import logo from "@/assets/logo.webp";
 import {

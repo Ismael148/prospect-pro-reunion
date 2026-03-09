@@ -93,6 +93,7 @@ const App = () => (
                   <AppLayout><WebmasterDashboard /></AppLayout>
                 </ProtectedRoute>
               }
+            />
             <Route
               path="/equipe"
               element={

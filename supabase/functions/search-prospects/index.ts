@@ -139,6 +139,7 @@ function parseSearchResults(results: SearchResult[], query: string, zone: string
       business_name: businessName,
       city: zone,
       sector: query,
+      has_website: false,
     };
 
     const content = result.markdown || result.description || '';

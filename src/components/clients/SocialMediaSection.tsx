@@ -232,6 +232,16 @@ export default function SocialMediaSection({ clientId }: { clientId: string }) {
     }
   };
 
+  const handleMetaOAuth = async () => {
+    setOauthLoading(true);
+    try {
+      await startOAuth(clientId);
+    } catch (err: any) {
+      toast.error(err.message || "Erreur lors de la connexion Meta");
+      setOauthLoading(false);
+    }
+  };
+
   const pendingPubs = publications?.filter((p) => p.status !== "publie") || [];
   const publishedPubs = publications?.filter((p) => p.status === "publie") || [];
   const connectedCount = accounts?.length || 0;

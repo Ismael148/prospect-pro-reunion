@@ -477,6 +477,9 @@ export default function ClientDetail() {
       {/* Contacts */}
       <ContactsSection clientId={id!} contacts={contacts} />
 
+      {/* Social Media */}
+      <SocialMediaSection clientId={id!} />
+
       {/* Notes & Activities */}
       <NotesSection clientId={id!} activities={activities} />
     </div>

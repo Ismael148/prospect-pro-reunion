@@ -164,6 +164,20 @@ export default function Team() {
     fetchMembers();
   };
 
+  const handleDeleteMember = async (userId: string, name: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("delete-user", {
+        body: { user_id: userId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`${name} a été supprimé de l'équipe`);
+      fetchMembers();
+    } catch (err: any) {
+      toast.error(err.message || "Erreur lors de la suppression");
+    }
+  };
+
   const getInitials = (name: string | null) =>
     name ? name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) : "?";
 

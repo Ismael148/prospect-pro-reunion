@@ -1,13 +1,14 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useClient, useClientContacts, useClientActivities, useUpdateClient, useCreateContact, useCreateActivity } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";
-import { PIPELINE_LABELS, PIPELINE_COLORS, PIPELINE_ORDER, PACK_LABELS } from "@/lib/constants";
+import { PIPELINE_LABELS, PIPELINE_COLORS, PIPELINE_ORDER, PACK_LABELS, PROJECT_STATUS_LABELS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
@@ -15,11 +16,349 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, User, Phone, Mail, Briefcase, Building2, Loader2, Clock } from "lucide-react";
+import {
+  ArrowLeft, Plus, User, Phone, Mail, Briefcase, Building2, Loader2, Clock,
+  Globe, MapPin, CreditCard, FileText, MessageSquare, Send, FolderKanban,
+} from "lucide-react";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
 type PipelineStatus = Database["public"]["Enums"]["pipeline_status"];
+
+// Sub-components
+function ClientInfoSection({ client }: { client: any }) {
+  const PAYMENT_LABELS: Record<string, string> = {
+    especes: "Espèces",
+    virement: "Virement bancaire",
+    cheque: "Chèque",
+    cb: "Carte bancaire",
+    prelevement: "Prélèvement",
+  };
+
+  const fields = [
+    { label: "SIRET", value: client.siret, icon: FileText },
+    { label: "Secteur", value: client.sector, icon: Briefcase },
+    { label: "Téléphone", value: client.phone, icon: Phone },
+    { label: "Email", value: client.email, icon: Mail },
+    { label: "Site web", value: client.website, icon: Globe },
+    { label: "Adresse", value: [client.address, client.postal_code, client.city].filter(Boolean).join(", "), icon: MapPin },
+    { label: "Pack", value: client.pack_type ? PACK_LABELS[client.pack_type] : null, icon: FolderKanban },
+    { label: "Montant", value: client.pack_amount ? `${Number(client.pack_amount).toFixed(2)} €` : null, icon: CreditCard },
+    { label: "Règlement", value: client.payment_method ? PAYMENT_LABELS[client.payment_method] || client.payment_method : null, icon: CreditCard },
+    { label: "Date signature", value: client.signature_date ? new Date(client.signature_date).toLocaleDateString("fr-FR") : null, icon: FileText },
+  ].filter((f) => f.value);
+
+  return (
+    <Card className="border-0 shadow-md shadow-primary/5">
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <Building2 className="w-5 h-5" /> Informations client
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+        {fields.map((f) => (
+          <div key={f.label} className="flex items-start gap-2 p-2 rounded-lg bg-muted/30">
+            <f.icon className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+            <div>
+              <span className="text-[11px] text-muted-foreground uppercase tracking-wider">{f.label}</span>
+              <p className="font-medium text-sm">{f.value}</p>
+            </div>
+          </div>
+        ))}
+        {client.notes && (
+          <div className="col-span-full p-2 rounded-lg bg-muted/30">
+            <span className="text-[11px] text-muted-foreground uppercase tracking-wider">Notes</span>
+            <p className="font-medium text-sm whitespace-pre-wrap">{client.notes}</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function ClientProjectsSection({ clientId }: { clientId: string }) {
+  const navigate = useNavigate();
+  const { data: projects, isLoading } = useQuery({
+    queryKey: ["client-projects", clientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .eq("client_id", clientId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!clientId,
+  });
+
+  if (isLoading) return null;
+  if (!projects?.length) return null;
+
+  return (
+    <Card className="border-0 shadow-md shadow-primary/5">
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <FolderKanban className="w-5 h-5" /> Projets ({projects.length})
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {projects.map((project) => (
+          <div
+            key={project.id}
+            className="p-3 rounded-lg bg-muted/30 hover:bg-muted/50 cursor-pointer transition-colors"
+            onClick={() => navigate(`/projets/${project.id}`)}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <p className="font-medium text-sm">{project.name}</p>
+              <Badge variant="outline" className="text-[10px]">
+                {PROJECT_STATUS_LABELS[project.status as keyof typeof PROJECT_STATUS_LABELS] || project.status}
+              </Badge>
+            </div>
+            <div className="flex items-center gap-3">
+              <Progress value={project.progress || 0} className="flex-1 h-2" />
+              <span className="text-xs text-muted-foreground font-medium">{project.progress || 0}%</span>
+            </div>
+            {project.pack_type && (
+              <p className="text-[11px] text-muted-foreground mt-1">
+                {PACK_LABELS[project.pack_type as keyof typeof PACK_LABELS]}
+              </p>
+            )}
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+function ContactsSection({ clientId, contacts }: { clientId: string; contacts: any[] | undefined }) {
+  const createContact = useCreateContact();
+  const [contactOpen, setContactOpen] = useState(false);
+  const [contactForm, setContactForm] = useState({
+    first_name: "", last_name: "", email: "", phone: "", position: "",
+  });
+
+  const handleAddContact = async () => {
+    if (!contactForm.first_name.trim() || !contactForm.last_name.trim()) {
+      toast.error("Prénom et nom requis");
+      return;
+    }
+    try {
+      await createContact.mutateAsync({
+        ...contactForm,
+        client_id: clientId,
+        is_primary: (contacts?.length || 0) === 0,
+      });
+      toast.success("Contact ajouté");
+      setContactOpen(false);
+      setContactForm({ first_name: "", last_name: "", email: "", phone: "", position: "" });
+    } catch {
+      toast.error("Erreur lors de l'ajout du contact");
+    }
+  };
+
+  return (
+    <Card className="border-0 shadow-md shadow-primary/5">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="text-lg flex items-center gap-2">
+          <User className="w-5 h-5" /> Contacts ({contacts?.length || 0})
+        </CardTitle>
+        <Dialog open={contactOpen} onOpenChange={setContactOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm"><Plus className="w-4 h-4 mr-1" /> Ajouter</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Nouveau contact</DialogTitle></DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Prénom *</Label>
+                  <Input value={contactForm.first_name} onChange={(e) => setContactForm({ ...contactForm, first_name: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Nom *</Label>
+                  <Input value={contactForm.last_name} onChange={(e) => setContactForm({ ...contactForm, last_name: e.target.value })} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input type="email" value={contactForm.email} onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Téléphone</Label>
+                  <Input value={contactForm.phone} onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Poste</Label>
+                <Input value={contactForm.position} onChange={(e) => setContactForm({ ...contactForm, position: e.target.value })} placeholder="Ex: Gérant" />
+              </div>
+              <Button onClick={handleAddContact} disabled={createContact.isPending}>
+                {createContact.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Ajouter le contact
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </CardHeader>
+      <CardContent>
+        {!contacts?.length ? (
+          <p className="text-muted-foreground text-sm">Aucun contact ajouté</p>
+        ) : (
+          <div className="grid gap-3">
+            {contacts.map((contact) => (
+              <div key={contact.id} className="flex items-center gap-4 p-3 rounded-lg bg-muted/50">
+                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary">
+                  <User className="w-4 h-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm">
+                    {contact.first_name} {contact.last_name}
+                    {contact.is_primary && <Badge variant="secondary" className="ml-2 text-xs">Principal</Badge>}
+                  </p>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+                    {contact.position && <span className="flex items-center gap-1"><Briefcase className="w-3 h-3" />{contact.position}</span>}
+                    {contact.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{contact.phone}</span>}
+                    {contact.email && <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{contact.email}</span>}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function NotesSection({ clientId, activities }: { clientId: string; activities: any[] | undefined }) {
+  const { user } = useAuth();
+  const createActivity = useCreateActivity();
+  const [note, setNote] = useState("");
+
+  // Fetch team members for mentioning
+  const { data: teamMembers } = useQuery({
+    queryKey: ["team-profiles"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profiles").select("user_id, full_name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const handleAddNote = async () => {
+    if (!note.trim()) return;
+    try {
+      await createActivity.mutateAsync({
+        client_id: clientId,
+        user_id: user!.id,
+        activity_type: "note",
+        description: note,
+      });
+      toast.success("Note ajoutée");
+      setNote("");
+    } catch {
+      toast.error("Erreur");
+    }
+  };
+
+  // Replace @mentions with names for display
+  const renderDescription = (text: string) => {
+    if (!text || !teamMembers) return text;
+    return text.replace(/@\[([^\]]+)\]/g, (_, name) => `@${name}`);
+  };
+
+  const handleMention = (member: { user_id: string; full_name: string | null }) => {
+    setNote((prev) => prev + `@[${member.full_name || "Membre"}] `);
+  };
+
+  const noteActivities = activities?.filter((a) => a.activity_type === "note") || [];
+  const statusActivities = activities?.filter((a) => a.activity_type !== "note") || [];
+
+  return (
+    <Card className="border-0 shadow-md shadow-primary/5">
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <MessageSquare className="w-5 h-5" /> Notes & Commentaires
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Add note form */}
+        <div className="space-y-2">
+          <Textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Ajouter une note... Utilisez @ pour mentionner un membre"
+            rows={3}
+          />
+          <div className="flex items-center justify-between">
+            <div className="flex gap-1 flex-wrap">
+              {teamMembers?.slice(0, 5).map((m) => (
+                <Button
+                  key={m.user_id}
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs h-7 px-2"
+                  onClick={() => handleMention(m)}
+                >
+                  @{m.full_name?.split(" ")[0] || "?"}
+                </Button>
+              ))}
+            </div>
+            <Button size="sm" onClick={handleAddNote} disabled={createActivity.isPending || !note.trim()}>
+              {createActivity.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+            </Button>
+          </div>
+        </div>
+
+        {/* Notes list */}
+        {noteActivities.length > 0 && (
+          <div className="space-y-2 pt-2 border-t border-border">
+            {noteActivities.map((activity) => {
+              const authorName = teamMembers?.find((m) => m.user_id === activity.user_id)?.full_name || "Inconnu";
+              return (
+                <div key={activity.id} className="p-3 rounded-lg bg-muted/30">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-medium text-primary">{authorName}</span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {new Date(activity.created_at).toLocaleDateString("fr-FR", {
+                        day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
+                      })}
+                    </span>
+                  </div>
+                  <p className="text-sm whitespace-pre-wrap">{renderDescription(activity.description || "")}</p>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Status change history */}
+        {statusActivities.length > 0 && (
+          <div className="space-y-2 pt-2 border-t border-border">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Historique</p>
+            {statusActivities.map((activity) => (
+              <div key={activity.id} className="flex items-start gap-3 text-sm">
+                <div className="w-2 h-2 rounded-full bg-primary mt-1.5 shrink-0" />
+                <div>
+                  <p>{activity.description}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {new Date(activity.created_at).toLocaleDateString("fr-FR", {
+                      day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
+                    })}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function ClientDetail() {
   const { id } = useParams<{ id: string }>();
@@ -29,13 +368,7 @@ export default function ClientDetail() {
   const { data: contacts } = useClientContacts(id!);
   const { data: activities } = useClientActivities(id!);
   const updateClient = useUpdateClient();
-  const createContact = useCreateContact();
   const createActivity = useCreateActivity();
-
-  const [contactOpen, setContactOpen] = useState(false);
-  const [contactForm, setContactForm] = useState({
-    first_name: "", last_name: "", email: "", phone: "", position: "",
-  });
 
   const handleStatusChange = async (newStatus: PipelineStatus) => {
     if (!client) return;
@@ -56,25 +389,6 @@ export default function ClientDetail() {
     }
   };
 
-  const handleAddContact = async () => {
-    if (!contactForm.first_name.trim() || !contactForm.last_name.trim()) {
-      toast.error("Prénom et nom requis");
-      return;
-    }
-    try {
-      await createContact.mutateAsync({
-        ...contactForm,
-        client_id: id!,
-        is_primary: (contacts?.length || 0) === 0,
-      });
-      toast.success("Contact ajouté");
-      setContactOpen(false);
-      setContactForm({ first_name: "", last_name: "", email: "", phone: "", position: "" });
-    } catch {
-      toast.error("Erreur lors de l'ajout du contact");
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="flex justify-center py-12">
@@ -87,6 +401,10 @@ export default function ClientDetail() {
     return <p className="text-muted-foreground">Client introuvable</p>;
   }
 
+  // Find primary contact name
+  const primaryContact = contacts?.find((c) => c.is_primary);
+  const contactName = primaryContact ? `${primaryContact.first_name} ${primaryContact.last_name}` : null;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -95,8 +413,11 @@ export default function ClientDetail() {
         </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold tracking-tight">{client.company_name}</h1>
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
             {client.city && <span className="text-muted-foreground text-sm">{client.city}</span>}
+            {contactName && (
+              <span className="text-muted-foreground text-sm">• Resp: {contactName}</span>
+            )}
             {client.pack_type && (
               <Badge variant="secondary" className="text-xs">{PACK_LABELS[client.pack_type]}</Badge>
             )}
@@ -115,40 +436,14 @@ export default function ClientDetail() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Client Info */}
-        <Card className="lg:col-span-2 border-0 shadow-md shadow-primary/5">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Building2 className="w-5 h-5" /> Informations
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4 text-sm">
-            {client.siret && (
-              <div><span className="text-muted-foreground">SIRET</span><p className="font-medium">{client.siret}</p></div>
-            )}
-            {client.sector && (
-              <div><span className="text-muted-foreground">Secteur</span><p className="font-medium">{client.sector}</p></div>
-            )}
-            {client.address && (
-              <div><span className="text-muted-foreground">Adresse</span><p className="font-medium">{client.address}</p></div>
-            )}
-            {client.postal_code && (
-              <div><span className="text-muted-foreground">Code postal</span><p className="font-medium">{client.postal_code}</p></div>
-            )}
-            {client.website && (
-              <div><span className="text-muted-foreground">Site web</span><p className="font-medium">{client.website}</p></div>
-            )}
-            {client.notes && (
-              <div className="col-span-2">
-                <span className="text-muted-foreground">Notes</span>
-                <p className="font-medium whitespace-pre-wrap">{client.notes}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* Client Info + Projects */}
+        <div className="lg:col-span-2 space-y-6">
+          <ClientInfoSection client={client} />
+          <ClientProjectsSection clientId={client.id} />
+        </div>
 
         {/* Pipeline Progress */}
-        <Card className="border-0 shadow-md shadow-primary/5">
+        <Card className="border-0 shadow-md shadow-primary/5 h-fit">
           <CardHeader>
             <CardTitle className="text-lg">Pipeline</CardTitle>
           </CardHeader>
@@ -178,108 +473,11 @@ export default function ClientDetail() {
         </Card>
       </div>
 
-      {/* Contacts Section */}
-      <Card className="border-0 shadow-md shadow-primary/5">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <User className="w-5 h-5" /> Contacts ({contacts?.length || 0})
-          </CardTitle>
-          <Dialog open={contactOpen} onOpenChange={setContactOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm"><Plus className="w-4 h-4 mr-1" /> Ajouter</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Nouveau contact</DialogTitle></DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Prénom *</Label>
-                    <Input value={contactForm.first_name} onChange={(e) => setContactForm({ ...contactForm, first_name: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Nom *</Label>
-                    <Input value={contactForm.last_name} onChange={(e) => setContactForm({ ...contactForm, last_name: e.target.value })} />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Email</Label>
-                    <Input type="email" value={contactForm.email} onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Téléphone</Label>
-                    <Input value={contactForm.phone} onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })} />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Poste</Label>
-                  <Input value={contactForm.position} onChange={(e) => setContactForm({ ...contactForm, position: e.target.value })} placeholder="Ex: Gérant" />
-                </div>
-                <Button onClick={handleAddContact} disabled={createContact.isPending}>
-                  {createContact.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Ajouter le contact
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </CardHeader>
-        <CardContent>
-          {!contacts?.length ? (
-            <p className="text-muted-foreground text-sm">Aucun contact ajouté</p>
-          ) : (
-            <div className="grid gap-3">
-              {contacts.map((contact) => (
-                <div key={contact.id} className="flex items-center gap-4 p-3 rounded-lg bg-muted/50">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary">
-                    <User className="w-4 h-4" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm">
-                      {contact.first_name} {contact.last_name}
-                      {contact.is_primary && <Badge variant="secondary" className="ml-2 text-xs">Principal</Badge>}
-                    </p>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
-                      {contact.position && <span className="flex items-center gap-1"><Briefcase className="w-3 h-3" />{contact.position}</span>}
-                      {contact.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{contact.phone}</span>}
-                      {contact.email && <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{contact.email}</span>}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Contacts */}
+      <ContactsSection clientId={id!} contacts={contacts} />
 
-      {/* Activities */}
-      <Card className="border-0 shadow-md shadow-primary/5">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Clock className="w-5 h-5" /> Historique
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {!activities?.length ? (
-            <p className="text-muted-foreground text-sm">Aucune activité</p>
-          ) : (
-            <div className="space-y-3">
-              {activities.map((activity) => (
-                <div key={activity.id} className="flex items-start gap-3 text-sm">
-                  <div className="w-2 h-2 rounded-full bg-primary mt-1.5 shrink-0" />
-                  <div>
-                    <p>{activity.description}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {new Date(activity.created_at).toLocaleDateString("fr-FR", {
-                        day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
-                      })}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Notes & Activities */}
+      <NotesSection clientId={id!} activities={activities} />
     </div>
   );
 }

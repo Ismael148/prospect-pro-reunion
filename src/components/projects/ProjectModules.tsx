@@ -27,9 +27,35 @@ interface Props {
   onAddTask?: (task: TablesInsert<"project_tasks">) => Promise<void>;
 }
 
-export default function ProjectModules({ packType, tasks, startDate, onTaskStatusChange }: Props) {
+export default function ProjectModules({ packType, tasks, startDate, isAdmin, onTaskStatusChange, onAddTask }: Props) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [addDialogOpen, setAddDialogOpen] = useState<string | null>(null);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskDescription, setNewTaskDescription] = useState("");
+  const [newTaskPriority, setNewTaskPriority] = useState<TaskPriority>("moyenne");
   const modules = PACK_MODULES[packType] || [];
+
+  const handleAddTask = async (moduleId: string) => {
+    if (!onAddTask || !newTaskTitle.trim()) return;
+    const module = modules.find((m) => m.id === moduleId);
+    const dueDate = startDate && module
+      ? new Date(new Date(startDate).getTime() + module.deadlineDays * 86400000).toISOString().split("T")[0]
+      : null;
+    
+    await onAddTask({
+      title: newTaskTitle,
+      description: `[${moduleId}] ${newTaskDescription}`.trim(),
+      priority: newTaskPriority,
+      due_date: dueDate,
+      project_id: tasks[0]?.project_id || "",
+      sort_order: (tasksByModule[moduleId]?.length || 0) + 1,
+    });
+    
+    setNewTaskTitle("");
+    setNewTaskDescription("");
+    setNewTaskPriority("moyenne");
+    setAddDialogOpen(null);
+  };
 
   // Group tasks by module id (stored in description as [module_id])
   const tasksByModule = useMemo(() => {

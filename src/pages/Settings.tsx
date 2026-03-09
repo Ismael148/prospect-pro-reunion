@@ -33,6 +33,10 @@ export default function Settings() {
 
   const roleLabel = roles.includes("admin")
     ? "Administrateur"
+    : roles.includes("webmaster")
+    ? "Webmaster"
+    : roles.includes("designer")
+    ? "Designer"
     : roles.includes("commercial_terrain")
     ? "Commercial terrain"
     : roles.includes("agent_telephonique")

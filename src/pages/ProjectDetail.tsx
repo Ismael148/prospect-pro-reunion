@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   useProject, useProjectTasks, useDeliverables,
   useUpdateProject, useCreateTask, useUpdateTask,
-  useCreateDeliverable, useUpdateDeliverable,
+  useCreateDeliverable, useUpdateDeliverable, useDeleteProjectTasks,
 } from "@/hooks/use-projects";
 import {
   PROJECT_STATUS_LABELS, PACK_LABELS,

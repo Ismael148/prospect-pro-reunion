@@ -340,16 +340,42 @@ export default function Team() {
                       <TableCell><span className="text-sm text-muted-foreground">{member.phone || "—"}</span></TableCell>
                       <TableCell className="text-right">
                         {!isCurrentUser && (
-                          <Select value={member.roles[0] || ""} onValueChange={(v) => handleRoleChange(member.user_id, v as AppRole)}>
-                            <SelectTrigger className="w-[180px] ml-auto"><SelectValue placeholder="Changer le rôle" /></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="admin">Administrateur</SelectItem>
-                              <SelectItem value="agent_telephonique">Agent téléphonique</SelectItem>
-                              <SelectItem value="commercial_terrain">Commercial terrain</SelectItem>
-                              <SelectItem value="webmaster">Webmaster</SelectItem>
-                              <SelectItem value="designer">Designer</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <div className="flex items-center gap-2 justify-end">
+                            <Select value={member.roles[0] || ""} onValueChange={(v) => handleRoleChange(member.user_id, v as AppRole)}>
+                              <SelectTrigger className="w-[180px]"><SelectValue placeholder="Changer le rôle" /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="admin">Administrateur</SelectItem>
+                                <SelectItem value="agent_telephonique">Agent téléphonique</SelectItem>
+                                <SelectItem value="commercial_terrain">Commercial terrain</SelectItem>
+                                <SelectItem value="webmaster">Webmaster</SelectItem>
+                                <SelectItem value="designer">Designer</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Supprimer {member.full_name} ?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Cette action est irréversible. Le compte de ce membre sera définitivement supprimé.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    onClick={() => handleDeleteMember(member.user_id, member.full_name || "Ce membre")}
+                                  >
+                                    Supprimer
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                         )}
                       </TableCell>
                     </TableRow>

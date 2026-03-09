@@ -87,6 +87,13 @@ const App = () => (
               }
             />
             <Route
+              path="/webmaster"
+              element={
+                <ProtectedRoute>
+                  <AppLayout><WebmasterDashboard /></AppLayout>
+                </ProtectedRoute>
+              }
+            <Route
               path="/equipe"
               element={
                 <ProtectedRoute>

@@ -32,6 +32,7 @@ const menuItems = [
   { title: "Prospection", icon: Search, path: "/prospection" },
   { title: "Pipeline", icon: FolderKanban, path: "/pipeline" },
   { title: "Projets", icon: Briefcase, path: "/projets" },
+  { title: "Webmaster", icon: Monitor, path: "/webmaster" },
 ];
 
 const adminItems = [

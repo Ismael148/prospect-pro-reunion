@@ -215,6 +215,20 @@ export default function SocialMediaSection({ clientId }: { clientId: string }) {
     } catch { toast.error("Erreur"); }
   };
 
+  const handleCopyAndPublish = async (pub: SocialPublication) => {
+    const cfg = PLATFORM_CONFIG[pub.platform];
+    const account = accountByPlatform[pub.platform];
+    try {
+      await navigator.clipboard.writeText(pub.content);
+      toast.success("Contenu copié ! Redirection vers " + cfg.label + "...");
+      // Open the account's profile URL or fallback to the platform's publish URL
+      const targetUrl = account?.profile_url || cfg.publishUrl;
+      window.open(targetUrl, "_blank");
+    } catch {
+      toast.error("Impossible de copier le contenu");
+    }
+  };
+
   const pendingPubs = publications?.filter((p) => p.status !== "publie") || [];
   const publishedPubs = publications?.filter((p) => p.status === "publie") || [];
   const connectedCount = accounts?.length || 0;

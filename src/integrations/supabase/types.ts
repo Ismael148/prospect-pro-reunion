@@ -482,6 +482,94 @@ export type Database = {
           },
         ]
       }
+      social_accounts: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          page_id: string | null
+          platform: string
+          profile_url: string | null
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          page_id?: string | null
+          platform: string
+          profile_url?: string | null
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          page_id?: string | null
+          platform?: string
+          profile_url?: string | null
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_accounts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_publications: {
+        Row: {
+          client_id: string
+          content: string
+          created_at: string
+          created_by: string
+          id: string
+          image_url: string | null
+          platform: string
+          scheduled_date: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          content: string
+          created_at?: string
+          created_by: string
+          id?: string
+          image_url?: string | null
+          platform: string
+          scheduled_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          content?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          image_url?: string | null
+          platform?: string
+          scheduled_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_publications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string

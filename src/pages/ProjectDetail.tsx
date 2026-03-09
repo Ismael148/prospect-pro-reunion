@@ -124,6 +124,13 @@ export default function ProjectDetail() {
     setIsRegenerating(false);
   };
 
+  const handleAddTask = async (task: Parameters<typeof createTask.mutateAsync>[0]) => {
+    try {
+      await createTask.mutateAsync(task);
+      toast.success("Tâche ajoutée");
+    } catch { toast.error("Erreur lors de l'ajout"); }
+  };
+
   const handleDeliverableStatusChange = async (deliverableId: string, status: DeliverableStatus) => {
     try {
       const updates: any = { id: deliverableId, status };

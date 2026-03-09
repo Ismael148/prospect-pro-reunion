@@ -207,9 +207,24 @@ export default function WebmasterDashboard() {
 
   return (
     <motion.div className="space-y-8" variants={container} initial="hidden" animate="show">
-      <motion.div variants={item}>
-        <h1 className="text-3xl font-bold tracking-tight">Tableau de bord Webmaster</h1>
-        <p className="text-muted-foreground mt-1 text-sm">Vue d'ensemble de tous les projets et deadlines</p>
+      <motion.div variants={item} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Tableau de bord Webmaster</h1>
+          <p className="text-muted-foreground mt-1 text-sm">Vue d'ensemble de tous les projets et deadlines</p>
+        </div>
+        <Select value={filterUser} onValueChange={setFilterUser}>
+          <SelectTrigger className="w-[220px]">
+            <SelectValue placeholder="Filtrer par membre" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les membres</SelectItem>
+            {activeMembers.map((m) => (
+              <SelectItem key={m.user_id} value={m.user_id}>
+                {m.full_name || "Sans nom"}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </motion.div>
 
       {/* Stats */}

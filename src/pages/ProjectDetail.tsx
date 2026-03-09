@@ -16,7 +16,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Building2, Calendar, Sparkles } from "lucide-react";
+import { ArrowLeft, Loader2, Building2, Calendar, Sparkles, Clock, AlertTriangle } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import ProjectModules from "@/components/projects/ProjectModules";
 import ProjectDeliverables from "@/components/projects/ProjectDeliverables";
@@ -24,6 +24,11 @@ import ProjectDeliverables from "@/components/projects/ProjectDeliverables";
 type ProjectStatus = Database["public"]["Enums"]["project_status"];
 type TaskStatus = Database["public"]["Enums"]["task_status"];
 type DeliverableStatus = Database["public"]["Enums"]["deliverable_status"];
+
+function daysUntil(dateStr: string | null) {
+  if (!dateStr) return null;
+  return Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000);
+}
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
@@ -60,7 +65,6 @@ export default function ProjectDetail() {
     if (!project) return;
     const modules = PACK_MODULES[project.pack_type] || [];
     if (!modules.length) { toast.error("Pas de modules pour ce pack"); return; }
-
     try {
       let sortIndex = 0;
       for (const mod of modules) {
@@ -118,6 +122,9 @@ export default function ProjectDetail() {
 
   const hasTasks = tasks && tasks.length > 0;
   const hasModules = (PACK_MODULES[project.pack_type] || []).length > 0;
+  const daysLeft = daysUntil(project.due_date);
+  const isOverdue = daysLeft !== null && daysLeft < 0;
+  const isUrgent = daysLeft !== null && daysLeft >= 0 && daysLeft <= 3;
 
   return (
     <div className="space-y-6">
@@ -150,13 +157,31 @@ export default function ProjectDetail() {
             {project.start_date && (
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-muted-foreground" />
-                <span>Début : {new Date(project.start_date).toLocaleDateString("fr-FR")}</span>
+                <span>Signature : {new Date(project.start_date).toLocaleDateString("fr-FR")}</span>
               </div>
             )}
             {project.due_date && (
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-muted-foreground" />
                 <span>Deadline : {new Date(project.due_date).toLocaleDateString("fr-FR")}</span>
+              </div>
+            )}
+            {/* Deadline status with colors */}
+            {daysLeft !== null && (
+              <div className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
+                isOverdue 
+                  ? "bg-destructive/10 text-destructive" 
+                  : isUrgent 
+                    ? "bg-warning/10 text-warning"
+                    : "bg-success/10 text-success"
+              }`}>
+                {isOverdue ? (
+                  <><AlertTriangle className="w-4 h-4" /> En retard de {Math.abs(daysLeft)} jour{Math.abs(daysLeft) > 1 ? "s" : ""}</>
+                ) : daysLeft === 0 ? (
+                  <><Clock className="w-4 h-4" /> Deadline aujourd'hui</>
+                ) : (
+                  <><Clock className="w-4 h-4" /> {daysLeft} jour{daysLeft > 1 ? "s" : ""} restant{daysLeft > 1 ? "s" : ""}</>
+                )}
               </div>
             )}
             {project.description && <p className="text-muted-foreground">{project.description}</p>}

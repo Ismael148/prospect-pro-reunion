@@ -1,16 +1,16 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { User, Shield, Bell, Palette, Save, Loader2, Moon, Sun } from "lucide-react";
+import { User, Shield, Palette, Save, Loader2, Moon, Sun, Camera } from "lucide-react";
 
 export default function Settings() {
   const { profile, user, roles, signOut } = useAuth();
@@ -19,6 +19,9 @@ export default function Settings() {
   const [fullName, setFullName] = useState(profile?.full_name || "");
   const [phone, setPhone] = useState(profile?.phone || "");
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || "");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -35,6 +38,40 @@ export default function Settings() {
     : roles.includes("agent_telephonique")
     ? "Agent téléphonique"
     : "Utilisateur";
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    
+    const fileExt = file.name.split(".").pop();
+    const filePath = `${user.id}/avatar.${fileExt}`;
+
+    setUploadingAvatar(true);
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file, { upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+
+      const url = `${publicUrl}?t=${Date.now()}`;
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: url })
+        .eq("user_id", user.id);
+      if (updateError) throw updateError;
+
+      setAvatarUrl(url);
+      toast.success("Photo de profil mise à jour");
+    } catch {
+      toast.error("Erreur lors de l'upload de la photo");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   const handleSaveProfile = async () => {
     if (!user) return;
@@ -92,14 +129,43 @@ export default function Settings() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-4">
-            <Avatar className="w-16 h-16">
-              <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative group">
+              <Avatar className="w-16 h-16">
+                {avatarUrl ? (
+                  <AvatarImage src={avatarUrl} alt={fullName} />
+                ) : null}
+                <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingAvatar}
+                className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              >
+                {uploadingAvatar ? (
+                  <Loader2 className="w-5 h-5 text-white animate-spin" />
+                ) : (
+                  <Camera className="w-5 h-5 text-white" />
+                )}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                className="hidden"
+              />
+            </div>
             <div>
               <p className="font-medium">{fullName || "Utilisateur"}</p>
               <p className="text-sm text-muted-foreground">{user?.email}</p>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="text-xs text-primary hover:underline mt-1"
+              >
+                Changer la photo
+              </button>
             </div>
           </div>
 
@@ -108,21 +174,11 @@ export default function Settings() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="fullName">Nom complet</Label>
-              <Input
-                id="fullName"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Votre nom"
-              />
+              <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Votre nom" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="phone">Téléphone</Label>
-              <Input
-                id="phone"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="0262 00 00 00"
-              />
+              <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="0262 00 00 00" />
             </div>
           </div>
 
@@ -153,30 +209,14 @@ export default function Settings() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="currentPassword">Mot de passe actuel</Label>
-              <Input
-                id="currentPassword"
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-              />
+              <Input id="currentPassword" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="newPassword">Nouveau mot de passe</Label>
-              <Input
-                id="newPassword"
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Min. 6 caractères"
-              />
+              <Input id="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Min. 6 caractères" />
             </div>
           </div>
-          <Button
-            variant="outline"
-            onClick={handleChangePassword}
-            disabled={changingPassword || !newPassword}
-            className="gap-2"
-          >
+          <Button variant="outline" onClick={handleChangePassword} disabled={changingPassword || !newPassword} className="gap-2">
             {changingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <Shield className="w-4 h-4" />}
             Changer le mot de passe
           </Button>
@@ -203,10 +243,7 @@ export default function Settings() {
                 <p className="text-xs text-muted-foreground">Basculer entre le thème clair et sombre</p>
               </div>
             </div>
-            <Switch
-              checked={theme === "dark"}
-              onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
-            />
+            <Switch checked={theme === "dark"} onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")} />
           </div>
         </CardContent>
       </Card>
@@ -218,9 +255,7 @@ export default function Settings() {
           <CardDescription>Actions irréversibles</CardDescription>
         </CardHeader>
         <CardContent>
-          <Button variant="destructive" onClick={signOut}>
-            Se déconnecter
-          </Button>
+          <Button variant="destructive" onClick={signOut}>Se déconnecter</Button>
         </CardContent>
       </Card>
     </div>

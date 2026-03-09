@@ -191,6 +191,8 @@ export default function SocialMediaSection({ clientId }: { clientId: string }) {
   const deleteAccount = useDeleteSocialAccount();
   const updatePub = useUpdateSocialPublication();
   const deletePub = useDeleteSocialPublication();
+  const { startOAuth } = useMetaOAuth();
+  const [oauthLoading, setOauthLoading] = useState(false);
 
   const accountByPlatform = Object.fromEntries(
     (accounts || []).map((a) => [a.platform, a])

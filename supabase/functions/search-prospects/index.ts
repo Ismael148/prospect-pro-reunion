@@ -35,9 +35,9 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Two parallel searches: Google Maps for addresses + Pages Jaunes for contact details
+    // Search for businesses, prioritizing those without websites
     const searches = [
-      `${query} ${zone} La Réunion adresse téléphone email`,
+      `${query} ${zone} La Réunion adresse téléphone email -site web -www`,
       `${query} ${zone} 974 La Réunion site:pagesjaunes.fr`,
     ];
 
@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
           },
           body: JSON.stringify({
             query: q,
-            limit: 15,
+            limit: 20,
             scrapeOptions: {
               formats: ['markdown'],
               onlyMainContent: true,

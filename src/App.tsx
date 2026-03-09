@@ -17,6 +17,7 @@ import ProjectDetail from "./pages/ProjectDetail";
 import Team from "./pages/Team";
 import Settings from "./pages/Settings";
 import WebmasterDashboard from "./pages/WebmasterDashboard";
+import MetaCallback from "./pages/MetaCallback";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

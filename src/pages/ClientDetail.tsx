@@ -24,6 +24,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import SocialMediaSection from "@/components/clients/SocialMediaSection";
 
 type PipelineStatus = Database["public"]["Enums"]["pipeline_status"];
 
@@ -475,6 +476,9 @@ export default function ClientDetail() {
 
       {/* Contacts */}
       <ContactsSection clientId={id!} contacts={contacts} />
+
+      {/* Social Media */}
+      <SocialMediaSection clientId={id!} />
 
       {/* Notes & Activities */}
       <NotesSection clientId={id!} activities={activities} />

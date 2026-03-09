@@ -317,6 +317,17 @@ export default function SocialMediaSection({ clientId }: { clientId: string }) {
                           <Trash2 className="w-3.5 h-3.5" />
                         </Button>
                       </>
+                    ) : (platform === "facebook" || platform === "instagram") ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                        onClick={handleMetaOAuth}
+                        disabled={oauthLoading}
+                      >
+                        <LogIn className="w-3.5 h-3.5 mr-1" />
+                        {oauthLoading ? "Connexion..." : "Connecter via Meta"}
+                      </Button>
                     ) : (
                       <AccountEditDialog
                         clientId={clientId}

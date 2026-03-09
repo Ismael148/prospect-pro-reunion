@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useProjects } from "@/hooks/use-projects";
 import { PROJECT_STATUS_LABELS, PROJECT_STATUS_COLORS, PACK_LABELS } from "@/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

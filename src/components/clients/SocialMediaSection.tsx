@@ -11,13 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import {
-  Plus, ExternalLink, Pencil, Trash2, CheckCircle2, Clock, Calendar, Share2, Copy,
+  Plus, ExternalLink, Pencil, Trash2, CheckCircle2, Clock, Calendar, Share2, Copy, LogIn,
 } from "lucide-react";
 import {
   useSocialAccounts, useSocialPublications, useUpsertSocialAccount,
   useDeleteSocialAccount, useCreateSocialPublication, useUpdateSocialPublication,
   useDeleteSocialPublication, type SocialPlatform, type SocialPublication,
 } from "@/hooks/use-social";
+import { useMetaOAuth } from "@/hooks/use-meta-oauth";
 
 // Platform config
 const PLATFORM_CONFIG: Record<SocialPlatform, { label: string; icon: string; color: string; bg: string; placeholder: string; publishUrl: string }> = {
@@ -190,6 +191,8 @@ export default function SocialMediaSection({ clientId }: { clientId: string }) {
   const deleteAccount = useDeleteSocialAccount();
   const updatePub = useUpdateSocialPublication();
   const deletePub = useDeleteSocialPublication();
+  const { startOAuth } = useMetaOAuth();
+  const [oauthLoading, setOauthLoading] = useState(false);
 
   const accountByPlatform = Object.fromEntries(
     (accounts || []).map((a) => [a.platform, a])
@@ -226,6 +229,16 @@ export default function SocialMediaSection({ clientId }: { clientId: string }) {
       window.open(targetUrl, "_blank");
     } catch {
       toast.error("Impossible de copier le contenu");
+    }
+  };
+
+  const handleMetaOAuth = async () => {
+    setOauthLoading(true);
+    try {
+      await startOAuth(clientId);
+    } catch (err: any) {
+      toast.error(err.message || "Erreur lors de la connexion Meta");
+      setOauthLoading(false);
     }
   };
 
@@ -304,6 +317,17 @@ export default function SocialMediaSection({ clientId }: { clientId: string }) {
                           <Trash2 className="w-3.5 h-3.5" />
                         </Button>
                       </>
+                    ) : (platform === "facebook" || platform === "instagram") ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                        onClick={handleMetaOAuth}
+                        disabled={oauthLoading}
+                      >
+                        <LogIn className="w-3.5 h-3.5 mr-1" />
+                        {oauthLoading ? "Connexion..." : "Connecter via Meta"}
+                      </Button>
                     ) : (
                       <AccountEditDialog
                         clientId={clientId}

@@ -17,6 +17,7 @@ import ProjectDetail from "./pages/ProjectDetail";
 import Team from "./pages/Team";
 import Settings from "./pages/Settings";
 import WebmasterDashboard from "./pages/WebmasterDashboard";
+import MetaCallback from "./pages/MetaCallback";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -110,6 +111,9 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route path="/meta-callback" element={
+              <ProtectedRoute><MetaCallback /></ProtectedRoute>
+            } />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

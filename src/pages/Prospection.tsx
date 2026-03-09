@@ -100,7 +100,8 @@ export default function Prospection() {
   const [appointmentTime, setAppointmentTime] = useState("09:00");
   const [callbackDate, setCallbackDate] = useState<Date | undefined>();
   const [callbackNotes, setCallbackNotes] = useState("");
-
+  const [selectedSearchResult, setSelectedSearchResult] = useState<number | null>(null);
+  const [prospectDetail, setProspectDetail] = useState<any | null>(null);
   const handleSearch = async () => {
     const query = searchQuery || customQuery;
     if (!query || !searchZone) {

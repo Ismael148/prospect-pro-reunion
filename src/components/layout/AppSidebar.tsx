@@ -24,9 +24,19 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useMemo } from "react";
 
-const menuItems = [
+// Role-based access: which paths each role can see
+const ROLE_ACCESS: Record<string, string[]> = {
+  admin: ["/", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/equipe", "/parametres"],
+  agent_telephonique: ["/", "/prospection"],
+  commercial_terrain: ["/", "/prospection", "/clients", "/pipeline"],
+  webmaster: ["/", "/projets", "/webmaster"],
+  designer: ["/", "/projets", "/webmaster"],
+};
+
+const allMenuItems = [
   { title: "Dashboard", icon: LayoutDashboard, path: "/" },
   { title: "Clients", icon: Users, path: "/clients" },
   { title: "Prospection", icon: Search, path: "/prospection" },
@@ -51,11 +61,29 @@ export function AppSidebar() {
 
   const roleLabel = roles.includes("admin")
     ? "Admin"
+    : roles.includes("webmaster")
+    ? "Webmaster"
+    : roles.includes("designer")
+    ? "Designer"
     : roles.includes("commercial_terrain")
     ? "Commercial"
     : roles.includes("agent_telephonique")
     ? "Agent tél."
     : "Utilisateur";
+
+  // Build accessible paths based on user roles
+  const accessiblePaths = useMemo(() => {
+    if (hasRole("admin")) return new Set(ROLE_ACCESS.admin);
+    const paths = new Set<string>(["/"]); // Dashboard always accessible
+    roles.forEach((role) => {
+      ROLE_ACCESS[role]?.forEach((p) => paths.add(p));
+    });
+    // Always allow settings for self
+    paths.add("/parametres");
+    return paths;
+  }, [roles, hasRole]);
+
+  const menuItems = allMenuItems.filter((item) => accessiblePaths.has(item.path));
 
   return (
     <Sidebar>
@@ -122,6 +150,7 @@ export function AppSidebar() {
       <SidebarFooter className="p-4">
         <div className="flex items-center gap-3 p-2 rounded-xl bg-sidebar-accent/50">
           <Avatar className="w-9 h-9">
+            {profile?.avatar_url ? <AvatarImage src={profile.avatar_url} alt={profile.full_name || ""} /> : null}
             <AvatarFallback className="bg-sidebar-primary/20 text-sidebar-primary text-xs font-semibold">
               {initials}
             </AvatarFallback>

@@ -640,18 +640,28 @@ export default function Prospection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.02, duration: 0.2 }}
             >
-              <Card className="border-0 shadow-soft hover:shadow-medium transition-all duration-200">
+              <Card className="border-0 shadow-soft hover:shadow-medium transition-all duration-200 cursor-pointer"
+                onClick={() => setProspectDetail(prospectDetail?.id === prospect.id ? null : prospect)}>
                 <CardContent className="flex items-center gap-4 py-3 px-4">
-                  <div className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center text-primary shrink-0">
+                  <div className={cn(
+                    "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                    !prospect.website ? "bg-success/10 text-success" : "bg-primary/8 text-primary"
+                  )}>
                     <Building2 className="w-4 h-4" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm truncate">{prospect.business_name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-sm truncate">{prospect.business_name}</p>
+                      {!prospect.website && (
+                        <Badge className="text-[9px] bg-success/10 text-success border-success/20 shrink-0" variant="outline">
+                          Sans site
+                        </Badge>
+                      )}
+                    </div>
                     <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[11px] text-muted-foreground mt-0.5">
                       {prospect.address && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{prospect.address}</span>}
                       {!prospect.address && prospect.city && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{prospect.city}</span>}
                       {prospect.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{prospect.phone}</span>}
-                      {prospect.email && <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{prospect.email}</span>}
                       {prospect.rating && <span className="flex items-center gap-1"><Star className="w-3 h-3 fill-warning text-warning" />{Number(prospect.rating).toFixed(1)}</span>}
                     </div>
                     {/* Appointment info */}
@@ -671,8 +681,55 @@ export default function Prospection() {
                         {prospect.callback_notes && <span className="text-muted-foreground font-normal">— {prospect.callback_notes}</span>}
                       </div>
                     )}
+
+                    {/* Expanded detail panel */}
+                    {prospectDetail?.id === prospect.id && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        className="mt-3 pt-3 border-t border-border"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                          {prospect.email && (
+                            <div className="flex items-center gap-2">
+                              <Mail className="w-4 h-4 text-muted-foreground" />
+                              <span>{prospect.email}</span>
+                            </div>
+                          )}
+                          {prospect.website && (
+                            <div className="flex items-center gap-2">
+                              <Globe className="w-4 h-4 text-muted-foreground" />
+                              <a href={prospect.website.startsWith("http") ? prospect.website : `https://${prospect.website}`} target="_blank" rel="noopener noreferrer" className="text-primary underline text-xs">
+                                {prospect.website}
+                              </a>
+                            </div>
+                          )}
+                          {prospect.sector && (
+                            <div className="flex items-center gap-2">
+                              <Building2 className="w-4 h-4 text-muted-foreground" />
+                              <span>{prospect.sector}</span>
+                            </div>
+                          )}
+                          {prospect.google_maps_url && (
+                            <div className="flex items-center gap-2">
+                              <MapPin className="w-4 h-4 text-muted-foreground" />
+                              <a href={prospect.google_maps_url} target="_blank" rel="noopener noreferrer" className="text-primary underline text-xs">
+                                Google Maps
+                              </a>
+                            </div>
+                          )}
+                          {prospect.notes && (
+                            <div className="col-span-full text-xs text-muted-foreground">
+                              <p className="font-medium text-foreground mb-1">Notes :</p>
+                              <p>{prospect.notes}</p>
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+                  <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end" onClick={(e) => e.stopPropagation()}>
                     {/* Agent assignment - Admin only */}
                     {isAdmin && (
                       <Select

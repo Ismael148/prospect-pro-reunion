@@ -63,6 +63,17 @@ function DeadlineBadge({ dueDate }: { dueDate: string | null }) {
 export default function WebmasterDashboard() {
   const navigate = useNavigate();
   const { data: projects, isLoading } = useProjects();
+  const [filterUser, setFilterUser] = useState<string>("all");
+
+  // Fetch all team members (profiles)
+  const { data: teamMembers } = useQuery({
+    queryKey: ["all_profiles"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profiles").select("user_id, full_name");
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
   // Fetch all tasks with dates for charts
   const { data: allTasks } = useQuery({
@@ -70,12 +81,41 @@ export default function WebmasterDashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("project_tasks")
-        .select("project_id, status, created_at, updated_at")
+        .select("project_id, status, created_at, updated_at, assigned_to")
         .order("created_at", { ascending: true });
       if (error) throw error;
       return data;
     },
   });
+
+  // Filter projects & tasks by selected user
+  const filteredProjects = useMemo(() => {
+    if (!projects) return [];
+    if (filterUser === "all") return projects;
+    return projects.filter((p: any) => p.assigned_to === filterUser || p.created_by === filterUser);
+  }, [projects, filterUser]);
+
+  const filteredTasks = useMemo(() => {
+    if (!allTasks) return [];
+    if (filterUser === "all") return allTasks;
+    // Tasks assigned to user OR belonging to user's projects
+    const userProjectIds = new Set(filteredProjects.map((p: any) => p.id));
+    return allTasks.filter((t) => t.assigned_to === filterUser || userProjectIds.has(t.project_id));
+  }, [allTasks, filterUser, filteredProjects]);
+
+  // Only show team members who have projects
+  const activeMembers = useMemo(() => {
+    if (!teamMembers || !projects) return [];
+    const userIds = new Set<string>();
+    projects.forEach((p: any) => {
+      if (p.assigned_to) userIds.add(p.assigned_to);
+      if (p.created_by) userIds.add(p.created_by);
+    });
+    return teamMembers.filter((m) => userIds.has(m.user_id));
+  }, [teamMembers, projects]);
+
+  const getMemberName = (userId: string) =>
+    teamMembers?.find((m) => m.user_id === userId)?.full_name || "Inconnu";
 
   // Weekly completion chart data (last 8 weeks)
   const weeklyData = useMemo(() => {

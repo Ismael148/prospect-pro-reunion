@@ -244,17 +244,31 @@ export default function ProjectDetail() {
           </CardContent>
         </Card>
         <Card className="border-0 shadow-md shadow-primary/5">
-          <CardContent className="pt-6 flex flex-col items-center justify-center">
+          <CardContent className="pt-6 flex flex-col items-center justify-center gap-3">
             {!hasTasks && hasModules ? (
               <Button onClick={handleAutoGenerateModules} disabled={createTask.isPending} className="w-full">
                 {createTask.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
                 Générer les modules du pack
               </Button>
             ) : (
-              <div className="text-center">
-                <p className="text-4xl font-bold text-primary">{project.progress || 0}%</p>
-                <p className="text-sm text-muted-foreground mt-1">Progression</p>
-              </div>
+              <>
+                <div className="text-center">
+                  <p className="text-4xl font-bold text-primary">{project.progress || 0}%</p>
+                  <p className="text-sm text-muted-foreground mt-1">Progression</p>
+                </div>
+                {hasModules && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRegenerateModules}
+                    disabled={isRegenerating}
+                    className="w-full gap-2 text-xs"
+                  >
+                    {isRegenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                    Regénérer les modules
+                  </Button>
+                )}
+              </>
             )}
           </CardContent>
         </Card>

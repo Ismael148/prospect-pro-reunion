@@ -119,7 +119,7 @@ export default function WebmasterDashboard() {
 
   // Weekly completion chart data (last 8 weeks)
   const weeklyData = useMemo(() => {
-    if (!allTasks) return [];
+    if (!filteredTasks.length) return [];
     const now = new Date();
     const weeks: { label: string; start: Date; end: Date }[] = [];
     for (let i = 7; i >= 0; i--) {
@@ -129,24 +129,24 @@ export default function WebmasterDashboard() {
       weeks.push({ label, start, end });
     }
     return weeks.map((w) => {
-      const created = allTasks.filter((t) => {
+      const created = filteredTasks.filter((t) => {
         const d = new Date(t.created_at);
         return d >= w.start && d < w.end;
       }).length;
-      const completed = allTasks.filter((t) => {
+      const completed = filteredTasks.filter((t) => {
         if (t.status !== "termine") return false;
         const d = new Date(t.updated_at);
         return d >= w.start && d < w.end;
       }).length;
       return { semaine: w.label, créées: created, terminées: completed };
     });
-  }, [allTasks]);
+  }, [filteredTasks]);
 
   // Task status distribution for pie chart
   const statusDistribution = useMemo(() => {
-    if (!allTasks) return [];
+    if (!filteredTasks.length) return [];
     const counts: Record<string, number> = {};
-    allTasks.forEach((t) => {
+    filteredTasks.forEach((t) => {
       counts[t.status] = (counts[t.status] || 0) + 1;
     });
     const statusLabels: Record<string, string> = {
@@ -159,7 +159,7 @@ export default function WebmasterDashboard() {
       name: statusLabels[status] || status,
       value: count,
     }));
-  }, [allTasks]);
+  }, [filteredTasks]);
 
   const PIE_COLORS = ["hsl(var(--muted-foreground))", "hsl(var(--primary))", "hsl(var(--warning))", "hsl(var(--success))"];
 

@@ -288,7 +288,9 @@ export default function ProjectDetail() {
           packType={project.pack_type}
           tasks={tasks}
           startDate={project.start_date}
+          isAdmin={isAdmin}
           onTaskStatusChange={handleTaskStatusChange}
+          onAddTask={handleAddTask}
         />
       )}
 

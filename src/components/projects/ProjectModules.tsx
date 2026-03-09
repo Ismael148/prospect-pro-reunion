@@ -120,46 +120,101 @@ export default function ProjectModules({ packType, tasks, startDate, isAdmin, on
           >
             <Card className={`border-0 shadow-md shadow-primary/5 overflow-hidden ${allDone ? "opacity-75" : ""}`}>
               {/* Module header - clickable */}
-              <button
-                onClick={() => toggle(mod.id)}
-                className="w-full flex items-center gap-3 p-4 hover:bg-muted/30 transition-colors text-left"
-              >
-                {isCollapsed ? (
-                  <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-muted-foreground shrink-0" />
+              <div className="flex items-center">
+                <button
+                  onClick={() => toggle(mod.id)}
+                  className="flex-1 flex items-center gap-3 p-4 hover:bg-muted/30 transition-colors text-left"
+                >
+                  {isCollapsed ? (
+                    <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-muted-foreground shrink-0" />
+                  )}
+                  <span className="text-lg">{mod.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-sm">{mod.name}</span>
+                      {allDone && (
+                        <Badge className="bg-success/10 text-success border-success/20 text-xs" variant="outline">
+                          ✅ Terminé
+                        </Badge>
+                      )}
+                      {isOverdue && (
+                        <Badge className="bg-destructive/10 text-destructive border-destructive/20 text-xs gap-1" variant="outline">
+                          <AlertTriangle className="w-3 h-3" /> En retard
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 mt-1">
+                      <Progress value={progress} className="flex-1 h-1.5 max-w-[200px]" />
+                      <span className="text-xs text-muted-foreground">{done}/{total}</span>
+                      {deadlineDate && (
+                        <span className={`text-xs flex items-center gap-1 ${isOverdue ? "text-destructive" : "text-muted-foreground"}`}>
+                          <Clock className="w-3 h-3" />
+                          {daysLeft !== null && daysLeft > 0
+                            ? `${daysLeft}j restants`
+                            : daysLeft === 0
+                              ? "Aujourd'hui"
+                              : `${Math.abs(daysLeft!)}j de retard`}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </button>
+                {isAdmin && onAddTask && (
+                  <Dialog open={addDialogOpen === mod.id} onOpenChange={(open) => setAddDialogOpen(open ? mod.id : null)}>
+                    <DialogTrigger asChild>
+                      <Button variant="ghost" size="sm" className="mr-2 gap-1">
+                        <Plus className="w-4 h-4" />
+                        Ajouter tâche
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Ajouter une tâche au module</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div>
+                          <label className="text-sm font-medium mb-1.5 block">Titre *</label>
+                          <Input
+                            placeholder="Titre de la tâche"
+                            value={newTaskTitle}
+                            onChange={(e) => setNewTaskTitle(e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium mb-1.5 block">Description</label>
+                          <Textarea
+                            placeholder="Description (optionnelle)"
+                            value={newTaskDescription}
+                            onChange={(e) => setNewTaskDescription(e.target.value)}
+                            rows={3}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium mb-1.5 block">Priorité</label>
+                          <Select value={newTaskPriority} onValueChange={(v) => setNewTaskPriority(v as TaskPriority)}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.entries(TASK_PRIORITY_LABELS).map(([k, v]) => (
+                                <SelectItem key={k} value={k}>{v}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setAddDialogOpen(null)}>Annuler</Button>
+                        <Button onClick={() => handleAddTask(mod.id)} disabled={!newTaskTitle.trim()}>
+                          Ajouter
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 )}
-                <span className="text-lg">{mod.icon}</span>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-sm">{mod.name}</span>
-                    {allDone && (
-                      <Badge className="bg-success/10 text-success border-success/20 text-xs" variant="outline">
-                        ✅ Terminé
-                      </Badge>
-                    )}
-                    {isOverdue && (
-                      <Badge className="bg-destructive/10 text-destructive border-destructive/20 text-xs gap-1" variant="outline">
-                        <AlertTriangle className="w-3 h-3" /> En retard
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3 mt-1">
-                    <Progress value={progress} className="flex-1 h-1.5 max-w-[200px]" />
-                    <span className="text-xs text-muted-foreground">{done}/{total}</span>
-                    {deadlineDate && (
-                      <span className={`text-xs flex items-center gap-1 ${isOverdue ? "text-destructive" : "text-muted-foreground"}`}>
-                        <Clock className="w-3 h-3" />
-                        {daysLeft !== null && daysLeft > 0
-                          ? `${daysLeft}j restants`
-                          : daysLeft === 0
-                            ? "Aujourd'hui"
-                            : `${Math.abs(daysLeft!)}j de retard`}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </button>
+              </div>
 
               {/* Tasks */}
               <AnimatePresence>

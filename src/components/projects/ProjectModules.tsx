@@ -3,20 +3,28 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
-import { PACK_MODULES } from "@/lib/constants";
-import { ChevronDown, ChevronRight, Clock, AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { PACK_MODULES, TASK_PRIORITY_LABELS } from "@/lib/constants";
+import { ChevronDown, ChevronRight, Clock, AlertTriangle, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 import type { Database } from "@/integrations/supabase/types";
 
 type ProjectTask = Tables<"project_tasks">;
 type TaskStatus = Database["public"]["Enums"]["task_status"];
+type TaskPriority = Database["public"]["Enums"]["task_priority"];
 
 interface Props {
   packType: string;
   tasks: ProjectTask[];
   startDate?: string | null;
+  isAdmin?: boolean;
   onTaskStatusChange: (taskId: string, status: TaskStatus) => Promise<void>;
+  onAddTask?: (task: TablesInsert<"project_tasks">) => Promise<void>;
 }
 
 export default function ProjectModules({ packType, tasks, startDate, onTaskStatusChange }: Props) {

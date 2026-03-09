@@ -163,9 +163,9 @@ export default function WebmasterDashboard() {
 
   const PIE_COLORS = ["hsl(var(--muted-foreground))", "hsl(var(--primary))", "hsl(var(--warning))", "hsl(var(--success))"];
 
-  const activeProjects = projects?.filter((p: any) => p.status === "en_cours" || p.status === "en_revision") || [];
-  const pendingProjects = projects?.filter((p: any) => p.status === "en_attente") || [];
-  const completedProjects = projects?.filter((p: any) => p.status === "termine") || [];
+  const activeProjects = filteredProjects.filter((p: any) => p.status === "en_cours" || p.status === "en_revision");
+  const pendingProjects = filteredProjects.filter((p: any) => p.status === "en_attente");
+  const completedProjects = filteredProjects.filter((p: any) => p.status === "termine");
 
   const overdueProjects = activeProjects.filter((p: any) => {
     const days = daysUntil(p.due_date);
@@ -177,9 +177,8 @@ export default function WebmasterDashboard() {
     return days !== null && days >= 0 && days <= 3;
   });
 
-  // Task stats per project
   const tasksByProject = (projectId: string) => {
-    const tasks = allTasks?.filter((t) => t.project_id === projectId) || [];
+    const tasks = filteredTasks.filter((t) => t.project_id === projectId);
     const done = tasks.filter((t) => t.status === "termine").length;
     return { total: tasks.length, done };
   };

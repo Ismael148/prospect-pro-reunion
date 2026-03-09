@@ -61,18 +61,64 @@ export default function WebmasterDashboard() {
   const navigate = useNavigate();
   const { data: projects, isLoading } = useProjects();
 
-  // Fetch all tasks for progress summary
+  // Fetch all tasks with dates for charts
   const { data: allTasks } = useQuery({
-    queryKey: ["all_project_tasks"],
+    queryKey: ["all_project_tasks_full"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("project_tasks")
-        .select("project_id, status")
-        .order("created_at", { ascending: false });
+        .select("project_id, status, created_at, updated_at")
+        .order("created_at", { ascending: true });
       if (error) throw error;
       return data;
     },
   });
+
+  // Weekly completion chart data (last 8 weeks)
+  const weeklyData = useMemo(() => {
+    if (!allTasks) return [];
+    const now = new Date();
+    const weeks: { label: string; start: Date; end: Date }[] = [];
+    for (let i = 7; i >= 0; i--) {
+      const end = new Date(now.getTime() - i * 7 * 86400000);
+      const start = new Date(end.getTime() - 7 * 86400000);
+      const label = `${start.getDate().toString().padStart(2, "0")}/${(start.getMonth() + 1).toString().padStart(2, "0")}`;
+      weeks.push({ label, start, end });
+    }
+    return weeks.map((w) => {
+      const created = allTasks.filter((t) => {
+        const d = new Date(t.created_at);
+        return d >= w.start && d < w.end;
+      }).length;
+      const completed = allTasks.filter((t) => {
+        if (t.status !== "termine") return false;
+        const d = new Date(t.updated_at);
+        return d >= w.start && d < w.end;
+      }).length;
+      return { semaine: w.label, créées: created, terminées: completed };
+    });
+  }, [allTasks]);
+
+  // Task status distribution for pie chart
+  const statusDistribution = useMemo(() => {
+    if (!allTasks) return [];
+    const counts: Record<string, number> = {};
+    allTasks.forEach((t) => {
+      counts[t.status] = (counts[t.status] || 0) + 1;
+    });
+    const statusLabels: Record<string, string> = {
+      a_faire: "À faire",
+      en_cours: "En cours",
+      en_revision: "En révision",
+      termine: "Terminé",
+    };
+    return Object.entries(counts).map(([status, count]) => ({
+      name: statusLabels[status] || status,
+      value: count,
+    }));
+  }, [allTasks]);
+
+  const PIE_COLORS = ["hsl(var(--muted-foreground))", "hsl(var(--primary))", "hsl(var(--warning))", "hsl(var(--success))"];
 
   const activeProjects = projects?.filter((p: any) => p.status === "en_cours" || p.status === "en_revision") || [];
   const pendingProjects = projects?.filter((p: any) => p.status === "en_attente") || [];

@@ -234,6 +234,7 @@ function parseSearchResults(results: SearchResult[], query: string, zone: string
         const domain = urlMatch[1].toLowerCase();
         if (!domain.includes('google') && !domain.includes('pagesjaunes') && !domain.includes('facebook') && !domain.includes('instagram')) {
           prospect.website = domain.startsWith('http') ? domain : `https://${domain}`;
+          prospect.has_website = true;
         }
       }
     }

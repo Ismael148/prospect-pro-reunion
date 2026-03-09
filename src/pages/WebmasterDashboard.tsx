@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useProjects } from "@/hooks/use-projects";
 import { PROJECT_STATUS_LABELS, PROJECT_STATUS_COLORS, PACK_LABELS } from "@/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +16,9 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   AreaChart, Area, PieChart, Pie, Cell, Legend,
 } from "recharts";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 
 const container = {
   hidden: { opacity: 0 },
@@ -60,6 +63,17 @@ function DeadlineBadge({ dueDate }: { dueDate: string | null }) {
 export default function WebmasterDashboard() {
   const navigate = useNavigate();
   const { data: projects, isLoading } = useProjects();
+  const [filterUser, setFilterUser] = useState<string>("all");
+
+  // Fetch all team members (profiles)
+  const { data: teamMembers } = useQuery({
+    queryKey: ["all_profiles"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profiles").select("user_id, full_name");
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
   // Fetch all tasks with dates for charts
   const { data: allTasks } = useQuery({
@@ -67,16 +81,45 @@ export default function WebmasterDashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("project_tasks")
-        .select("project_id, status, created_at, updated_at")
+        .select("project_id, status, created_at, updated_at, assigned_to")
         .order("created_at", { ascending: true });
       if (error) throw error;
       return data;
     },
   });
 
+  // Filter projects & tasks by selected user
+  const filteredProjects = useMemo(() => {
+    if (!projects) return [];
+    if (filterUser === "all") return projects;
+    return projects.filter((p: any) => p.assigned_to === filterUser || p.created_by === filterUser);
+  }, [projects, filterUser]);
+
+  const filteredTasks = useMemo(() => {
+    if (!allTasks) return [];
+    if (filterUser === "all") return allTasks;
+    // Tasks assigned to user OR belonging to user's projects
+    const userProjectIds = new Set(filteredProjects.map((p: any) => p.id));
+    return allTasks.filter((t) => t.assigned_to === filterUser || userProjectIds.has(t.project_id));
+  }, [allTasks, filterUser, filteredProjects]);
+
+  // Only show team members who have projects
+  const activeMembers = useMemo(() => {
+    if (!teamMembers || !projects) return [];
+    const userIds = new Set<string>();
+    projects.forEach((p: any) => {
+      if (p.assigned_to) userIds.add(p.assigned_to);
+      if (p.created_by) userIds.add(p.created_by);
+    });
+    return teamMembers.filter((m) => userIds.has(m.user_id));
+  }, [teamMembers, projects]);
+
+  const getMemberName = (userId: string) =>
+    teamMembers?.find((m) => m.user_id === userId)?.full_name || "Inconnu";
+
   // Weekly completion chart data (last 8 weeks)
   const weeklyData = useMemo(() => {
-    if (!allTasks) return [];
+    if (!filteredTasks.length) return [];
     const now = new Date();
     const weeks: { label: string; start: Date; end: Date }[] = [];
     for (let i = 7; i >= 0; i--) {
@@ -86,24 +129,24 @@ export default function WebmasterDashboard() {
       weeks.push({ label, start, end });
     }
     return weeks.map((w) => {
-      const created = allTasks.filter((t) => {
+      const created = filteredTasks.filter((t) => {
         const d = new Date(t.created_at);
         return d >= w.start && d < w.end;
       }).length;
-      const completed = allTasks.filter((t) => {
+      const completed = filteredTasks.filter((t) => {
         if (t.status !== "termine") return false;
         const d = new Date(t.updated_at);
         return d >= w.start && d < w.end;
       }).length;
       return { semaine: w.label, créées: created, terminées: completed };
     });
-  }, [allTasks]);
+  }, [filteredTasks]);
 
   // Task status distribution for pie chart
   const statusDistribution = useMemo(() => {
-    if (!allTasks) return [];
+    if (!filteredTasks.length) return [];
     const counts: Record<string, number> = {};
-    allTasks.forEach((t) => {
+    filteredTasks.forEach((t) => {
       counts[t.status] = (counts[t.status] || 0) + 1;
     });
     const statusLabels: Record<string, string> = {
@@ -116,13 +159,13 @@ export default function WebmasterDashboard() {
       name: statusLabels[status] || status,
       value: count,
     }));
-  }, [allTasks]);
+  }, [filteredTasks]);
 
   const PIE_COLORS = ["hsl(var(--muted-foreground))", "hsl(var(--primary))", "hsl(var(--warning))", "hsl(var(--success))"];
 
-  const activeProjects = projects?.filter((p: any) => p.status === "en_cours" || p.status === "en_revision") || [];
-  const pendingProjects = projects?.filter((p: any) => p.status === "en_attente") || [];
-  const completedProjects = projects?.filter((p: any) => p.status === "termine") || [];
+  const activeProjects = filteredProjects.filter((p: any) => p.status === "en_cours" || p.status === "en_revision");
+  const pendingProjects = filteredProjects.filter((p: any) => p.status === "en_attente");
+  const completedProjects = filteredProjects.filter((p: any) => p.status === "termine");
 
   const overdueProjects = activeProjects.filter((p: any) => {
     const days = daysUntil(p.due_date);
@@ -134,9 +177,8 @@ export default function WebmasterDashboard() {
     return days !== null && days >= 0 && days <= 3;
   });
 
-  // Task stats per project
   const tasksByProject = (projectId: string) => {
-    const tasks = allTasks?.filter((t) => t.project_id === projectId) || [];
+    const tasks = filteredTasks.filter((t) => t.project_id === projectId);
     const done = tasks.filter((t) => t.status === "termine").length;
     return { total: tasks.length, done };
   };
@@ -165,9 +207,24 @@ export default function WebmasterDashboard() {
 
   return (
     <motion.div className="space-y-8" variants={container} initial="hidden" animate="show">
-      <motion.div variants={item}>
-        <h1 className="text-3xl font-bold tracking-tight">Tableau de bord Webmaster</h1>
-        <p className="text-muted-foreground mt-1 text-sm">Vue d'ensemble de tous les projets et deadlines</p>
+      <motion.div variants={item} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Tableau de bord Webmaster</h1>
+          <p className="text-muted-foreground mt-1 text-sm">Vue d'ensemble de tous les projets et deadlines</p>
+        </div>
+        <Select value={filterUser} onValueChange={setFilterUser}>
+          <SelectTrigger className="w-[220px]">
+            <SelectValue placeholder="Filtrer par membre" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les membres</SelectItem>
+            {activeMembers.map((m) => (
+              <SelectItem key={m.user_id} value={m.user_id}>
+                {m.full_name || "Sans nom"}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </motion.div>
 
       {/* Stats */}

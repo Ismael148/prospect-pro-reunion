@@ -34,7 +34,7 @@ function daysUntil(dateStr: string | null) {
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
   const { data: project, isLoading } = useProject(id!);
   const { data: tasks } = useProjectTasks(id!);
   const { data: deliverables } = useDeliverables(id!);
@@ -45,6 +45,7 @@ export default function ProjectDetail() {
   const updateDeliverable = useUpdateDeliverable();
   const deleteProjectTasks = useDeleteProjectTasks();
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const isAdmin = hasRole("admin");
 
   const handleStatusChange = async (status: ProjectStatus) => {
     if (!project) return;

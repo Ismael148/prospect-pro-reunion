@@ -35,9 +35,9 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Two parallel searches: Google Maps for addresses + Pages Jaunes for contact details
+    // Search for businesses, prioritizing those without websites
     const searches = [
-      `${query} ${zone} La Réunion adresse téléphone email`,
+      `${query} ${zone} La Réunion adresse téléphone email -site web -www`,
       `${query} ${zone} 974 La Réunion site:pagesjaunes.fr`,
     ];
 
@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
           },
           body: JSON.stringify({
             query: q,
-            limit: 15,
+            limit: 20,
             scrapeOptions: {
               formats: ['markdown'],
               onlyMainContent: true,
@@ -105,6 +105,7 @@ interface ParsedProspect {
   phone?: string;
   email?: string;
   website?: string;
+  has_website: boolean;
   sector?: string;
   rating?: number;
   reviews_count?: number;
@@ -138,6 +139,7 @@ function parseSearchResults(results: SearchResult[], query: string, zone: string
       business_name: businessName,
       city: zone,
       sector: query,
+      has_website: false,
     };
 
     const content = result.markdown || result.description || '';
@@ -232,6 +234,7 @@ function parseSearchResults(results: SearchResult[], query: string, zone: string
         const domain = urlMatch[1].toLowerCase();
         if (!domain.includes('google') && !domain.includes('pagesjaunes') && !domain.includes('facebook') && !domain.includes('instagram')) {
           prospect.website = domain.startsWith('http') ? domain : `https://${domain}`;
+          prospect.has_website = true;
         }
       }
     }

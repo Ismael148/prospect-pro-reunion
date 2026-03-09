@@ -100,7 +100,8 @@ export default function Prospection() {
   const [appointmentTime, setAppointmentTime] = useState("09:00");
   const [callbackDate, setCallbackDate] = useState<Date | undefined>();
   const [callbackNotes, setCallbackNotes] = useState("");
-
+  const [selectedSearchResult, setSelectedSearchResult] = useState<number | null>(null);
+  const [prospectDetail, setProspectDetail] = useState<any | null>(null);
   const handleSearch = async () => {
     const query = searchQuery || customQuery;
     if (!query || !searchZone) {
@@ -368,36 +369,98 @@ export default function Prospection() {
         </Card>
       )}
 
-      {/* Search Results Dialog */}
+      {/* Search Results Dialog - with detail view */}
       <Dialog open={showResults} onOpenChange={setShowResults}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
+            <DialogTitle className="flex items-center justify-between gap-2">
               <span>{searchResults.length} résultat(s)</span>
-              <Button size="sm" onClick={handleImportAll} disabled={createProspects.isPending} className="gap-2">
-                {createProspects.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
-                Tout importer
-              </Button>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="text-[10px]">
+                  {searchResults.filter((r) => !r.has_website && !r.website).length} sans site
+                </Badge>
+                <Button size="sm" onClick={handleImportAll} disabled={createProspects.isPending} className="gap-2">
+                  {createProspects.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
+                  Tout importer
+                </Button>
+              </div>
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-2 mt-3">
             {searchResults.map((result, i) => (
-              <Card key={i} className="border shadow-soft">
+              <Card
+                key={i}
+                className={cn(
+                  "border shadow-soft cursor-pointer hover:shadow-medium transition-all",
+                  !result.website && !result.has_website && "border-l-4 border-l-success"
+                )}
+                onClick={() => setSelectedSearchResult(selectedSearchResult === i ? null : i)}
+              >
                 <CardContent className="p-3.5">
                   <div className="flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-primary/8 flex items-center justify-center text-primary shrink-0">
+                    <div className={cn(
+                      "w-9 h-9 rounded-xl flex items-center justify-center shrink-0",
+                      !result.website ? "bg-success/10 text-success" : "bg-primary/8 text-primary"
+                    )}>
                       <Building2 className="w-4 h-4" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm">{result.business_name}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-sm">{result.business_name}</p>
+                        {!result.website && !result.has_website && (
+                          <Badge className="text-[9px] bg-success/10 text-success border-success/20" variant="outline">
+                            Sans site web
+                          </Badge>
+                        )}
+                        {result.website && (
+                          <Badge className="text-[9px] bg-muted text-muted-foreground" variant="outline">
+                            A un site
+                          </Badge>
+                        )}
+                      </div>
                       <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-[11px] text-muted-foreground">
                         {result.address && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{result.address}</span>}
                         {result.city && !result.address && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{result.city}</span>}
                         {result.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{result.phone}</span>}
-                        {result.email && <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{result.email}</span>}
-                        {result.website && <span className="flex items-center gap-1"><Globe className="w-3 h-3" />{result.website}</span>}
-                        {result.rating && <span className="flex items-center gap-1"><Star className="w-3 h-3 fill-warning text-warning" />{result.rating}{result.reviews_count && ` (${result.reviews_count})`}</span>}
                       </div>
+
+                      {/* Expanded detail */}
+                      {selectedSearchResult === i && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          className="mt-3 pt-3 border-t border-border space-y-2"
+                        >
+                          {result.email && (
+                            <div className="flex items-center gap-2 text-sm">
+                              <Mail className="w-4 h-4 text-muted-foreground" />
+                              <span>{result.email}</span>
+                            </div>
+                          )}
+                          {result.website && (
+                            <div className="flex items-center gap-2 text-sm">
+                              <Globe className="w-4 h-4 text-muted-foreground" />
+                              <a href={result.website} target="_blank" rel="noopener noreferrer" className="text-primary underline" onClick={(e) => e.stopPropagation()}>
+                                {result.website}
+                              </a>
+                            </div>
+                          )}
+                          {result.rating && (
+                            <div className="flex items-center gap-2 text-sm">
+                              <Star className="w-4 h-4 fill-warning text-warning" />
+                              <span>{result.rating}/5{result.reviews_count ? ` (${result.reviews_count} avis)` : ""}</span>
+                            </div>
+                          )}
+                          {result.google_maps_url && (
+                            <div className="flex items-center gap-2 text-sm">
+                              <MapPin className="w-4 h-4 text-muted-foreground" />
+                              <a href={result.google_maps_url} target="_blank" rel="noopener noreferrer" className="text-primary underline text-xs" onClick={(e) => e.stopPropagation()}>
+                                Voir sur Google Maps
+                              </a>
+                            </div>
+                          )}
+                        </motion.div>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -577,18 +640,28 @@ export default function Prospection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.02, duration: 0.2 }}
             >
-              <Card className="border-0 shadow-soft hover:shadow-medium transition-all duration-200">
+              <Card className="border-0 shadow-soft hover:shadow-medium transition-all duration-200 cursor-pointer"
+                onClick={() => setProspectDetail(prospectDetail?.id === prospect.id ? null : prospect)}>
                 <CardContent className="flex items-center gap-4 py-3 px-4">
-                  <div className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center text-primary shrink-0">
+                  <div className={cn(
+                    "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                    !prospect.website ? "bg-success/10 text-success" : "bg-primary/8 text-primary"
+                  )}>
                     <Building2 className="w-4 h-4" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm truncate">{prospect.business_name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-sm truncate">{prospect.business_name}</p>
+                      {!prospect.website && (
+                        <Badge className="text-[9px] bg-success/10 text-success border-success/20 shrink-0" variant="outline">
+                          Sans site
+                        </Badge>
+                      )}
+                    </div>
                     <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[11px] text-muted-foreground mt-0.5">
                       {prospect.address && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{prospect.address}</span>}
                       {!prospect.address && prospect.city && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{prospect.city}</span>}
                       {prospect.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{prospect.phone}</span>}
-                      {prospect.email && <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{prospect.email}</span>}
                       {prospect.rating && <span className="flex items-center gap-1"><Star className="w-3 h-3 fill-warning text-warning" />{Number(prospect.rating).toFixed(1)}</span>}
                     </div>
                     {/* Appointment info */}
@@ -608,8 +681,55 @@ export default function Prospection() {
                         {prospect.callback_notes && <span className="text-muted-foreground font-normal">— {prospect.callback_notes}</span>}
                       </div>
                     )}
+
+                    {/* Expanded detail panel */}
+                    {prospectDetail?.id === prospect.id && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        className="mt-3 pt-3 border-t border-border"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                          {prospect.email && (
+                            <div className="flex items-center gap-2">
+                              <Mail className="w-4 h-4 text-muted-foreground" />
+                              <span>{prospect.email}</span>
+                            </div>
+                          )}
+                          {prospect.website && (
+                            <div className="flex items-center gap-2">
+                              <Globe className="w-4 h-4 text-muted-foreground" />
+                              <a href={prospect.website.startsWith("http") ? prospect.website : `https://${prospect.website}`} target="_blank" rel="noopener noreferrer" className="text-primary underline text-xs">
+                                {prospect.website}
+                              </a>
+                            </div>
+                          )}
+                          {prospect.sector && (
+                            <div className="flex items-center gap-2">
+                              <Building2 className="w-4 h-4 text-muted-foreground" />
+                              <span>{prospect.sector}</span>
+                            </div>
+                          )}
+                          {prospect.google_maps_url && (
+                            <div className="flex items-center gap-2">
+                              <MapPin className="w-4 h-4 text-muted-foreground" />
+                              <a href={prospect.google_maps_url} target="_blank" rel="noopener noreferrer" className="text-primary underline text-xs">
+                                Google Maps
+                              </a>
+                            </div>
+                          )}
+                          {prospect.notes && (
+                            <div className="col-span-full text-xs text-muted-foreground">
+                              <p className="font-medium text-foreground mb-1">Notes :</p>
+                              <p>{prospect.notes}</p>
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+                  <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end" onClick={(e) => e.stopPropagation()}>
                     {/* Agent assignment - Admin only */}
                     {isAdmin && (
                       <Select

@@ -111,6 +111,9 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route path="/meta-callback" element={
+              <ProtectedRoute><MetaCallback /></ProtectedRoute>
+            } />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

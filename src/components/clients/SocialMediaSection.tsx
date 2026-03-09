@@ -370,6 +370,16 @@ export default function SocialMediaSection({ clientId }: { clientId: string }) {
                         <div className="flex items-center gap-1 shrink-0">
                           {pub.status !== "publie" && (
                             <Button
+                              variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1 text-primary hover:text-primary"
+                              title="Copier le contenu et ouvrir la plateforme"
+                              onClick={() => handleCopyAndPublish(pub)}
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                              Publier
+                            </Button>
+                          )}
+                          {pub.status !== "publie" && (
+                            <Button
                               variant="ghost" size="icon" className="h-7 w-7 text-success hover:text-success"
                               title="Marquer comme publié"
                               onClick={() => handlePubStatus(pub, "publie")}

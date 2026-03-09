@@ -11,7 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Loader2, UserPlus, Shield, Phone, MapPin, Users, Copy, Check, Key, Monitor, Palette, Camera } from "lucide-react";
+import { Loader2, UserPlus, Shield, Phone, MapPin, Users, Copy, Check, Key, Monitor, Palette, Camera, Trash2 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import type { Database } from "@/integrations/supabase/types";

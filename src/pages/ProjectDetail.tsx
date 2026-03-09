@@ -34,7 +34,7 @@ function daysUntil(dateStr: string | null) {
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
   const { data: project, isLoading } = useProject(id!);
   const { data: tasks } = useProjectTasks(id!);
   const { data: deliverables } = useDeliverables(id!);
@@ -45,6 +45,7 @@ export default function ProjectDetail() {
   const updateDeliverable = useUpdateDeliverable();
   const deleteProjectTasks = useDeleteProjectTasks();
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const isAdmin = hasRole("admin");
 
   const handleStatusChange = async (status: ProjectStatus) => {
     if (!project) return;
@@ -121,6 +122,13 @@ export default function ProjectDetail() {
       toast.success(`${totalTasks} tâches regénérées dans ${modules.length} modules`);
     } catch { toast.error("Erreur lors de la regénération"); }
     setIsRegenerating(false);
+  };
+
+  const handleAddTask = async (task: Parameters<typeof createTask.mutateAsync>[0]) => {
+    try {
+      await createTask.mutateAsync(task);
+      toast.success("Tâche ajoutée");
+    } catch { toast.error("Erreur lors de l'ajout"); }
   };
 
   const handleDeliverableStatusChange = async (deliverableId: string, status: DeliverableStatus) => {
@@ -280,7 +288,9 @@ export default function ProjectDetail() {
           packType={project.pack_type}
           tasks={tasks}
           startDate={project.start_date}
+          isAdmin={isAdmin}
           onTaskStatusChange={handleTaskStatusChange}
+          onAddTask={handleAddTask}
         />
       )}
 

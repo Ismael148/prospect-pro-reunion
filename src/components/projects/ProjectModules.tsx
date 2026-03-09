@@ -3,25 +3,59 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
-import { PACK_MODULES } from "@/lib/constants";
-import { ChevronDown, ChevronRight, Clock, AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { PACK_MODULES, TASK_PRIORITY_LABELS } from "@/lib/constants";
+import { ChevronDown, ChevronRight, Clock, AlertTriangle, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 import type { Database } from "@/integrations/supabase/types";
 
 type ProjectTask = Tables<"project_tasks">;
 type TaskStatus = Database["public"]["Enums"]["task_status"];
+type TaskPriority = Database["public"]["Enums"]["task_priority"];
 
 interface Props {
   packType: string;
   tasks: ProjectTask[];
   startDate?: string | null;
+  isAdmin?: boolean;
   onTaskStatusChange: (taskId: string, status: TaskStatus) => Promise<void>;
+  onAddTask?: (task: TablesInsert<"project_tasks">) => Promise<void>;
 }
 
-export default function ProjectModules({ packType, tasks, startDate, onTaskStatusChange }: Props) {
+export default function ProjectModules({ packType, tasks, startDate, isAdmin, onTaskStatusChange, onAddTask }: Props) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [addDialogOpen, setAddDialogOpen] = useState<string | null>(null);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskDescription, setNewTaskDescription] = useState("");
+  const [newTaskPriority, setNewTaskPriority] = useState<TaskPriority>("moyenne");
   const modules = PACK_MODULES[packType] || [];
+
+  const handleAddTask = async (moduleId: string) => {
+    if (!onAddTask || !newTaskTitle.trim()) return;
+    const module = modules.find((m) => m.id === moduleId);
+    const dueDate = startDate && module
+      ? new Date(new Date(startDate).getTime() + module.deadlineDays * 86400000).toISOString().split("T")[0]
+      : null;
+    
+    await onAddTask({
+      title: newTaskTitle,
+      description: `[${moduleId}] ${newTaskDescription}`.trim(),
+      priority: newTaskPriority,
+      due_date: dueDate,
+      project_id: tasks[0]?.project_id || "",
+      sort_order: (tasksByModule[moduleId]?.length || 0) + 1,
+    });
+    
+    setNewTaskTitle("");
+    setNewTaskDescription("");
+    setNewTaskPriority("moyenne");
+    setAddDialogOpen(null);
+  };
 
   // Group tasks by module id (stored in description as [module_id])
   const tasksByModule = useMemo(() => {
@@ -86,46 +120,101 @@ export default function ProjectModules({ packType, tasks, startDate, onTaskStatu
           >
             <Card className={`border-0 shadow-md shadow-primary/5 overflow-hidden ${allDone ? "opacity-75" : ""}`}>
               {/* Module header - clickable */}
-              <button
-                onClick={() => toggle(mod.id)}
-                className="w-full flex items-center gap-3 p-4 hover:bg-muted/30 transition-colors text-left"
-              >
-                {isCollapsed ? (
-                  <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-muted-foreground shrink-0" />
+              <div className="flex items-center">
+                <button
+                  onClick={() => toggle(mod.id)}
+                  className="flex-1 flex items-center gap-3 p-4 hover:bg-muted/30 transition-colors text-left"
+                >
+                  {isCollapsed ? (
+                    <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-muted-foreground shrink-0" />
+                  )}
+                  <span className="text-lg">{mod.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-sm">{mod.name}</span>
+                      {allDone && (
+                        <Badge className="bg-success/10 text-success border-success/20 text-xs" variant="outline">
+                          ✅ Terminé
+                        </Badge>
+                      )}
+                      {isOverdue && (
+                        <Badge className="bg-destructive/10 text-destructive border-destructive/20 text-xs gap-1" variant="outline">
+                          <AlertTriangle className="w-3 h-3" /> En retard
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 mt-1">
+                      <Progress value={progress} className="flex-1 h-1.5 max-w-[200px]" />
+                      <span className="text-xs text-muted-foreground">{done}/{total}</span>
+                      {deadlineDate && (
+                        <span className={`text-xs flex items-center gap-1 ${isOverdue ? "text-destructive" : "text-muted-foreground"}`}>
+                          <Clock className="w-3 h-3" />
+                          {daysLeft !== null && daysLeft > 0
+                            ? `${daysLeft}j restants`
+                            : daysLeft === 0
+                              ? "Aujourd'hui"
+                              : `${Math.abs(daysLeft!)}j de retard`}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </button>
+                {isAdmin && onAddTask && (
+                  <Dialog open={addDialogOpen === mod.id} onOpenChange={(open) => setAddDialogOpen(open ? mod.id : null)}>
+                    <DialogTrigger asChild>
+                      <Button variant="ghost" size="sm" className="mr-2 gap-1">
+                        <Plus className="w-4 h-4" />
+                        Ajouter tâche
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Ajouter une tâche au module</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div>
+                          <label className="text-sm font-medium mb-1.5 block">Titre *</label>
+                          <Input
+                            placeholder="Titre de la tâche"
+                            value={newTaskTitle}
+                            onChange={(e) => setNewTaskTitle(e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium mb-1.5 block">Description</label>
+                          <Textarea
+                            placeholder="Description (optionnelle)"
+                            value={newTaskDescription}
+                            onChange={(e) => setNewTaskDescription(e.target.value)}
+                            rows={3}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium mb-1.5 block">Priorité</label>
+                          <Select value={newTaskPriority} onValueChange={(v) => setNewTaskPriority(v as TaskPriority)}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.entries(TASK_PRIORITY_LABELS).map(([k, v]) => (
+                                <SelectItem key={k} value={k}>{v}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setAddDialogOpen(null)}>Annuler</Button>
+                        <Button onClick={() => handleAddTask(mod.id)} disabled={!newTaskTitle.trim()}>
+                          Ajouter
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 )}
-                <span className="text-lg">{mod.icon}</span>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-sm">{mod.name}</span>
-                    {allDone && (
-                      <Badge className="bg-success/10 text-success border-success/20 text-xs" variant="outline">
-                        ✅ Terminé
-                      </Badge>
-                    )}
-                    {isOverdue && (
-                      <Badge className="bg-destructive/10 text-destructive border-destructive/20 text-xs gap-1" variant="outline">
-                        <AlertTriangle className="w-3 h-3" /> En retard
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3 mt-1">
-                    <Progress value={progress} className="flex-1 h-1.5 max-w-[200px]" />
-                    <span className="text-xs text-muted-foreground">{done}/{total}</span>
-                    {deadlineDate && (
-                      <span className={`text-xs flex items-center gap-1 ${isOverdue ? "text-destructive" : "text-muted-foreground"}`}>
-                        <Clock className="w-3 h-3" />
-                        {daysLeft !== null && daysLeft > 0
-                          ? `${daysLeft}j restants`
-                          : daysLeft === 0
-                            ? "Aujourd'hui"
-                            : `${Math.abs(daysLeft!)}j de retard`}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </button>
+              </div>
 
               {/* Tasks */}
               <AnimatePresence>

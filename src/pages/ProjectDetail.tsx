@@ -16,7 +16,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Building2, Calendar, Sparkles, Clock, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Loader2, Building2, Calendar, Sparkles, Clock, AlertTriangle, RefreshCw } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import ProjectModules from "@/components/projects/ProjectModules";
 import ProjectDeliverables from "@/components/projects/ProjectDeliverables";

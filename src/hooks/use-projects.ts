@@ -142,3 +142,15 @@ export function useUpdateDeliverable() {
     onSuccess: (data) => queryClient.invalidateQueries({ queryKey: ["deliverables", data.project_id] }),
   });
 }
+
+export function useDeleteProjectTasks() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (projectId: string) => {
+      const { error } = await supabase.from("project_tasks").delete().eq("project_id", projectId);
+      if (error) throw error;
+      return projectId;
+    },
+    onSuccess: (projectId) => queryClient.invalidateQueries({ queryKey: ["project_tasks", projectId] }),
+  });
+}

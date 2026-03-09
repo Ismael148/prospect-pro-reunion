@@ -11,13 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import {
-  Plus, ExternalLink, Pencil, Trash2, CheckCircle2, Clock, Calendar, Share2, Copy,
+  Plus, ExternalLink, Pencil, Trash2, CheckCircle2, Clock, Calendar, Share2, Copy, LogIn,
 } from "lucide-react";
 import {
   useSocialAccounts, useSocialPublications, useUpsertSocialAccount,
   useDeleteSocialAccount, useCreateSocialPublication, useUpdateSocialPublication,
   useDeleteSocialPublication, type SocialPlatform, type SocialPublication,
 } from "@/hooks/use-social";
+import { useMetaOAuth } from "@/hooks/use-meta-oauth";
 
 // Platform config
 const PLATFORM_CONFIG: Record<SocialPlatform, { label: string; icon: string; color: string; bg: string; placeholder: string; publishUrl: string }> = {

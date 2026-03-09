@@ -11,7 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Loader2, UserPlus, Shield, Phone, MapPin, Users, Copy, Check, Key, Monitor, Palette, Camera } from "lucide-react";
+import { Loader2, UserPlus, Shield, Phone, MapPin, Users, Copy, Check, Key, Monitor, Palette, Camera, Trash2 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import type { Database } from "@/integrations/supabase/types";
@@ -158,6 +162,20 @@ export default function Team() {
     if (insertError) { toast.error("Erreur lors de la mise à jour du rôle"); return; }
     toast.success("Rôle mis à jour");
     fetchMembers();
+  };
+
+  const handleDeleteMember = async (userId: string, name: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("delete-user", {
+        body: { user_id: userId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`${name} a été supprimé de l'équipe`);
+      fetchMembers();
+    } catch (err: any) {
+      toast.error(err.message || "Erreur lors de la suppression");
+    }
   };
 
   const getInitials = (name: string | null) =>
@@ -322,16 +340,42 @@ export default function Team() {
                       <TableCell><span className="text-sm text-muted-foreground">{member.phone || "—"}</span></TableCell>
                       <TableCell className="text-right">
                         {!isCurrentUser && (
-                          <Select value={member.roles[0] || ""} onValueChange={(v) => handleRoleChange(member.user_id, v as AppRole)}>
-                            <SelectTrigger className="w-[180px] ml-auto"><SelectValue placeholder="Changer le rôle" /></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="admin">Administrateur</SelectItem>
-                              <SelectItem value="agent_telephonique">Agent téléphonique</SelectItem>
-                              <SelectItem value="commercial_terrain">Commercial terrain</SelectItem>
-                              <SelectItem value="webmaster">Webmaster</SelectItem>
-                              <SelectItem value="designer">Designer</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <div className="flex items-center gap-2 justify-end">
+                            <Select value={member.roles[0] || ""} onValueChange={(v) => handleRoleChange(member.user_id, v as AppRole)}>
+                              <SelectTrigger className="w-[180px]"><SelectValue placeholder="Changer le rôle" /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="admin">Administrateur</SelectItem>
+                                <SelectItem value="agent_telephonique">Agent téléphonique</SelectItem>
+                                <SelectItem value="commercial_terrain">Commercial terrain</SelectItem>
+                                <SelectItem value="webmaster">Webmaster</SelectItem>
+                                <SelectItem value="designer">Designer</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Supprimer {member.full_name} ?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Cette action est irréversible. Le compte de ce membre sera définitivement supprimé.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    onClick={() => handleDeleteMember(member.user_id, member.full_name || "Ce membre")}
+                                  >
+                                    Supprimer
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                         )}
                       </TableCell>
                     </TableRow>

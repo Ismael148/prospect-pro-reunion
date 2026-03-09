@@ -90,6 +90,39 @@ export default function ProjectDetail() {
     } catch { toast.error("Erreur lors de la génération"); }
   };
 
+  const handleRegenerateModules = async () => {
+    if (!project || !id) return;
+    const modules = PACK_MODULES[project.pack_type] || [];
+    if (!modules.length) { toast.error("Pas de modules pour ce pack"); return; }
+    setIsRegenerating(true);
+    try {
+      // Delete all existing tasks
+      await deleteProjectTasks.mutateAsync(id);
+      // Recreate all tasks
+      let sortIndex = 0;
+      for (const mod of modules) {
+        for (const task of mod.tasks) {
+          const dueDate = project.start_date
+            ? new Date(new Date(project.start_date).getTime() + mod.deadlineDays * 86400000).toISOString().split("T")[0]
+            : null;
+          await createTask.mutateAsync({
+            project_id: id,
+            title: task.title,
+            description: `[${mod.id}] ${task.description || ""}`.trim(),
+            priority: task.priority,
+            due_date: dueDate,
+            sort_order: sortIndex++,
+          });
+        }
+      }
+      // Reset progress
+      await updateProject.mutateAsync({ id, progress: 0 });
+      const totalTasks = modules.reduce((sum, m) => sum + m.tasks.length, 0);
+      toast.success(`${totalTasks} tâches regénérées dans ${modules.length} modules`);
+    } catch { toast.error("Erreur lors de la regénération"); }
+    setIsRegenerating(false);
+  };
+
   const handleDeliverableStatusChange = async (deliverableId: string, status: DeliverableStatus) => {
     try {
       const updates: any = { id: deliverableId, status };

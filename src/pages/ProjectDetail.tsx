@@ -42,6 +42,8 @@ export default function ProjectDetail() {
   const updateTask = useUpdateTask();
   const createDeliverable = useCreateDeliverable();
   const updateDeliverable = useUpdateDeliverable();
+  const deleteProjectTasks = useDeleteProjectTasks();
+  const [isRegenerating, setIsRegenerating] = useState(false);
 
   const handleStatusChange = async (status: ProjectStatus) => {
     if (!project) return;

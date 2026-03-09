@@ -16,6 +16,7 @@ import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
 import Team from "./pages/Team";
 import Settings from "./pages/Settings";
+import WebmasterDashboard from "./pages/WebmasterDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -82,6 +83,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AppLayout><ProjectDetail /></AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/webmaster"
+              element={
+                <ProtectedRoute>
+                  <AppLayout><WebmasterDashboard /></AppLayout>
                 </ProtectedRoute>
               }
             />

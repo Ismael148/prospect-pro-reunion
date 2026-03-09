@@ -4,17 +4,18 @@ import { PROJECT_STATUS_LABELS, PROJECT_STATUS_COLORS, PACK_LABELS } from "@/lib
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Briefcase, Clock, AlertTriangle, CheckCircle2, Calendar,
-  Building2, ArrowRight, Loader2, TrendingUp,
+  Building2, ArrowRight, Loader2, TrendingUp, Globe, CreditCard,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  AreaChart, Area, PieChart, Pie, Cell, Legend,
+  PieChart, Pie, Cell, Legend,
 } from "recharts";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -31,8 +32,7 @@ const item = {
 
 function daysUntil(dateStr: string | null) {
   if (!dateStr) return null;
-  const diff = Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000);
-  return diff;
+  return Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000);
 }
 
 function DeadlineBadge({ dueDate }: { dueDate: string | null }) {
@@ -53,10 +53,48 @@ function DeadlineBadge({ dueDate }: { dueDate: string | null }) {
       </Badge>
     );
   return (
-    <span className="text-xs text-muted-foreground flex items-center gap-1">
+    <span className="text-xs text-success flex items-center gap-1">
       <Calendar className="w-3 h-3" />
-      {days}j restants
+      {days}j restants ✓
     </span>
+  );
+}
+
+function ProjectRow({ project, tasks, navigate }: { project: any; tasks: any[]; navigate: any }) {
+  const projectTasks = tasks.filter((t) => t.project_id === project.id);
+  const done = projectTasks.filter((t) => t.status === "termine").length;
+  const total = projectTasks.length;
+  const pct = total > 0 ? Math.round((done / total) * 100) : (project.progress || 0);
+
+  return (
+    <div
+      className="flex items-center gap-4 cursor-pointer hover:bg-muted/60 rounded-xl p-3 -mx-1 transition-colors"
+      onClick={() => navigate(`/projets/${project.id}`)}
+    >
+      <div className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center shrink-0">
+        <Building2 className="w-4 h-4 text-primary" />
+      </div>
+      <div className="flex-1 min-w-0 space-y-1.5">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-medium truncate">{project.name}</p>
+          <Badge className={`text-[11px] border shrink-0 ${PROJECT_STATUS_COLORS[project.status as keyof typeof PROJECT_STATUS_COLORS]}`} variant="outline">
+            {PROJECT_STATUS_LABELS[project.status as keyof typeof PROJECT_STATUS_LABELS]}
+          </Badge>
+        </div>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span>{project.clients?.company_name}</span>
+          <span>•</span>
+          <span>{PACK_LABELS[project.pack_type as keyof typeof PACK_LABELS]}</span>
+          <span>•</span>
+          <span>{done}/{total} tâches</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <Progress value={pct} className="h-1.5 flex-1" />
+          <span className="text-xs font-semibold tabular-nums w-8 text-right">{pct}%</span>
+          <DeadlineBadge dueDate={project.due_date} />
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -64,8 +102,8 @@ export default function WebmasterDashboard() {
   const navigate = useNavigate();
   const { data: projects, isLoading } = useProjects();
   const [filterUser, setFilterUser] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState("all");
 
-  // Fetch all team members (profiles)
   const { data: teamMembers } = useQuery({
     queryKey: ["all_profiles"],
     queryFn: async () => {
@@ -75,7 +113,6 @@ export default function WebmasterDashboard() {
     },
   });
 
-  // Fetch all tasks with dates for charts
   const { data: allTasks } = useQuery({
     queryKey: ["all_project_tasks_full"],
     queryFn: async () => {
@@ -84,11 +121,10 @@ export default function WebmasterDashboard() {
         .select("project_id, status, created_at, updated_at, assigned_to")
         .order("created_at", { ascending: true });
       if (error) throw error;
-      return data;
+      return data || [];
     },
   });
 
-  // Filter projects & tasks by selected user
   const filteredProjects = useMemo(() => {
     if (!projects) return [];
     if (filterUser === "all") return projects;
@@ -98,12 +134,10 @@ export default function WebmasterDashboard() {
   const filteredTasks = useMemo(() => {
     if (!allTasks) return [];
     if (filterUser === "all") return allTasks;
-    // Tasks assigned to user OR belonging to user's projects
     const userProjectIds = new Set(filteredProjects.map((p: any) => p.id));
     return allTasks.filter((t) => t.assigned_to === filterUser || userProjectIds.has(t.project_id));
   }, [allTasks, filterUser, filteredProjects]);
 
-  // Only show team members who have projects
   const activeMembers = useMemo(() => {
     if (!teamMembers || !projects) return [];
     const userIds = new Set<string>();
@@ -114,10 +148,21 @@ export default function WebmasterDashboard() {
     return teamMembers.filter((m) => userIds.has(m.user_id));
   }, [teamMembers, projects]);
 
-  const getMemberName = (userId: string) =>
-    teamMembers?.find((m) => m.user_id === userId)?.full_name || "Inconnu";
+  // Split projects by type
+  const webProjects = useMemo(() =>
+    filteredProjects.filter((p: any) => p.pack_type === "star_bizness_numerik" || p.pack_type === "autre"),
+  [filteredProjects]);
 
-  // Weekly completion chart data (last 8 weeks)
+  const nfcProjects = useMemo(() =>
+    filteredProjects.filter((p: any) => p.pack_type === "star_bizness_nfc"),
+  [filteredProjects]);
+
+  const getActiveForList = (list: any[]) => list.filter((p: any) => p.status === "en_cours" || p.status === "en_revision");
+  const getOverdue = (list: any[]) => list.filter((p: any) => {
+    const d = daysUntil(p.due_date);
+    return d !== null && d < 0 && p.status !== "termine" && p.status !== "annule";
+  });
+
   const weeklyData = useMemo(() => {
     if (!filteredTasks.length) return [];
     const now = new Date();
@@ -128,60 +173,27 @@ export default function WebmasterDashboard() {
       const label = `${start.getDate().toString().padStart(2, "0")}/${(start.getMonth() + 1).toString().padStart(2, "0")}`;
       weeks.push({ label, start, end });
     }
-    return weeks.map((w) => {
-      const created = filteredTasks.filter((t) => {
-        const d = new Date(t.created_at);
-        return d >= w.start && d < w.end;
-      }).length;
-      const completed = filteredTasks.filter((t) => {
-        if (t.status !== "termine") return false;
-        const d = new Date(t.updated_at);
-        return d >= w.start && d < w.end;
-      }).length;
-      return { semaine: w.label, créées: created, terminées: completed };
-    });
+    return weeks.map((w) => ({
+      semaine: w.label,
+      créées: filteredTasks.filter((t) => { const d = new Date(t.created_at); return d >= w.start && d < w.end; }).length,
+      terminées: filteredTasks.filter((t) => { if (t.status !== "termine") return false; const d = new Date(t.updated_at); return d >= w.start && d < w.end; }).length,
+    }));
   }, [filteredTasks]);
 
-  // Task status distribution for pie chart
   const statusDistribution = useMemo(() => {
     if (!filteredTasks.length) return [];
     const counts: Record<string, number> = {};
-    filteredTasks.forEach((t) => {
-      counts[t.status] = (counts[t.status] || 0) + 1;
-    });
-    const statusLabels: Record<string, string> = {
-      a_faire: "À faire",
-      en_cours: "En cours",
-      en_revision: "En révision",
-      termine: "Terminé",
-    };
-    return Object.entries(counts).map(([status, count]) => ({
-      name: statusLabels[status] || status,
-      value: count,
-    }));
+    filteredTasks.forEach((t) => { counts[t.status] = (counts[t.status] || 0) + 1; });
+    const statusLabels: Record<string, string> = { a_faire: "À faire", en_cours: "En cours", en_revision: "En révision", termine: "Terminé" };
+    return Object.entries(counts).map(([status, count]) => ({ name: statusLabels[status] || status, value: count }));
   }, [filteredTasks]);
 
   const PIE_COLORS = ["hsl(var(--muted-foreground))", "hsl(var(--primary))", "hsl(var(--warning))", "hsl(var(--success))"];
 
   const activeProjects = filteredProjects.filter((p: any) => p.status === "en_cours" || p.status === "en_revision");
-  const pendingProjects = filteredProjects.filter((p: any) => p.status === "en_attente");
+  const overdueProjects = getOverdue(filteredProjects);
+  const urgentProjects = activeProjects.filter((p: any) => { const d = daysUntil(p.due_date); return d !== null && d >= 0 && d <= 3; });
   const completedProjects = filteredProjects.filter((p: any) => p.status === "termine");
-
-  const overdueProjects = activeProjects.filter((p: any) => {
-    const days = daysUntil(p.due_date);
-    return days !== null && days < 0;
-  });
-
-  const urgentProjects = activeProjects.filter((p: any) => {
-    const days = daysUntil(p.due_date);
-    return days !== null && days >= 0 && days <= 3;
-  });
-
-  const tasksByProject = (projectId: string) => {
-    const tasks = filteredTasks.filter((t) => t.project_id === projectId);
-    const done = tasks.filter((t) => t.status === "termine").length;
-    return { total: tasks.length, done };
-  };
 
   const stats = [
     { title: "Projets actifs", value: activeProjects.length, icon: Briefcase, gradient: "from-primary to-primary/70" },
@@ -190,19 +202,32 @@ export default function WebmasterDashboard() {
     { title: "Terminés", value: completedProjects.length, icon: CheckCircle2, gradient: "from-success to-success/70" },
   ];
 
-  // Sort: overdue first, then by days remaining
-  const sortedActive = [...activeProjects].sort((a: any, b: any) => {
-    const dA = daysUntil(a.due_date) ?? 999;
-    const dB = daysUntil(b.due_date) ?? 999;
-    return dA - dB;
-  });
+  const sortByDeadline = (list: any[]) => [...list].sort((a: any, b: any) => (daysUntil(a.due_date) ?? 999) - (daysUntil(b.due_date) ?? 999));
+
+  const renderProjectList = (projectList: any[], label: string) => {
+    const active = sortByDeadline(getActiveForList(projectList));
+    return (
+      <Card className="border-0 shadow-soft">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base font-semibold">{label} ({active.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {active.length === 0 ? (
+            <p className="text-muted-foreground text-sm text-center py-8">Aucun projet en cours</p>
+          ) : (
+            <div className="space-y-3">
+              {active.map((project: any) => (
+                <ProjectRow key={project.id} project={project} tasks={filteredTasks} navigate={navigate} />
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
+    return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
   }
 
   return (
@@ -213,15 +238,11 @@ export default function WebmasterDashboard() {
           <p className="text-muted-foreground mt-1 text-sm">Vue d'ensemble de tous les projets et deadlines</p>
         </div>
         <Select value={filterUser} onValueChange={setFilterUser}>
-          <SelectTrigger className="w-[220px]">
-            <SelectValue placeholder="Filtrer par membre" />
-          </SelectTrigger>
+          <SelectTrigger className="w-[220px]"><SelectValue placeholder="Filtrer par membre" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tous les membres</SelectItem>
             {activeMembers.map((m) => (
-              <SelectItem key={m.user_id} value={m.user_id}>
-                {m.full_name || "Sans nom"}
-              </SelectItem>
+              <SelectItem key={m.user_id} value={m.user_id}>{m.full_name || "Sans nom"}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -263,14 +284,7 @@ export default function WebmasterDashboard() {
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis dataKey="semaine" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
                     <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                    <Tooltip
-                      contentStyle={{
-                        background: "hsl(var(--card))",
-                        border: "1px solid hsl(var(--border))",
-                        borderRadius: 8,
-                        fontSize: 12,
-                      }}
-                    />
+                    <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} />
                     <Bar dataKey="créées" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                     <Bar dataKey="terminées" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
                   </BarChart>
@@ -283,7 +297,6 @@ export default function WebmasterDashboard() {
             </CardContent>
           </Card>
         </motion.div>
-
         <motion.div variants={item}>
           <Card className="border-0 shadow-soft h-full">
             <CardHeader className="pb-2">
@@ -293,27 +306,10 @@ export default function WebmasterDashboard() {
               <div className="h-[260px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie
-                      data={statusDistribution}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={50}
-                      outerRadius={80}
-                      paddingAngle={3}
-                      dataKey="value"
-                    >
-                      {statusDistribution.map((_, i) => (
-                        <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                      ))}
+                    <Pie data={statusDistribution} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
+                      {statusDistribution.map((_, i) => (<Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />))}
                     </Pie>
-                    <Tooltip
-                      contentStyle={{
-                        background: "hsl(var(--card))",
-                        border: "1px solid hsl(var(--border))",
-                        borderRadius: 8,
-                        fontSize: 12,
-                      }}
-                    />
+                    <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} />
                     <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
                   </PieChart>
                 </ResponsiveContainer>
@@ -335,11 +331,7 @@ export default function WebmasterDashboard() {
             </CardHeader>
             <CardContent className="space-y-2">
               {overdueProjects.map((p: any) => (
-                <div
-                  key={p.id}
-                  className="flex items-center justify-between cursor-pointer hover:bg-destructive/5 rounded-lg p-2 transition-colors"
-                  onClick={() => navigate(`/projets/${p.id}`)}
-                >
+                <div key={p.id} className="flex items-center justify-between cursor-pointer hover:bg-destructive/5 rounded-lg p-2 transition-colors" onClick={() => navigate(`/projets/${p.id}`)}>
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{p.name}</p>
                     <p className="text-xs text-muted-foreground">{p.clients?.company_name}</p>
@@ -352,96 +344,41 @@ export default function WebmasterDashboard() {
         </motion.div>
       )}
 
-      {/* Active projects table */}
+      {/* Tabbed project lists: Web vs NFC */}
       <motion.div variants={item}>
-        <Card className="border-0 shadow-soft">
-          <CardHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold">
-                Projets en cours ({activeProjects.length})
-              </CardTitle>
-              <button
-                onClick={() => navigate("/projets")}
-                className="text-xs text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
-              >
-                Tous les projets <ArrowRight className="w-3 h-3" />
-              </button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {sortedActive.length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-8">Aucun projet en cours</p>
-            ) : (
-              <div className="space-y-3">
-                {sortedActive.map((project: any) => {
-                  const { total, done } = tasksByProject(project.id);
-                  const pct = total > 0 ? Math.round((done / total) * 100) : (project.progress || 0);
-                  return (
-                    <div
-                      key={project.id}
-                      className="flex items-center gap-4 cursor-pointer hover:bg-muted/60 rounded-xl p-3 -mx-1 transition-colors"
-                      onClick={() => navigate(`/projets/${project.id}`)}
-                    >
-                      <div className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center shrink-0">
-                        <Building2 className="w-4 h-4 text-primary" />
-                      </div>
-                      <div className="flex-1 min-w-0 space-y-1.5">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-sm font-medium truncate">{project.name}</p>
-                          <Badge
-                            className={`text-[11px] border shrink-0 ${PROJECT_STATUS_COLORS[project.status as keyof typeof PROJECT_STATUS_COLORS]}`}
-                            variant="outline"
-                          >
-                            {PROJECT_STATUS_LABELS[project.status as keyof typeof PROJECT_STATUS_LABELS]}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                          <span>{project.clients?.company_name}</span>
-                          <span>•</span>
-                          <span>{PACK_LABELS[project.pack_type as keyof typeof PACK_LABELS]}</span>
-                          <span>•</span>
-                          <span>{done}/{total} tâches</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Progress value={pct} className="h-1.5 flex-1" />
-                          <span className="text-xs font-semibold tabular-nums w-8 text-right">{pct}%</span>
-                          <DeadlineBadge dueDate={project.due_date} />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-4">
+            <TabsTrigger value="all" className="gap-2"><Briefcase className="w-4 h-4" /> Tous</TabsTrigger>
+            <TabsTrigger value="web" className="gap-2"><Globe className="w-4 h-4" /> Web</TabsTrigger>
+            <TabsTrigger value="nfc" className="gap-2"><CreditCard className="w-4 h-4" /> Carte BIZNESS NFC</TabsTrigger>
+          </TabsList>
+          <TabsContent value="all">
+            {renderProjectList(filteredProjects, "Tous les projets en cours")}
+          </TabsContent>
+          <TabsContent value="web">
+            {renderProjectList(webProjects, "Projets Web (Site Internet)")}
+          </TabsContent>
+          <TabsContent value="nfc">
+            {renderProjectList(nfcProjects, "Projets Carte BIZNESS NFC")}
+          </TabsContent>
+        </Tabs>
       </motion.div>
 
       {/* Pending projects */}
-      {pendingProjects.length > 0 && (
+      {filteredProjects.filter((p: any) => p.status === "en_attente").length > 0 && (
         <motion.div variants={item}>
           <Card className="border-0 shadow-soft">
             <CardHeader className="pb-4">
-              <CardTitle className="text-base font-semibold">
-                En attente ({pendingProjects.length})
+              <CardTitle className="text-base font-semibold text-muted-foreground">
+                En attente ({filteredProjects.filter((p: any) => p.status === "en_attente").length})
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              {pendingProjects.map((p: any) => (
-                <div
-                  key={p.id}
-                  className="flex items-center justify-between cursor-pointer hover:bg-muted/60 rounded-lg p-2.5 transition-colors"
-                  onClick={() => navigate(`/projets/${p.id}`)}
-                >
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">{p.name}</p>
-                    <p className="text-xs text-muted-foreground">{p.clients?.company_name}</p>
-                  </div>
-                  <Badge variant="secondary" className="text-xs">
-                    {PACK_LABELS[p.pack_type as keyof typeof PACK_LABELS]}
-                  </Badge>
-                </div>
-              ))}
+            <CardContent>
+              <div className="space-y-3">
+                {filteredProjects.filter((p: any) => p.status === "en_attente").map((project: any) => (
+                  <ProjectRow key={project.id} project={project} tasks={filteredTasks} navigate={navigate} />
+                ))}
+              </div>
             </CardContent>
           </Card>
         </motion.div>

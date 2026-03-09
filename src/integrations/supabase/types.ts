@@ -63,12 +63,17 @@ export type Database = {
           company_name: string
           created_at: string
           created_by: string
+          email: string | null
           id: string
           notes: string | null
+          pack_amount: number | null
           pack_type: Database["public"]["Enums"]["pack_type"] | null
+          payment_method: string | null
+          phone: string | null
           pipeline_status: Database["public"]["Enums"]["pipeline_status"]
           postal_code: string | null
           sector: string | null
+          signature_date: string | null
           siret: string | null
           updated_at: string
           website: string | null
@@ -80,12 +85,17 @@ export type Database = {
           company_name: string
           created_at?: string
           created_by: string
+          email?: string | null
           id?: string
           notes?: string | null
+          pack_amount?: number | null
           pack_type?: Database["public"]["Enums"]["pack_type"] | null
+          payment_method?: string | null
+          phone?: string | null
           pipeline_status?: Database["public"]["Enums"]["pipeline_status"]
           postal_code?: string | null
           sector?: string | null
+          signature_date?: string | null
           siret?: string | null
           updated_at?: string
           website?: string | null
@@ -97,12 +107,17 @@ export type Database = {
           company_name?: string
           created_at?: string
           created_by?: string
+          email?: string | null
           id?: string
           notes?: string | null
+          pack_amount?: number | null
           pack_type?: Database["public"]["Enums"]["pack_type"] | null
+          payment_method?: string | null
+          phone?: string | null
           pipeline_status?: Database["public"]["Enums"]["pipeline_status"]
           postal_code?: string | null
           sector?: string | null
+          signature_date?: string | null
           siret?: string | null
           updated_at?: string
           website?: string | null

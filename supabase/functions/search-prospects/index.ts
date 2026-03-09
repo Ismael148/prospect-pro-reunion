@@ -105,6 +105,7 @@ interface ParsedProspect {
   phone?: string;
   email?: string;
   website?: string;
+  has_website: boolean;
   sector?: string;
   rating?: number;
   reviews_count?: number;

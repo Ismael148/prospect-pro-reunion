@@ -1,5 +1,5 @@
+import { useMemo } from "react";
 import { useProjects } from "@/hooks/use-projects";
-import { useProjectTasks } from "@/hooks/use-projects";
 import { PROJECT_STATUS_LABELS, PROJECT_STATUS_COLORS, PACK_LABELS } from "@/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,10 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  AreaChart, Area, PieChart, Pie, Cell, Legend,
+} from "recharts";
 
 const container = {
   hidden: { opacity: 0 },

@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import {
-  Plus, ExternalLink, Pencil, Trash2, CheckCircle2, Clock, Calendar, Share2,
+  Plus, ExternalLink, Pencil, Trash2, CheckCircle2, Clock, Calendar, Share2, Copy,
 } from "lucide-react";
 import {
   useSocialAccounts, useSocialPublications, useUpsertSocialAccount,
@@ -20,13 +20,14 @@ import {
 } from "@/hooks/use-social";
 
 // Platform config
-const PLATFORM_CONFIG: Record<SocialPlatform, { label: string; icon: string; color: string; bg: string; placeholder: string }> = {
+const PLATFORM_CONFIG: Record<SocialPlatform, { label: string; icon: string; color: string; bg: string; placeholder: string; publishUrl: string }> = {
   facebook: {
     label: "Facebook",
     icon: "𝐟",
     color: "text-[#1877F2]",
     bg: "bg-[#1877F2]/10",
     placeholder: "https://facebook.com/votre-page",
+    publishUrl: "https://www.facebook.com/",
   },
   instagram: {
     label: "Instagram",
@@ -34,6 +35,7 @@ const PLATFORM_CONFIG: Record<SocialPlatform, { label: string; icon: string; col
     color: "text-[#E4405F]",
     bg: "bg-[#E4405F]/10",
     placeholder: "https://instagram.com/votre-compte",
+    publishUrl: "https://www.instagram.com/",
   },
   google_my_business: {
     label: "Google My Business",
@@ -41,6 +43,7 @@ const PLATFORM_CONFIG: Record<SocialPlatform, { label: string; icon: string; col
     color: "text-[#4285F4]",
     bg: "bg-[#34A853]/10",
     placeholder: "https://business.google.com/...",
+    publishUrl: "https://business.google.com/",
   },
 };
 
@@ -212,6 +215,20 @@ export default function SocialMediaSection({ clientId }: { clientId: string }) {
     } catch { toast.error("Erreur"); }
   };
 
+  const handleCopyAndPublish = async (pub: SocialPublication) => {
+    const cfg = PLATFORM_CONFIG[pub.platform];
+    const account = accountByPlatform[pub.platform];
+    try {
+      await navigator.clipboard.writeText(pub.content);
+      toast.success("Contenu copié ! Redirection vers " + cfg.label + "...");
+      // Open the account's profile URL or fallback to the platform's publish URL
+      const targetUrl = account?.profile_url || cfg.publishUrl;
+      window.open(targetUrl, "_blank");
+    } catch {
+      toast.error("Impossible de copier le contenu");
+    }
+  };
+
   const pendingPubs = publications?.filter((p) => p.status !== "publie") || [];
   const publishedPubs = publications?.filter((p) => p.status === "publie") || [];
   const connectedCount = accounts?.length || 0;
@@ -351,6 +368,16 @@ export default function SocialMediaSection({ clientId }: { clientId: string }) {
                           )}
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
+                          {pub.status !== "publie" && (
+                            <Button
+                              variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1 text-primary hover:text-primary"
+                              title="Copier le contenu et ouvrir la plateforme"
+                              onClick={() => handleCopyAndPublish(pub)}
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                              Publier
+                            </Button>
+                          )}
                           {pub.status !== "publie" && (
                             <Button
                               variant="ghost" size="icon" className="h-7 w-7 text-success hover:text-success"

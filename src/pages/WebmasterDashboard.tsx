@@ -1,5 +1,5 @@
+import { useMemo } from "react";
 import { useProjects } from "@/hooks/use-projects";
-import { useProjectTasks } from "@/hooks/use-projects";
 import { PROJECT_STATUS_LABELS, PROJECT_STATUS_COLORS, PACK_LABELS } from "@/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,10 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  AreaChart, Area, PieChart, Pie, Cell, Legend,
+} from "recharts";
 
 const container = {
   hidden: { opacity: 0 },
@@ -57,18 +61,64 @@ export default function WebmasterDashboard() {
   const navigate = useNavigate();
   const { data: projects, isLoading } = useProjects();
 
-  // Fetch all tasks for progress summary
+  // Fetch all tasks with dates for charts
   const { data: allTasks } = useQuery({
-    queryKey: ["all_project_tasks"],
+    queryKey: ["all_project_tasks_full"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("project_tasks")
-        .select("project_id, status")
-        .order("created_at", { ascending: false });
+        .select("project_id, status, created_at, updated_at")
+        .order("created_at", { ascending: true });
       if (error) throw error;
       return data;
     },
   });
+
+  // Weekly completion chart data (last 8 weeks)
+  const weeklyData = useMemo(() => {
+    if (!allTasks) return [];
+    const now = new Date();
+    const weeks: { label: string; start: Date; end: Date }[] = [];
+    for (let i = 7; i >= 0; i--) {
+      const end = new Date(now.getTime() - i * 7 * 86400000);
+      const start = new Date(end.getTime() - 7 * 86400000);
+      const label = `${start.getDate().toString().padStart(2, "0")}/${(start.getMonth() + 1).toString().padStart(2, "0")}`;
+      weeks.push({ label, start, end });
+    }
+    return weeks.map((w) => {
+      const created = allTasks.filter((t) => {
+        const d = new Date(t.created_at);
+        return d >= w.start && d < w.end;
+      }).length;
+      const completed = allTasks.filter((t) => {
+        if (t.status !== "termine") return false;
+        const d = new Date(t.updated_at);
+        return d >= w.start && d < w.end;
+      }).length;
+      return { semaine: w.label, créées: created, terminées: completed };
+    });
+  }, [allTasks]);
+
+  // Task status distribution for pie chart
+  const statusDistribution = useMemo(() => {
+    if (!allTasks) return [];
+    const counts: Record<string, number> = {};
+    allTasks.forEach((t) => {
+      counts[t.status] = (counts[t.status] || 0) + 1;
+    });
+    const statusLabels: Record<string, string> = {
+      a_faire: "À faire",
+      en_cours: "En cours",
+      en_revision: "En révision",
+      termine: "Terminé",
+    };
+    return Object.entries(counts).map(([status, count]) => ({
+      name: statusLabels[status] || status,
+      value: count,
+    }));
+  }, [allTasks]);
+
+  const PIE_COLORS = ["hsl(var(--muted-foreground))", "hsl(var(--primary))", "hsl(var(--warning))", "hsl(var(--success))"];
 
   const activeProjects = projects?.filter((p: any) => p.status === "en_cours" || p.status === "en_revision") || [];
   const pendingProjects = projects?.filter((p: any) => p.status === "en_attente") || [];
@@ -137,6 +187,83 @@ export default function WebmasterDashboard() {
             </Card>
           </motion.div>
         ))}
+      </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <motion.div variants={item} className="lg:col-span-2">
+          <Card className="border-0 shadow-soft">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-primary" />
+                Activité hebdomadaire (8 semaines)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[260px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={weeklyData} barGap={4}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="semaine" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                    <Tooltip
+                      contentStyle={{
+                        background: "hsl(var(--card))",
+                        border: "1px solid hsl(var(--border))",
+                        borderRadius: 8,
+                        fontSize: 12,
+                      }}
+                    />
+                    <Bar dataKey="créées" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="terminées" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex items-center justify-center gap-6 mt-2 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-primary" /> Tâches créées</span>
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-success" /> Tâches terminées</span>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div variants={item}>
+          <Card className="border-0 shadow-soft h-full">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-semibold">Répartition des tâches</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[260px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={statusDistribution}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={80}
+                      paddingAngle={3}
+                      dataKey="value"
+                    >
+                      {statusDistribution.map((_, i) => (
+                        <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        background: "hsl(var(--card))",
+                        border: "1px solid hsl(var(--border))",
+                        borderRadius: 8,
+                        fontSize: 12,
+                      }}
+                    />
+                    <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
 
       {/* Overdue alert */}

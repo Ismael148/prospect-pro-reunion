@@ -20,13 +20,14 @@ import {
 } from "@/hooks/use-social";
 
 // Platform config
-const PLATFORM_CONFIG: Record<SocialPlatform, { label: string; icon: string; color: string; bg: string; placeholder: string }> = {
+const PLATFORM_CONFIG: Record<SocialPlatform, { label: string; icon: string; color: string; bg: string; placeholder: string; publishUrl: string }> = {
   facebook: {
     label: "Facebook",
     icon: "𝐟",
     color: "text-[#1877F2]",
     bg: "bg-[#1877F2]/10",
     placeholder: "https://facebook.com/votre-page",
+    publishUrl: "https://www.facebook.com/",
   },
   instagram: {
     label: "Instagram",
@@ -34,6 +35,7 @@ const PLATFORM_CONFIG: Record<SocialPlatform, { label: string; icon: string; col
     color: "text-[#E4405F]",
     bg: "bg-[#E4405F]/10",
     placeholder: "https://instagram.com/votre-compte",
+    publishUrl: "https://www.instagram.com/",
   },
   google_my_business: {
     label: "Google My Business",
@@ -41,6 +43,7 @@ const PLATFORM_CONFIG: Record<SocialPlatform, { label: string; icon: string; col
     color: "text-[#4285F4]",
     bg: "bg-[#34A853]/10",
     placeholder: "https://business.google.com/...",
+    publishUrl: "https://business.google.com/",
   },
 };
 

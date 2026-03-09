@@ -1,9 +1,10 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   useProject, useProjectTasks, useDeliverables,
   useUpdateProject, useCreateTask, useUpdateTask,
-  useCreateDeliverable, useUpdateDeliverable,
+  useCreateDeliverable, useUpdateDeliverable, useDeleteProjectTasks,
 } from "@/hooks/use-projects";
 import {
   PROJECT_STATUS_LABELS, PACK_LABELS,
@@ -16,7 +17,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Building2, Calendar, Sparkles, Clock, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Loader2, Building2, Calendar, Sparkles, Clock, AlertTriangle, RefreshCw } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import ProjectModules from "@/components/projects/ProjectModules";
 import ProjectDeliverables from "@/components/projects/ProjectDeliverables";
@@ -42,6 +43,8 @@ export default function ProjectDetail() {
   const updateTask = useUpdateTask();
   const createDeliverable = useCreateDeliverable();
   const updateDeliverable = useUpdateDeliverable();
+  const deleteProjectTasks = useDeleteProjectTasks();
+  const [isRegenerating, setIsRegenerating] = useState(false);
 
   const handleStatusChange = async (status: ProjectStatus) => {
     if (!project) return;
@@ -85,6 +88,39 @@ export default function ProjectDetail() {
       const totalTasks = modules.reduce((sum, m) => sum + m.tasks.length, 0);
       toast.success(`${totalTasks} tâches créées dans ${modules.length} modules`);
     } catch { toast.error("Erreur lors de la génération"); }
+  };
+
+  const handleRegenerateModules = async () => {
+    if (!project || !id) return;
+    const modules = PACK_MODULES[project.pack_type] || [];
+    if (!modules.length) { toast.error("Pas de modules pour ce pack"); return; }
+    setIsRegenerating(true);
+    try {
+      // Delete all existing tasks
+      await deleteProjectTasks.mutateAsync(id);
+      // Recreate all tasks
+      let sortIndex = 0;
+      for (const mod of modules) {
+        for (const task of mod.tasks) {
+          const dueDate = project.start_date
+            ? new Date(new Date(project.start_date).getTime() + mod.deadlineDays * 86400000).toISOString().split("T")[0]
+            : null;
+          await createTask.mutateAsync({
+            project_id: id,
+            title: task.title,
+            description: `[${mod.id}] ${task.description || ""}`.trim(),
+            priority: task.priority,
+            due_date: dueDate,
+            sort_order: sortIndex++,
+          });
+        }
+      }
+      // Reset progress
+      await updateProject.mutateAsync({ id, progress: 0 });
+      const totalTasks = modules.reduce((sum, m) => sum + m.tasks.length, 0);
+      toast.success(`${totalTasks} tâches regénérées dans ${modules.length} modules`);
+    } catch { toast.error("Erreur lors de la regénération"); }
+    setIsRegenerating(false);
   };
 
   const handleDeliverableStatusChange = async (deliverableId: string, status: DeliverableStatus) => {
@@ -208,17 +244,31 @@ export default function ProjectDetail() {
           </CardContent>
         </Card>
         <Card className="border-0 shadow-md shadow-primary/5">
-          <CardContent className="pt-6 flex flex-col items-center justify-center">
+          <CardContent className="pt-6 flex flex-col items-center justify-center gap-3">
             {!hasTasks && hasModules ? (
               <Button onClick={handleAutoGenerateModules} disabled={createTask.isPending} className="w-full">
                 {createTask.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
                 Générer les modules du pack
               </Button>
             ) : (
-              <div className="text-center">
-                <p className="text-4xl font-bold text-primary">{project.progress || 0}%</p>
-                <p className="text-sm text-muted-foreground mt-1">Progression</p>
-              </div>
+              <>
+                <div className="text-center">
+                  <p className="text-4xl font-bold text-primary">{project.progress || 0}%</p>
+                  <p className="text-sm text-muted-foreground mt-1">Progression</p>
+                </div>
+                {hasModules && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRegenerateModules}
+                    disabled={isRegenerating}
+                    className="w-full gap-2 text-xs"
+                  >
+                    {isRegenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                    Regénérer les modules
+                  </Button>
+                )}
+              </>
             )}
           </CardContent>
         </Card>

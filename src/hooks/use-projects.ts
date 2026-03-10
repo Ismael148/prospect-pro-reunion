@@ -89,9 +89,18 @@ export function useUpdateProject() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       queryClient.invalidateQueries({ queryKey: ["projects", data.id] });
+      
+      if (variables.progress && variables.progress >= 80) {
+        triggerN8nWebhook('project.progress', {
+          project_name: data.name,
+          progress: data.progress,
+          client_id: data.client_id,
+          project_id: data.id,
+        });
+      }
     },
   });
 }

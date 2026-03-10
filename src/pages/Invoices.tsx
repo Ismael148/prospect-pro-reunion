@@ -166,6 +166,7 @@ export default function Invoices() {
         email: client.email,
         phone: client.phone,
         siret: client.siret,
+        payment_method: client.payment_method,
       },
     });
   };

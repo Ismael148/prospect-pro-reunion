@@ -71,14 +71,71 @@ export function useCreateInvoice() {
       if (error) throw error;
       return data as unknown as Invoice;
     },
-    onSuccess: (data: Invoice) => {
+    onSuccess: async (data: Invoice) => {
       qc.invalidateQueries({ queryKey: ["invoices"] });
-      triggerN8nWebhook('invoice.created', {
-        invoice_number: data.invoice_number,
-        total_amount: data.total_amount,
-        due_date: data.due_date,
-        client_id: data.client_id,
-      });
+
+      // Fetch client info for PDF + links
+      try {
+        const { data: client } = await supabase
+          .from("clients")
+          .select("company_name, address, postal_code, city, email, phone, siret, support_token, payment_method, pack_type")
+          .eq("id", data.client_id)
+          .single();
+
+        if (!client) return;
+
+        const publishedUrl = window.location.origin;
+        const supportLink = client.support_token ? `${publishedUrl}/s/${client.support_token}` : null;
+        const formNfcLink = client.support_token ? `${publishedUrl}/f/${client.support_token}/nfc` : null;
+        const formSiteLink = client.support_token ? `${publishedUrl}/f/${client.support_token}/site` : null;
+
+        // Generate PDF as base64
+        const pdfBase64 = exportInvoicePDF({
+          invoice_number: data.invoice_number,
+          issued_date: data.issued_date,
+          due_date: data.due_date,
+          status: data.status,
+          amount: data.amount,
+          tax_rate: data.tax_rate,
+          tax_amount: data.tax_amount,
+          total_amount: data.total_amount,
+          notes: data.notes,
+          items: data.items,
+          client: {
+            company_name: client.company_name,
+            address: client.address,
+            postal_code: client.postal_code,
+            city: client.city,
+            email: client.email,
+            phone: client.phone,
+            siret: client.siret,
+            payment_method: client.payment_method,
+          },
+        }, { returnBase64: true });
+
+        triggerN8nWebhook('invoice.created', {
+          invoice_number: data.invoice_number,
+          total_amount: data.total_amount,
+          due_date: data.due_date,
+          client_id: data.client_id,
+          client_email: client.email,
+          company_name: client.company_name,
+          support_link: supportLink,
+          form_nfc_link: formNfcLink,
+          form_site_link: formSiteLink,
+          pack_type: client.pack_type,
+          pdf_base64: pdfBase64,
+          pdf_filename: `Facture_${data.invoice_number}.pdf`,
+        });
+      } catch (err) {
+        console.warn('[invoice] Failed to send enriched webhook:', err);
+        // Fallback: send basic data
+        triggerN8nWebhook('invoice.created', {
+          invoice_number: data.invoice_number,
+          total_amount: data.total_amount,
+          client_id: data.client_id,
+        });
+      }
     },
   });
 }

@@ -57,7 +57,7 @@ export default function Pipeline() {
         <p className="text-muted-foreground text-sm mt-1">Glissez-déposez pour mettre à jour les statuts</p>
       </div>
 
-      <div className="flex gap-3 overflow-x-auto pb-4 -mx-1 px-1">
+      <div className="flex gap-3 overflow-x-auto pb-4 min-w-0">
         {ACTIVE_PIPELINE.map((status, colIdx) => {
           const statusClients = clients?.filter((c) => c.pipeline_status === status) || [];
           return (

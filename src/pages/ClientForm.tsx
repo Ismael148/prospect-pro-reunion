@@ -185,6 +185,43 @@ export default function ClientForm() {
                 </div>
               ))}
 
+              {/* Image uploads */}
+              {formType === "nfc" ? (
+                <div className="space-y-5 pt-2 border-t border-border">
+                  <p className="text-sm font-medium text-muted-foreground">📸 Photos & Logo</p>
+                  <ImageUpload
+                    label="Logo de l'entreprise"
+                    value={formData.logo_url || ""}
+                    onChange={(url) => handleChange("logo_url", url)}
+                    folder={`${data.client.id}/nfc`}
+                  />
+                  <ImageUpload
+                    label="Photo de profil"
+                    value={formData.photo_url || ""}
+                    onChange={(url) => handleChange("photo_url", url)}
+                    folder={`${data.client.id}/nfc`}
+                  />
+                </div>
+              ) : (
+                <div className="space-y-5 pt-2 border-t border-border">
+                  <p className="text-sm font-medium text-muted-foreground">📸 Images du site</p>
+                  <ImageUpload
+                    label="Logo de l'entreprise"
+                    value={formData.logo_url || ""}
+                    onChange={(url) => handleChange("logo_url", url)}
+                    folder={`${data.client.id}/site`}
+                    required
+                  />
+                  <GalleryUpload
+                    label="Galerie photos (locaux, produits, équipe...)"
+                    values={formData.gallery_urls || []}
+                    onChange={(urls) => setFormData((prev) => ({ ...prev, gallery_urls: urls }))}
+                    folder={`${data.client.id}/site`}
+                    max={10}
+                  />
+                </div>
+              )}
+
               {/* Notes */}
               <div className="space-y-1.5">
                 <Label>Remarques ou demandes particulières</Label>

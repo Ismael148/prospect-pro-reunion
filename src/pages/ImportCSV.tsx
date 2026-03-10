@@ -228,7 +228,19 @@ export default function ImportCSV() {
 
       if (target === "clients") {
         record.created_by = user.id;
-        record.pipeline_status = record.pipeline_status || "nouveau";
+        // Les anciens clients importés sont déjà signés
+        record.pipeline_status = record.pipeline_status || "contrat_signe";
+        // Normaliser pack_type
+        if (record.pack_type) {
+          const pt = String(record.pack_type).toLowerCase().trim();
+          if (pt.includes("numerik") || pt.includes("numérik") || pt.includes("web") || pt.includes("site")) {
+            record.pack_type = "star_bizness_numerik";
+          } else if (pt.includes("nfc") || pt.includes("carte")) {
+            record.pack_type = "star_bizness_nfc";
+          } else {
+            record.pack_type = "autre";
+          }
+        }
       } else {
         record.created_by = user.id;
         record.status = record.status || "nouveau";

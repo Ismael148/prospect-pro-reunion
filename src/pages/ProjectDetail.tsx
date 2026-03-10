@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   useProject, useProjectTasks, useDeliverables,
   useUpdateProject, useCreateTask, useUpdateTask,
@@ -38,6 +40,13 @@ export default function ProjectDetail() {
   const { data: project, isLoading } = useProject(id!);
   const { data: tasks } = useProjectTasks(id!);
   const { data: deliverables } = useDeliverables(id!);
+  const { data: teamMembers } = useQuery({
+    queryKey: ["team-members"],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("user_id, full_name");
+      return data || [];
+    },
+  });
   const updateProject = useUpdateProject();
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
@@ -129,6 +138,17 @@ export default function ProjectDetail() {
       await createTask.mutateAsync(task);
       toast.success("Tâche ajoutée");
     } catch { toast.error("Erreur lors de l'ajout"); }
+  };
+
+  const handleAssignModule = async (moduleId: string, userId: string | null) => {
+    if (!tasks) return;
+    try {
+      const moduleTasks = tasks.filter(t => t.description?.match(/\[(.*?)\]/)?.[1] === moduleId);
+      for (const task of moduleTasks) {
+        await updateTask.mutateAsync({ id: task.id, assigned_to: userId });
+      }
+      toast.success(userId ? "Module assigné" : "Assignation retirée");
+    } catch { toast.error("Erreur"); }
   };
 
   const handleDeliverableStatusChange = async (deliverableId: string, status: DeliverableStatus) => {
@@ -289,8 +309,10 @@ export default function ProjectDetail() {
           tasks={tasks}
           startDate={project.start_date}
           isAdmin={isAdmin}
+          teamMembers={teamMembers || []}
           onTaskStatusChange={handleTaskStatusChange}
           onAddTask={handleAddTask}
+          onAssignModule={handleAssignModule}
         />
       )}
 

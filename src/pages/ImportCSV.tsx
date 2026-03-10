@@ -28,6 +28,8 @@ const TARGET_FIELDS: Record<ImportTarget, { key: string; label: string; required
     { key: "pack_type", label: "Type de pack" },
     { key: "pack_amount", label: "Montant pack" },
     { key: "payment_method", label: "Mode de paiement" },
+    { key: "signature_date", label: "Date de signature" },
+    { key: "nfc_quantity", label: "Quantité NFC" },
   ],
   prospects: [
     { key: "business_name", label: "Nom entreprise", required: true },
@@ -62,6 +64,8 @@ const ALIASES: Record<string, string[]> = {
   pack_type: ["pack", "type pack", "offre", "formule"],
   pack_amount: ["montant", "prix", "amount", "tarif"],
   payment_method: ["paiement", "règlement", "reglement", "payment"],
+  signature_date: ["date signature", "signature", "date", "signé le", "signed"],
+  nfc_quantity: ["quantité nfc", "nfc", "nombre cartes", "cartes nfc", "qty nfc"],
   google_maps_url: ["google maps", "maps", "lien google", "google_maps_url"],
   source: ["source", "origine", "provenance"],
   rating: ["note", "rating", "évaluation", "evaluation", "avis"],
@@ -224,7 +228,19 @@ export default function ImportCSV() {
 
       if (target === "clients") {
         record.created_by = user.id;
-        record.pipeline_status = record.pipeline_status || "nouveau";
+        // Les anciens clients importés sont déjà signés
+        record.pipeline_status = record.pipeline_status || "contrat_signe";
+        // Normaliser pack_type
+        if (record.pack_type) {
+          const pt = String(record.pack_type).toLowerCase().trim();
+          if (pt.includes("numerik") || pt.includes("numérik") || pt.includes("web") || pt.includes("site")) {
+            record.pack_type = "star_bizness_numerik";
+          } else if (pt.includes("nfc") || pt.includes("carte")) {
+            record.pack_type = "star_bizness_nfc";
+          } else {
+            record.pack_type = "autre";
+          }
+        }
       } else {
         record.created_by = user.id;
         record.status = record.status || "nouveau";

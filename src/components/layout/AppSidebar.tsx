@@ -107,7 +107,7 @@ export function AppSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-sidebar-foreground/40 px-5">
+          <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/60 px-5">
             Navigation
           </SidebarGroupLabel>
           <SidebarGroupContent>

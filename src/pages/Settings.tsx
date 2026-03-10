@@ -15,6 +15,7 @@ import { User, Shield, Palette, Save, Loader2, Moon, Sun, Camera } from "lucide-
 export default function Settings() {
   const { profile, user, roles, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
+  const navigate = useNavigate();
 
   const [fullName, setFullName] = useState(profile?.full_name || "");
   const [phone, setPhone] = useState(profile?.phone || "");

@@ -55,6 +55,53 @@ export type Database = {
           },
         ]
       }
+      client_forms: {
+        Row: {
+          client_id: string
+          created_at: string
+          form_data: Json
+          form_type: Database["public"]["Enums"]["client_form_type"]
+          id: string
+          status: Database["public"]["Enums"]["client_form_status"]
+          submitted_at: string | null
+          updated_at: string
+          validated_at: string | null
+          validated_by: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          form_data?: Json
+          form_type: Database["public"]["Enums"]["client_form_type"]
+          id?: string
+          status?: Database["public"]["Enums"]["client_form_status"]
+          submitted_at?: string | null
+          updated_at?: string
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          form_data?: Json
+          form_type?: Database["public"]["Enums"]["client_form_type"]
+          id?: string
+          status?: Database["public"]["Enums"]["client_form_status"]
+          submitted_at?: string | null
+          updated_at?: string
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_forms_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           address: string | null
@@ -786,6 +833,8 @@ export type Database = {
         | "commercial_terrain"
         | "webmaster"
         | "designer"
+      client_form_status: "en_attente" | "soumis" | "valide"
+      client_form_type: "nfc" | "site"
       deliverable_status:
         | "en_attente"
         | "en_cours"
@@ -970,6 +1019,8 @@ export const Constants = {
         "webmaster",
         "designer",
       ],
+      client_form_status: ["en_attente", "soumis", "valide"],
+      client_form_type: ["nfc", "site"],
       deliverable_status: [
         "en_attente",
         "en_cours",

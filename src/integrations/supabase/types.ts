@@ -381,6 +381,71 @@ export type Database = {
         }
         Relationships: []
       }
+      invoices: {
+        Row: {
+          amount: number
+          client_id: string
+          created_at: string
+          created_by: string
+          due_date: string | null
+          id: string
+          invoice_number: string
+          issued_date: string
+          items: Json
+          notes: string | null
+          paid_date: string | null
+          status: string
+          tax_amount: number
+          tax_rate: number
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          client_id: string
+          created_at?: string
+          created_by: string
+          due_date?: string | null
+          id?: string
+          invoice_number?: string
+          issued_date?: string
+          items?: Json
+          notes?: string | null
+          paid_date?: string | null
+          status?: string
+          tax_amount?: number
+          tax_rate?: number
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          client_id?: string
+          created_at?: string
+          created_by?: string
+          due_date?: string | null
+          id?: string
+          invoice_number?: string
+          issued_date?: string
+          items?: Json
+          notes?: string | null
+          paid_date?: string | null
+          status?: string
+          tax_amount?: number
+          tax_rate?: number
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string

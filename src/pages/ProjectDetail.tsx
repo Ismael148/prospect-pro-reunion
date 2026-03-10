@@ -309,8 +309,10 @@ export default function ProjectDetail() {
           tasks={tasks}
           startDate={project.start_date}
           isAdmin={isAdmin}
+          teamMembers={teamMembers || []}
           onTaskStatusChange={handleTaskStatusChange}
           onAddTask={handleAddTask}
+          onAssignModule={handleAssignModule}
         />
       )}
 

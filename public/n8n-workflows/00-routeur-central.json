@@ -1,0 +1,181 @@
+{
+  "name": "AdamKom - Routeur Central Webhooks",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bee5d5e1-ce36-42a2-9e82-4662ea996d43",
+        "responseMode": "onReceived",
+        "responseCode": 200
+      },
+      "id": "webhook-central",
+      "name": "Webhook Central",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "rules": [
+            {
+              "value": "client.signed",
+              "output": 0
+            },
+            {
+              "value": "invoice.created",
+              "output": 1
+            },
+            {
+              "value": "support.created",
+              "output": 2
+            },
+            {
+              "value": "support.resolved",
+              "output": 3
+            },
+            {
+              "value": "project.progress",
+              "output": 4
+            }
+          ]
+        },
+        "dataType": "string",
+        "value1": "={{ $json.event }}"
+      },
+      "id": "switch-event",
+      "name": "Router par Event",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "contact@adamkom.com",
+        "toEmail": "={{ $json.client_email }}",
+        "subject": "Bienvenue chez AdamKom - {{ $json.company_name }}",
+        "emailType": "html",
+        "html": "<h1>Bienvenue {{ $json.company_name }} !</h1><p>Nous sommes ravis de vous compter parmi nos clients.</p><p><strong>Pack choisi :</strong> {{ $json.pack_type }}</p><p><strong>Votre référence client :</strong> {{ $json.ndi }}</p><p>Notre équipe va maintenant commencer à travailler sur votre projet. Vous recevrez des mises à jour régulières.</p><p>Cordialement,<br>L'équipe AdamKom</p>"
+      },
+      "id": "email-bienvenue",
+      "name": "Email Bienvenue",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [800, 100]
+    },
+    {
+      "parameters": {
+        "fromEmail": "facturation@adamkom.com",
+        "toEmail": "={{ $json.client_email }}",
+        "subject": "Facture {{ $json.invoice_number }} - AdamKom",
+        "emailType": "html",
+        "html": "<h1>Nouvelle Facture</h1><p>Bonjour {{ $json.company_name }},</p><p>Votre facture <strong>{{ $json.invoice_number }}</strong> est disponible.</p><p><strong>Montant TTC :</strong> {{ $json.total_amount }} €</p><p><strong>Date d'échéance :</strong> {{ $json.due_date }}</p><p>Cordialement,<br>L'équipe AdamKom</p>"
+      },
+      "id": "email-facture",
+      "name": "Email Facture",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [800, 250]
+    },
+    {
+      "parameters": {
+        "fromEmail": "support@adamkom.com",
+        "toEmail": "={{ $json.client_email }}",
+        "subject": "Ticket {{ $json.ticket_number }} reçu - AdamKom Support",
+        "emailType": "html",
+        "html": "<h1>Votre demande a bien été reçue</h1><p>Bonjour {{ $json.company_name }},</p><p>Nous avons bien reçu votre ticket de support :</p><p><strong>Numéro :</strong> {{ $json.ticket_number }}</p><p><strong>Objet :</strong> {{ $json.subject }}</p><p><strong>Catégorie :</strong> {{ $json.category }}</p><p>Notre équipe va traiter votre demande dans les plus brefs délais.</p><p>Cordialement,<br>L'équipe Support AdamKom</p>"
+      },
+      "id": "email-support-confirm",
+      "name": "Email Confirmation Support",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [800, 400]
+    },
+    {
+      "parameters": {
+        "fromEmail": "support@adamkom.com",
+        "toEmail": "={{ $json.client_email }}",
+        "subject": "Ticket {{ $json.ticket_number }} résolu - AdamKom",
+        "emailType": "html",
+        "html": "<h1>Votre ticket a été résolu</h1><p>Bonjour {{ $json.company_name }},</p><p>Votre ticket <strong>{{ $json.ticket_number }}</strong> a été résolu.</p><p><strong>Objet :</strong> {{ $json.subject }}</p><p>Si vous avez d'autres questions, n'hésitez pas à nous contacter.</p><p>Cordialement,<br>L'équipe Support AdamKom</p>"
+      },
+      "id": "email-support-resolu",
+      "name": "Email Ticket Résolu",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [800, 550]
+    },
+    {
+      "parameters": {
+        "fromEmail": "projets@adamkom.com",
+        "toEmail": "={{ $json.client_email }}",
+        "subject": "Votre projet est presque terminé ! - AdamKom",
+        "emailType": "html",
+        "html": "<h1>Votre projet avance bien !</h1><p>Bonjour {{ $json.company_name }},</p><p>Votre projet <strong>{{ $json.project_name }}</strong> est maintenant à <strong>{{ $json.progress }}%</strong> d'avancement.</p><p>Notre équipe finalise les derniers détails. Vous serez bientôt contacté pour la livraison.</p><p>Cordialement,<br>L'équipe AdamKom</p>"
+      },
+      "id": "email-progress",
+      "name": "Email Progression Projet",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [800, 700]
+    }
+  ],
+  "connections": {
+    "Webhook Central": {
+      "main": [
+        [
+          {
+            "node": "Router par Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Router par Event": {
+      "main": [
+        [
+          {
+            "node": "Email Bienvenue",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Email Facture",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Email Confirmation Support",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Email Ticket Résolu",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Email Progression Projet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "description": "Workflow central qui reçoit tous les événements AdamKom via un seul webhook et les route vers les actions appropriées. Webhook prod: /webhook/bee5d5e1-ce36-42a2-9e82-4662ea996d43. Events: client.signed, invoice.created, support.created, support.resolved, project.progress"
+  }
+}

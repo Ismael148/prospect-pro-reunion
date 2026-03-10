@@ -92,7 +92,7 @@ export function AppSidebar() {
   const menuItems = allMenuItems.filter((item) => accessiblePaths.has(item.path));
 
   return (
-    <Sidebar>
+    <Sidebar className="border-r border-sidebar-border">
       <SidebarHeader className="p-5 pb-6">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shadow-glow">
@@ -100,7 +100,7 @@ export function AppSidebar() {
           </div>
           <div>
             <h2 className="font-semibold text-sm tracking-tight font-[Space_Grotesk]">Adamkom</h2>
-            <p className="text-[11px] text-sidebar-foreground/50 tracking-wide uppercase">CRM Pro</p>
+            <p className="text-[11px] text-muted-foreground tracking-wide uppercase">CRM Pro</p>
           </div>
         </div>
       </SidebarHeader>

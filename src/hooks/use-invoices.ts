@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { triggerN8nWebhook } from "@/lib/n8n-webhook";
 
 export interface InvoiceItem {
   description: string;
@@ -69,7 +70,15 @@ export function useCreateInvoice() {
       if (error) throw error;
       return data as unknown as Invoice;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["invoices"] }),
+    onSuccess: (data: Invoice) => {
+      qc.invalidateQueries({ queryKey: ["invoices"] });
+      triggerN8nWebhook('invoice.created', {
+        invoice_number: data.invoice_number,
+        total_amount: data.total_amount,
+        due_date: data.due_date,
+        client_id: data.client_id,
+      });
+    },
   });
 }
 

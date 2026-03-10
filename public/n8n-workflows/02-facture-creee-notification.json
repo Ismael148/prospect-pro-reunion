@@ -1,0 +1,51 @@
+{
+  "name": "Facture Créée - Notification Client",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "invoice-created",
+        "responseMode": "onReceived",
+        "responseCode": 200
+      },
+      "id": "webhook-invoice",
+      "name": "Webhook Facture Créée",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "facturation@adamkom.com",
+        "toEmail": "={{ $json.client_email }}",
+        "subject": "Facture {{ $json.invoice_number }} - AdamKom",
+        "emailType": "html",
+        "html": "<h1>Nouvelle Facture</h1><p>Bonjour {{ $json.company_name }},</p><p>Votre facture <strong>{{ $json.invoice_number }}</strong> est disponible.</p><p><strong>Montant TTC :</strong> {{ $json.total_amount }} €</p><p><strong>Date d'échéance :</strong> {{ $json.due_date }}</p><p>Cordialement,<br>L'équipe AdamKom</p>"
+      },
+      "id": "send-invoice-email",
+      "name": "Envoyer Email Facture",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [500, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Facture Créée": {
+      "main": [
+        [
+          {
+            "node": "Envoyer Email Facture",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "description": "Envoie un email au client quand une facture est créée. Webhook path: /webhook/invoice-created. Données: invoice_number, company_name, client_email, total_amount, due_date"
+  }
+}

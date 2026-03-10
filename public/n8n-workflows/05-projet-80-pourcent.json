@@ -1,0 +1,51 @@
+{
+  "name": "Projet à 80% - Notification",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "project-progress",
+        "responseMode": "onReceived",
+        "responseCode": 200
+      },
+      "id": "webhook-progress",
+      "name": "Webhook Projet Progress",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "projets@adamkom.com",
+        "toEmail": "={{ $json.client_email }}",
+        "subject": "Votre projet est presque terminé ! - AdamKom",
+        "emailType": "html",
+        "html": "<h1>Votre projet avance bien !</h1><p>Bonjour {{ $json.company_name }},</p><p>Votre projet <strong>{{ $json.project_name }}</strong> est maintenant à <strong>{{ $json.progress }}%</strong> d'avancement.</p><p>Notre équipe finalise les derniers détails. Vous serez bientôt contacté pour la livraison.</p><p>Cordialement,<br>L'équipe AdamKom</p>"
+      },
+      "id": "send-progress-email",
+      "name": "Email Progression Projet",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [500, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Projet Progress": {
+      "main": [
+        [
+          {
+            "node": "Email Progression Projet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "description": "Notifie le client quand son projet atteint 80% de progression. Webhook path: /webhook/project-progress. Données: project_name, company_name, client_email, progress"
+  }
+}

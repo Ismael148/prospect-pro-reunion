@@ -64,6 +64,8 @@ const ALIASES: Record<string, string[]> = {
   pack_type: ["pack", "type pack", "offre", "formule"],
   pack_amount: ["montant", "prix", "amount", "tarif"],
   payment_method: ["paiement", "règlement", "reglement", "payment"],
+  signature_date: ["date signature", "signature", "date", "signé le", "signed"],
+  nfc_quantity: ["quantité nfc", "nfc", "nombre cartes", "cartes nfc", "qty nfc"],
   google_maps_url: ["google maps", "maps", "lien google", "google_maps_url"],
   source: ["source", "origine", "provenance"],
   rating: ["note", "rating", "évaluation", "evaluation", "avis"],

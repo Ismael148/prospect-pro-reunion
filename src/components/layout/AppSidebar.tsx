@@ -31,7 +31,7 @@ import { useMemo } from "react";
 
 // Role-based access: which paths each role can see
 const ROLE_ACCESS: Record<string, string[]> = {
-  admin: ["/", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/equipe", "/parametres"],
+  admin: ["/", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/comptabilite", "/equipe", "/parametres"],
   agent_telephonique: ["/", "/prospection", "/clients", "/pipeline", "/projets", "/commissions"],
   commercial_terrain: ["/", "/prospection", "/clients", "/pipeline", "/commissions"],
   webmaster: ["/", "/projets", "/webmaster"],

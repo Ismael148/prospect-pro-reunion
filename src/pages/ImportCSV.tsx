@@ -28,6 +28,8 @@ const TARGET_FIELDS: Record<ImportTarget, { key: string; label: string; required
     { key: "pack_type", label: "Type de pack" },
     { key: "pack_amount", label: "Montant pack" },
     { key: "payment_method", label: "Mode de paiement" },
+    { key: "signature_date", label: "Date de signature" },
+    { key: "nfc_quantity", label: "Quantité NFC" },
   ],
   prospects: [
     { key: "business_name", label: "Nom entreprise", required: true },

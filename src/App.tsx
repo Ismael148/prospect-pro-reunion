@@ -18,6 +18,8 @@ import Team from "./pages/Team";
 import Settings from "./pages/Settings";
 import Commissions from "./pages/Commissions";
 import Comptabilite from "./pages/Comptabilite";
+import Support from "./pages/Support";
+import SupportForm from "./pages/SupportForm";
 import WebmasterDashboard from "./pages/WebmasterDashboard";
 import MetaCallback from "./pages/MetaCallback";
 import NotFound from "./pages/NotFound";
@@ -122,6 +124,14 @@ const App = () => (
               }
             />
             <Route
+              path="/support"
+              element={
+                <ProtectedRoute>
+                  <AppLayout><Support /></AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/parametres"
               element={
                 <ProtectedRoute>
@@ -129,6 +139,8 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            {/* Public routes (no auth) */}
+            <Route path="/support/:token" element={<SupportForm />} />
             <Route path="/meta-callback" element={
               <ProtectedRoute><MetaCallback /></ProtectedRoute>
             } />

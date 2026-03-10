@@ -489,6 +489,35 @@ export default function ClientDetail() {
       {/* Contacts */}
       <ContactsSection clientId={id!} contacts={contacts} />
 
+      {/* Support Link */}
+      {(client as any).support_token && (
+        <Card className="border-0 shadow-md shadow-primary/5">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <MessageSquare className="w-5 h-5" /> Support Client
+            </CardTitle>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                navigator.clipboard.writeText(`${window.location.origin}/support/${(client as any).support_token}`);
+                toast.success("Lien de support copié !");
+              }}
+            >
+              Copier le lien
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Partagez ce lien avec le client pour qu'il puisse envoyer ses demandes de support :
+            </p>
+            <code className="text-xs bg-muted/50 p-2 rounded-lg block mt-2 break-all">
+              {window.location.origin}/support/{(client as any).support_token}
+            </code>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Social Media */}
       <SocialMediaSection clientId={id!} />
 

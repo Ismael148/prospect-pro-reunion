@@ -10,6 +10,7 @@ import {
   UserCircle,
   Briefcase,
   Monitor,
+  Coins,
 } from "lucide-react";
 import logo from "@/assets/logo.webp";
 import {
@@ -29,9 +30,9 @@ import { useMemo } from "react";
 
 // Role-based access: which paths each role can see
 const ROLE_ACCESS: Record<string, string[]> = {
-  admin: ["/", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/equipe", "/parametres"],
-  agent_telephonique: ["/", "/prospection", "/clients", "/pipeline", "/projets"],
-  commercial_terrain: ["/", "/prospection", "/clients", "/pipeline"],
+  admin: ["/", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/equipe", "/parametres"],
+  agent_telephonique: ["/", "/prospection", "/clients", "/pipeline", "/projets", "/commissions"],
+  commercial_terrain: ["/", "/prospection", "/clients", "/pipeline", "/commissions"],
   webmaster: ["/", "/projets", "/webmaster"],
   designer: ["/", "/projets", "/webmaster"],
 };
@@ -42,6 +43,7 @@ const allMenuItems = [
   { title: "Prospection", icon: Search, path: "/prospection" },
   { title: "Pipeline", icon: FolderKanban, path: "/pipeline" },
   { title: "Projets", icon: Briefcase, path: "/projets" },
+  { title: "Commissions", icon: Coins, path: "/commissions" },
   { title: "Webmaster", icon: Monitor, path: "/webmaster" },
 ];
 

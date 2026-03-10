@@ -13,6 +13,7 @@ import {
   Coins,
   Calculator,
   LifeBuoy,
+  FileText,
 } from "lucide-react";
 import logo from "@/assets/logo.webp";
 import {

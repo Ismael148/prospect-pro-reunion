@@ -83,6 +83,10 @@ const App = () => (
               element={<ProtectedRoute><AppLayout><Comptabilite /></AppLayout></ProtectedRoute>}
             />
             <Route
+              path="/facturation"
+              element={<ProtectedRoute><AppLayout><Invoices /></AppLayout></ProtectedRoute>}
+            />
+            <Route
               path="/support"
               element={<ProtectedRoute><AppLayout><Support /></AppLayout></ProtectedRoute>}
             />

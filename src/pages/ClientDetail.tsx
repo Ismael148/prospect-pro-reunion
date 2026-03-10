@@ -27,6 +27,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import SocialMediaSection from "@/components/clients/SocialMediaSection";
+import { useClientForms, useValidateForm, ClientFormData } from "@/hooks/use-client-forms";
+import { Badge as BadgeUI } from "@/components/ui/badge";
 
 type PipelineStatus = Database["public"]["Enums"]["pipeline_status"];
 

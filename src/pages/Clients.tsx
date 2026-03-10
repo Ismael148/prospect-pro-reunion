@@ -29,6 +29,8 @@ export default function Clients() {
   const { user } = useAuth();
   const { data: clients, isLoading } = useClients();
   const createClient = useCreateClient();
+  const { data: commercials } = useCommercials();
+  const { data: agents } = useAgents();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -37,6 +39,7 @@ export default function Clients() {
     company_name: "", phone: "", email: "", address: "", city: "",
     postal_code: "", sector: "", website: "", notes: "",
     pack_type: "" as PackType | "", payment_method: "", signature_date: "",
+    signed_by: "", assigned_to: "",
   });
 
   const packAmount = form.pack_type ? PACK_PRICES[form.pack_type] || 0 : 0;
@@ -58,12 +61,13 @@ export default function Clients() {
         pack_amount: packAmount || null,
         payment_method: form.payment_method || null,
         signature_date: form.signature_date || null,
+        signed_by: form.signed_by || null,
+        assigned_to: form.assigned_to || user!.id,
         created_by: user!.id,
-        assigned_to: user!.id,
       } as any);
       toast.success("Client créé");
       setOpen(false);
-      setForm({ company_name: "", phone: "", email: "", address: "", city: "", postal_code: "", sector: "", website: "", notes: "", pack_type: "", payment_method: "", signature_date: "" });
+      setForm({ company_name: "", phone: "", email: "", address: "", city: "", postal_code: "", sector: "", website: "", notes: "", pack_type: "", payment_method: "", signature_date: "", signed_by: "", assigned_to: "" });
     } catch { toast.error("Erreur"); }
   };
 

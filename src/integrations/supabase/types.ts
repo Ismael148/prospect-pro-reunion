@@ -65,6 +65,7 @@ export type Database = {
           created_by: string
           email: string | null
           id: string
+          ndi: string | null
           notes: string | null
           pack_amount: number | null
           pack_type: Database["public"]["Enums"]["pack_type"] | null
@@ -74,6 +75,7 @@ export type Database = {
           postal_code: string | null
           sector: string | null
           signature_date: string | null
+          signed_by: string | null
           siret: string | null
           updated_at: string
           website: string | null
@@ -87,6 +89,7 @@ export type Database = {
           created_by: string
           email?: string | null
           id?: string
+          ndi?: string | null
           notes?: string | null
           pack_amount?: number | null
           pack_type?: Database["public"]["Enums"]["pack_type"] | null
@@ -96,6 +99,7 @@ export type Database = {
           postal_code?: string | null
           sector?: string | null
           signature_date?: string | null
+          signed_by?: string | null
           siret?: string | null
           updated_at?: string
           website?: string | null
@@ -109,6 +113,7 @@ export type Database = {
           created_by?: string
           email?: string | null
           id?: string
+          ndi?: string | null
           notes?: string | null
           pack_amount?: number | null
           pack_type?: Database["public"]["Enums"]["pack_type"] | null
@@ -118,6 +123,7 @@ export type Database = {
           postal_code?: string | null
           sector?: string | null
           signature_date?: string | null
+          signed_by?: string | null
           siret?: string | null
           updated_at?: string
           website?: string | null

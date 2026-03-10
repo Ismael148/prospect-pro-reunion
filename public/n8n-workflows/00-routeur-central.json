@@ -155,20 +155,11 @@
     },
     {
       "parameters": {
-        "operation": "toJson",
-        "mode": "each",
-        "jsonConvert": {
-          "values": [
-            {
-              "key": "data",
-              "value": "={{ $json.body.pdf_base64 }}",
-              "dataType": "base64",
-              "fileName": "={{ $json.body.pdf_filename }}",
-              "mimeType": "application/pdf"
-            }
-          ]
-        },
+        "operation": "toBinary",
+        "sourceProperty": "body.pdf_base64",
         "options": {
+          "fileName": "={{ $json.body.pdf_filename }}",
+          "mimeType": "application/pdf",
           "keepSource": "json"
         }
       },

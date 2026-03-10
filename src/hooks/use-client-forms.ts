@@ -30,21 +30,21 @@ export interface ClientFormData {
   competitors?: string;
   preferred_style?: string;
   additional_pages?: string;
+  // Multi-card
+  extra_cards?: { full_name?: string; position?: string; phone?: string; email?: string; address?: string }[];
 }
 
 export function useClientFormByToken(token: string, formType: "nfc" | "site") {
   return useQuery({
     queryKey: ["client-form", token, formType],
     queryFn: async () => {
-      // First get client by token
       const { data: client, error: clientError } = await supabase
         .from("clients")
-        .select("id, company_name")
+        .select("id, company_name, nfc_quantity")
         .eq("support_token", token)
         .single();
       if (clientError) throw clientError;
 
-      // Then get or create form
       const { data: form } = await supabase
         .from("client_forms")
         .select("*")
@@ -70,7 +70,6 @@ export function useSubmitClientForm() {
       formType: "nfc" | "site";
       formData: ClientFormData;
     }) => {
-      // Get client by token
       const { data: client, error: clientError } = await supabase
         .from("clients")
         .select("id")
@@ -78,7 +77,6 @@ export function useSubmitClientForm() {
         .single();
       if (clientError) throw clientError;
 
-      // Upsert form
       const { data, error } = await supabase
         .from("client_forms")
         .upsert(

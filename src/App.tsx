@@ -38,109 +38,60 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route
               path="/"
-              element={
-                <ProtectedRoute>
-                  <AppLayout><Dashboard /></AppLayout>
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>}
             />
             <Route
               path="/clients"
-              element={
-                <ProtectedRoute>
-                  <AppLayout><Clients /></AppLayout>
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute><AppLayout><Clients /></AppLayout></ProtectedRoute>}
             />
             <Route
               path="/clients/:id"
-              element={
-                <ProtectedRoute>
-                  <AppLayout><ClientDetail /></AppLayout>
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute><AppLayout><ClientDetail /></AppLayout></ProtectedRoute>}
             />
             <Route
               path="/pipeline"
-              element={
-                <ProtectedRoute>
-                  <AppLayout><Pipeline /></AppLayout>
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute><AppLayout><Pipeline /></AppLayout></ProtectedRoute>}
             />
             <Route
               path="/prospection"
-              element={
-                <ProtectedRoute>
-                  <AppLayout><Prospection /></AppLayout>
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute><AppLayout><Prospection /></AppLayout></ProtectedRoute>}
             />
             <Route
               path="/projets"
-              element={
-                <ProtectedRoute>
-                  <AppLayout><Projects /></AppLayout>
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute><AppLayout><Projects /></AppLayout></ProtectedRoute>}
             />
             <Route
               path="/projets/:id"
-              element={
-                <ProtectedRoute>
-                  <AppLayout><ProjectDetail /></AppLayout>
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute><AppLayout><ProjectDetail /></AppLayout></ProtectedRoute>}
             />
             <Route
               path="/webmaster"
-              element={
-                <ProtectedRoute>
-                  <AppLayout><WebmasterDashboard /></AppLayout>
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute><AppLayout><WebmasterDashboard /></AppLayout></ProtectedRoute>}
             />
             <Route
               path="/equipe"
-              element={
-                <ProtectedRoute>
-                  <AppLayout><Team /></AppLayout>
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute><AppLayout><Team /></AppLayout></ProtectedRoute>}
             />
             <Route
               path="/commissions"
-              element={
-                <ProtectedRoute>
-                  <AppLayout><Commissions /></AppLayout>
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute><AppLayout><Commissions /></AppLayout></ProtectedRoute>}
             />
             <Route
               path="/comptabilite"
-              element={
-                <ProtectedRoute>
-                  <AppLayout><Comptabilite /></AppLayout>
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute><AppLayout><Comptabilite /></AppLayout></ProtectedRoute>}
             />
             <Route
               path="/support"
-              element={
-                <ProtectedRoute>
-                  <AppLayout><Support /></AppLayout>
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute><AppLayout><Support /></AppLayout></ProtectedRoute>}
             />
             <Route
               path="/parametres"
-              element={
-                <ProtectedRoute>
-                  <AppLayout><Settings /></AppLayout>
-                </ProtectedRoute>
-              }
+              element={<ProtectedRoute><AppLayout><Settings /></AppLayout></ProtectedRoute>}
             />
-            {/* Public routes (no auth) */}
+            {/* Public routes - short URLs */}
+            <Route path="/s/:token" element={<SupportForm />} />
+            <Route path="/f/:token/:type" element={<ClientForm />} />
+            {/* Legacy long URLs (backward compat) */}
             <Route path="/support/:token" element={<SupportForm />} />
             <Route path="/formulaire/:token/:type" element={<ClientForm />} />
             <Route path="/meta-callback" element={

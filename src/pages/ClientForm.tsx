@@ -7,9 +7,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2, CreditCard, Globe, CheckCircle2, Send } from "lucide-react";
+import { Loader2, CreditCard, Globe, CheckCircle2, Send, ChevronRight, ChevronLeft } from "lucide-react";
 import { ImageUpload, GalleryUpload } from "@/components/ImageUpload";
 import logo from "@/assets/logo.webp";
+
+interface CardEntry {
+  full_name?: string;
+  position?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+}
 
 const NFC_FIELDS: { key: keyof ClientFormData; label: string; type?: string; placeholder?: string; required?: boolean; multiline?: boolean }[] = [
   { key: "full_name", label: "Nom complet", placeholder: "Jean Dupont", required: true },
@@ -47,6 +55,15 @@ const SITE_FIELDS: { key: keyof ClientFormData; label: string; type?: string; pl
   { key: "additional_pages", label: "Pages supplémentaires souhaitées", placeholder: "Galerie, Témoignages, FAQ...", multiline: true },
 ];
 
+// Fields for additional NFC cards (steps 2+)
+const EXTRA_CARD_FIELDS: { key: keyof CardEntry; label: string; type?: string; placeholder?: string; required?: boolean }[] = [
+  { key: "full_name", label: "Nom complet", placeholder: "Nom du porteur de la carte", required: true },
+  { key: "position", label: "Poste / Fonction", placeholder: "Gérant, Associé..." },
+  { key: "phone", label: "Téléphone", placeholder: "0692 XX XX XX", required: true },
+  { key: "email", label: "Email", type: "email", placeholder: "prenom@entreprise.re" },
+  { key: "address", label: "Adresse (facultatif)", placeholder: "Si différente de l'adresse principale" },
+];
+
 export default function ClientForm() {
   const { token, type } = useParams<{ token: string; type: string }>();
   const formType = type === "nfc" ? "nfc" : "site";
@@ -54,12 +71,34 @@ export default function ClientForm() {
   const submitForm = useSubmitClientForm();
   const [formData, setFormData] = useState<ClientFormData>({});
   const [submitted, setSubmitted] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [extraCards, setExtraCards] = useState<CardEntry[]>([]);
+
+  const nfcQuantity = (data?.client as any)?.nfc_quantity || 1;
+  const totalSteps = formType === "nfc" && nfcQuantity > 1 ? nfcQuantity : 1;
 
   useEffect(() => {
     if (data?.form?.form_data) {
-      setFormData(data.form.form_data as ClientFormData);
+      const fd = data.form.form_data as any;
+      setFormData(fd);
+      if (fd.extra_cards && Array.isArray(fd.extra_cards)) {
+        setExtraCards(fd.extra_cards);
+      }
     }
   }, [data]);
+
+  // Initialize extra cards array when nfcQuantity changes
+  useEffect(() => {
+    if (formType === "nfc" && nfcQuantity > 1 && extraCards.length < nfcQuantity - 1) {
+      setExtraCards((prev) => {
+        const arr = [...prev];
+        while (arr.length < nfcQuantity - 1) {
+          arr.push({});
+        }
+        return arr;
+      });
+    }
+  }, [nfcQuantity, formType]);
 
   const alreadySubmitted = data?.form?.status === "soumis" || data?.form?.status === "valide";
 
@@ -106,29 +145,180 @@ export default function ClientForm() {
   const fields = formType === "nfc" ? NFC_FIELDS : SITE_FIELDS;
   const title = formType === "nfc" ? "Informations Carte NFC" : "Informations Site Internet";
   const description = formType === "nfc"
-    ? "Remplissez ce formulaire pour personnaliser votre carte de visite NFC"
+    ? totalSteps > 1
+      ? `Remplissez ce formulaire pour personnaliser vos ${totalSteps} cartes NFC`
+      : "Remplissez ce formulaire pour personnaliser votre carte de visite NFC"
     : "Remplissez ce formulaire pour que nous puissions créer votre site internet";
 
   const handleChange = (key: keyof ClientFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
 
+  const handleExtraCardChange = (cardIndex: number, key: keyof CardEntry, value: string) => {
+    setExtraCards((prev) => {
+      const arr = [...prev];
+      arr[cardIndex] = { ...arr[cardIndex], [key]: value };
+      return arr;
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const requiredFields = fields.filter((f) => f.required);
-    const missing = requiredFields.filter((f) => !formData[f.key]?.toString().trim());
-    if (missing.length) {
-      toast.error(`Champs requis manquants : ${missing.map((f) => f.label).join(", ")}`);
+
+    // Validate step 0 required fields
+    if (currentStep === 0) {
+      const requiredFields = fields.filter((f) => f.required);
+      const missing = requiredFields.filter((f) => !formData[f.key]?.toString().trim());
+      if (missing.length) {
+        toast.error(`Champs requis manquants : ${missing.map((f) => f.label).join(", ")}`);
+        return;
+      }
+    }
+
+    // If multi-step NFC and not on last step, go next
+    if (currentStep < totalSteps - 1) {
+      if (currentStep > 0) {
+        // Validate extra card
+        const card = extraCards[currentStep - 1];
+        if (!card?.full_name?.trim() || !card?.phone?.trim()) {
+          toast.error("Le nom et le téléphone sont requis");
+          return;
+        }
+      }
+      setCurrentStep((prev) => prev + 1);
       return;
     }
+
+    // Validate last extra card if multi-step
+    if (totalSteps > 1 && currentStep > 0) {
+      const card = extraCards[currentStep - 1];
+      if (!card?.full_name?.trim() || !card?.phone?.trim()) {
+        toast.error("Le nom et le téléphone sont requis");
+        return;
+      }
+    }
+
     try {
-      await submitForm.mutateAsync({ token: token!, formType, formData });
+      const submitData = {
+        ...formData,
+        ...(totalSteps > 1 ? { extra_cards: extraCards } : {}),
+      };
+      await submitForm.mutateAsync({ token: token!, formType, formData: submitData });
       setSubmitted(true);
       toast.success("Formulaire envoyé avec succès !");
     } catch {
       toast.error("Erreur lors de l'envoi du formulaire");
     }
   };
+
+  // Render step 0: main form
+  const renderMainForm = () => (
+    <>
+      {fields.map((field) => (
+        <div key={field.key} className="space-y-1.5">
+          <Label>
+            {field.label}
+            {field.required && <span className="text-destructive ml-1">*</span>}
+          </Label>
+          {field.multiline ? (
+            <Textarea
+              value={(formData[field.key] as string) || ""}
+              onChange={(e) => handleChange(field.key, e.target.value)}
+              placeholder={field.placeholder}
+              rows={3}
+            />
+          ) : (
+            <Input
+              type={field.type || "text"}
+              value={(formData[field.key] as string) || ""}
+              onChange={(e) => handleChange(field.key, e.target.value)}
+              placeholder={field.placeholder}
+            />
+          )}
+        </div>
+      ))}
+
+      {/* Image uploads */}
+      {formType === "nfc" ? (
+        <div className="space-y-5 pt-2 border-t border-border">
+          <p className="text-sm font-medium text-muted-foreground">📸 Photos & Logo</p>
+          <ImageUpload
+            label="Logo de l'entreprise"
+            value={formData.logo_url || ""}
+            onChange={(url) => handleChange("logo_url", url)}
+            folder={`${data.client.id}/nfc`}
+          />
+          <ImageUpload
+            label="Photo de profil"
+            value={formData.photo_url || ""}
+            onChange={(url) => handleChange("photo_url", url)}
+            folder={`${data.client.id}/nfc`}
+          />
+        </div>
+      ) : (
+        <div className="space-y-5 pt-2 border-t border-border">
+          <p className="text-sm font-medium text-muted-foreground">📸 Images du site</p>
+          <ImageUpload
+            label="Logo de l'entreprise"
+            value={formData.logo_url || ""}
+            onChange={(url) => handleChange("logo_url", url)}
+            folder={`${data.client.id}/site`}
+            required
+          />
+          <GalleryUpload
+            label="Galerie photos (locaux, produits, équipe...)"
+            values={formData.gallery_urls || []}
+            onChange={(urls) => setFormData((prev) => ({ ...prev, gallery_urls: urls }))}
+            folder={`${data.client.id}/site`}
+            max={10}
+          />
+        </div>
+      )}
+
+      {/* Notes */}
+      <div className="space-y-1.5">
+        <Label>Remarques ou demandes particulières</Label>
+        <Textarea
+          value={formData.notes || ""}
+          onChange={(e) => handleChange("notes", e.target.value)}
+          placeholder="Précisez ici toute information complémentaire..."
+          rows={4}
+        />
+      </div>
+    </>
+  );
+
+  // Render extra card step
+  const renderExtraCardStep = (cardIndex: number) => {
+    const card = extraCards[cardIndex] || {};
+    return (
+      <div className="space-y-4">
+        <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
+          <p className="text-sm font-medium">Carte {cardIndex + 2} sur {totalSteps}</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Les informations de l'entreprise (logo, réseaux sociaux, etc.) sont reprises de la carte principale.
+            Renseignez uniquement les informations spécifiques à ce porteur.
+          </p>
+        </div>
+        {EXTRA_CARD_FIELDS.map((field) => (
+          <div key={field.key} className="space-y-1.5">
+            <Label>
+              {field.label}
+              {field.required && <span className="text-destructive ml-1">*</span>}
+            </Label>
+            <Input
+              type={field.type || "text"}
+              value={(card[field.key] as string) || ""}
+              onChange={(e) => handleExtraCardChange(cardIndex, field.key, e.target.value)}
+              placeholder={field.placeholder}
+            />
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const isLastStep = currentStep >= totalSteps - 1;
 
   return (
     <div className="min-h-screen bg-background">
@@ -142,8 +332,31 @@ export default function ClientForm() {
             <h1 className="font-semibold text-sm">Adamkom</h1>
             <p className="text-[11px] text-muted-foreground">{data.client.company_name}</p>
           </div>
+          {totalSteps > 1 && (
+            <div className="ml-auto">
+              <span className="text-xs font-medium bg-primary/10 text-primary px-2.5 py-1 rounded-full">
+                Étape {currentStep + 1}/{totalSteps}
+              </span>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Progress bar for multi-step */}
+      {totalSteps > 1 && (
+        <div className="max-w-2xl mx-auto px-4 pt-4">
+          <div className="flex gap-1">
+            {Array.from({ length: totalSteps }).map((_, i) => (
+              <div
+                key={i}
+                className={`h-1.5 flex-1 rounded-full transition-colors ${
+                  i <= currentStep ? "bg-primary" : "bg-muted"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Form */}
       <div className="max-w-2xl mx-auto px-4 py-8">
@@ -156,91 +369,44 @@ export default function ClientForm() {
                 <Globe className="w-6 h-6 text-primary" />
               )}
             </div>
-            <CardTitle className="text-xl">{title}</CardTitle>
-            <CardDescription>{description}</CardDescription>
+            <CardTitle className="text-xl">
+              {currentStep === 0 ? title : `Carte ${currentStep + 1} — Informations du porteur`}
+            </CardTitle>
+            <CardDescription>
+              {currentStep === 0 ? description : "Renseignez les informations spécifiques à ce porteur de carte"}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-5">
-              {fields.map((field) => (
-                <div key={field.key} className="space-y-1.5">
-                  <Label>
-                    {field.label}
-                    {field.required && <span className="text-destructive ml-1">*</span>}
-                  </Label>
-                  {field.multiline ? (
-                    <Textarea
-                      value={(formData[field.key] as string) || ""}
-                      onChange={(e) => handleChange(field.key, e.target.value)}
-                      placeholder={field.placeholder}
-                      rows={3}
-                    />
-                  ) : (
-                    <Input
-                      type={field.type || "text"}
-                      value={(formData[field.key] as string) || ""}
-                      onChange={(e) => handleChange(field.key, e.target.value)}
-                      placeholder={field.placeholder}
-                    />
-                  )}
-                </div>
-              ))}
+              {currentStep === 0 ? renderMainForm() : renderExtraCardStep(currentStep - 1)}
 
-              {/* Image uploads */}
-              {formType === "nfc" ? (
-                <div className="space-y-5 pt-2 border-t border-border">
-                  <p className="text-sm font-medium text-muted-foreground">📸 Photos & Logo</p>
-                  <ImageUpload
-                    label="Logo de l'entreprise"
-                    value={formData.logo_url || ""}
-                    onChange={(url) => handleChange("logo_url", url)}
-                    folder={`${data.client.id}/nfc`}
-                  />
-                  <ImageUpload
-                    label="Photo de profil"
-                    value={formData.photo_url || ""}
-                    onChange={(url) => handleChange("photo_url", url)}
-                    folder={`${data.client.id}/nfc`}
-                  />
-                </div>
-              ) : (
-                <div className="space-y-5 pt-2 border-t border-border">
-                  <p className="text-sm font-medium text-muted-foreground">📸 Images du site</p>
-                  <ImageUpload
-                    label="Logo de l'entreprise"
-                    value={formData.logo_url || ""}
-                    onChange={(url) => handleChange("logo_url", url)}
-                    folder={`${data.client.id}/site`}
-                    required
-                  />
-                  <GalleryUpload
-                    label="Galerie photos (locaux, produits, équipe...)"
-                    values={formData.gallery_urls || []}
-                    onChange={(urls) => setFormData((prev) => ({ ...prev, gallery_urls: urls }))}
-                    folder={`${data.client.id}/site`}
-                    max={10}
-                  />
-                </div>
-              )}
-
-              {/* Notes */}
-              <div className="space-y-1.5">
-                <Label>Remarques ou demandes particulières</Label>
-                <Textarea
-                  value={formData.notes || ""}
-                  onChange={(e) => handleChange("notes", e.target.value)}
-                  placeholder="Précisez ici toute information complémentaire..."
-                  rows={4}
-                />
-              </div>
-
-              <Button type="submit" className="w-full" size="lg" disabled={submitForm.isPending}>
-                {submitForm.isPending ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4 mr-2" />
+              <div className="flex gap-3">
+                {currentStep > 0 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setCurrentStep((prev) => prev - 1)}
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-1" /> Précédent
+                  </Button>
                 )}
-                Envoyer le formulaire
-              </Button>
+                <Button
+                  type="submit"
+                  className="flex-1"
+                  size="lg"
+                  disabled={submitForm.isPending}
+                >
+                  {submitForm.isPending ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : isLastStep ? (
+                    <Send className="w-4 h-4 mr-2" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 mr-2" />
+                  )}
+                  {isLastStep ? "Envoyer le formulaire" : "Suivant"}
+                </Button>
+              </div>
             </form>
           </CardContent>
         </Card>

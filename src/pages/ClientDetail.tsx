@@ -19,7 +19,7 @@ import {
 import { toast } from "sonner";
 import {
   ArrowLeft, Plus, User, Phone, Mail, Briefcase, Building2, Loader2, Clock,
-  Globe, MapPin, CreditCard, FileText, MessageSquare, Send, FolderKanban,
+  Globe, MapPin, CreditCard, FileText, MessageSquare, Send, FolderKanban, Hash, UserCheck,
 } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";

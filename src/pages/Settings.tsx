@@ -253,6 +253,22 @@ export default function Settings() {
         </CardContent>
       </Card>
 
+      {/* Import CSV */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileSpreadsheet className="w-5 h-5" />
+            Import de données
+          </CardTitle>
+          <CardDescription>Importez des clients ou prospects depuis un fichier CSV (Notion, Excel...)</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button onClick={() => navigate("/import-csv")} variant="outline">
+            <FileSpreadsheet className="w-4 h-4 mr-2" /> Importer un CSV
+          </Button>
+        </CardContent>
+      </Card>
+
       {/* Danger zone */}
       <Card className="border-destructive/30">
         <CardHeader>

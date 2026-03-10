@@ -16,32 +16,122 @@
     },
     {
       "parameters": {
+        "mode": "rules",
         "rules": {
-          "rules": [
+          "values": [
             {
-              "value": "client.signed",
-              "output": 0
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.event }}",
+                    "rightValue": "client.signed",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Client Signé"
             },
             {
-              "value": "invoice.created",
-              "output": 1
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.event }}",
+                    "rightValue": "invoice.created",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Facture Créée"
             },
             {
-              "value": "support.created",
-              "output": 2
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.event }}",
+                    "rightValue": "support.created",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Support Créé"
             },
             {
-              "value": "support.resolved",
-              "output": 3
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.event }}",
+                    "rightValue": "support.resolved",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Support Résolu"
             },
             {
-              "value": "project.progress",
-              "output": 4
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.event }}",
+                    "rightValue": "project.progress",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Projet 80%"
             }
           ]
         },
-        "dataType": "string",
-        "value1": "={{ $json.event }}"
+        "options": {}
       },
       "id": "switch-event",
       "name": "Router par Event",
@@ -176,6 +266,6 @@
     "executionOrder": "v1"
   },
   "meta": {
-    "description": "Workflow central qui reçoit tous les événements AdamKom via un seul webhook et les route vers les actions appropriées. Webhook prod: /webhook/bee5d5e1-ce36-42a2-9e82-4662ea996d43. Events: client.signed, invoice.created, support.created, support.resolved, project.progress"
+    "description": "Workflow central AdamKom. Webhook prod: /webhook/bee5d5e1-ce36-42a2-9e82-4662ea996d43. Route les events: client.signed, invoice.created, support.created, support.resolved, project.progress"
   }
 }

@@ -45,6 +45,7 @@ const allMenuItems = [
   { title: "Pipeline", icon: FolderKanban, path: "/pipeline" },
   { title: "Projets", icon: Briefcase, path: "/projets" },
   { title: "Commissions", icon: Coins, path: "/commissions" },
+  { title: "Comptabilité", icon: Calculator, path: "/comptabilite" },
   { title: "Webmaster", icon: Monitor, path: "/webmaster" },
 ];
 

@@ -261,7 +261,7 @@
         ],
         [
           {
-            "node": "Email Facture",
+            "node": "Convertir PDF",
             "type": "main",
             "index": 0
           }

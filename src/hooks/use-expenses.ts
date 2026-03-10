@@ -36,7 +36,7 @@ export function useCreateExpense() {
     mutationFn: async (expense: Omit<Expense, "id" | "created_at">) => {
       const { data, error } = await supabase
         .from("expenses")
-        .insert(expense as Record<string, unknown>)
+        .insert([expense as any])
         .select()
         .single();
       if (error) throw error;

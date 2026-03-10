@@ -1,6 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useRef, useState } from "react";
 import { useTheme } from "next-themes";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,11 +11,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { User, Shield, Palette, Save, Loader2, Moon, Sun, Camera } from "lucide-react";
+import { User, Shield, Palette, Save, Loader2, Moon, Sun, Camera, FileSpreadsheet } from "lucide-react";
 
 export default function Settings() {
   const { profile, user, roles, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
+  const navigate = useNavigate();
 
   const [fullName, setFullName] = useState(profile?.full_name || "");
   const [phone, setPhone] = useState(profile?.phone || "");
@@ -249,6 +251,22 @@ export default function Settings() {
             </div>
             <Switch checked={theme === "dark"} onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")} />
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Import CSV */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileSpreadsheet className="w-5 h-5" />
+            Import de données
+          </CardTitle>
+          <CardDescription>Importez des clients ou prospects depuis un fichier CSV (Notion, Excel...)</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button onClick={() => navigate("/import-csv")} variant="outline">
+            <FileSpreadsheet className="w-4 h-4 mr-2" /> Importer un CSV
+          </Button>
         </CardContent>
       </Card>
 

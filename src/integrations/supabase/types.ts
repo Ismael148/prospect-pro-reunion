@@ -280,6 +280,54 @@ export type Database = {
           },
         ]
       }
+      expenses: {
+        Row: {
+          amount: number
+          category: Database["public"]["Enums"]["expense_category"]
+          created_at: string
+          created_by: string
+          description: string | null
+          end_date: string | null
+          frequency: Database["public"]["Enums"]["expense_frequency"]
+          id: string
+          is_active: boolean
+          month_year: string | null
+          name: string
+          start_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          category?: Database["public"]["Enums"]["expense_category"]
+          created_at?: string
+          created_by: string
+          description?: string | null
+          end_date?: string | null
+          frequency?: Database["public"]["Enums"]["expense_frequency"]
+          id?: string
+          is_active?: boolean
+          month_year?: string | null
+          name: string
+          start_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category?: Database["public"]["Enums"]["expense_category"]
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          end_date?: string | null
+          frequency?: Database["public"]["Enums"]["expense_frequency"]
+          id?: string
+          is_active?: boolean
+          month_year?: string | null
+          name?: string
+          start_date?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -682,6 +730,15 @@ export type Database = {
         | "soumis"
         | "approuve"
         | "rejete"
+      expense_category:
+        | "charges_sociales"
+        | "abonnement_plateforme"
+        | "salaire"
+        | "loyer"
+        | "marketing"
+        | "materiel"
+        | "autre"
+      expense_frequency: "ponctuel" | "mensuel" | "trimestriel" | "annuel"
       pack_type: "star_bizness_numerik" | "star_bizness_nfc" | "autre"
       pipeline_status:
         | "nouveau"
@@ -849,6 +906,16 @@ export const Constants = {
         "approuve",
         "rejete",
       ],
+      expense_category: [
+        "charges_sociales",
+        "abonnement_plateforme",
+        "salaire",
+        "loyer",
+        "marketing",
+        "materiel",
+        "autre",
+      ],
+      expense_frequency: ["ponctuel", "mensuel", "trimestriel", "annuel"],
       pack_type: ["star_bizness_numerik", "star_bizness_nfc", "autre"],
       pipeline_status: [
         "nouveau",

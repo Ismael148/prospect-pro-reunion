@@ -451,7 +451,7 @@ export default function ClientDetail() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Client Info + Projects */}
         <div className="lg:col-span-2 space-y-6">
-          <ClientInfoSection client={client} />
+          <ClientInfoSection client={client} salesTeam={salesTeam} />
           <ClientProjectsSection clientId={client.id} />
         </div>
 

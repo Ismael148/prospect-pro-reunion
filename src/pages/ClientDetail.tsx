@@ -30,7 +30,7 @@ import SocialMediaSection from "@/components/clients/SocialMediaSection";
 type PipelineStatus = Database["public"]["Enums"]["pipeline_status"];
 
 // Sub-components
-function ClientInfoSection({ client }: { client: any }) {
+function ClientInfoSection({ client, salesTeam }: { client: any; salesTeam?: { agents: any[]; commercials: any[] } }) {
   const PAYMENT_LABELS: Record<string, string> = {
     especes: "Espèces",
     virement: "Virement bancaire",
@@ -39,7 +39,12 @@ function ClientInfoSection({ client }: { client: any }) {
     prelevement: "Prélèvement",
   };
 
+  const signedByName = salesTeam?.commercials.find((c) => c.user_id === client.signed_by)?.full_name;
+  const assignedToName = salesTeam?.agents.find((a) => a.user_id === client.assigned_to)?.full_name
+    || salesTeam?.commercials.find((c) => c.user_id === client.assigned_to)?.full_name;
+
   const fields = [
+    { label: "NDI Client", value: client.ndi, icon: Hash },
     { label: "SIRET", value: client.siret, icon: FileText },
     { label: "Secteur", value: client.sector, icon: Briefcase },
     { label: "Téléphone", value: client.phone, icon: Phone },
@@ -50,6 +55,8 @@ function ClientInfoSection({ client }: { client: any }) {
     { label: "Montant", value: client.pack_amount ? `${Number(client.pack_amount).toFixed(2)} €` : null, icon: CreditCard },
     { label: "Règlement", value: client.payment_method ? PAYMENT_LABELS[client.payment_method] || client.payment_method : null, icon: CreditCard },
     { label: "Date signature", value: client.signature_date ? new Date(client.signature_date).toLocaleDateString("fr-FR") : null, icon: FileText },
+    { label: "Commercial signataire", value: signedByName, icon: UserCheck },
+    { label: "Agent assigné", value: assignedToName, icon: User },
   ].filter((f) => f.value);
 
   return (

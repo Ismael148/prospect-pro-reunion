@@ -18,6 +18,8 @@ import Team from "./pages/Team";
 import Settings from "./pages/Settings";
 import Commissions from "./pages/Commissions";
 import Comptabilite from "./pages/Comptabilite";
+import Support from "./pages/Support";
+import SupportForm from "./pages/SupportForm";
 import WebmasterDashboard from "./pages/WebmasterDashboard";
 import MetaCallback from "./pages/MetaCallback";
 import NotFound from "./pages/NotFound";

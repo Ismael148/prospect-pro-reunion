@@ -556,16 +556,30 @@ export default function ClientDetail() {
             )}
           </div>
         </div>
-        <Select value={client.pipeline_status} onValueChange={handleStatusChange}>
-          <SelectTrigger className="w-52">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {PIPELINE_ORDER.map((status) => (
-              <SelectItem key={status} value={status}>{PIPELINE_LABELS[status]}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => exportClientPDF({
+              client,
+              contacts: contacts || [],
+              activities: activities || [],
+              salesTeam,
+            })}
+          >
+            <Download className="w-4 h-4 mr-1" /> Export PDF
+          </Button>
+          <Select value={client.pipeline_status} onValueChange={handleStatusChange}>
+            <SelectTrigger className="w-52">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PIPELINE_ORDER.map((status) => (
+                <SelectItem key={status} value={status}>{PIPELINE_LABELS[status]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

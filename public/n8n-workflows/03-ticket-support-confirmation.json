@@ -1,0 +1,51 @@
+{
+  "name": "Ticket Support - Confirmation Réception",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "support-created",
+        "responseMode": "onReceived",
+        "responseCode": 200
+      },
+      "id": "webhook-support",
+      "name": "Webhook Support Créé",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "support@adamkom.com",
+        "toEmail": "={{ $json.client_email }}",
+        "subject": "Ticket {{ $json.ticket_number }} reçu - AdamKom Support",
+        "emailType": "html",
+        "html": "<h1>Votre demande a bien été reçue</h1><p>Bonjour {{ $json.company_name }},</p><p>Nous avons bien reçu votre ticket de support :</p><p><strong>Numéro :</strong> {{ $json.ticket_number }}</p><p><strong>Objet :</strong> {{ $json.subject }}</p><p><strong>Catégorie :</strong> {{ $json.category }}</p><p>Notre équipe va traiter votre demande dans les plus brefs délais.</p><p>Cordialement,<br>L'équipe Support AdamKom</p>"
+      },
+      "id": "send-support-confirm",
+      "name": "Email Confirmation Support",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [500, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Support Créé": {
+      "main": [
+        [
+          {
+            "node": "Email Confirmation Support",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "description": "Envoie une confirmation quand un ticket support est créé. Webhook path: /webhook/support-created. Données: ticket_number, company_name, client_email, subject, category"
+  }
+}

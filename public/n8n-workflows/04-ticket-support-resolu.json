@@ -1,0 +1,51 @@
+{
+  "name": "Ticket Support - Résolution",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "support-resolved",
+        "responseMode": "onReceived",
+        "responseCode": 200
+      },
+      "id": "webhook-resolved",
+      "name": "Webhook Support Résolu",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "support@adamkom.com",
+        "toEmail": "={{ $json.client_email }}",
+        "subject": "Ticket {{ $json.ticket_number }} résolu - AdamKom",
+        "emailType": "html",
+        "html": "<h1>Votre ticket a été résolu</h1><p>Bonjour {{ $json.company_name }},</p><p>Votre ticket <strong>{{ $json.ticket_number }}</strong> a été résolu.</p><p><strong>Objet :</strong> {{ $json.subject }}</p><p>Si vous avez d'autres questions, n'hésitez pas à nous contacter.</p><p>Cordialement,<br>L'équipe Support AdamKom</p>"
+      },
+      "id": "send-resolved-email",
+      "name": "Email Ticket Résolu",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [500, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Support Résolu": {
+      "main": [
+        [
+          {
+            "node": "Email Ticket Résolu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "description": "Notifie le client quand son ticket est résolu. Webhook path: /webhook/support-resolved. Données: ticket_number, company_name, client_email, subject"
+  }
+}

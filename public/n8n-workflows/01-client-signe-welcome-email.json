@@ -1,0 +1,51 @@
+{
+  "name": "Client Signé - Email de Bienvenue",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "client-signed",
+        "responseMode": "onReceived",
+        "responseCode": 200
+      },
+      "id": "webhook-node",
+      "name": "Webhook Client Signé",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "contact@adamkom.com",
+        "toEmail": "={{ $json.client_email }}",
+        "subject": "Bienvenue chez AdamKom - {{ $json.company_name }}",
+        "emailType": "html",
+        "html": "<h1>Bienvenue {{ $json.company_name }} !</h1><p>Nous sommes ravis de vous compter parmi nos clients.</p><p><strong>Pack choisi :</strong> {{ $json.pack_type }}</p><p><strong>Votre référence client :</strong> {{ $json.ndi }}</p><p>Notre équipe va maintenant commencer à travailler sur votre projet. Vous recevrez des mises à jour régulières.</p><p>Cordialement,<br>L'équipe AdamKom</p>"
+      },
+      "id": "send-email-node",
+      "name": "Envoyer Email Bienvenue",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [500, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Client Signé": {
+      "main": [
+        [
+          {
+            "node": "Envoyer Email Bienvenue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "description": "Envoie un email de bienvenue automatique quand un client signe un contrat. Webhook path: /webhook/client-signed. Données attendues: company_name, client_email, pack_type, ndi, signature_date"
+  }
+}

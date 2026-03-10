@@ -22,6 +22,7 @@ import Support from "./pages/Support";
 import SupportForm from "./pages/SupportForm";
 import WebmasterDashboard from "./pages/WebmasterDashboard";
 import MetaCallback from "./pages/MetaCallback";
+import ClientForm from "./pages/ClientForm";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

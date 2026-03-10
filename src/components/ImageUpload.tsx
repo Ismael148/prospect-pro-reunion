@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Upload, X, Loader2, Image as ImageIcon } from "lucide-react";
-import { v4 as uuidv4 } from "crypto";
+
 
 interface ImageUploadProps {
   label: string;

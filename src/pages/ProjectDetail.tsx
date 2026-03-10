@@ -40,6 +40,13 @@ export default function ProjectDetail() {
   const { data: project, isLoading } = useProject(id!);
   const { data: tasks } = useProjectTasks(id!);
   const { data: deliverables } = useDeliverables(id!);
+  const { data: teamMembers } = useQuery({
+    queryKey: ["team-members"],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("user_id, full_name");
+      return data || [];
+    },
+  });
   const updateProject = useUpdateProject();
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();

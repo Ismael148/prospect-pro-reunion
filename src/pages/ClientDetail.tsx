@@ -20,8 +20,9 @@ import { toast } from "sonner";
 import {
   ArrowLeft, Plus, User, Phone, Mail, Briefcase, Building2, Loader2, Clock,
   Globe, MapPin, CreditCard, FileText, MessageSquare, Send, FolderKanban, Hash, UserCheck,
-  ClipboardCopy, CreditCard as NfcIcon, CheckCircle2, Eye,
+  ClipboardCopy, CreditCard as NfcIcon, CheckCircle2, Eye, Download,
 } from "lucide-react";
+import { exportClientPDF } from "@/lib/export-client-pdf";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -555,16 +556,30 @@ export default function ClientDetail() {
             )}
           </div>
         </div>
-        <Select value={client.pipeline_status} onValueChange={handleStatusChange}>
-          <SelectTrigger className="w-52">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {PIPELINE_ORDER.map((status) => (
-              <SelectItem key={status} value={status}>{PIPELINE_LABELS[status]}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => exportClientPDF({
+              client,
+              contacts: contacts || [],
+              activities: activities || [],
+              salesTeam,
+            })}
+          >
+            <Download className="w-4 h-4 mr-1" /> Export PDF
+          </Button>
+          <Select value={client.pipeline_status} onValueChange={handleStatusChange}>
+            <SelectTrigger className="w-52">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PIPELINE_ORDER.map((status) => (
+                <SelectItem key={status} value={status}>{PIPELINE_LABELS[status]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

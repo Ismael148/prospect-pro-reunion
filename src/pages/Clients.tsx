@@ -167,6 +167,30 @@ export default function Clients() {
                   <Input type="date" value={form.signature_date} onChange={(e) => setForm({ ...form, signature_date: e.target.value })} />
                 </div>
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Commercial signataire</Label>
+                  <Select value={form.signed_by} onValueChange={(v) => setForm({ ...form, signed_by: v })}>
+                    <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
+                    <SelectContent>
+                      {commercials?.map((c) => (
+                        <SelectItem key={c.user_id} value={c.user_id}>{c.full_name || "Sans nom"}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Agent téléphonique</Label>
+                  <Select value={form.assigned_to} onValueChange={(v) => setForm({ ...form, assigned_to: v })}>
+                    <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
+                    <SelectContent>
+                      {agents?.map((a) => (
+                        <SelectItem key={a.user_id} value={a.user_id}>{a.full_name || "Sans nom"}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label>Notes</Label>
                 <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Informations supplémentaires..." rows={3} />

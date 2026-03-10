@@ -27,7 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
   TrendingUp, TrendingDown, DollarSign, Loader2, Plus, Trash2,
-  BarChart3, CreditCard, Building, Calculator, Repeat, Pencil,
+  BarChart3, CreditCard, Building, Calculator, Repeat, Percent,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -91,24 +91,37 @@ export default function Comptabilite() {
     amount: "", frequency: "mensuel", start_date: "", end_date: "",
   });
 
-  // Revenue: sum of pack_amount for clients signed in selected month
+  // Fiscal charge percentage (stored in localStorage for persistence)
+  const [fiscalPercent, setFiscalPercent] = useState(() => {
+    const saved = localStorage.getItem("fiscal_percent");
+    return saved ? parseFloat(saved) : 0;
+  });
+  const [editingFiscal, setEditingFiscal] = useState(false);
+  const [tempFiscal, setTempFiscal] = useState(fiscalPercent.toString());
+
+  const saveFiscalPercent = () => {
+    const val = parseFloat(tempFiscal) || 0;
+    setFiscalPercent(val);
+    localStorage.setItem("fiscal_percent", val.toString());
+    setEditingFiscal(false);
+    toast.success("Taux fiscal mis à jour");
+  };
+
+  // Revenue
   const monthlyRevenue = useMemo(() => {
     if (!clients) return 0;
     return clients
       .filter((c) => {
         if (!c.signature_date) return false;
-        const sigDate = c.signature_date.substring(0, 7); // YYYY-MM
-        return sigDate === selectedMonth;
+        return c.signature_date.substring(0, 7) === selectedMonth;
       })
       .reduce((sum, c) => sum + (Number(c.pack_amount) || 0), 0);
   }, [clients, selectedMonth]);
 
-  // Total commissions for selected month
   const totalCommissions = useMemo(() => {
     return (commissions || []).reduce((s, c) => s + Number(c.total_amount), 0);
   }, [commissions]);
 
-  // Monthly expenses
   const monthlyExpenses = useMemo(() => {
     if (!expenses) return [];
     return expenses
@@ -118,7 +131,9 @@ export default function Comptabilite() {
 
   const totalExpenses = monthlyExpenses.reduce((s, e) => s + e.monthAmount, 0);
 
-  // Expenses by category
+  // Fiscal charge based on revenue percentage
+  const fiscalCharge = monthlyRevenue * (fiscalPercent / 100);
+
   const expensesByCategory = useMemo(() => {
     const map = new Map<string, number>();
     monthlyExpenses.forEach((e) => {
@@ -127,8 +142,8 @@ export default function Comptabilite() {
     return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
   }, [monthlyExpenses]);
 
-  // Net profit
-  const netProfit = monthlyRevenue - totalCommissions - totalExpenses;
+  // Net profit includes fiscal charge
+  const netProfit = monthlyRevenue - totalCommissions - totalExpenses - fiscalCharge;
 
   const handleCreateExpense = async () => {
     if (!form.name.trim() || !form.amount) {
@@ -176,7 +191,6 @@ export default function Comptabilite() {
 
   const isLoading = loadingExpenses || loadingCommissions;
 
-  // Signed clients count this month
   const signedCount = useMemo(() => {
     if (!clients) return 0;
     return clients.filter((c) => c.signature_date?.substring(0, 7) === selectedMonth).length;
@@ -206,7 +220,7 @@ export default function Comptabilite() {
       ) : (
         <>
           {/* Key Metrics */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
             <Card className="border-0 shadow-soft">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
@@ -247,6 +261,21 @@ export default function Comptabilite() {
                 </div>
               </CardContent>
             </Card>
+            {/* Fiscal charge card */}
+            <Card className="border-0 shadow-soft">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-orange-100 dark:bg-orange-900/30">
+                    <Percent className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Charge fiscale</p>
+                    <p className="text-xl font-bold">-{fiscalCharge.toFixed(2)} €</p>
+                    <p className="text-[10px] text-muted-foreground">{fiscalPercent}% du CA</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
             <Card className={`border-0 shadow-soft ${netProfit >= 0 ? "" : "ring-1 ring-destructive/20"}`}>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
@@ -256,13 +285,56 @@ export default function Comptabilite() {
                   <div>
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Bénéfice net</p>
                     <p className={`text-xl font-bold ${netProfit >= 0 ? "text-success" : "text-destructive"}`}>
-                      {netProfit >= 0 ? "" : ""}{netProfit.toFixed(2)} €
+                      {netProfit.toFixed(2)} €
                     </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
+
+          {/* Fiscal charge config */}
+          {isAdmin && (
+            <Card className="border-0 shadow-soft">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Percent className="w-4 h-4" /> Charge fiscale (% du CA)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 flex-1">
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="100"
+                      value={editingFiscal ? tempFiscal : fiscalPercent.toString()}
+                      onChange={(e) => {
+                        setEditingFiscal(true);
+                        setTempFiscal(e.target.value);
+                      }}
+                      onFocus={() => {
+                        setEditingFiscal(true);
+                        setTempFiscal(fiscalPercent.toString());
+                      }}
+                      className="w-24"
+                      placeholder="0"
+                    />
+                    <span className="text-sm text-muted-foreground">%</span>
+                  </div>
+                  {editingFiscal && (
+                    <Button size="sm" onClick={saveFiscalPercent}>Enregistrer</Button>
+                  )}
+                  <div className="text-right">
+                    <p className="text-sm text-muted-foreground">
+                      = <span className="font-mono font-medium">{fiscalCharge.toFixed(2)} €</span> sur {monthlyRevenue.toFixed(2)} € de CA
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Profit Breakdown */}
           <Card className="border-0 shadow-soft">
@@ -279,6 +351,12 @@ export default function Comptabilite() {
                   <span className="text-sm font-medium">Commissions versées</span>
                   <span className="font-bold font-mono text-warning">-{totalCommissions.toFixed(2)} €</span>
                 </div>
+                {fiscalCharge > 0 && (
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-orange-50 dark:bg-orange-900/10">
+                    <span className="text-sm font-medium">Charge fiscale ({fiscalPercent}%)</span>
+                    <span className="font-bold font-mono text-orange-600 dark:text-orange-400">-{fiscalCharge.toFixed(2)} €</span>
+                  </div>
+                )}
                 {expensesByCategory.map(([cat, amount]) => (
                   <div key={cat} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
                     <span className="text-sm">{CATEGORY_LABELS[cat] || cat}</span>

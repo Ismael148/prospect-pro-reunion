@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,10 +11,10 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, CheckCircle, Send, Building2, HelpCircle } from "lucide-react";
+import { Loader2, CheckCircle, Send, Building2, HelpCircle, Upload, X, Link as LinkIcon } from "lucide-react";
 import { motion } from "framer-motion";
 
-const CATEGORY_LABELS: Record<string, string> = {
+const ALL_CATEGORY_LABELS: Record<string, string> = {
   modification_site: "Modification du site Internet",
   modification_carte_nfc: "Modification de la carte NFC",
   fiche_google: "Fiche Google My Business",
@@ -24,6 +24,9 @@ const CATEGORY_LABELS: Record<string, string> = {
   autre: "Autre",
 };
 
+// Categories to hide for NFC-only clients
+const SITE_ONLY_CATEGORIES = ["modification_site"];
+
 export default function SupportForm() {
   const { token } = useParams<{ token: string }>();
   const [client, setClient] = useState<any>(null);
@@ -31,6 +34,10 @@ export default function SupportForm() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [attachments, setAttachments] = useState<string[]>([]);
+  const [imageUrlInput, setImageUrlInput] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
     category: "",
@@ -44,7 +51,7 @@ export default function SupportForm() {
     const fetchClient = async () => {
       const { data, error } = await supabase
         .from("clients")
-        .select("id, company_name, email, support_token")
+        .select("id, company_name, email, support_token, pack_type")
         .eq("support_token", token)
         .single();
       if (error || !data) {
@@ -57,6 +64,74 @@ export default function SupportForm() {
     fetchClient();
   }, [token]);
 
+  // Filter categories based on pack type
+  const categoryLabels = (() => {
+    if (!client?.pack_type) return ALL_CATEGORY_LABELS;
+    if (client.pack_type === "star_bizness_nfc") {
+      // NFC only: hide site modification
+      return Object.fromEntries(
+        Object.entries(ALL_CATEGORY_LABELS).filter(([k]) => !SITE_ONLY_CATEGORIES.includes(k))
+      );
+    }
+    return ALL_CATEGORY_LABELS;
+  })();
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    if (attachments.length + files.length > 5) {
+      toast.error("Maximum 5 pièces jointes");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      for (const file of files) {
+        if (file.size > 10 * 1024 * 1024) {
+          toast.error(`${file.name} dépasse 10 Mo`);
+          continue;
+        }
+        const ext = file.name.split(".").pop();
+        const fileName = `support/${client.id}/${crypto.randomUUID()}.${ext}`;
+        const { error } = await supabase.storage
+          .from("client-forms")
+          .upload(fileName, file, { upsert: true });
+        if (error) throw error;
+        const { data: urlData } = supabase.storage
+          .from("client-forms")
+          .getPublicUrl(fileName);
+        setAttachments((prev) => [...prev, urlData.publicUrl]);
+      }
+      toast.success("Fichier(s) uploadé(s) !");
+    } catch (err: any) {
+      toast.error("Erreur d'upload : " + (err.message || "Réessayez"));
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleAddImageUrl = () => {
+    const url = imageUrlInput.trim();
+    if (!url) return;
+    if (!/^https?:\/\/.+/i.test(url)) {
+      toast.error("URL invalide");
+      return;
+    }
+    if (attachments.length >= 5) {
+      toast.error("Maximum 5 pièces jointes");
+      return;
+    }
+    setAttachments((prev) => [...prev, url]);
+    setImageUrlInput("");
+    toast.success("Lien ajouté !");
+  };
+
+  const handleRemoveAttachment = (index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async () => {
     if (!form.category || !form.subject.trim() || !form.message.trim()) {
       toast.error("Veuillez remplir tous les champs obligatoires");
@@ -64,7 +139,6 @@ export default function SupportForm() {
     }
     setSubmitting(true);
     try {
-      // Insert ticket
       const { data: ticket, error: ticketError } = await supabase
         .from("support_tickets")
         .insert([{
@@ -73,28 +147,27 @@ export default function SupportForm() {
           subject: form.subject,
           message: form.message,
           priority: form.priority,
-          ticket_number: null, // auto-generated by trigger
+          attachments: attachments.length > 0 ? attachments : null,
+          ticket_number: null,
         } as any])
         .select()
         .single();
 
       if (ticketError) throw ticketError;
 
-      // Send notification via edge function
       try {
         await supabase.functions.invoke("support-notification", {
           body: {
             ticket_id: ticket.id,
             client_name: client.company_name,
             client_email: client.email,
-            category: CATEGORY_LABELS[form.category] || form.category,
+            category: categoryLabels[form.category] || form.category,
             subject: form.subject,
             message: form.message,
             ticket_number: ticket.ticket_number,
           },
         });
       } catch {
-        // Don't fail the ticket creation if notification fails
         console.warn("Notification email failed");
       }
 
@@ -141,9 +214,6 @@ export default function SupportForm() {
               <p className="text-muted-foreground text-sm text-center">
                 Votre demande de support a bien été enregistrée. Notre équipe reviendra vers vous dans les plus brefs délais.
               </p>
-              <p className="text-xs text-muted-foreground mt-4">
-                Un email de confirmation vous a été envoyé.
-              </p>
             </CardContent>
           </Card>
         </motion.div>
@@ -173,7 +243,7 @@ export default function SupportForm() {
               <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
                 <SelectTrigger><SelectValue placeholder="Sélectionnez une catégorie" /></SelectTrigger>
                 <SelectContent>
-                  {Object.entries(CATEGORY_LABELS).map(([k, v]) => (
+                  {Object.entries(categoryLabels).map(([k, v]) => (
                     <SelectItem key={k} value={k}>{v}</SelectItem>
                   ))}
                 </SelectContent>
@@ -200,6 +270,75 @@ export default function SupportForm() {
                 maxLength={2000}
               />
               <p className="text-xs text-muted-foreground text-right">{form.message.length}/2000</p>
+            </div>
+
+            {/* Attachments */}
+            <div className="space-y-2">
+              <Label>Pièces jointes (captures d'écran, images)</Label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,.pdf"
+                multiple
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+              
+              {/* Uploaded files preview */}
+              {attachments.length > 0 && (
+                <div className="grid grid-cols-3 gap-2 mb-2">
+                  {attachments.map((url, i) => (
+                    <div key={i} className="relative group">
+                      {url.match(/\.(jpg|jpeg|png|gif|webp)$/i) || url.includes("storage") ? (
+                        <img src={url} alt={`Pièce jointe ${i + 1}`} className="w-full aspect-square object-cover rounded-lg border border-border" />
+                      ) : (
+                        <div className="w-full aspect-square rounded-lg border border-border bg-muted/30 flex items-center justify-center">
+                          <span className="text-xs text-muted-foreground text-center px-1 break-all">{url.split("/").pop()?.substring(0, 20)}</span>
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveAttachment(i)}
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading || attachments.length >= 5}
+                >
+                  {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                  Uploader
+                </Button>
+                <div className="flex flex-1 gap-1">
+                  <Input
+                    placeholder="Ou coller un lien d'image..."
+                    value={imageUrlInput}
+                    onChange={(e) => setImageUrlInput(e.target.value)}
+                    className="h-8 text-xs"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddImageUrl}
+                    disabled={!imageUrlInput.trim() || attachments.length >= 5}
+                  >
+                    <LinkIcon className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </div>
+              <p className="text-[11px] text-muted-foreground">{attachments.length}/5 pièces jointes (max 10 Mo par fichier)</p>
             </div>
 
             <div className="space-y-2">

@@ -130,6 +130,62 @@ export type Database = {
         }
         Relationships: []
       }
+      commissions: {
+        Row: {
+          base_amount: number
+          bonus_amount: number
+          client_id: string
+          created_at: string
+          id: string
+          month_year: string
+          pack_type: string
+          paid_at: string | null
+          role: string
+          status: string
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          base_amount?: number
+          bonus_amount?: number
+          client_id: string
+          created_at?: string
+          id?: string
+          month_year: string
+          pack_type: string
+          paid_at?: string | null
+          role: string
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          base_amount?: number
+          bonus_amount?: number
+          client_id?: string
+          created_at?: string
+          id?: string
+          month_year?: string
+          pack_type?: string
+          paid_at?: string | null
+          role?: string
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commissions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contacts: {
         Row: {
           client_id: string

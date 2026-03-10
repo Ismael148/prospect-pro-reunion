@@ -77,6 +77,7 @@ export type Database = {
           signature_date: string | null
           signed_by: string | null
           siret: string | null
+          support_token: string | null
           updated_at: string
           website: string | null
         }
@@ -101,6 +102,7 @@ export type Database = {
           signature_date?: string | null
           signed_by?: string | null
           siret?: string | null
+          support_token?: string | null
           updated_at?: string
           website?: string | null
         }
@@ -125,6 +127,7 @@ export type Database = {
           signature_date?: string | null
           signed_by?: string | null
           siret?: string | null
+          support_token?: string | null
           updated_at?: string
           website?: string | null
         }
@@ -686,6 +689,65 @@ export type Database = {
           },
         ]
       }
+      support_tickets: {
+        Row: {
+          admin_notes: string | null
+          attachments: string[] | null
+          category: Database["public"]["Enums"]["support_category"]
+          client_id: string
+          created_at: string
+          id: string
+          message: string
+          priority: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: Database["public"]["Enums"]["ticket_status"]
+          subject: string
+          ticket_number: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          attachments?: string[] | null
+          category?: Database["public"]["Enums"]["support_category"]
+          client_id: string
+          created_at?: string
+          id?: string
+          message: string
+          priority?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["ticket_status"]
+          subject: string
+          ticket_number: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          attachments?: string[] | null
+          category?: Database["public"]["Enums"]["support_category"]
+          client_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+          priority?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["ticket_status"]
+          subject?: string
+          ticket_number?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -763,8 +825,17 @@ export type Database = {
         | "converti"
         | "rdv_planifie"
         | "a_rappeler"
+      support_category:
+        | "modification_site"
+        | "modification_carte_nfc"
+        | "fiche_google"
+        | "reseaux_sociaux"
+        | "bug_technique"
+        | "question"
+        | "autre"
       task_priority: "basse" | "moyenne" | "haute" | "urgente"
       task_status: "a_faire" | "en_cours" | "en_revision" | "termine"
+      ticket_status: "ouvert" | "en_cours" | "resolu" | "ferme"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -943,8 +1014,18 @@ export const Constants = {
         "rdv_planifie",
         "a_rappeler",
       ],
+      support_category: [
+        "modification_site",
+        "modification_carte_nfc",
+        "fiche_google",
+        "reseaux_sociaux",
+        "bug_technique",
+        "question",
+        "autre",
+      ],
       task_priority: ["basse", "moyenne", "haute", "urgente"],
       task_status: ["a_faire", "en_cours", "en_revision", "termine"],
+      ticket_status: ["ouvert", "en_cours", "resolu", "ferme"],
     },
   },
 } as const

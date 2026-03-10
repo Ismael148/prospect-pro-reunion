@@ -84,7 +84,7 @@ export function useCreateInvoice() {
 
         if (!client) return;
 
-        const publishedUrl = window.location.origin;
+        const publishedUrl = 'https://prospect-pro-reunion.lovable.app';
         const supportLink = client.support_token ? `${publishedUrl}/s/${client.support_token}` : null;
         const formNfcLink = client.support_token ? `${publishedUrl}/f/${client.support_token}/nfc` : null;
         const formSiteLink = client.support_token ? `${publishedUrl}/f/${client.support_token}/site` : null;

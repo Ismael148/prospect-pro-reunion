@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import { triggerN8nWebhook } from "@/lib/n8n-webhook";
 
 export type Client = Tables<"clients">;
 export type Contact = Tables<"contacts">;

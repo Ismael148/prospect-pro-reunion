@@ -288,6 +288,17 @@
           }
         ]
       ]
+    },
+    "Convertir PDF": {
+      "main": [
+        [
+          {
+            "node": "Email Facture",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {

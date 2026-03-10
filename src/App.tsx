@@ -18,6 +18,7 @@ import Team from "./pages/Team";
 import Settings from "./pages/Settings";
 import Commissions from "./pages/Commissions";
 import Comptabilite from "./pages/Comptabilite";
+import Invoices from "./pages/Invoices";
 import Support from "./pages/Support";
 import SupportForm from "./pages/SupportForm";
 import WebmasterDashboard from "./pages/WebmasterDashboard";
@@ -80,6 +81,10 @@ const App = () => (
             <Route
               path="/comptabilite"
               element={<ProtectedRoute><AppLayout><Comptabilite /></AppLayout></ProtectedRoute>}
+            />
+            <Route
+              path="/facturation"
+              element={<ProtectedRoute><AppLayout><Invoices /></AppLayout></ProtectedRoute>}
             />
             <Route
               path="/support"

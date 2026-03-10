@@ -114,6 +114,14 @@ const App = () => (
               }
             />
             <Route
+              path="/comptabilite"
+              element={
+                <ProtectedRoute>
+                  <AppLayout><Comptabilite /></AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/parametres"
               element={
                 <ProtectedRoute>

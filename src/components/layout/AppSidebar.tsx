@@ -11,6 +11,7 @@ import {
   Briefcase,
   Monitor,
   Coins,
+  Calculator,
 } from "lucide-react";
 import logo from "@/assets/logo.webp";
 import {

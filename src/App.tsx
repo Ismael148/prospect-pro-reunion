@@ -142,6 +142,7 @@ const App = () => (
             />
             {/* Public routes (no auth) */}
             <Route path="/support/:token" element={<SupportForm />} />
+            <Route path="/formulaire/:token/:type" element={<ClientForm />} />
             <Route path="/meta-callback" element={
               <ProtectedRoute><MetaCallback /></ProtectedRoute>
             } />

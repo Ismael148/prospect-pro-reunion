@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { Loader2, CreditCard, Globe, CheckCircle2, Send } from "lucide-react";
 import logo from "@/assets/logo.webp";
 
-const NFC_FIELDS: { key: keyof ClientFormData; label: string; type?: string; placeholder?: string; required?: boolean }[] = [
+const NFC_FIELDS: { key: keyof ClientFormData; label: string; type?: string; placeholder?: string; required?: boolean; multiline?: boolean }[] = [
   { key: "full_name", label: "Nom complet", placeholder: "Jean Dupont", required: true },
   { key: "position", label: "Poste / Fonction", placeholder: "Gérant" },
   { key: "company_name", label: "Nom de l'entreprise", placeholder: "Mon Entreprise", required: true },

@@ -376,6 +376,7 @@ export default function ClientDetail() {
   const { data: client, isLoading } = useClient(id!);
   const { data: contacts } = useClientContacts(id!);
   const { data: activities } = useClientActivities(id!);
+  const { data: salesTeam } = useSalesTeam();
   const updateClient = useUpdateClient();
   const createActivity = useCreateActivity();
 

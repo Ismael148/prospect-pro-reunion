@@ -12,6 +12,7 @@ import {
   Monitor,
   Coins,
   Calculator,
+  LifeBuoy,
 } from "lucide-react";
 import logo from "@/assets/logo.webp";
 import {

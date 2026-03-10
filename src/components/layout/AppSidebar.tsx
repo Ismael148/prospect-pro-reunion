@@ -47,6 +47,7 @@ const allMenuItems = [
   { title: "Projets", icon: Briefcase, path: "/projets" },
   { title: "Commissions", icon: Coins, path: "/commissions" },
   { title: "Comptabilité", icon: Calculator, path: "/comptabilite" },
+  { title: "Facturation", icon: FileText, path: "/facturation" },
   { title: "Support", icon: LifeBuoy, path: "/support" },
   { title: "Webmaster", icon: Monitor, path: "/webmaster" },
 ];

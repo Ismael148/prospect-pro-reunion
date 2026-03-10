@@ -424,6 +424,9 @@ export default function ClientDetail() {
         <div className="flex-1">
           <h1 className="text-2xl font-bold tracking-tight">{client.company_name}</h1>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
+            {(client as any).ndi && (
+              <Badge variant="outline" className="text-xs font-mono">{(client as any).ndi}</Badge>
+            )}
             {client.city && <span className="text-muted-foreground text-sm">{client.city}</span>}
             {contactName && (
               <span className="text-muted-foreground text-sm">• Resp: {contactName}</span>

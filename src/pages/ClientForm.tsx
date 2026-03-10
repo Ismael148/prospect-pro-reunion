@@ -6,9 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Loader2, CreditCard, Globe, CheckCircle2, Send } from "lucide-react";
+import { ImageUpload, GalleryUpload } from "@/components/ImageUpload";
 import logo from "@/assets/logo.webp";
 
 const NFC_FIELDS: { key: keyof ClientFormData; label: string; type?: string; placeholder?: string; required?: boolean; multiline?: boolean }[] = [

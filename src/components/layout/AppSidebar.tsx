@@ -10,6 +10,7 @@ import {
   UserCircle,
   Briefcase,
   Monitor,
+  Coins,
 } from "lucide-react";
 import logo from "@/assets/logo.webp";
 import {

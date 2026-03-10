@@ -105,6 +105,14 @@ const App = () => (
               }
             />
             <Route
+              path="/commissions"
+              element={
+                <ProtectedRoute>
+                  <AppLayout><Commissions /></AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/parametres"
               element={
                 <ProtectedRoute>

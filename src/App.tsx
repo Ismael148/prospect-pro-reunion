@@ -22,6 +22,7 @@ import Support from "./pages/Support";
 import SupportForm from "./pages/SupportForm";
 import WebmasterDashboard from "./pages/WebmasterDashboard";
 import MetaCallback from "./pages/MetaCallback";
+import ClientForm from "./pages/ClientForm";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -141,6 +142,7 @@ const App = () => (
             />
             {/* Public routes (no auth) */}
             <Route path="/support/:token" element={<SupportForm />} />
+            <Route path="/formulaire/:token/:type" element={<ClientForm />} />
             <Route path="/meta-callback" element={
               <ProtectedRoute><MetaCallback /></ProtectedRoute>
             } />

@@ -48,17 +48,21 @@ Deno.serve(async (req) => {
 
     const webhookUrl = N8N_WEBHOOK_BASE_URL;
     
+    const payload = {
+      event,
+      timestamp: new Date().toISOString(),
+      triggered_by: claimsData.claims.sub,
+      ...data,
+    };
+
     console.log(`Sending ${event} to n8n: ${webhookUrl}`);
+    console.log(`Payload keys: ${Object.keys(payload).join(', ')}`);
+    console.log(`Payload sample: company_name=${payload.company_name}, invoice_number=${payload.invoice_number}, total_amount=${payload.total_amount}`);
 
     const n8nResponse = await fetch(webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        event,
-        timestamp: new Date().toISOString(),
-        triggered_by: claimsData.claims.sub,
-        ...data,
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!n8nResponse.ok) {

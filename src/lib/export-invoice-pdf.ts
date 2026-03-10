@@ -37,7 +37,7 @@ const PAYMENT_LABELS: Record<string, string> = {
   especes: "Espèces",
 };
 
-export function exportInvoicePDF(data: InvoicePDFData) {
+export function exportInvoicePDF(data: InvoicePDFData, options?: { returnBase64?: boolean }): string | undefined {
   const doc = new jsPDF();
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();

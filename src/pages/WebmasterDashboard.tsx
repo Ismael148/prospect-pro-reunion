@@ -5,11 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Briefcase, Clock, AlertTriangle, CheckCircle2, Calendar,
-  Building2, ArrowRight, Loader2, TrendingUp, Globe, CreditCard,
+  Building2, Loader2, TrendingUp, Globe, CreditCard, UserCircle, ListTodo,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,25 +38,24 @@ function daysUntil(dateStr: string | null) {
 
 function DeadlineBadge({ dueDate }: { dueDate: string | null }) {
   const days = daysUntil(dueDate);
-  if (days === null) return <span className="text-xs text-muted-foreground">Pas de deadline</span>;
+  if (days === null) return <span className="text-xs text-muted-foreground">—</span>;
   if (days < 0)
     return (
-      <Badge variant="destructive" className="text-xs gap-1">
+      <Badge variant="destructive" className="text-[10px] gap-1">
         <AlertTriangle className="w-3 h-3" />
-        En retard de {Math.abs(days)}j
+        {Math.abs(days)}j retard
       </Badge>
     );
   if (days <= 3)
     return (
-      <Badge className="text-xs bg-warning/10 text-warning border-warning/20 gap-1" variant="outline">
+      <Badge className="text-[10px] bg-warning/10 text-warning border-warning/20 gap-1" variant="outline">
         <Clock className="w-3 h-3" />
-        {days}j restants
+        {days}j
       </Badge>
     );
   return (
-    <span className="text-xs text-success flex items-center gap-1">
-      <Calendar className="w-3 h-3" />
-      {days}j restants ✓
+    <span className="text-[10px] text-success flex items-center gap-1">
+      <Calendar className="w-3 h-3" /> {days}j
     </span>
   );
 }
@@ -98,11 +98,89 @@ function ProjectRow({ project, tasks, navigate }: { project: any; tasks: any[]; 
   );
 }
 
+// ===== Team Member Card =====
+interface MemberStats {
+  userId: string;
+  name: string;
+  totalTasks: number;
+  doneTasks: number;
+  overdueTasks: number;
+  inProgressTasks: number;
+  projects: { id: string; name: string; client: string; progress: number; dueDate: string | null; status: string }[];
+}
+
+function TeamMemberCard({ member, navigate }: { member: MemberStats; navigate: any }) {
+  const pct = member.totalTasks > 0 ? Math.round((member.doneTasks / member.totalTasks) * 100) : 0;
+  const initials = member.name ? member.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) : "?";
+
+  return (
+    <Card className="border-border/40 shadow-soft hover:shadow-medium transition-all">
+      <CardContent className="p-5">
+        <div className="flex items-center gap-3 mb-4">
+          <Avatar className="w-10 h-10">
+            <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-sm truncate">{member.name || "Sans nom"}</p>
+            <p className="text-[11px] text-muted-foreground">{member.projects.length} projet{member.projects.length > 1 ? "s" : ""}</p>
+          </div>
+          <span className="text-2xl font-bold text-primary tabular-nums">{pct}%</span>
+        </div>
+
+        {/* Progress bar */}
+        <Progress value={pct} className="h-2 mb-3" />
+
+        {/* Task summary */}
+        <div className="grid grid-cols-4 gap-2 mb-4">
+          <div className="text-center p-2 rounded-lg bg-muted/50">
+            <p className="text-lg font-bold tabular-nums">{member.totalTasks}</p>
+            <p className="text-[10px] text-muted-foreground">Total</p>
+          </div>
+          <div className="text-center p-2 rounded-lg bg-success/5">
+            <p className="text-lg font-bold text-success tabular-nums">{member.doneTasks}</p>
+            <p className="text-[10px] text-muted-foreground">Fait</p>
+          </div>
+          <div className="text-center p-2 rounded-lg bg-primary/5">
+            <p className="text-lg font-bold text-primary tabular-nums">{member.inProgressTasks}</p>
+            <p className="text-[10px] text-muted-foreground">En cours</p>
+          </div>
+          <div className="text-center p-2 rounded-lg bg-destructive/5">
+            <p className="text-lg font-bold text-destructive tabular-nums">{member.overdueTasks}</p>
+            <p className="text-[10px] text-muted-foreground">Retard</p>
+          </div>
+        </div>
+
+        {/* Projects list */}
+        {member.projects.length > 0 && (
+          <div className="space-y-2 border-t border-border/50 pt-3">
+            {member.projects.slice(0, 4).map((p) => (
+              <div
+                key={p.id}
+                className="flex items-center gap-2 text-xs cursor-pointer hover:bg-muted/40 rounded-lg p-1.5 -mx-1 transition-colors"
+                onClick={() => navigate(`/projets/${p.id}`)}
+              >
+                <div className="flex-1 min-w-0 truncate font-medium">{p.client}</div>
+                <Progress value={p.progress} className="w-16 h-1" />
+                <DeadlineBadge dueDate={p.dueDate} />
+              </div>
+            ))}
+            {member.projects.length > 4 && (
+              <p className="text-[10px] text-muted-foreground text-center">+{member.projects.length - 4} autres</p>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function WebmasterDashboard() {
   const navigate = useNavigate();
   const { data: projects, isLoading } = useProjects();
   const [filterUser, setFilterUser] = useState<string>("all");
-  const [activeTab, setActiveTab] = useState("all");
+  const [activeTab, setActiveTab] = useState("team");
 
   const { data: teamMembers } = useQuery({
     queryKey: ["all_profiles"],
@@ -118,7 +196,7 @@ export default function WebmasterDashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("project_tasks")
-        .select("project_id, status, created_at, updated_at, assigned_to")
+        .select("project_id, status, created_at, updated_at, assigned_to, due_date, title")
         .order("created_at", { ascending: true });
       if (error) throw error;
       return data || [];
@@ -145,8 +223,59 @@ export default function WebmasterDashboard() {
       if (p.assigned_to) userIds.add(p.assigned_to);
       if (p.created_by) userIds.add(p.created_by);
     });
+    // Also include users who have tasks assigned
+    allTasks?.forEach((t) => {
+      if (t.assigned_to) userIds.add(t.assigned_to);
+    });
     return teamMembers.filter((m) => userIds.has(m.user_id));
-  }, [teamMembers, projects]);
+  }, [teamMembers, projects, allTasks]);
+
+  // Build per-member stats
+  const memberStats = useMemo<MemberStats[]>(() => {
+    if (!teamMembers || !projects || !allTasks) return [];
+    const now = new Date();
+
+    return activeMembers.map((m) => {
+      const memberTasks = allTasks.filter((t) => t.assigned_to === m.user_id);
+      const memberProjectIds = new Set([
+        ...memberTasks.map((t) => t.project_id),
+        ...projects.filter((p: any) => p.assigned_to === m.user_id).map((p: any) => p.id),
+      ]);
+
+      const memberProjects = projects
+        .filter((p: any) => memberProjectIds.has(p.id))
+        .filter((p: any) => p.status !== "annule")
+        .map((p: any) => {
+          const pTasks = allTasks.filter((t) => t.project_id === p.id);
+          const done = pTasks.filter((t) => t.status === "termine").length;
+          const total = pTasks.length;
+          return {
+            id: p.id,
+            name: p.name,
+            client: p.clients?.company_name || "—",
+            progress: total > 0 ? Math.round((done / total) * 100) : 0,
+            dueDate: p.due_date,
+            status: p.status,
+          };
+        })
+        .sort((a, b) => (daysUntil(a.dueDate) ?? 999) - (daysUntil(b.dueDate) ?? 999));
+
+      return {
+        userId: m.user_id,
+        name: m.full_name || "Sans nom",
+        totalTasks: memberTasks.length,
+        doneTasks: memberTasks.filter((t) => t.status === "termine").length,
+        inProgressTasks: memberTasks.filter((t) => t.status === "en_cours").length,
+        overdueTasks: memberTasks.filter((t) => {
+          if (t.status === "termine") return false;
+          const d = t.due_date ? Math.ceil((new Date(t.due_date).getTime() - now.getTime()) / 86400000) : null;
+          return d !== null && d < 0;
+        }).length,
+        projects: memberProjects,
+      };
+    }).filter((m) => m.totalTasks > 0 || m.projects.length > 0)
+      .sort((a, b) => b.totalTasks - a.totalTasks);
+  }, [activeMembers, projects, allTasks, teamMembers]);
 
   // Split projects by type
   const webProjects = useMemo(() =>
@@ -235,7 +364,7 @@ export default function WebmasterDashboard() {
       <motion.div variants={item} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Tableau de bord Webmaster</h1>
-          <p className="text-muted-foreground mt-1 text-sm">Vue d'ensemble de tous les projets et deadlines</p>
+          <p className="text-muted-foreground mt-1 text-sm">Vue d'ensemble des projets, tâches et équipes</p>
         </div>
         <Select value={filterUser} onValueChange={setFilterUser}>
           <SelectTrigger className="w-[220px]"><SelectValue placeholder="Filtrer par membre" /></SelectTrigger>
@@ -249,15 +378,15 @@ export default function WebmasterDashboard() {
       </motion.div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat) => (
           <motion.div key={stat.title} variants={item}>
-            <Card className="border-0 shadow-soft">
+            <Card className="border-border/40 shadow-soft">
               <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{stat.title}</span>
                   <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center`}>
-                    <stat.icon className="w-4 h-4 text-white" />
+                    <stat.icon className="w-4 h-4 text-primary-foreground" />
                   </div>
                 </div>
                 <p className="text-3xl font-bold tracking-tight">{stat.value}</p>
@@ -267,57 +396,119 @@ export default function WebmasterDashboard() {
         ))}
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <motion.div variants={item} className="lg:col-span-2">
-          <Card className="border-0 shadow-soft">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-primary" />
-                Activité hebdomadaire (8 semaines)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[260px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={weeklyData} barGap={4}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="semaine" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                    <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} />
-                    <Bar dataKey="créées" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="terminées" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="flex items-center justify-center gap-6 mt-2 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-primary" /> Tâches créées</span>
-                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-success" /> Tâches terminées</span>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-        <motion.div variants={item}>
-          <Card className="border-0 shadow-soft h-full">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base font-semibold">Répartition des tâches</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[260px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={statusDistribution} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
-                      {statusDistribution.map((_, i) => (<Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />))}
-                    </Pie>
-                    <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} />
-                    <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
+      {/* Main content tabs */}
+      <motion.div variants={item}>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-4">
+            <TabsTrigger value="team" className="gap-2"><UserCircle className="w-4 h-4" /> Suivi équipe</TabsTrigger>
+            <TabsTrigger value="all" className="gap-2"><Briefcase className="w-4 h-4" /> Tous les projets</TabsTrigger>
+            <TabsTrigger value="web" className="gap-2"><Globe className="w-4 h-4" /> Web</TabsTrigger>
+            <TabsTrigger value="nfc" className="gap-2"><CreditCard className="w-4 h-4" /> NFC</TabsTrigger>
+            <TabsTrigger value="charts" className="gap-2"><TrendingUp className="w-4 h-4" /> Statistiques</TabsTrigger>
+          </TabsList>
+
+          {/* Team tab */}
+          <AnimatePresence mode="wait">
+            <TabsContent value="team" className="mt-0">
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.25 }}
+              >
+                {memberStats.length === 0 ? (
+                  <Card className="border-dashed">
+                    <CardContent className="py-16 text-center">
+                      <UserCircle className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                      <p className="text-sm text-muted-foreground">Aucune tâche assignée pour le moment</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    {memberStats.map((member, idx) => (
+                      <motion.div
+                        key={member.userId}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.06 }}
+                      >
+                        <TeamMemberCard member={member} navigate={navigate} />
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            </TabsContent>
+
+            <TabsContent value="all">
+              {renderProjectList(filteredProjects, "Tous les projets en cours")}
+            </TabsContent>
+            <TabsContent value="web">
+              {renderProjectList(webProjects, "Projets Web (Site Internet)")}
+            </TabsContent>
+            <TabsContent value="nfc">
+              {renderProjectList(nfcProjects, "Projets Carte BIZNESS NFC")}
+            </TabsContent>
+
+            {/* Charts tab */}
+            <TabsContent value="charts">
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25 }}
+                className="space-y-6"
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <Card className="border-border/40 shadow-soft lg:col-span-2">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base font-semibold flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-primary" />
+                        Activité hebdomadaire (8 semaines)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[260px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={weeklyData} barGap={4}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                            <XAxis dataKey="semaine" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                            <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                            <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} />
+                            <Bar dataKey="créées" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="terminées" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <div className="flex items-center justify-center gap-6 mt-2 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-primary" /> Créées</span>
+                        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-success" /> Terminées</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-border/40 shadow-soft h-full">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base font-semibold">Répartition tâches</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[260px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie data={statusDistribution} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
+                              {statusDistribution.map((_, i) => (<Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />))}
+                            </Pie>
+                            <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} />
+                            <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </motion.div>
+            </TabsContent>
+          </AnimatePresence>
+        </Tabs>
+      </motion.div>
 
       {/* Overdue alert */}
       {overdueProjects.length > 0 && (
@@ -343,26 +534,6 @@ export default function WebmasterDashboard() {
           </Card>
         </motion.div>
       )}
-
-      {/* Tabbed project lists: Web vs NFC */}
-      <motion.div variants={item}>
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-4">
-            <TabsTrigger value="all" className="gap-2"><Briefcase className="w-4 h-4" /> Tous</TabsTrigger>
-            <TabsTrigger value="web" className="gap-2"><Globe className="w-4 h-4" /> Web</TabsTrigger>
-            <TabsTrigger value="nfc" className="gap-2"><CreditCard className="w-4 h-4" /> Carte BIZNESS NFC</TabsTrigger>
-          </TabsList>
-          <TabsContent value="all">
-            {renderProjectList(filteredProjects, "Tous les projets en cours")}
-          </TabsContent>
-          <TabsContent value="web">
-            {renderProjectList(webProjects, "Projets Web (Site Internet)")}
-          </TabsContent>
-          <TabsContent value="nfc">
-            {renderProjectList(nfcProjects, "Projets Carte BIZNESS NFC")}
-          </TabsContent>
-        </Tabs>
-      </motion.div>
 
       {/* Pending projects */}
       {filteredProjects.filter((p: any) => p.status === "en_attente").length > 0 && (

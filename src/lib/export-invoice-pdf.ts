@@ -37,7 +37,7 @@ const PAYMENT_LABELS: Record<string, string> = {
   especes: "Espèces",
 };
 
-export function exportInvoicePDF(data: InvoicePDFData) {
+export function exportInvoicePDF(data: InvoicePDFData, options?: { returnBase64?: boolean }): string | undefined {
   const doc = new jsPDF();
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
@@ -222,5 +222,10 @@ export function exportInvoicePDF(data: InvoicePDFData) {
   doc.setFontSize(8);
   doc.text("ADAMKOM by JJP — Solutions digitales pour entreprises | contact@adamkom.com | 0693 802 201", pw / 2, ph - 10, { align: "center" });
 
+  if (options?.returnBase64) {
+    return doc.output("datauristring").split(",")[1];
+  }
+
   doc.save(`Facture_${data.invoice_number}_${data.client.company_name.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`);
+  return undefined;
 }

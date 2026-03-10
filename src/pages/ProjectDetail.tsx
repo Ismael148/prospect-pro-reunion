@@ -140,6 +140,17 @@ export default function ProjectDetail() {
     } catch { toast.error("Erreur lors de l'ajout"); }
   };
 
+  const handleAssignModule = async (moduleId: string, userId: string | null) => {
+    if (!tasks) return;
+    try {
+      const moduleTasks = tasks.filter(t => t.description?.match(/\[(.*?)\]/)?.[1] === moduleId);
+      for (const task of moduleTasks) {
+        await updateTask.mutateAsync({ id: task.id, assigned_to: userId });
+      }
+      toast.success(userId ? "Module assigné" : "Assignation retirée");
+    } catch { toast.error("Erreur"); }
+  };
+
   const handleDeliverableStatusChange = async (deliverableId: string, status: DeliverableStatus) => {
     try {
       const updates: any = { id: deliverableId, status };

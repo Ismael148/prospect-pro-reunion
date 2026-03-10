@@ -113,6 +113,7 @@ export type Database = {
           email: string | null
           id: string
           ndi: string | null
+          nfc_quantity: number
           notes: string | null
           pack_amount: number | null
           pack_type: Database["public"]["Enums"]["pack_type"] | null
@@ -138,6 +139,7 @@ export type Database = {
           email?: string | null
           id?: string
           ndi?: string | null
+          nfc_quantity?: number
           notes?: string | null
           pack_amount?: number | null
           pack_type?: Database["public"]["Enums"]["pack_type"] | null
@@ -163,6 +165,7 @@ export type Database = {
           email?: string | null
           id?: string
           ndi?: string | null
+          nfc_quantity?: number
           notes?: string | null
           pack_amount?: number | null
           pack_type?: Database["public"]["Enums"]["pack_type"] | null

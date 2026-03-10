@@ -28,7 +28,7 @@
                 },
                 "conditions": [
                   {
-                    "leftValue": "={{ $json.event }}",
+                    "leftValue": "={{ $json.body.event }}",
                     "rightValue": "client.signed",
                     "operator": {
                       "type": "string",
@@ -50,7 +50,7 @@
                 },
                 "conditions": [
                   {
-                    "leftValue": "={{ $json.event }}",
+                    "leftValue": "={{ $json.body.event }}",
                     "rightValue": "invoice.created",
                     "operator": {
                       "type": "string",
@@ -72,7 +72,7 @@
                 },
                 "conditions": [
                   {
-                    "leftValue": "={{ $json.event }}",
+                    "leftValue": "={{ $json.body.event }}",
                     "rightValue": "support.created",
                     "operator": {
                       "type": "string",
@@ -94,7 +94,7 @@
                 },
                 "conditions": [
                   {
-                    "leftValue": "={{ $json.event }}",
+                    "leftValue": "={{ $json.body.event }}",
                     "rightValue": "support.resolved",
                     "operator": {
                       "type": "string",
@@ -116,7 +116,7 @@
                 },
                 "conditions": [
                   {
-                    "leftValue": "={{ $json.event }}",
+                    "leftValue": "={{ $json.body.event }}",
                     "rightValue": "project.progress",
                     "operator": {
                       "type": "string",
@@ -142,10 +142,10 @@
     {
       "parameters": {
         "fromEmail": "contact@adamkom.com",
-        "toEmail": "={{ $json.client_email }}",
-        "subject": "Bienvenue chez AdamKom - {{ $json.company_name }}",
+        "toEmail": "={{ $json.body.client_email }}",
+        "subject": "Bienvenue chez AdamKom - {{ $json.body.company_name }}",
         "emailType": "html",
-        "html": "<h1>Bienvenue {{ $json.company_name }} !</h1><p>Nous sommes ravis de vous compter parmi nos clients.</p><p><strong>Pack choisi :</strong> {{ $json.pack_type }}</p><p><strong>Votre référence client :</strong> {{ $json.ndi }}</p><p>Notre équipe va maintenant commencer à travailler sur votre projet. Vous recevrez des mises à jour régulières.</p><p>Cordialement,<br>L'équipe AdamKom</p>"
+        "html": "<h1>Bienvenue {{ $json.body.company_name }} !</h1><p>Nous sommes ravis de vous compter parmi nos clients.</p><p><strong>Pack choisi :</strong> {{ $json.body.pack_type }}</p><p><strong>Votre référence client :</strong> {{ $json.body.ndi }}</p><p>Notre équipe va maintenant commencer à travailler sur votre projet. Vous recevrez des mises à jour régulières.</p><p>Cordialement,<br>L'équipe AdamKom</p>"
       },
       "id": "email-bienvenue",
       "name": "Email Bienvenue",
@@ -156,10 +156,10 @@
     {
       "parameters": {
         "fromEmail": "facturation@adamkom.com",
-        "toEmail": "={{ $json.client_email }}",
-        "subject": "Facture {{ $json.invoice_number }} - AdamKom",
+        "toEmail": "={{ $json.body.client_email }}",
+        "subject": "Facture {{ $json.body.invoice_number }} - AdamKom",
         "emailType": "html",
-        "html": "<h1>Nouvelle Facture</h1><p>Bonjour {{ $json.company_name }},</p><p>Votre facture <strong>{{ $json.invoice_number }}</strong> est disponible.</p><p><strong>Montant TTC :</strong> {{ $json.total_amount }} €</p><p><strong>Date d'échéance :</strong> {{ $json.due_date }}</p><p>Cordialement,<br>L'équipe AdamKom</p>"
+        "html": "<h1>Nouvelle Facture</h1><p>Bonjour {{ $json.body.company_name }},</p><p>Votre facture <strong>{{ $json.body.invoice_number }}</strong> est disponible.</p><p><strong>Montant TTC :</strong> {{ $json.body.total_amount }} €</p><p><strong>Date d'échéance :</strong> {{ $json.body.due_date }}</p><p>Cordialement,<br>L'équipe AdamKom</p>"
       },
       "id": "email-facture",
       "name": "Email Facture",
@@ -170,10 +170,10 @@
     {
       "parameters": {
         "fromEmail": "support@adamkom.com",
-        "toEmail": "={{ $json.client_email }}",
-        "subject": "Ticket {{ $json.ticket_number }} reçu - AdamKom Support",
+        "toEmail": "={{ $json.body.client_email }}",
+        "subject": "Ticket {{ $json.body.ticket_number }} reçu - AdamKom Support",
         "emailType": "html",
-        "html": "<h1>Votre demande a bien été reçue</h1><p>Bonjour {{ $json.company_name }},</p><p>Nous avons bien reçu votre ticket de support :</p><p><strong>Numéro :</strong> {{ $json.ticket_number }}</p><p><strong>Objet :</strong> {{ $json.subject }}</p><p><strong>Catégorie :</strong> {{ $json.category }}</p><p>Notre équipe va traiter votre demande dans les plus brefs délais.</p><p>Cordialement,<br>L'équipe Support AdamKom</p>"
+        "html": "<h1>Votre demande a bien été reçue</h1><p>Bonjour {{ $json.body.company_name }},</p><p>Nous avons bien reçu votre ticket de support :</p><p><strong>Numéro :</strong> {{ $json.body.ticket_number }}</p><p><strong>Objet :</strong> {{ $json.body.subject }}</p><p><strong>Catégorie :</strong> {{ $json.body.category }}</p><p>Notre équipe va traiter votre demande dans les plus brefs délais.</p><p>Cordialement,<br>L'équipe Support AdamKom</p>"
       },
       "id": "email-support-confirm",
       "name": "Email Confirmation Support",
@@ -184,10 +184,10 @@
     {
       "parameters": {
         "fromEmail": "support@adamkom.com",
-        "toEmail": "={{ $json.client_email }}",
-        "subject": "Ticket {{ $json.ticket_number }} résolu - AdamKom",
+        "toEmail": "={{ $json.body.client_email }}",
+        "subject": "Ticket {{ $json.body.ticket_number }} résolu - AdamKom",
         "emailType": "html",
-        "html": "<h1>Votre ticket a été résolu</h1><p>Bonjour {{ $json.company_name }},</p><p>Votre ticket <strong>{{ $json.ticket_number }}</strong> a été résolu.</p><p><strong>Objet :</strong> {{ $json.subject }}</p><p>Si vous avez d'autres questions, n'hésitez pas à nous contacter.</p><p>Cordialement,<br>L'équipe Support AdamKom</p>"
+        "html": "<h1>Votre ticket a été résolu</h1><p>Bonjour {{ $json.body.company_name }},</p><p>Votre ticket <strong>{{ $json.body.ticket_number }}</strong> a été résolu.</p><p><strong>Objet :</strong> {{ $json.body.subject }}</p><p>Si vous avez d'autres questions, n'hésitez pas à nous contacter.</p><p>Cordialement,<br>L'équipe Support AdamKom</p>"
       },
       "id": "email-support-resolu",
       "name": "Email Ticket Résolu",
@@ -198,10 +198,10 @@
     {
       "parameters": {
         "fromEmail": "projets@adamkom.com",
-        "toEmail": "={{ $json.client_email }}",
+        "toEmail": "={{ $json.body.client_email }}",
         "subject": "Votre projet est presque terminé ! - AdamKom",
         "emailType": "html",
-        "html": "<h1>Votre projet avance bien !</h1><p>Bonjour {{ $json.company_name }},</p><p>Votre projet <strong>{{ $json.project_name }}</strong> est maintenant à <strong>{{ $json.progress }}%</strong> d'avancement.</p><p>Notre équipe finalise les derniers détails. Vous serez bientôt contacté pour la livraison.</p><p>Cordialement,<br>L'équipe AdamKom</p>"
+        "html": "<h1>Votre projet avance bien !</h1><p>Bonjour {{ $json.body.company_name }},</p><p>Votre projet <strong>{{ $json.body.project_name }}</strong> est maintenant à <strong>{{ $json.body.progress }}%</strong> d'avancement.</p><p>Notre équipe finalise les derniers détails. Vous serez bientôt contacté pour la livraison.</p><p>Cordialement,<br>L'équipe AdamKom</p>"
       },
       "id": "email-progress",
       "name": "Email Progression Projet",
@@ -266,6 +266,6 @@
     "executionOrder": "v1"
   },
   "meta": {
-    "description": "Workflow central AdamKom. Webhook prod: /webhook/bee5d5e1-ce36-42a2-9e82-4662ea996d43. Route les events: client.signed, invoice.created, support.created, support.resolved, project.progress"
+    "description": "Workflow central AdamKom. Les données sont dans $json.body (event, client_email, etc.). Route les events: client.signed, invoice.created, support.created, support.resolved, project.progress"
   }
 }

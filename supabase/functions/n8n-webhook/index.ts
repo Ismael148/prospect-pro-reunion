@@ -41,21 +41,12 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Missing event type' }), { status: 400, headers: corsHeaders });
     }
 
-    // Map events to n8n webhook paths
-    const webhookPaths: Record<string, string> = {
-      'client.signed': 'client-signed',
-      'invoice.created': 'invoice-created',
-      'support.created': 'support-created',
-      'support.resolved': 'support-resolved',
-      'project.progress': 'project-progress',
-    };
-
-    const webhookPath = webhookPaths[event];
-    if (!webhookPath) {
+    const validEvents = ['client.signed', 'invoice.created', 'support.created', 'support.resolved', 'project.progress'];
+    if (!validEvents.includes(event)) {
       return new Response(JSON.stringify({ error: `Unknown event: ${event}` }), { status: 400, headers: corsHeaders });
     }
 
-    const webhookUrl = `${N8N_WEBHOOK_BASE_URL}/${webhookPath}`;
+    const webhookUrl = N8N_WEBHOOK_BASE_URL;
     
     console.log(`Sending ${event} to n8n: ${webhookUrl}`);
 

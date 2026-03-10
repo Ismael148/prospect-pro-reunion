@@ -100,9 +100,21 @@ export function useUpdateClient() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["clients", data.id] });
+      
+      // Trigger n8n webhook when client signs contract
+      if (variables.pipeline_status === 'contrat_signe') {
+        triggerN8nWebhook('client.signed', {
+          company_name: data.company_name,
+          client_email: data.email,
+          pack_type: data.pack_type,
+          ndi: data.ndi,
+          signature_date: data.signature_date,
+          client_id: data.id,
+        });
+      }
     },
   });
 }

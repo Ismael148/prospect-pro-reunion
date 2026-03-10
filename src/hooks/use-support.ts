@@ -59,8 +59,15 @@ export function useUpdateTicket() {
         .eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["support-tickets"] });
+      
+      // Trigger n8n webhook when ticket is resolved
+      if (variables.status === 'resolu') {
+        triggerN8nWebhook('support.resolved', {
+          ticket_id: variables.id,
+        });
+      }
     },
   });
 }

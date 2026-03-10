@@ -637,6 +637,9 @@ export default function ClientDetail() {
         </Card>
       )}
 
+      {/* Client Forms */}
+      <ClientFormsSection clientId={id!} supportToken={(client as any).support_token} />
+
       {/* Social Media */}
       <SocialMediaSection clientId={id!} />
 

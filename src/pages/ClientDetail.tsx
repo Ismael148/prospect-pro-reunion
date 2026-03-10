@@ -372,6 +372,122 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
   );
 }
 
+function ClientFormsSection({ clientId, supportToken }: { clientId: string; supportToken?: string }) {
+  const { user, hasRole } = useAuth();
+  const { data: forms, isLoading } = useClientForms(clientId);
+  const validateForm = useValidateForm();
+  const [viewingForm, setViewingForm] = useState<any>(null);
+
+  const FORM_TYPE_LABELS: Record<string, string> = { nfc: "Carte NFC", site: "Site Internet" };
+  const STATUS_LABELS: Record<string, string> = { en_attente: "En attente", soumis: "Soumis", valide: "Validé" };
+  const STATUS_COLORS: Record<string, string> = {
+    en_attente: "bg-muted text-muted-foreground",
+    soumis: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
+    valide: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
+  };
+
+  const nfcLink = supportToken ? `${window.location.origin}/formulaire/${supportToken}/nfc` : null;
+  const siteLink = supportToken ? `${window.location.origin}/formulaire/${supportToken}/site` : null;
+
+  const copyLink = (link: string, label: string) => {
+    navigator.clipboard.writeText(link);
+    toast.success(`Lien ${label} copié !`);
+  };
+
+  const handleValidate = async (formId: string) => {
+    try {
+      await validateForm.mutateAsync({ formId, userId: user!.id });
+      toast.success("Formulaire validé");
+    } catch {
+      toast.error("Erreur de validation");
+    }
+  };
+
+  return (
+    <Card className="border-0 shadow-md shadow-primary/5">
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <FileText className="w-5 h-5" /> Formulaires Client
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Links */}
+        {supportToken && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {[
+              { label: "Carte NFC", link: nfcLink!, icon: CreditCard },
+              { label: "Site Internet", link: siteLink!, icon: Globe },
+            ].map(({ label, link, icon: Icon }) => (
+              <div key={label} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                <Icon className="w-5 h-5 text-primary shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{label}</p>
+                  <code className="text-[10px] text-muted-foreground block truncate">{link}</code>
+                </div>
+                <Button size="sm" variant="outline" onClick={() => copyLink(link, label)}>
+                  <ClipboardCopy className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Submitted forms */}
+        {isLoading ? (
+          <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+        ) : !forms?.length ? (
+          <p className="text-sm text-muted-foreground text-center py-2">
+            Aucun formulaire soumis. Partagez les liens ci-dessus avec votre client.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {forms.map((form) => {
+              const fd = form.form_data as ClientFormData;
+              return (
+                <div key={form.id} className="p-3 rounded-lg bg-muted/30 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-sm">{FORM_TYPE_LABELS[form.form_type] || form.form_type}</span>
+                      <Badge className={`text-[10px] ${STATUS_COLORS[form.status] || ""}`}>
+                        {STATUS_LABELS[form.status] || form.status}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" variant="ghost" onClick={() => setViewingForm(viewingForm?.id === form.id ? null : form)}>
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      {form.status === "soumis" && hasRole("admin") && (
+                        <Button size="sm" variant="outline" onClick={() => handleValidate(form.id)} disabled={validateForm.isPending}>
+                          <CheckCircle2 className="w-4 h-4 mr-1" /> Valider
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  {form.submitted_at && (
+                    <p className="text-[11px] text-muted-foreground">
+                      Soumis le {new Date(form.submitted_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                  )}
+                  {viewingForm?.id === form.id && fd && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-border mt-2">
+                      {Object.entries(fd).filter(([, v]) => v && v.toString().trim()).map(([key, value]) => (
+                        <div key={key} className="text-sm">
+                          <span className="text-[11px] text-muted-foreground uppercase tracking-wider block">{key.replace(/_/g, " ")}</span>
+                          <span className="font-medium">{Array.isArray(value) ? value.join(", ") : String(value)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function ClientDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();

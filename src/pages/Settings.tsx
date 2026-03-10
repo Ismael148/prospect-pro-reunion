@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { User, Shield, Palette, Save, Loader2, Moon, Sun, Camera } from "lucide-react";
+import { User, Shield, Palette, Save, Loader2, Moon, Sun, Camera, FileSpreadsheet } from "lucide-react";
 
 export default function Settings() {
   const { profile, user, roles, signOut } = useAuth();

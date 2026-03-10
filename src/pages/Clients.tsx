@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useClients, useCreateClient } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCommercials } from "@/hooks/use-commercials";
+import { useAgents } from "@/hooks/use-agents";
 import { PIPELINE_LABELS, PIPELINE_COLORS, PACK_LABELS, PACK_PRICES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +29,8 @@ export default function Clients() {
   const { user } = useAuth();
   const { data: clients, isLoading } = useClients();
   const createClient = useCreateClient();
+  const { data: commercials } = useCommercials();
+  const { data: agents } = useAgents();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -35,6 +39,7 @@ export default function Clients() {
     company_name: "", phone: "", email: "", address: "", city: "",
     postal_code: "", sector: "", website: "", notes: "",
     pack_type: "" as PackType | "", payment_method: "", signature_date: "",
+    signed_by: "", assigned_to: "",
   });
 
   const packAmount = form.pack_type ? PACK_PRICES[form.pack_type] || 0 : 0;
@@ -56,12 +61,13 @@ export default function Clients() {
         pack_amount: packAmount || null,
         payment_method: form.payment_method || null,
         signature_date: form.signature_date || null,
+        signed_by: form.signed_by || null,
+        assigned_to: form.assigned_to || user!.id,
         created_by: user!.id,
-        assigned_to: user!.id,
       } as any);
       toast.success("Client créé");
       setOpen(false);
-      setForm({ company_name: "", phone: "", email: "", address: "", city: "", postal_code: "", sector: "", website: "", notes: "", pack_type: "", payment_method: "", signature_date: "" });
+      setForm({ company_name: "", phone: "", email: "", address: "", city: "", postal_code: "", sector: "", website: "", notes: "", pack_type: "", payment_method: "", signature_date: "", signed_by: "", assigned_to: "" });
     } catch { toast.error("Erreur"); }
   };
 
@@ -159,6 +165,30 @@ export default function Clients() {
                 <div className="space-y-2">
                   <Label>Date de signature</Label>
                   <Input type="date" value={form.signature_date} onChange={(e) => setForm({ ...form, signature_date: e.target.value })} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Commercial signataire</Label>
+                  <Select value={form.signed_by} onValueChange={(v) => setForm({ ...form, signed_by: v })}>
+                    <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
+                    <SelectContent>
+                      {commercials?.map((c) => (
+                        <SelectItem key={c.user_id} value={c.user_id}>{c.full_name || "Sans nom"}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Agent téléphonique</Label>
+                  <Select value={form.assigned_to} onValueChange={(v) => setForm({ ...form, assigned_to: v })}>
+                    <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
+                    <SelectContent>
+                      {agents?.map((a) => (
+                        <SelectItem key={a.user_id} value={a.user_id}>{a.full_name || "Sans nom"}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div className="space-y-2">

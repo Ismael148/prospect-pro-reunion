@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useClient, useClientContacts, useClientActivities, useUpdateClient, useCreateContact, useCreateActivity } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSalesTeam } from "@/hooks/use-commercials";
 import { PIPELINE_LABELS, PIPELINE_COLORS, PIPELINE_ORDER, PACK_LABELS, PROJECT_STATUS_LABELS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +19,7 @@ import {
 import { toast } from "sonner";
 import {
   ArrowLeft, Plus, User, Phone, Mail, Briefcase, Building2, Loader2, Clock,
-  Globe, MapPin, CreditCard, FileText, MessageSquare, Send, FolderKanban,
+  Globe, MapPin, CreditCard, FileText, MessageSquare, Send, FolderKanban, Hash, UserCheck,
 } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -29,7 +30,7 @@ import SocialMediaSection from "@/components/clients/SocialMediaSection";
 type PipelineStatus = Database["public"]["Enums"]["pipeline_status"];
 
 // Sub-components
-function ClientInfoSection({ client }: { client: any }) {
+function ClientInfoSection({ client, salesTeam }: { client: any; salesTeam?: { agents: any[]; commercials: any[] } }) {
   const PAYMENT_LABELS: Record<string, string> = {
     especes: "Espèces",
     virement: "Virement bancaire",
@@ -38,7 +39,12 @@ function ClientInfoSection({ client }: { client: any }) {
     prelevement: "Prélèvement",
   };
 
+  const signedByName = salesTeam?.commercials.find((c) => c.user_id === client.signed_by)?.full_name;
+  const assignedToName = salesTeam?.agents.find((a) => a.user_id === client.assigned_to)?.full_name
+    || salesTeam?.commercials.find((c) => c.user_id === client.assigned_to)?.full_name;
+
   const fields = [
+    { label: "NDI Client", value: client.ndi, icon: Hash },
     { label: "SIRET", value: client.siret, icon: FileText },
     { label: "Secteur", value: client.sector, icon: Briefcase },
     { label: "Téléphone", value: client.phone, icon: Phone },
@@ -49,6 +55,8 @@ function ClientInfoSection({ client }: { client: any }) {
     { label: "Montant", value: client.pack_amount ? `${Number(client.pack_amount).toFixed(2)} €` : null, icon: CreditCard },
     { label: "Règlement", value: client.payment_method ? PAYMENT_LABELS[client.payment_method] || client.payment_method : null, icon: CreditCard },
     { label: "Date signature", value: client.signature_date ? new Date(client.signature_date).toLocaleDateString("fr-FR") : null, icon: FileText },
+    { label: "Commercial signataire", value: signedByName, icon: UserCheck },
+    { label: "Agent assigné", value: assignedToName, icon: User },
   ].filter((f) => f.value);
 
   return (
@@ -368,6 +376,7 @@ export default function ClientDetail() {
   const { data: client, isLoading } = useClient(id!);
   const { data: contacts } = useClientContacts(id!);
   const { data: activities } = useClientActivities(id!);
+  const { data: salesTeam } = useSalesTeam();
   const updateClient = useUpdateClient();
   const createActivity = useCreateActivity();
 
@@ -415,6 +424,9 @@ export default function ClientDetail() {
         <div className="flex-1">
           <h1 className="text-2xl font-bold tracking-tight">{client.company_name}</h1>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
+            {(client as any).ndi && (
+              <Badge variant="outline" className="text-xs font-mono">{(client as any).ndi}</Badge>
+            )}
             {client.city && <span className="text-muted-foreground text-sm">{client.city}</span>}
             {contactName && (
               <span className="text-muted-foreground text-sm">• Resp: {contactName}</span>
@@ -439,7 +451,7 @@ export default function ClientDetail() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Client Info + Projects */}
         <div className="lg:col-span-2 space-y-6">
-          <ClientInfoSection client={client} />
+          <ClientInfoSection client={client} salesTeam={salesTeam} />
           <ClientProjectsSection clientId={client.id} />
         </div>
 

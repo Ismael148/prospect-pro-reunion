@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useClients, useCreateClient } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCommercials } from "@/hooks/use-commercials";
+import { useAgents } from "@/hooks/use-agents";
 import { PIPELINE_LABELS, PIPELINE_COLORS, PACK_LABELS, PACK_PRICES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

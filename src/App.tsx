@@ -124,6 +124,14 @@ const App = () => (
               }
             />
             <Route
+              path="/support"
+              element={
+                <ProtectedRoute>
+                  <AppLayout><Support /></AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/parametres"
               element={
                 <ProtectedRoute>
@@ -131,6 +139,8 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            {/* Public routes (no auth) */}
+            <Route path="/support/:token" element={<SupportForm />} />
             <Route path="/meta-callback" element={
               <ProtectedRoute><MetaCallback /></ProtectedRoute>
             } />

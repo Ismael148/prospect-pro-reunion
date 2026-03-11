@@ -143,13 +143,13 @@ export default function SupportForm() {
         .from("support_tickets")
         .insert([{
           client_id: client.id,
-          category: form.category,
+          category: form.category as any,
           subject: form.subject,
           message: form.message,
           priority: form.priority,
           attachments: attachments.length > 0 ? attachments : null,
-          ticket_number: null,
-        } as any])
+          ticket_number: 'PENDING',
+        }])
         .select()
         .single();
 

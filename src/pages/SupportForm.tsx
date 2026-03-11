@@ -80,8 +80,8 @@ export default function SupportForm() {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
-    if (attachments.length + files.length > 5) {
-      toast.error("Maximum 5 pièces jointes");
+    if (attachments.length + files.length > 10) {
+      toast.error("Maximum 10 pièces jointes");
       return;
     }
 
@@ -119,8 +119,8 @@ export default function SupportForm() {
       toast.error("URL invalide");
       return;
     }
-    if (attachments.length >= 5) {
-      toast.error("Maximum 5 pièces jointes");
+    if (attachments.length >= 10) {
+      toast.error("Maximum 10 pièces jointes");
       return;
     }
     setAttachments((prev) => [...prev, url]);
@@ -315,7 +315,7 @@ export default function SupportForm() {
                   size="sm"
                   className="gap-1.5"
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading || attachments.length >= 5}
+                  disabled={uploading || attachments.length >= 10}
                 >
                   {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
                   Uploader
@@ -332,13 +332,13 @@ export default function SupportForm() {
                     variant="outline"
                     size="sm"
                     onClick={handleAddImageUrl}
-                    disabled={!imageUrlInput.trim() || attachments.length >= 5}
+                    disabled={!imageUrlInput.trim() || attachments.length >= 10}
                   >
                     <LinkIcon className="w-3.5 h-3.5" />
                   </Button>
                 </div>
               </div>
-              <p className="text-[11px] text-muted-foreground">{attachments.length}/5 pièces jointes (max 10 Mo par fichier)</p>
+              <p className="text-[11px] text-muted-foreground">{attachments.length}/10 pièces jointes (max 10 Mo par fichier)</p>
             </div>
 
             <div className="space-y-2">

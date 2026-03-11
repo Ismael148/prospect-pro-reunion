@@ -332,7 +332,7 @@ export default function SupportForm() {
                     variant="outline"
                     size="sm"
                     onClick={handleAddImageUrl}
-                    disabled={!imageUrlInput.trim() || attachments.length >= 5}
+                    disabled={!imageUrlInput.trim() || attachments.length >= 10}
                   >
                     <LinkIcon className="w-3.5 h-3.5" />
                   </Button>

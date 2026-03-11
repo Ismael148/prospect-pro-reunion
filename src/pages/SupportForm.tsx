@@ -148,8 +148,8 @@ export default function SupportForm() {
           message: form.message,
           priority: form.priority,
           attachments: attachments.length > 0 ? attachments : null,
-          ticket_number: null,
-        } as any])
+          ticket_number: 'PENDING',
+        }])
         .select()
         .single();
 

@@ -143,7 +143,7 @@ export default function SupportForm() {
         .from("support_tickets")
         .insert([{
           client_id: client.id,
-          category: form.category,
+          category: form.category as any,
           subject: form.subject,
           message: form.message,
           priority: form.priority,

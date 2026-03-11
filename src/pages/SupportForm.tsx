@@ -119,8 +119,8 @@ export default function SupportForm() {
       toast.error("URL invalide");
       return;
     }
-    if (attachments.length >= 5) {
-      toast.error("Maximum 5 pièces jointes");
+    if (attachments.length >= 10) {
+      toast.error("Maximum 10 pièces jointes");
       return;
     }
     setAttachments((prev) => [...prev, url]);

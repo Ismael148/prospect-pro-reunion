@@ -80,8 +80,8 @@ export default function SupportForm() {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
-    if (attachments.length + files.length > 5) {
-      toast.error("Maximum 5 pièces jointes");
+    if (attachments.length + files.length > 10) {
+      toast.error("Maximum 10 pièces jointes");
       return;
     }
 

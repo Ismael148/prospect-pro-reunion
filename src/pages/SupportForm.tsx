@@ -315,7 +315,7 @@ export default function SupportForm() {
                   size="sm"
                   className="gap-1.5"
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading || attachments.length >= 5}
+                  disabled={uploading || attachments.length >= 10}
                 >
                   {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
                   Uploader

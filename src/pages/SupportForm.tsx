@@ -338,7 +338,7 @@ export default function SupportForm() {
                   </Button>
                 </div>
               </div>
-              <p className="text-[11px] text-muted-foreground">{attachments.length}/5 pièces jointes (max 10 Mo par fichier)</p>
+              <p className="text-[11px] text-muted-foreground">{attachments.length}/10 pièces jointes (max 10 Mo par fichier)</p>
             </div>
 
             <div className="space-y-2">

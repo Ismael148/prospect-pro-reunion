@@ -239,7 +239,7 @@ export default function Comptabilite() {
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 rounded-xl bg-warning/10">
-                    <DollarSign className="w-5 h-5 text-warning" />
+                    <Euro className="w-5 h-5 text-warning" />
                   </div>
                   <div>
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Commissions</p>

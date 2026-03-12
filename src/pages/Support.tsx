@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useSupportTickets, useUpdateTicket } from "@/hooks/use-support";
 import { useClients } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";
+import { PUBLISHED_URL } from "@/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

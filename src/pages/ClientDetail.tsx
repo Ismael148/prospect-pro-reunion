@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useClient, useClientContacts, useClientActivities, useUpdateClient, useCreateContact, useCreateActivity } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSalesTeam } from "@/hooks/use-commercials";
-import { PIPELINE_LABELS, PIPELINE_COLORS, PIPELINE_ORDER, PACK_LABELS, PROJECT_STATUS_LABELS } from "@/lib/constants";
+import { PIPELINE_LABELS, PIPELINE_COLORS, PIPELINE_ORDER, PACK_LABELS, PROJECT_STATUS_LABELS, PUBLISHED_URL } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

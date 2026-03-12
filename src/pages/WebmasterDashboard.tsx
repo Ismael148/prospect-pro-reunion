@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { useProjects } from "@/hooks/use-projects";
+import { useAuth } from "@/contexts/AuthContext";
 import { PROJECT_STATUS_LABELS, PROJECT_STATUS_COLORS, PACK_LABELS } from "@/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

@@ -179,7 +179,9 @@ function TeamMemberCard({ member, navigate }: { member: MemberStats; navigate: a
 export default function WebmasterDashboard() {
   const navigate = useNavigate();
   const { data: projects, isLoading } = useProjects();
-  const [filterUser, setFilterUser] = useState<string>("all");
+  const { user, hasRole } = useAuth();
+  const isAdmin = hasRole("admin");
+  const [filterUser, setFilterUser] = useState<string>("__pending__");
   const [activeTab, setActiveTab] = useState("team");
 
   const { data: teamMembers } = useQuery({

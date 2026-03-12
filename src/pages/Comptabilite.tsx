@@ -44,7 +44,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 const CATEGORY_ICONS: Record<string, typeof Building> = {
   charges_sociales: Building,
   abonnement_plateforme: CreditCard,
-  salaire: DollarSign,
+  salaire: Euro,
   loyer: Building,
   marketing: BarChart3,
   materiel: CreditCard,

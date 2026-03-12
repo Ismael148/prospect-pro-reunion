@@ -782,7 +782,7 @@ export default function ClientDetail() {
             <Button
               size="sm" variant="outline"
               onClick={() => {
-                navigator.clipboard.writeText(`${window.location.origin}/s/${(client as any).support_token}`);
+                navigator.clipboard.writeText(`${PUBLISHED_URL}/s/${(client as any).support_token}`);
                 toast.success("Lien de support copié !");
               }}
             >

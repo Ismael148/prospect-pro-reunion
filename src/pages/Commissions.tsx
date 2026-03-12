@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/collapsible";
 import { toast } from "sonner";
 import {
-  DollarSign, TrendingUp, Users, CreditCard, Loader2, CheckCircle, Clock, UserCheck, ChevronDown,
+  Euro, TrendingUp, Users, CreditCard, Loader2, CheckCircle, Clock, UserCheck, ChevronDown,
 } from "lucide-react";
 import { motion } from "framer-motion";
 

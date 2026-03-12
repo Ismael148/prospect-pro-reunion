@@ -524,8 +524,8 @@ function ClientFormsSection({ clientId, supportToken }: { clientId: string; supp
     valide: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
   };
 
-  const nfcLink = supportToken ? `${window.location.origin}/f/${supportToken}/nfc` : null;
-  const siteLink = supportToken ? `${window.location.origin}/f/${supportToken}/site` : null;
+  const nfcLink = supportToken ? `${PUBLISHED_URL}/f/${supportToken}/nfc` : null;
+  const siteLink = supportToken ? `${PUBLISHED_URL}/f/${supportToken}/site` : null;
 
   const copyLink = (link: string, label: string) => {
     navigator.clipboard.writeText(link);

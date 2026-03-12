@@ -284,7 +284,44 @@ export default function Prospection() {
     }
   };
 
-  const filteredProspects = prospects?.filter((p) => {
+  const handleAddProspect = async () => {
+    if (!addForm.business_name.trim() || !user) {
+      toast.error("Le nom de l'entreprise est requis");
+      return;
+    }
+    try {
+      await createProspects.mutateAsync([{
+        business_name: addForm.business_name.trim(),
+        phone: addForm.phone || null,
+        email: addForm.email || null,
+        address: addForm.address || null,
+        city: addForm.city || null,
+        sector: addForm.sector || null,
+        website: addForm.website || null,
+        notes: addForm.notes || null,
+        created_by: user.id,
+        status: "nouveau" as const,
+        source: "manual",
+      }]);
+      toast.success("Prospect ajouté !");
+      setShowAddForm(false);
+      setAddForm({ business_name: "", phone: "", email: "", address: "", city: "", sector: "", website: "", notes: "" });
+    } catch {
+      toast.error("Erreur lors de l'ajout");
+    }
+  };
+
+  const handleSaveNotes = async (prospectId: string) => {
+    try {
+      await updateProspect.mutateAsync({ id: prospectId, notes: noteText || null });
+      toast.success("Notes enregistrées");
+      setEditingNotes(null);
+      setNoteText("");
+    } catch {
+      toast.error("Erreur");
+    }
+  };
+
     const matchSearch =
       p.business_name.toLowerCase().includes(searchFilter.toLowerCase()) ||
       p.city?.toLowerCase().includes(searchFilter.toLowerCase()) ||

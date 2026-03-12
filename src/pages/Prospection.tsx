@@ -603,7 +603,86 @@ export default function Prospection() {
         </DialogContent>
       </Dialog>
 
-      {/* Filters */}
+      {/* Add Prospect Dialog */}
+      <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Plus className="w-5 h-5" /> Ajouter un prospect
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 mt-2">
+            <div className="space-y-2">
+              <Label className="text-xs">Nom de l'entreprise *</Label>
+              <Input value={addForm.business_name} onChange={(e) => setAddForm({ ...addForm, business_name: e.target.value })} placeholder="Ex: Boulangerie du Port" className="h-9 text-sm" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-xs">Téléphone</Label>
+                <Input value={addForm.phone} onChange={(e) => setAddForm({ ...addForm, phone: e.target.value })} placeholder="0262..." className="h-9 text-sm" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs">Email</Label>
+                <Input value={addForm.email} onChange={(e) => setAddForm({ ...addForm, email: e.target.value })} placeholder="contact@..." className="h-9 text-sm" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-xs">Ville</Label>
+                <Select value={addForm.city} onValueChange={(v) => setAddForm({ ...addForm, city: v })}>
+                  <SelectTrigger className="h-9"><SelectValue placeholder="Choisir" /></SelectTrigger>
+                  <SelectContent>
+                    {REUNION_CITIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs">Secteur</Label>
+                <Select value={addForm.sector} onValueChange={(v) => setAddForm({ ...addForm, sector: v })}>
+                  <SelectTrigger className="h-9"><SelectValue placeholder="Choisir" /></SelectTrigger>
+                  <SelectContent>
+                    {SECTORS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs">Adresse</Label>
+              <Input value={addForm.address} onChange={(e) => setAddForm({ ...addForm, address: e.target.value })} placeholder="12 rue des Lilas..." className="h-9 text-sm" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs">Site web</Label>
+              <Input value={addForm.website} onChange={(e) => setAddForm({ ...addForm, website: e.target.value })} placeholder="https://..." className="h-9 text-sm" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs">Notes</Label>
+              <Textarea value={addForm.notes} onChange={(e) => setAddForm({ ...addForm, notes: e.target.value })} placeholder="Informations supplémentaires..." className="text-sm min-h-[60px]" />
+            </div>
+            <Button onClick={handleAddProspect} disabled={createProspects.isPending} className="w-full gap-2">
+              {createProspects.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+              Ajouter
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Notes Dialog */}
+      <Dialog open={!!editingNotes} onOpenChange={(open) => { if (!open) { setEditingNotes(null); setNoteText(""); } }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <StickyNote className="w-5 h-5" /> Notes
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 mt-2">
+            <Textarea value={noteText} onChange={(e) => setNoteText(e.target.value)} placeholder="Ajoutez vos notes ici..." className="min-h-[100px] text-sm" />
+            <Button onClick={() => editingNotes && handleSaveNotes(editingNotes)} className="w-full gap-2">
+              <CheckCircle2 className="w-4 h-4" /> Enregistrer
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

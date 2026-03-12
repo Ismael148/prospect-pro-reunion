@@ -185,6 +185,13 @@ export default function WebmasterDashboard() {
   const [filterUser, setFilterUser] = useState<string>("__pending__");
   const [activeTab, setActiveTab] = useState("team");
 
+  // Auto-set filter: non-admins see only their own projects by default
+  useEffect(() => {
+    if (filterUser === "__pending__") {
+      setFilterUser(isAdmin ? "all" : (user?.id || "all"));
+    }
+  }, [isAdmin, user, filterUser]);
+
   const { data: teamMembers } = useQuery({
     queryKey: ["all_profiles"],
     queryFn: async () => {

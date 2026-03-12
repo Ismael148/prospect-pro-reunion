@@ -127,7 +127,32 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Also notify admins for all overdue projects
+    // 3. Check for prospect callback reminders (tomorrow)
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split("T")[0];
+
+    const { data: callbackProspects } = await supabase
+      .from("prospects")
+      .select("id, business_name, callback_date, callback_notes, assigned_to")
+      .eq("callback_date", tomorrowStr)
+      .not("assigned_to", "is", null)
+      .not("status", "in", '("converti","non_interesse")');
+
+    for (const prospect of callbackProspects || []) {
+      const link = "/prospection";
+      const key = `${prospect.assigned_to}:callback:${prospect.id}`;
+      if (!alreadyNotified.has(key)) {
+        notifications.push({
+          user_id: prospect.assigned_to!,
+          title: "📞 Rappel prospect demain",
+          message: `Rappel prévu demain pour "${prospect.business_name}"${prospect.callback_notes ? ` — ${prospect.callback_notes}` : ""}.`,
+          type: "deadline",
+          link,
+        });
+        alreadyNotified.add(key);
+      }
+    }
     if (notifications.length > 0) {
       const { data: admins } = await supabase
         .from("user_roles")

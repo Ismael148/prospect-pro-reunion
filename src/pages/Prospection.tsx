@@ -894,6 +894,11 @@ export default function Prospection() {
                       </Select>
                     )}
 
+                    {/* Notes button */}
+                    <Button size="sm" variant="ghost" onClick={() => { setEditingNotes(prospect.id); setNoteText(prospect.notes || ""); }} className="h-7 w-7 p-0" title="Notes">
+                      <StickyNote className="w-3.5 h-3.5" />
+                    </Button>
+
                     {/* Convert button */}
                     {(prospect.status === "qualifie" || prospect.status === "rdv_planifie") && (
                       <Button size="sm" variant="outline" onClick={() => handleConvert(prospect)} disabled={convertProspect.isPending} className="h-7 text-[11px] gap-1">

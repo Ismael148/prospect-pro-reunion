@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { PUBLISHED_URL } from "@/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -230,7 +231,7 @@ export default function Team() {
                     </div>
                   </div>
                   <Button variant="outline" className="w-full" onClick={() => handleCopy(
-                    `Bonjour ${inviteResult.full_name} !\n\nVoici tes accès à la plateforme Adamkom :\n\n🔗 Lien : ${window.location.origin}/auth\n📧 Email : ${inviteResult.email}\n🔑 Mot de passe : ${inviteResult.temp_password}\n\nConnecte-toi et change ton mot de passe dès que possible.`,
+                    `Bonjour ${inviteResult.full_name} !\n\nVoici tes accès à la plateforme Adamkom :\n\n🔗 Lien : ${PUBLISHED_URL}/auth\n📧 Email : ${inviteResult.email}\n🔑 Mot de passe : ${inviteResult.temp_password}\n\nConnecte-toi et change ton mot de passe dès que possible.`,
                     "all"
                   )}>
                     {copied === "all" ? <Check className="w-4 h-4 mr-2 text-success" /> : <Copy className="w-4 h-4 mr-2" />}

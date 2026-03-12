@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -31,7 +32,7 @@ import { cn } from "@/lib/utils";
 import {
   Search, MapPin, Phone, Globe, Star, Loader2, UserPlus,
   CheckCircle2, Building2, Radar, CalendarIcon, Clock,
-  Users, ArrowRight, PhoneCall, Mail,
+  Users, ArrowRight, PhoneCall, Mail, Plus, StickyNote,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Database } from "@/integrations/supabase/types";
@@ -102,6 +103,10 @@ export default function Prospection() {
   const [callbackNotes, setCallbackNotes] = useState("");
   const [selectedSearchResult, setSelectedSearchResult] = useState<number | null>(null);
   const [prospectDetail, setProspectDetail] = useState<any | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addForm, setAddForm] = useState({ business_name: "", phone: "", email: "", address: "", city: "", sector: "", website: "", notes: "" });
+  const [editingNotes, setEditingNotes] = useState<string | null>(null);
+  const [noteText, setNoteText] = useState("");
   const handleSearch = async () => {
     const query = searchQuery || customQuery;
     if (!query || !searchZone) {
@@ -279,6 +284,44 @@ export default function Prospection() {
     }
   };
 
+  const handleAddProspect = async () => {
+    if (!addForm.business_name.trim() || !user) {
+      toast.error("Le nom de l'entreprise est requis");
+      return;
+    }
+    try {
+      await createProspects.mutateAsync([{
+        business_name: addForm.business_name.trim(),
+        phone: addForm.phone || null,
+        email: addForm.email || null,
+        address: addForm.address || null,
+        city: addForm.city || null,
+        sector: addForm.sector || null,
+        website: addForm.website || null,
+        notes: addForm.notes || null,
+        created_by: user.id,
+        status: "nouveau" as const,
+        source: "manual",
+      }]);
+      toast.success("Prospect ajouté !");
+      setShowAddForm(false);
+      setAddForm({ business_name: "", phone: "", email: "", address: "", city: "", sector: "", website: "", notes: "" });
+    } catch {
+      toast.error("Erreur lors de l'ajout");
+    }
+  };
+
+  const handleSaveNotes = async (prospectId: string) => {
+    try {
+      await updateProspect.mutateAsync({ id: prospectId, notes: noteText || null });
+      toast.success("Notes enregistrées");
+      setEditingNotes(null);
+      setNoteText("");
+    } catch {
+      toast.error("Erreur");
+    }
+  };
+
   const filteredProspects = prospects?.filter((p) => {
     const matchSearch =
       p.business_name.toLowerCase().includes(searchFilter.toLowerCase()) ||
@@ -315,17 +358,23 @@ export default function Prospection() {
             {isAgent && !isAdmin ? "Vos prospects assignés" : "Recherche et dispatching de prospects"}
           </p>
         </div>
-        {isAdmin && unassignedCount > 0 && (
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-xs">
-              {unassignedCount} non assigné{unassignedCount > 1 ? "s" : ""}
-            </Badge>
-            <Button size="sm" onClick={handleAutoDispatch} className="gap-2">
-              <Users className="w-3.5 h-3.5" />
-              Auto-dispatcher
-            </Button>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {isAdmin && unassignedCount > 0 && (
+            <>
+              <Badge variant="secondary" className="text-xs">
+                {unassignedCount} non assigné{unassignedCount > 1 ? "s" : ""}
+              </Badge>
+              <Button size="sm" onClick={handleAutoDispatch} className="gap-2">
+                <Users className="w-3.5 h-3.5" />
+                Auto-dispatcher
+              </Button>
+            </>
+          )}
+          <Button size="sm" onClick={() => setShowAddForm(true)} className="gap-2">
+            <Plus className="w-3.5 h-3.5" />
+            Ajouter un prospect
+          </Button>
+        </div>
       </div>
 
       {/* Search Section - Admin only */}
@@ -554,7 +603,86 @@ export default function Prospection() {
         </DialogContent>
       </Dialog>
 
-      {/* Filters */}
+      {/* Add Prospect Dialog */}
+      <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Plus className="w-5 h-5" /> Ajouter un prospect
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 mt-2">
+            <div className="space-y-2">
+              <Label className="text-xs">Nom de l'entreprise *</Label>
+              <Input value={addForm.business_name} onChange={(e) => setAddForm({ ...addForm, business_name: e.target.value })} placeholder="Ex: Boulangerie du Port" className="h-9 text-sm" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-xs">Téléphone</Label>
+                <Input value={addForm.phone} onChange={(e) => setAddForm({ ...addForm, phone: e.target.value })} placeholder="0262..." className="h-9 text-sm" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs">Email</Label>
+                <Input value={addForm.email} onChange={(e) => setAddForm({ ...addForm, email: e.target.value })} placeholder="contact@..." className="h-9 text-sm" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-xs">Ville</Label>
+                <Select value={addForm.city} onValueChange={(v) => setAddForm({ ...addForm, city: v })}>
+                  <SelectTrigger className="h-9"><SelectValue placeholder="Choisir" /></SelectTrigger>
+                  <SelectContent>
+                    {REUNION_CITIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs">Secteur</Label>
+                <Select value={addForm.sector} onValueChange={(v) => setAddForm({ ...addForm, sector: v })}>
+                  <SelectTrigger className="h-9"><SelectValue placeholder="Choisir" /></SelectTrigger>
+                  <SelectContent>
+                    {SECTORS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs">Adresse</Label>
+              <Input value={addForm.address} onChange={(e) => setAddForm({ ...addForm, address: e.target.value })} placeholder="12 rue des Lilas..." className="h-9 text-sm" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs">Site web</Label>
+              <Input value={addForm.website} onChange={(e) => setAddForm({ ...addForm, website: e.target.value })} placeholder="https://..." className="h-9 text-sm" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs">Notes</Label>
+              <Textarea value={addForm.notes} onChange={(e) => setAddForm({ ...addForm, notes: e.target.value })} placeholder="Informations supplémentaires..." className="text-sm min-h-[60px]" />
+            </div>
+            <Button onClick={handleAddProspect} disabled={createProspects.isPending} className="w-full gap-2">
+              {createProspects.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+              Ajouter
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Notes Dialog */}
+      <Dialog open={!!editingNotes} onOpenChange={(open) => { if (!open) { setEditingNotes(null); setNoteText(""); } }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <StickyNote className="w-5 h-5" /> Notes
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 mt-2">
+            <Textarea value={noteText} onChange={(e) => setNoteText(e.target.value)} placeholder="Ajoutez vos notes ici..." className="min-h-[100px] text-sm" />
+            <Button onClick={() => editingNotes && handleSaveNotes(editingNotes)} className="w-full gap-2">
+              <CheckCircle2 className="w-4 h-4" /> Enregistrer
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -765,6 +893,11 @@ export default function Prospection() {
                         </SelectContent>
                       </Select>
                     )}
+
+                    {/* Notes button */}
+                    <Button size="sm" variant="ghost" onClick={() => { setEditingNotes(prospect.id); setNoteText(prospect.notes || ""); }} className="h-7 w-7 p-0" title="Notes">
+                      <StickyNote className="w-3.5 h-3.5" />
+                    </Button>
 
                     {/* Convert button */}
                     {(prospect.status === "qualifie" || prospect.status === "rdv_planifie") && (

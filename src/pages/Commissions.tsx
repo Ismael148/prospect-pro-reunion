@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/collapsible";
 import { toast } from "sonner";
 import {
-  DollarSign, TrendingUp, Users, CreditCard, Loader2, CheckCircle, Clock, UserCheck, ChevronDown,
+  Euro, TrendingUp, Users, CreditCard, Loader2, CheckCircle, Clock, UserCheck, ChevronDown,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -286,7 +286,7 @@ export default function Commissions() {
         <Card className="border-0 shadow-soft">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-primary/10"><DollarSign className="w-5 h-5 text-primary" /></div>
+              <div className="p-2.5 rounded-xl bg-primary/10"><Euro className="w-5 h-5 text-primary" /></div>
               <div>
                 <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Total mois</p>
                 <p className="text-xl font-bold">{totalAll.toFixed(2)} €</p>

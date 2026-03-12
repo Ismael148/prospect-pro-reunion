@@ -26,7 +26,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
-  TrendingUp, TrendingDown, DollarSign, Loader2, Plus, Trash2,
+  TrendingUp, TrendingDown, Euro, Loader2, Plus, Trash2,
   BarChart3, CreditCard, Building, Calculator, Repeat, Percent,
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -44,7 +44,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 const CATEGORY_ICONS: Record<string, typeof Building> = {
   charges_sociales: Building,
   abonnement_plateforme: CreditCard,
-  salaire: DollarSign,
+  salaire: Euro,
   loyer: Building,
   marketing: BarChart3,
   materiel: CreditCard,
@@ -239,7 +239,7 @@ export default function Comptabilite() {
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 rounded-xl bg-warning/10">
-                    <DollarSign className="w-5 h-5 text-warning" />
+                    <Euro className="w-5 h-5 text-warning" />
                   </div>
                   <div>
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Commissions</p>

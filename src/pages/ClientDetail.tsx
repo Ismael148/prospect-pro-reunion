@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useClient, useClientContacts, useClientActivities, useUpdateClient, useCreateContact, useCreateActivity } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSalesTeam } from "@/hooks/use-commercials";
-import { PIPELINE_LABELS, PIPELINE_COLORS, PIPELINE_ORDER, PACK_LABELS, PROJECT_STATUS_LABELS } from "@/lib/constants";
+import { PIPELINE_LABELS, PIPELINE_COLORS, PIPELINE_ORDER, PACK_LABELS, PROJECT_STATUS_LABELS, PUBLISHED_URL } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -524,8 +524,8 @@ function ClientFormsSection({ clientId, supportToken }: { clientId: string; supp
     valide: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
   };
 
-  const nfcLink = supportToken ? `${window.location.origin}/f/${supportToken}/nfc` : null;
-  const siteLink = supportToken ? `${window.location.origin}/f/${supportToken}/site` : null;
+  const nfcLink = supportToken ? `${PUBLISHED_URL}/f/${supportToken}/nfc` : null;
+  const siteLink = supportToken ? `${PUBLISHED_URL}/f/${supportToken}/site` : null;
 
   const copyLink = (link: string, label: string) => {
     navigator.clipboard.writeText(link);
@@ -782,7 +782,7 @@ export default function ClientDetail() {
             <Button
               size="sm" variant="outline"
               onClick={() => {
-                navigator.clipboard.writeText(`${window.location.origin}/s/${(client as any).support_token}`);
+                navigator.clipboard.writeText(`${PUBLISHED_URL}/s/${(client as any).support_token}`);
                 toast.success("Lien de support copié !");
               }}
             >
@@ -792,7 +792,7 @@ export default function ClientDetail() {
           <CardContent>
             <p className="text-sm text-muted-foreground">Partagez ce lien avec le client :</p>
             <code className="text-xs bg-muted/50 p-2 rounded-lg block mt-2 break-all">
-              {window.location.origin}/s/{(client as any).support_token}
+              {PUBLISHED_URL}/s/{(client as any).support_token}
             </code>
           </CardContent>
         </Card>

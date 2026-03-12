@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useProjects } from "@/hooks/use-projects";
+import { useAuth } from "@/contexts/AuthContext";
 import { PROJECT_STATUS_LABELS, PROJECT_STATUS_COLORS, PACK_LABELS } from "@/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -179,8 +180,17 @@ function TeamMemberCard({ member, navigate }: { member: MemberStats; navigate: a
 export default function WebmasterDashboard() {
   const navigate = useNavigate();
   const { data: projects, isLoading } = useProjects();
-  const [filterUser, setFilterUser] = useState<string>("all");
+  const { user, hasRole } = useAuth();
+  const isAdmin = hasRole("admin");
+  const [filterUser, setFilterUser] = useState<string>("__pending__");
   const [activeTab, setActiveTab] = useState("team");
+
+  // Auto-set filter: non-admins see only their own projects by default
+  useEffect(() => {
+    if (filterUser === "__pending__") {
+      setFilterUser(isAdmin ? "all" : (user?.id || "all"));
+    }
+  }, [isAdmin, user, filterUser]);
 
   const { data: teamMembers } = useQuery({
     queryKey: ["all_profiles"],

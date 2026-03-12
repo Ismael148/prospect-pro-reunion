@@ -1,5 +1,8 @@
 import type { Database } from "@/integrations/supabase/types";
 
+// URL de production centralisée — utilisée pour tous les liens publics (support, formulaires, factures)
+export const PUBLISHED_URL = 'https://prospect-pro-reunion.lovable.app';
+
 type PipelineStatus = Database["public"]["Enums"]["pipeline_status"];
 type PackType = Database["public"]["Enums"]["pack_type"];
 type ProjectStatus = Database["public"]["Enums"]["project_status"];

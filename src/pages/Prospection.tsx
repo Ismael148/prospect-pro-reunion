@@ -358,17 +358,23 @@ export default function Prospection() {
             {isAgent && !isAdmin ? "Vos prospects assignés" : "Recherche et dispatching de prospects"}
           </p>
         </div>
-        {isAdmin && unassignedCount > 0 && (
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-xs">
-              {unassignedCount} non assigné{unassignedCount > 1 ? "s" : ""}
-            </Badge>
-            <Button size="sm" onClick={handleAutoDispatch} className="gap-2">
-              <Users className="w-3.5 h-3.5" />
-              Auto-dispatcher
-            </Button>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {isAdmin && unassignedCount > 0 && (
+            <>
+              <Badge variant="secondary" className="text-xs">
+                {unassignedCount} non assigné{unassignedCount > 1 ? "s" : ""}
+              </Badge>
+              <Button size="sm" onClick={handleAutoDispatch} className="gap-2">
+                <Users className="w-3.5 h-3.5" />
+                Auto-dispatcher
+              </Button>
+            </>
+          )}
+          <Button size="sm" onClick={() => setShowAddForm(true)} className="gap-2">
+            <Plus className="w-3.5 h-3.5" />
+            Ajouter un prospect
+          </Button>
+        </div>
       </div>
 
       {/* Search Section - Admin only */}

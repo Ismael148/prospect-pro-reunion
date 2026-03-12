@@ -792,7 +792,7 @@ export default function ClientDetail() {
           <CardContent>
             <p className="text-sm text-muted-foreground">Partagez ce lien avec le client :</p>
             <code className="text-xs bg-muted/50 p-2 rounded-lg block mt-2 break-all">
-              {window.location.origin}/s/{(client as any).support_token}
+              {PUBLISHED_URL}/s/{(client as any).support_token}
             </code>
           </CardContent>
         </Card>

@@ -322,6 +322,7 @@ export default function Prospection() {
     }
   };
 
+  const filteredProspects = prospects?.filter((p) => {
     const matchSearch =
       p.business_name.toLowerCase().includes(searchFilter.toLowerCase()) ||
       p.city?.toLowerCase().includes(searchFilter.toLowerCase()) ||

@@ -103,6 +103,10 @@ export default function Prospection() {
   const [callbackNotes, setCallbackNotes] = useState("");
   const [selectedSearchResult, setSelectedSearchResult] = useState<number | null>(null);
   const [prospectDetail, setProspectDetail] = useState<any | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addForm, setAddForm] = useState({ business_name: "", phone: "", email: "", address: "", city: "", sector: "", website: "", notes: "" });
+  const [editingNotes, setEditingNotes] = useState<string | null>(null);
+  const [noteText, setNoteText] = useState("");
   const handleSearch = async () => {
     const query = searchQuery || customQuery;
     if (!query || !searchZone) {

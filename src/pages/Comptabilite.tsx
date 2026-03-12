@@ -26,7 +26,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
-  TrendingUp, TrendingDown, DollarSign, Loader2, Plus, Trash2,
+  TrendingUp, TrendingDown, Euro, Loader2, Plus, Trash2,
   BarChart3, CreditCard, Building, Calculator, Repeat, Percent,
 } from "lucide-react";
 import { motion } from "framer-motion";

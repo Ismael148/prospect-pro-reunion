@@ -140,7 +140,7 @@ Deno.serve(async (req) => {
       const { client_id: clientId, page, platform, expires_in } = await req.json();
       const expiresAt = new Date(Date.now() + (expires_in || 5184000) * 1000).toISOString();
 
-      // Upsert the social account
+      // Upsert the social account (unique on client_id, platform, page_id)
       const { error: upsertError } = await supabase
         .from("social_accounts")
         .upsert(
@@ -157,7 +157,7 @@ Deno.serve(async (req) => {
             access_token: page.access_token,
             token_expires_at: expiresAt,
           },
-          { onConflict: "client_id,platform" }
+          { onConflict: "client_id,platform,page_id" }
         );
 
       if (upsertError) {

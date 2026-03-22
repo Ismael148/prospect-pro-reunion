@@ -339,6 +339,22 @@ export default function Team() {
                         </div>
                       </TableCell>
                       <TableCell>
+                        {member.email ? (
+                          <div className="flex items-center gap-1.5">
+                            <code className="text-xs bg-muted px-2 py-1 rounded font-mono">{member.email}</code>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => handleCopy(member.email!, `email-${member.user_id}`)}
+                            >
+                              {copied === `email-${member.user_id}` ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      <TableCell>
                         <div className="flex gap-1.5 flex-wrap">
                           {member.roles.length > 0 ? (
                             member.roles.map((role) => {

@@ -100,6 +100,9 @@ const App = () => (
               path="/import-csv"
               element={<ProtectedRoute><AppLayout><ImportCSV /></AppLayout></ProtectedRoute>}
             />
+            {/* Public routes */}
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
             {/* Public routes - short URLs */}
             <Route path="/s/:token" element={<SupportForm />} />
             <Route path="/f/:token/:type" element={<ClientForm />} />

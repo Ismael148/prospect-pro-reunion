@@ -83,6 +83,19 @@ export default function Team() {
     const { data: profiles } = await supabase.from("profiles").select("*");
     const { data: allRoles } = await supabase.from("user_roles").select("*");
 
+    // Fetch emails via edge function
+    let userEmails: Record<string, string> = {};
+    try {
+      const { data: emailData } = await supabase.functions.invoke("list-users");
+      if (emailData?.users) {
+        for (const u of emailData.users) {
+          userEmails[u.user_id] = u.email;
+        }
+      }
+    } catch (e) {
+      console.error("Failed to fetch user emails:", e);
+    }
+
     if (profiles && allRoles) {
       const mapped: TeamMember[] = profiles.map((p) => ({
         user_id: p.user_id,
@@ -90,6 +103,7 @@ export default function Team() {
         phone: p.phone,
         avatar_url: p.avatar_url,
         roles: allRoles.filter((r) => r.user_id === p.user_id).map((r) => r.role),
+        email: userEmails[p.user_id] || null,
       }));
       setMembers(mapped);
     }

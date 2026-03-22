@@ -183,7 +183,7 @@ Deno.serve(async (req) => {
               access_token: page.access_token,
               token_expires_at: expiresAt,
             },
-            { onConflict: "client_id,platform" }
+            { onConflict: "client_id,platform,page_id" }
           );
       }
 

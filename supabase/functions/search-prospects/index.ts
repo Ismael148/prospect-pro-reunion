@@ -44,8 +44,8 @@ Deno.serve(async (req) => {
     console.log('Searching prospects with queries:', searches);
 
     const responses = await Promise.all(
-      searches.map((q) =>
-        fetch('https://api.firecrawl.dev/v1/search', {
+      searches.map(async (q) => {
+        const res = await fetch('https://api.firecrawl.dev/v1/search', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${apiKey}`,
@@ -59,8 +59,17 @@ Deno.serve(async (req) => {
               onlyMainContent: true,
             },
           }),
-        }).then((r) => r.json())
-      )
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          console.error(`Firecrawl error [${res.status}]:`, JSON.stringify(data));
+          if (res.status === 402) {
+            throw new Error('Crédits Firecrawl insuffisants. Veuillez recharger votre compte Firecrawl ou connectez-vous avec le code promo LOVABLE50 pour 50% de réduction.');
+          }
+          throw new Error(data.error || `Firecrawl error: ${res.status}`);
+        }
+        return data;
+      })
     );
 
     // Merge results from both searches

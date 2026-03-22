@@ -354,6 +354,7 @@ export default function Team() {
                         ) : (
                           <span className="text-xs text-muted-foreground">—</span>
                         )}
+                      </TableCell>
                       <TableCell>
                         <div className="flex gap-1.5 flex-wrap">
                           {member.roles.length > 0 ? (

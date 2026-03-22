@@ -25,6 +25,8 @@ import WebmasterDashboard from "./pages/WebmasterDashboard";
 import MetaCallback from "./pages/MetaCallback";
 import ClientForm from "./pages/ClientForm";
 import ImportCSV from "./pages/ImportCSV";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -98,6 +100,9 @@ const App = () => (
               path="/import-csv"
               element={<ProtectedRoute><AppLayout><ImportCSV /></AppLayout></ProtectedRoute>}
             />
+            {/* Public routes */}
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
             {/* Public routes - short URLs */}
             <Route path="/s/:token" element={<SupportForm />} />
             <Route path="/f/:token/:type" element={<ClientForm />} />

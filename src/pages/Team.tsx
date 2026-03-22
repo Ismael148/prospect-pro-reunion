@@ -29,6 +29,7 @@ interface TeamMember {
   phone: string | null;
   avatar_url: string | null;
   roles: AppRole[];
+  email: string | null;
 }
 
 const ROLE_LABELS: Record<AppRole, string> = {
@@ -82,6 +83,19 @@ export default function Team() {
     const { data: profiles } = await supabase.from("profiles").select("*");
     const { data: allRoles } = await supabase.from("user_roles").select("*");
 
+    // Fetch emails via edge function
+    let userEmails: Record<string, string> = {};
+    try {
+      const { data: emailData } = await supabase.functions.invoke("list-users");
+      if (emailData?.users) {
+        for (const u of emailData.users) {
+          userEmails[u.user_id] = u.email;
+        }
+      }
+    } catch (e) {
+      console.error("Failed to fetch user emails:", e);
+    }
+
     if (profiles && allRoles) {
       const mapped: TeamMember[] = profiles.map((p) => ({
         user_id: p.user_id,
@@ -89,6 +103,7 @@ export default function Team() {
         phone: p.phone,
         avatar_url: p.avatar_url,
         roles: allRoles.filter((r) => r.user_id === p.user_id).map((r) => r.role),
+        email: userEmails[p.user_id] || null,
       }));
       setMembers(mapped);
     }
@@ -284,6 +299,7 @@ export default function Team() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Membre</TableHead>
+                  <TableHead>Accès (email)</TableHead>
                   <TableHead>Rôle</TableHead>
                   <TableHead>Téléphone</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -321,6 +337,23 @@ export default function Team() {
                             </p>
                           </div>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        {member.email ? (
+                          <div className="flex items-center gap-1.5">
+                            <code className="text-xs bg-muted px-2 py-1 rounded font-mono">{member.email}</code>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => handleCopy(member.email!, `email-${member.user_id}`)}
+                            >
+                              {copied === `email-${member.user_id}` ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1.5 flex-wrap">

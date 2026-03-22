@@ -61,11 +61,11 @@ interface AccountEditDialogProps {
   platform: SocialPlatform;
   existingUrl?: string | null;
   existingUsername?: string | null;
+  existingPageId?: string | null;
   trigger: React.ReactNode;
 }
 
-function AccountEditDialog({ clientId, platform, existingUrl, existingUsername, trigger }: AccountEditDialogProps) {
-  const { user } = useAuth();
+function AccountEditDialog({ clientId, platform, existingUrl, existingUsername, existingPageId, trigger }: AccountEditDialogProps) {
   const upsertAccount = useUpsertSocialAccount();
   const [open, setOpen] = useState(false);
   const [url, setUrl] = useState(existingUrl || "");
@@ -75,7 +75,13 @@ function AccountEditDialog({ clientId, platform, existingUrl, existingUsername, 
   const handleSave = async () => {
     if (!url.trim() && !username.trim()) { toast.error("URL ou nom d'utilisateur requis"); return; }
     try {
-      await upsertAccount.mutateAsync({ client_id: clientId, platform, profile_url: url || null, username: username || null, page_id: null });
+      await upsertAccount.mutateAsync({
+        client_id: clientId,
+        platform,
+        profile_url: url || null,
+        username: username || null,
+        page_id: existingPageId || username || url || null,
+      });
       toast.success("Compte enregistré");
       setOpen(false);
     } catch { toast.error("Erreur lors de l'enregistrement"); }
@@ -123,8 +129,6 @@ function NewPublicationDialog({ clientId, accounts }: NewPublicationDialogProps)
     content: "",
     scheduled_date: "",
   });
-
-  const connectedPlatforms = accounts?.map((a) => a.platform) || [];
 
   const handleCreate = async () => {
     if (!form.platform || !form.content.trim()) { toast.error("Plateforme et contenu requis"); return; }
@@ -194,9 +198,17 @@ export default function SocialMediaSection({ clientId }: { clientId: string }) {
   const { startOAuth } = useMetaOAuth();
   const [oauthLoading, setOauthLoading] = useState(false);
 
-  const accountByPlatform = Object.fromEntries(
-    (accounts || []).map((a) => [a.platform, a])
-  ) as Partial<Record<SocialPlatform, typeof accounts extends (infer T)[] ? T : never>>;
+  // Group accounts by platform
+  const accountsByPlatform: Record<SocialPlatform, typeof accounts> = {
+    facebook: [],
+    instagram: [],
+    google_my_business: [],
+  };
+  (accounts || []).forEach((a) => {
+    if (accountsByPlatform[a.platform as SocialPlatform]) {
+      accountsByPlatform[a.platform as SocialPlatform]!.push(a);
+    }
+  });
 
   const handleDeleteAccount = async (id: string) => {
     try {
@@ -219,13 +231,12 @@ export default function SocialMediaSection({ clientId }: { clientId: string }) {
   };
 
   const handleCopyAndPublish = async (pub: SocialPublication) => {
-    const cfg = PLATFORM_CONFIG[pub.platform];
-    const account = accountByPlatform[pub.platform];
+    const cfg = PLATFORM_CONFIG[pub.platform as SocialPlatform];
+    const platformAccounts = accountsByPlatform[pub.platform as SocialPlatform] || [];
     try {
       await navigator.clipboard.writeText(pub.content);
       toast.success("Contenu copié ! Redirection vers " + cfg.label + "...");
-      // Open the account's profile URL or fallback to the platform's publish URL
-      const targetUrl = account?.profile_url || cfg.publishUrl;
+      const targetUrl = platformAccounts[0]?.profile_url || cfg.publishUrl;
       window.open(targetUrl, "_blank");
     } catch {
       toast.error("Impossible de copier le contenu");
@@ -271,53 +282,27 @@ export default function SocialMediaSection({ clientId }: { clientId: string }) {
           </TabsList>
 
           {/* ─── TAB: COMPTES ─── */}
-          <TabsContent value="comptes" className="space-y-3 mt-0">
+          <TabsContent value="comptes" className="space-y-4 mt-0">
             {PLATFORMS.map((platform) => {
               const cfg = PLATFORM_CONFIG[platform];
-              const account = accountByPlatform[platform];
+              const platformAccounts = accountsByPlatform[platform] || [];
+              const isMeta = platform === "facebook" || platform === "instagram";
+
               return (
-                <div key={platform} className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${account ? "border-border bg-muted/20" : "border-dashed border-border/60"}`}>
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 ${cfg.bg}`}>
-                    {cfg.icon}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className={`font-semibold text-sm ${cfg.color}`}>{cfg.label}</p>
-                    {account ? (
-                      <div className="flex items-center gap-2 mt-0.5">
-                        {account.username && (
-                          <span className="text-xs text-muted-foreground truncate">{account.username}</span>
-                        )}
-                        {account.profile_url && (
-                          <a href={account.profile_url} target="_blank" rel="noopener noreferrer"
-                            className="text-xs text-primary flex items-center gap-0.5 hover:underline shrink-0">
-                            <ExternalLink className="w-3 h-3" /> Ouvrir
-                          </a>
-                        )}
+                <div key={platform} className="space-y-2">
+                  {/* Platform header */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm ${cfg.bg}`}>
+                        {cfg.icon}
                       </div>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">Non connecté</p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    {account ? (
-                      <>
-                        <AccountEditDialog
-                          clientId={clientId}
-                          platform={platform}
-                          existingUrl={account.profile_url}
-                          existingUsername={account.username}
-                          trigger={
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <Pencil className="w-3.5 h-3.5" />
-                            </Button>
-                          }
-                        />
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() => handleDeleteAccount(account.id)}>
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
-                      </>
-                    ) : (platform === "facebook" || platform === "instagram") ? (
+                      <span className={`font-semibold text-sm ${cfg.color}`}>{cfg.label}</span>
+                      {platformAccounts.length > 0 && (
+                        <Badge variant="outline" className="text-[10px]">{platformAccounts.length} page{platformAccounts.length > 1 ? "s" : ""}</Badge>
+                      )}
+                    </div>
+                    {/* Add button */}
+                    {isMeta ? (
                       <Button
                         variant="outline"
                         size="sm"
@@ -326,7 +311,7 @@ export default function SocialMediaSection({ clientId }: { clientId: string }) {
                         disabled={oauthLoading}
                       >
                         <LogIn className="w-3.5 h-3.5 mr-1" />
-                        {oauthLoading ? "Connexion..." : "Connecter via Meta"}
+                        {oauthLoading ? "Connexion..." : platformAccounts.length > 0 ? "Ajouter une page" : "Connecter via Meta"}
                       </Button>
                     ) : (
                       <AccountEditDialog
@@ -334,12 +319,60 @@ export default function SocialMediaSection({ clientId }: { clientId: string }) {
                         platform={platform}
                         trigger={
                           <Button variant="outline" size="sm" className="text-xs">
-                            <Plus className="w-3.5 h-3.5 mr-1" /> Connecter
+                            <Plus className="w-3.5 h-3.5 mr-1" /> {platformAccounts.length > 0 ? "Ajouter" : "Connecter"}
                           </Button>
                         }
                       />
                     )}
                   </div>
+
+                  {/* Connected accounts list */}
+                  {platformAccounts.length === 0 ? (
+                    <div className="p-3 rounded-xl border border-dashed border-border/60 text-center">
+                      <p className="text-xs text-muted-foreground">Aucune page connectée</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {platformAccounts.map((account) => (
+                        <div key={account.id} className="flex items-center gap-3 p-2.5 rounded-lg border border-border bg-muted/20">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              {account.username && (
+                                <span className="text-sm font-medium truncate">{account.username}</span>
+                              )}
+                              {account.profile_url && (
+                                <a href={account.profile_url} target="_blank" rel="noopener noreferrer"
+                                  className="text-xs text-primary flex items-center gap-0.5 hover:underline shrink-0">
+                                  <ExternalLink className="w-3 h-3" /> Ouvrir
+                                </a>
+                              )}
+                            </div>
+                            {account.page_id && (
+                              <p className="text-[10px] text-muted-foreground mt-0.5">ID: {account.page_id}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <AccountEditDialog
+                              clientId={clientId}
+                              platform={platform}
+                              existingUrl={account.profile_url}
+                              existingUsername={account.username}
+                              existingPageId={account.page_id}
+                              trigger={
+                                <Button variant="ghost" size="icon" className="h-7 w-7">
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </Button>
+                              }
+                            />
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive"
+                              onClick={() => handleDeleteAccount(account.id)}>
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -362,21 +395,23 @@ export default function SocialMediaSection({ clientId }: { clientId: string }) {
             ) : (
               <div className="space-y-3">
                 {[...pendingPubs, ...publishedPubs].map((pub) => {
-                  const cfg = PLATFORM_CONFIG[pub.platform];
-                  const statusCfg = STATUS_CONFIG[pub.status];
+                  const cfg = PLATFORM_CONFIG[pub.platform as SocialPlatform];
+                  const statusCfg = STATUS_CONFIG[pub.status as keyof typeof STATUS_CONFIG];
                   const isOverdue = pub.scheduled_date && pub.status === "a_faire" && new Date(pub.scheduled_date) < new Date();
                   return (
                     <div key={pub.id} className={`p-3 rounded-xl border bg-muted/10 transition-colors ${isOverdue ? "border-destructive/30" : "border-border/50"}`}>
                       <div className="flex items-start gap-3">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0 ${cfg.bg}`}>
-                          {cfg.icon}
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0 ${cfg?.bg}`}>
+                          {cfg?.icon}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className={`text-xs font-medium ${cfg.color}`}>{cfg.label}</span>
-                            <Badge variant="outline" className={`text-[10px] px-1.5 ${statusCfg.class}`}>
-                              {statusCfg.label}
-                            </Badge>
+                            <span className={`text-xs font-medium ${cfg?.color}`}>{cfg?.label}</span>
+                            {statusCfg && (
+                              <Badge variant="outline" className={`text-[10px] px-1.5 ${statusCfg.class}`}>
+                                {statusCfg.label}
+                              </Badge>
+                            )}
                             {isOverdue && (
                               <Badge variant="outline" className="text-[10px] px-1.5 bg-destructive/10 text-destructive border-destructive/20">
                                 En retard

@@ -65,7 +65,7 @@ export function useUpsertSocialAccount() {
     mutationFn: async (account: Omit<SocialAccount, "id" | "created_at" | "updated_at">) => {
       const { data, error } = await (supabase as any)
         .from("social_accounts")
-        .upsert(account, { onConflict: "client_id,platform" })
+        .upsert(account, { onConflict: "client_id,platform,page_id" })
         .select()
         .single();
       if (error) throw error;

@@ -5,16 +5,16 @@ import { NotificationBell } from "@/components/NotificationBell";
 export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <main className="flex-1 flex flex-col min-w-0">
-          <header className="h-14 border-b border-border/50 flex items-center px-5 gap-2 bg-background/80 backdrop-blur-sm sticky top-0 z-30">
+          <header className="h-14 border-b border-border flex items-center px-5 gap-2 bg-background sticky top-0 z-30">
             <SidebarTrigger />
             <div className="ml-auto">
               <NotificationBell />
             </div>
           </header>
-          <div className="flex-1 p-6 overflow-auto min-w-0">
+          <div className="flex-1 p-6 overflow-auto min-w-0 bg-grid-pattern-subtle">
             {children}
           </div>
         </main>

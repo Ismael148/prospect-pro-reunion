@@ -31,7 +31,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useMemo } from "react";
 
-// Role-based access: which paths each role can see
 const ROLE_ACCESS: Record<string, string[]> = {
   admin: ["/", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/comptabilite", "/facturation", "/support", "/equipe", "/parametres"],
   agent_telephonique: ["/", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support"],
@@ -79,14 +78,12 @@ export function AppSidebar() {
     ? "Agent tél."
     : "Utilisateur";
 
-  // Build accessible paths based on user roles
   const accessiblePaths = useMemo(() => {
     if (hasRole("admin")) return new Set(ROLE_ACCESS.admin);
-    const paths = new Set<string>(["/"]); // Dashboard always accessible
+    const paths = new Set<string>(["/"]);
     roles.forEach((role) => {
       ROLE_ACCESS[role]?.forEach((p) => paths.add(p));
     });
-    // Always allow settings for self
     paths.add("/parametres");
     return paths;
   }, [roles, hasRole]);
@@ -94,22 +91,22 @@ export function AppSidebar() {
   const menuItems = allMenuItems.filter((item) => accessiblePaths.has(item.path));
 
   return (
-    <Sidebar className="border-r border-sidebar-border">
+    <Sidebar className="border-r border-sidebar-border bg-sidebar-background">
       <SidebarHeader className="p-5 pb-6">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shadow-glow">
+          <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shadow-glow">
             <img src={logo} alt="Adamkom" className="w-6 h-6 object-contain brightness-0 invert" />
           </div>
           <div>
-            <h2 className="font-semibold text-sm tracking-tight font-[Space_Grotesk]">Adamkom</h2>
-            <p className="text-[11px] text-muted-foreground tracking-wide uppercase">CRM Pro</p>
+            <h2 className="font-bold text-base tracking-tight font-[Space_Grotesk]">Adamkom</h2>
+            <p className="text-[10px] text-muted-foreground font-medium tracking-widest uppercase">CRM Platform</p>
           </div>
         </div>
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/60 px-5">
+          <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/50 px-5 font-semibold">
             Navigation
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -119,10 +116,10 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     isActive={location.pathname === item.path}
                     onClick={() => navigate(item.path)}
-                    className="transition-all duration-200"
+                    className="transition-all duration-150 data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-medium"
                   >
                     <item.icon className="w-4 h-4" />
-                    <span>{item.title}</span>
+                    <span className="text-[13px]">{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -132,7 +129,7 @@ export function AppSidebar() {
 
         {hasRole("admin") && (
           <SidebarGroup>
-            <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/60 px-5">
+            <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/50 px-5 font-semibold">
               Administration
             </SidebarGroupLabel>
             <SidebarGroupContent>
@@ -142,10 +139,10 @@ export function AppSidebar() {
                     <SidebarMenuButton
                       isActive={location.pathname === item.path}
                       onClick={() => navigate(item.path)}
-                      className="transition-all duration-200"
+                      className="transition-all duration-150 data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-medium"
                     >
                       <item.icon className="w-4 h-4" />
-                      <span>{item.title}</span>
+                      <span className="text-[13px]">{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
@@ -156,23 +153,23 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="p-4">
-        <div className="flex items-center gap-3 p-2 rounded-xl bg-muted/60 border border-border/50">
-          <Avatar className="w-9 h-9">
+        <div className="flex items-center gap-3 p-2.5 rounded-xl border border-border bg-muted/30">
+          <Avatar className="w-8 h-8">
             {profile?.avatar_url ? <AvatarImage src={profile.avatar_url} alt={profile.full_name || ""} /> : null}
-            <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+            <AvatarFallback className="bg-primary/10 text-primary text-[11px] font-bold">
               {initials}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{profile?.full_name || "Utilisateur"}</p>
-            <p className="text-[11px] text-muted-foreground">{roleLabel}</p>
+            <p className="text-[13px] font-medium truncate">{profile?.full_name || "Utilisateur"}</p>
+            <p className="text-[10px] text-muted-foreground font-medium">{roleLabel}</p>
           </div>
           <button
             onClick={signOut}
-            className="p-2 rounded-lg hover:bg-muted transition-colors duration-200"
+            className="p-1.5 rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors duration-150"
             title="Déconnexion"
           >
-            <LogOut className="w-4 h-4 text-muted-foreground" />
+            <LogOut className="w-4 h-4" />
           </button>
         </div>
       </SidebarFooter>

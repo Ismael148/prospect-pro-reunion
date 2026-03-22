@@ -70,7 +70,7 @@ export default function Support() {
   const getClientSupportLink = (clientId: string) => {
     const client = clients?.find((c) => c.id === clientId);
     if (!client || !(client as any).support_token) return null;
-    return `${PUBLISHED_URL}/support/${(client as any).support_token}`;
+    return `${PUBLISHED_URL}/s/${(client as any).support_token}`;
   };
 
   const filtered = useMemo(() => {

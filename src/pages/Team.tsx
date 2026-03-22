@@ -29,6 +29,7 @@ interface TeamMember {
   phone: string | null;
   avatar_url: string | null;
   roles: AppRole[];
+  email: string | null;
 }
 
 const ROLE_LABELS: Record<AppRole, string> = {

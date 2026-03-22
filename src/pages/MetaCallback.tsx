@@ -4,7 +4,6 @@ import { useMetaOAuth } from "@/hooks/use-meta-oauth";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { CheckCircle2, Loader2 } from "lucide-react";
 
@@ -19,6 +18,7 @@ export default function MetaCallback() {
   const [expiresIn, setExpiresIn] = useState(5184000);
   const [error, setError] = useState("");
   const [clientId, setClientId] = useState("");
+  const [selectedPages, setSelectedPages] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const code = searchParams.get("code");
@@ -65,7 +65,50 @@ export default function MetaCallback() {
       });
   }, []);
 
+  const togglePage = (pageId: string) => {
+    setSelectedPages((prev) => {
+      const next = new Set(prev);
+      if (next.has(pageId)) next.delete(pageId);
+      else next.add(pageId);
+      return next;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedPages.size === pages.length) {
+      setSelectedPages(new Set());
+    } else {
+      setSelectedPages(new Set(pages.map((p) => p.id)));
+    }
+  };
+
+  const handleSaveSelected = async () => {
+    const pagesToSave = pages.filter((p) => selectedPages.has(p.id));
+    if (pagesToSave.length === 0) {
+      toast.error("Sélectionnez au moins une page");
+      return;
+    }
+
+    setStatus("saving");
+    try {
+      for (const page of pagesToSave) {
+        await savePage(clientId, page, "facebook", expiresIn);
+      }
+      queryClient.invalidateQueries({ queryKey: ["social_accounts", clientId] });
+      localStorage.removeItem("meta_oauth_client_id");
+      setStatus("done");
+      const igCount = pagesToSave.filter((p) => p.instagram).length;
+      toast.success(`${pagesToSave.length} page${pagesToSave.length > 1 ? "s" : ""} Facebook${igCount > 0 ? ` et ${igCount} Instagram` : ""} connectée${pagesToSave.length > 1 ? "s" : ""} !`);
+      setTimeout(() => navigate(`/clients/${clientId}`), 1500);
+    } catch (err: any) {
+      setError(err.message);
+      setStatus("error");
+    }
+  };
+
+  // Legacy single-page select (click directly)
   const handleSelectPage = async (page: any) => {
+    setSelectedPages(new Set([page.id]));
     setStatus("saving");
     try {
       await savePage(clientId, page, "facebook", expiresIn);
@@ -96,15 +139,32 @@ export default function MetaCallback() {
 
           {status === "select_page" && (
             <div className="space-y-3">
-              <p className="text-sm text-muted-foreground text-center mb-4">
-                Sélectionnez la page à connecter pour ce client :
-              </p>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm text-muted-foreground">
+                  {pages.length} page{pages.length > 1 ? "s" : ""} trouvée{pages.length > 1 ? "s" : ""}
+                </p>
+                {pages.length > 1 && (
+                  <Button variant="ghost" size="sm" className="text-xs" onClick={handleSelectAll}>
+                    {selectedPages.size === pages.length ? "Tout désélectionner" : "Tout sélectionner"}
+                  </Button>
+                )}
+              </div>
+
               {pages.map((page) => (
                 <button
                   key={page.id}
-                  onClick={() => handleSelectPage(page)}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl border border-border hover:border-primary hover:bg-primary/5 transition-colors text-left"
+                  onClick={() => togglePage(page.id)}
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-colors text-left ${
+                    selectedPages.has(page.id)
+                      ? "border-primary bg-primary/5 ring-1 ring-primary/20"
+                      : "border-border hover:border-primary hover:bg-primary/5"
+                  }`}
                 >
+                  <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 ${
+                    selectedPages.has(page.id) ? "border-primary bg-primary" : "border-muted-foreground/30"
+                  }`}>
+                    {selectedPages.has(page.id) && <CheckCircle2 className="w-3.5 h-3.5 text-primary-foreground" />}
+                  </div>
                   <div className="w-10 h-10 rounded-xl bg-[#1877F2]/10 flex items-center justify-center text-lg">
                     𝐟
                   </div>
@@ -117,6 +177,14 @@ export default function MetaCallback() {
                   </div>
                 </button>
               ))}
+
+              <Button
+                className="w-full mt-4"
+                onClick={handleSaveSelected}
+                disabled={selectedPages.size === 0}
+              >
+                Connecter {selectedPages.size > 0 ? `${selectedPages.size} page${selectedPages.size > 1 ? "s" : ""}` : "les pages sélectionnées"}
+              </Button>
             </div>
           )}
 

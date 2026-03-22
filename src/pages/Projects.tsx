@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useProjects, useCreateProject } from "@/hooks/use-projects";
+import { useMyProjects, useCreateProject } from "@/hooks/use-projects";
 import { useClients } from "@/hooks/use-clients";
 import { PACK_LABELS, PACK_MODULES, PACK_DEADLINE_DAYS } from "@/lib/constants";
 import { PROJECT_STATUS_LABELS, PROJECT_STATUS_COLORS } from "@/lib/constants";
@@ -20,14 +20,16 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Plus, Search, FolderKanban, Loader2, Building2, Calendar } from "lucide-react";
+import { motion } from "framer-motion";
 import type { Database } from "@/integrations/supabase/types";
 
 type PackType = Database["public"]["Enums"]["pack_type"];
 
 export default function Projects() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { data: projects, isLoading } = useProjects();
+  const { user, hasRole } = useAuth();
+  const isAdmin = hasRole("admin");
+  const { data: projects, isLoading } = useMyProjects(user?.id, isAdmin);
   const { data: clients } = useClients();
   const createProject = useCreateProject();
   const [open, setOpen] = useState(false);
@@ -43,7 +45,6 @@ export default function Projects() {
     due_date: "",
   });
 
-  // Only show clients with signed contracts
   const eligibleClients = clients?.filter((c) => c.pipeline_status === "contrat_signe") || [];
 
   const handleCreate = async () => {
@@ -51,7 +52,6 @@ export default function Projects() {
       toast.error("Client, nom et pack sont requis");
       return;
     }
-    // Auto-calculate due_date = start_date + pack deadline
     const startDate = form.start_date || new Date().toISOString().split("T")[0];
     const deadlineDays = PACK_DEADLINE_DAYS[form.pack_type] || 15;
     const autoDeadline = new Date(new Date(startDate).getTime() + deadlineDays * 86400000).toISOString().split("T")[0];
@@ -83,85 +83,93 @@ export default function Projects() {
   });
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      className="space-y-6"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Projets</h1>
           <p className="text-muted-foreground mt-1">
             {projects?.length || 0} projet{(projects?.length || 0) > 1 ? "s" : ""}
+            {!isAdmin && " assigné(s)"}
           </p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button><Plus className="w-4 h-4 mr-2" />Nouveau projet</Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader><DialogTitle>Nouveau projet</DialogTitle></DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label>Client (contrat signé) *</Label>
-                <Select value={form.client_id} onValueChange={(v) => setForm({ ...form, client_id: v })}>
-                  <SelectTrigger><SelectValue placeholder="Sélectionner un client" /></SelectTrigger>
-                  <SelectContent>
-                    {eligibleClients.length === 0 ? (
-                      <SelectItem value="_none" disabled>Aucun client avec contrat signé</SelectItem>
-                    ) : (
-                      eligibleClients.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Nom du projet *</Label>
-                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex: Pack Numérique - Boulangerie du Port" />
-              </div>
-              <div className="space-y-2">
-                <Label>Pack *</Label>
-                <Select value={form.pack_type} onValueChange={(v) => setForm({ ...form, pack_type: v as PackType })}>
-                  <SelectTrigger><SelectValue placeholder="Choisir le pack" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="star_bizness_numerik">STAR BIZNESS NUMERIK</SelectItem>
-                    <SelectItem value="star_bizness_nfc">STAR BIZNESS NFC</SelectItem>
-                    <SelectItem value="autre">Autre</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Date de signature (début)</Label>
-                <Input type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
-                {form.pack_type && (
-                  <p className="text-xs text-muted-foreground">
-                    Deadline auto : {PACK_DEADLINE_DAYS[form.pack_type] || 15} jours
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label>Description</Label>
-                <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} />
-              </div>
-              {form.pack_type && PACK_MODULES[form.pack_type]?.length > 0 && (
-                <div className="rounded-lg bg-muted/50 p-3">
-                  <p className="text-xs font-medium text-muted-foreground mb-2">Modules inclus dans ce pack :</p>
-                  <ul className="text-sm space-y-1">
-                    {PACK_MODULES[form.pack_type].map((m, i) => (
-                      <li key={i} className="flex items-center gap-2">
-                        <span>{m.icon}</span>
-                        <span>{m.name}</span>
-                        <span className="text-xs text-muted-foreground ml-auto">{m.tasks.length} tâches • {m.deadlineDays}j</span>
-                      </li>
-                    ))}
-                  </ul>
+        {isAdmin && (
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button><Plus className="w-4 h-4 mr-2" />Nouveau projet</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <DialogHeader><DialogTitle>Nouveau projet</DialogTitle></DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="space-y-2">
+                  <Label>Client (contrat signé) *</Label>
+                  <Select value={form.client_id} onValueChange={(v) => setForm({ ...form, client_id: v })}>
+                    <SelectTrigger><SelectValue placeholder="Sélectionner un client" /></SelectTrigger>
+                    <SelectContent>
+                      {eligibleClients.length === 0 ? (
+                        <SelectItem value="_none" disabled>Aucun client avec contrat signé</SelectItem>
+                      ) : (
+                        eligibleClients.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
                 </div>
-              )}
-              <Button onClick={handleCreate} disabled={createProject.isPending}>
-                {createProject.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Créer le projet
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+                <div className="space-y-2">
+                  <Label>Nom du projet *</Label>
+                  <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex: Pack Numérique - Boulangerie du Port" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Pack *</Label>
+                  <Select value={form.pack_type} onValueChange={(v) => setForm({ ...form, pack_type: v as PackType })}>
+                    <SelectTrigger><SelectValue placeholder="Choisir le pack" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="star_bizness_numerik">STAR BIZNESS NUMERIK</SelectItem>
+                      <SelectItem value="star_bizness_nfc">STAR BIZNESS NFC</SelectItem>
+                      <SelectItem value="autre">Autre</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Date de signature (début)</Label>
+                  <Input type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
+                  {form.pack_type && (
+                    <p className="text-xs text-muted-foreground">
+                      Deadline auto : {PACK_DEADLINE_DAYS[form.pack_type] || 15} jours
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label>Description</Label>
+                  <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} />
+                </div>
+                {form.pack_type && PACK_MODULES[form.pack_type]?.length > 0 && (
+                  <div className="rounded-lg bg-muted/50 p-3">
+                    <p className="text-xs font-medium text-muted-foreground mb-2">Modules inclus dans ce pack :</p>
+                    <ul className="text-sm space-y-1">
+                      {PACK_MODULES[form.pack_type].map((m, i) => (
+                        <li key={i} className="flex items-center gap-2">
+                          <span>{m.icon}</span>
+                          <span>{m.name}</span>
+                          <span className="text-xs text-muted-foreground ml-auto">{m.tasks.length} tâches • {m.deadlineDays}j</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <Button onClick={handleCreate} disabled={createProject.isPending}>
+                  {createProject.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Créer le projet
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <div className="flex gap-3">
@@ -193,48 +201,54 @@ export default function Projects() {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((project: any) => (
-            <Card
+          {filtered.map((project: any, i: number) => (
+            <motion.div
               key={project.id}
-              className="border-0 shadow-md shadow-primary/5 cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => navigate(`/projets/${project.id}`)}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05, duration: 0.3 }}
             >
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="min-w-0 flex-1">
-                    <CardTitle className="text-base truncate">{project.name}</CardTitle>
-                    <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                      <Building2 className="w-3.5 h-3.5" />
-                      {project.clients?.company_name}
-                    </p>
+              <Card
+                className="border-0 shadow-md shadow-primary/5 cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+                onClick={() => navigate(`/projets/${project.id}`)}
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="min-w-0 flex-1">
+                      <CardTitle className="text-base truncate">{project.name}</CardTitle>
+                      <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                        <Building2 className="w-3.5 h-3.5" />
+                        {project.clients?.company_name}
+                      </p>
+                    </div>
+                    <Badge className={`text-xs border shrink-0 ${PROJECT_STATUS_COLORS[project.status as keyof typeof PROJECT_STATUS_COLORS]}`} variant="outline">
+                      {PROJECT_STATUS_LABELS[project.status as keyof typeof PROJECT_STATUS_LABELS]}
+                    </Badge>
                   </div>
-                  <Badge className={`text-xs border shrink-0 ${PROJECT_STATUS_COLORS[project.status as keyof typeof PROJECT_STATUS_COLORS]}`} variant="outline">
-                    {PROJECT_STATUS_LABELS[project.status as keyof typeof PROJECT_STATUS_LABELS]}
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Badge variant="secondary" className="text-xs">
+                    {PACK_LABELS[project.pack_type as keyof typeof PACK_LABELS]}
                   </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Badge variant="secondary" className="text-xs">
-                  {PACK_LABELS[project.pack_type as keyof typeof PACK_LABELS]}
-                </Badge>
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Progression</span>
-                    <span>{project.progress || 0}%</span>
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Progression</span>
+                      <span>{project.progress || 0}%</span>
+                    </div>
+                    <Progress value={project.progress || 0} className="h-1.5" />
                   </div>
-                  <Progress value={project.progress || 0} className="h-1.5" />
-                </div>
-                {project.due_date && (
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    Échéance : {new Date(project.due_date).toLocaleDateString("fr-FR")}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+                  {project.due_date && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      Échéance : {new Date(project.due_date).toLocaleDateString("fr-FR")}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

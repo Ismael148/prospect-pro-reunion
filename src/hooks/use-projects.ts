@@ -21,6 +21,55 @@ export function useProjects() {
   });
 }
 
+export function useMyProjects(userId: string | undefined, isAdmin: boolean) {
+  return useQuery({
+    queryKey: ["projects", "my", userId],
+    queryFn: async () => {
+      if (isAdmin) {
+        const { data, error } = await supabase
+          .from("projects")
+          .select("*, clients(company_name)")
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        return data;
+      }
+      // Non-admin: only see projects assigned to them OR where they have assigned tasks
+      const { data: assignedProjects, error: e1 } = await supabase
+        .from("projects")
+        .select("*, clients(company_name)")
+        .eq("assigned_to", userId!)
+        .order("created_at", { ascending: false });
+      if (e1) throw e1;
+
+      const { data: taskProjects, error: e2 } = await supabase
+        .from("project_tasks")
+        .select("project_id")
+        .eq("assigned_to", userId!);
+      if (e2) throw e2;
+
+      const taskProjectIds = new Set(taskProjects?.map(t => t.project_id) || []);
+      
+      if (taskProjectIds.size === 0) return assignedProjects || [];
+
+      const { data: extraProjects, error: e3 } = await supabase
+        .from("projects")
+        .select("*, clients(company_name)")
+        .in("id", Array.from(taskProjectIds))
+        .order("created_at", { ascending: false });
+      if (e3) throw e3;
+
+      // Merge and deduplicate
+      const allProjects = [...(assignedProjects || [])];
+      const existingIds = new Set(allProjects.map(p => p.id));
+      for (const p of (extraProjects || [])) {
+        if (!existingIds.has(p.id)) allProjects.push(p);
+      }
+      return allProjects;
+    },
+    enabled: !!userId,
+  });
+}
+
 export function useProject(id: string) {
   return useQuery({
     queryKey: ["projects", id],

@@ -299,6 +299,7 @@ export default function Team() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Membre</TableHead>
+                  <TableHead>Accès (email)</TableHead>
                   <TableHead>Rôle</TableHead>
                   <TableHead>Téléphone</TableHead>
                   <TableHead className="text-right">Actions</TableHead>

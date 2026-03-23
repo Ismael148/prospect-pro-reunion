@@ -8,6 +8,7 @@ import {
   useConvertProspect,
 } from "@/hooks/use-prospects";
 import { useAgents } from "@/hooks/use-agents";
+import { triggerN8nWebhook } from "@/lib/n8n-webhook";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

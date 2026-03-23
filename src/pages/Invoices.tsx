@@ -254,7 +254,7 @@ export default function Invoices() {
           </CardContent>
         </Card>
       ) : (
-        <Card className="border border-border/50"
+        <Card className="border border-border/50">
           <Table>
             <TableHeader>
               <TableRow>

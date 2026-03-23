@@ -206,8 +206,31 @@ export default function Prospection() {
     if (!searchResults.length || !user) return;
     try {
       const query = searchQuery || customQuery;
+      
+      // Statuts déjà traités qu'on ne doit pas ré-importer
+      const treatedStatuses = new Set(["contacte", "qualifie", "rdv_planifie", "converti", "non_interesse", "a_rappeler"]);
+      const existingMap = new Map(
+        (prospects || []).map((p) => [
+          p.business_name.toLowerCase().replace(/[^a-zà-ÿ0-9]/g, ""),
+          p.status,
+        ])
+      );
+
+      const toImport = searchResults.filter((r) => {
+        const key = r.business_name.toLowerCase().replace(/[^a-zà-ÿ0-9]/g, "");
+        const existingStatus = existingMap.get(key);
+        // Skip si déjà en base (tout statut)
+        if (existingStatus) return false;
+        return true;
+      });
+
+      if (!toImport.length) {
+        toast.info("Tous les prospects sont déjà en base ou traités");
+        return;
+      }
+
       await createProspects.mutateAsync(
-        searchResults.map((r) => ({
+        toImport.map((r) => ({
           business_name: r.business_name,
           address: r.address || null,
           city: r.city || searchZone,
@@ -224,7 +247,11 @@ export default function Prospection() {
           status: "nouveau" as const,
         }))
       );
-      toast.success(`${searchResults.length} prospect(s) importé(s)`);
+      const skipped = searchResults.length - toImport.length;
+      toast.success(
+        `${toImport.length} prospect(s) importé(s)` +
+        (skipped > 0 ? ` (${skipped} déjà existant(s) ignoré(s))` : "")
+      );
       setShowResults(false);
       setSearchResults([]);
     } catch {

@@ -3,6 +3,19 @@
   "nodes": [
     {
       "parameters": {
+        "httpMethod": "POST",
+        "path": "prospect-rdv-discord",
+        "responseMode": "onReceived",
+        "responseCode": 200
+      },
+      "id": "webhook-rdv",
+      "name": "Webhook RDV",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
         "rules": {
           "values": [
             {
@@ -10,7 +23,7 @@
                 "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
                 "conditions": [
                   {
-                    "leftValue": "={{ $json.event }}",
+                    "leftValue": "={{ $json.body.event }}",
                     "rightValue": "prospect.rdv_planifie",
                     "operator": { "type": "string", "operation": "equals" }
                   }
@@ -42,7 +55,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"embeds\": [\n    {\n      \"title\": \"📅 NOUVEAU RDV PLANIFIÉ\",\n      \"color\": 3066993,\n      \"fields\": [\n        { \"name\": \"🏢 Entreprise\", \"value\": \"{{ $json.business_name }}\", \"inline\": false },\n        { \"name\": \"📍 Adresse\", \"value\": \"{{ $json.address }}\", \"inline\": true },\n        { \"name\": \"🏙️ Ville\", \"value\": \"{{ $json.city }}\", \"inline\": true },\n        { \"name\": \"📞 Téléphone\", \"value\": \"{{ $json.phone }}\", \"inline\": true },\n        { \"name\": \"🔧 Secteur\", \"value\": \"{{ $json.sector }}\", \"inline\": true },\n        { \"name\": \"📆 Date du RDV\", \"value\": \"{{ $json.appointment_date }}\", \"inline\": true },\n        { \"name\": \"🕐 Heure\", \"value\": \"{{ $json.appointment_time }}\", \"inline\": true },\n        { \"name\": \"📝 Notes\", \"value\": \"{{ $json.notes || 'Aucune' }}\", \"inline\": false },\n        { \"name\": \"👤 Qualifié par\", \"value\": \"{{ $json.agent_name }}\", \"inline\": false }\n      ],\n      \"footer\": { \"text\": \"Merci de confirmer la prise en charge avec un ✅\" },\n      \"timestamp\": \"{{ $json.timestamp }}\"\n    }\n  ]\n}"
+        "jsonBody": "={\n  \"embeds\": [\n    {\n      \"title\": \"📅 NOUVEAU RDV PLANIFIÉ\",\n      \"color\": 3066993,\n      \"fields\": [\n        { \"name\": \"🏢 Entreprise\", \"value\": \"{{ $json.body.business_name }}\", \"inline\": false },\n        { \"name\": \"📍 Adresse\", \"value\": \"{{ $json.body.address }}\", \"inline\": true },\n        { \"name\": \"🏙️ Ville\", \"value\": \"{{ $json.body.city }}\", \"inline\": true },\n        { \"name\": \"📞 Téléphone\", \"value\": \"{{ $json.body.phone }}\", \"inline\": true },\n        { \"name\": \"🔧 Secteur\", \"value\": \"{{ $json.body.sector }}\", \"inline\": true },\n        { \"name\": \"📆 Date du RDV\", \"value\": \"{{ $json.body.appointment_date }}\", \"inline\": true },\n        { \"name\": \"🕐 Heure\", \"value\": \"{{ $json.body.appointment_time }}\", \"inline\": true },\n        { \"name\": \"📝 Notes\", \"value\": \"{{ $json.body.notes || 'Aucune' }}\", \"inline\": false },\n        { \"name\": \"👤 Qualifié par\", \"value\": \"{{ $json.body.agent_name }}\", \"inline\": false }\n      ],\n      \"footer\": { \"text\": \"Merci de confirmer la prise en charge avec un ✅\" },\n      \"timestamp\": \"{{ $json.body.timestamp }}\"\n    }\n  ]\n}"
       },
       "id": "discord-send",
       "name": "Envoyer Discord",
@@ -52,6 +65,11 @@
     }
   ],
   "connections": {
+    "Webhook RDV": {
+      "main": [
+        [{ "node": "Filtre RDV", "type": "main", "index": 0 }]
+      ]
+    },
     "Filtre RDV": {
       "main": [
         [{ "node": "Envoyer Discord", "type": "main", "index": 0 }]
@@ -61,5 +79,8 @@
   "pinData": {},
   "settings": { "executionOrder": "v1" },
   "staticData": null,
-  "tags": [{ "name": "prospect" }, { "name": "discord" }]
+  "tags": [{ "name": "prospect" }, { "name": "discord" }],
+  "meta": {
+    "description": "Envoie une notification Discord quand un prospect passe en RDV planifié. Déclenché via webhook. Les données sont dans $json.body."
+  }
 }

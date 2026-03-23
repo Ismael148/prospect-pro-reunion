@@ -163,7 +163,29 @@ function parseSearchResults(results: SearchResult[], query: string, zone: string
           prospect.phone = match[0].replace(/[\s.-]/g, '');
           break;
         }
+    }
+
+    // Extract address from content
+    if (!prospect.address) {
+      const addressPatterns = [
+        // Full address with postal code: "12 rue des Lilas, 97410 Saint-Pierre"
+        /(\d{1,4}[\s,]*(?:rue|avenue|ave|boulevard|blvd|chemin|impasse|allée|route|rte|place|lot|résidence|lotissement|zone|za|zi|zac)[^,\n]{3,60},?\s*974\d{2}\s+[A-ZÀ-Ÿ][\wÀ-ÿ\s-]{2,30})/i,
+        // Street + postal code
+        /(\d{1,4}[\s,]*(?:rue|avenue|ave|boulevard|blvd|chemin|impasse|allée|route|rte|place|lot)[^,\n]{3,60})/i,
+        // Postal code + city
+        /(974\d{2}\s+[A-ZÀ-Ÿ][\wÀ-ÿ\s-]{2,30})/,
+      ];
+      for (const pattern of addressPatterns) {
+        const match = content.match(pattern);
+        if (match) {
+          let addr = (match[1] || match[0]).trim().replace(/[,;.]+$/, '').trim();
+          if (addr.length >= 5 && addr.length <= 120) {
+            prospect.address = addr;
+            break;
+          }
+        }
       }
+    }
     }
 
     // Google Maps URL

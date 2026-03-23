@@ -114,16 +114,30 @@ interface ParsedProspect {
 function parseSearchResults(results: SearchResult[], query: string, zone: string): ParsedProspect[] {
   const prospectMap = new Map<string, ParsedProspect>();
 
+  // Skip aggregator/directory pages
+  const skipDomains = ['pagesjaunes', 'google.com/maps', 'alentoor', 'kelest', 'facebook', 'instagram', 'tripadvisor', 'yelp', 'reunion.fr', 'linternaute', 'justacote'];
+
   for (const result of results) {
     if (!result.title) continue;
+
+    // Skip directory/aggregator results
+    const url = (result.url || '').toLowerCase();
+    if (skipDomains.some(d => url.includes(d))) continue;
+
+    // Skip titles that look like directories
+    const titleLower = result.title.toLowerCase();
+    if (titleLower.includes('meilleures') || titleLower.includes('top ') || titleLower.includes('annuaire') || titleLower.includes('liste des')) continue;
 
     let businessName = result.title
       .replace(/ - Google Maps$/i, '')
       .replace(/ \| Pages Jaunes$/i, '')
       .replace(/ - Avis.*$/i, '')
       .replace(/ - Horaires.*$/i, '')
+      .replace(/ - Instagram$/i, '')
+      .replace(/ - Facebook$/i, '')
       .replace(/ à [\w-]+.*$/i, '')
       .replace(/\s*\(.*?\)\s*/g, ' ')
+      .replace(/\s*[|–—].*$/g, '')
       .replace(/\s+/g, ' ')
       .trim();
 
@@ -132,7 +146,6 @@ function parseSearchResults(results: SearchResult[], query: string, zone: string
     const key = businessName.toLowerCase().replace(/[^a-zà-ÿ0-9]/g, '');
     if (key.length < 2) continue;
 
-    // Get or create prospect entry (merge data from multiple sources)
     const existing = prospectMap.get(key);
     const prospect: ParsedProspect = existing || {
       business_name: businessName,
@@ -143,11 +156,11 @@ function parseSearchResults(results: SearchResult[], query: string, zone: string
 
     const content = result.markdown || result.description || '';
 
-    // --- Extract phone (French formats: 0X XX XX XX XX, +262 X XX XX XX XX) ---
+    // Extract phone
     const phonePatterns = [
-      /(?:\+262|0262)[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}/,  // Réunion landline
-      /(?:06|07)\d[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}/,       // Mobile
-      /(?:0[1-9])[\s.-]?(?:\d{2}[\s.-]?){4}/,                   // General French
+      /(?:\+262|0262)[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}/,
+      /(?:06|07)\d[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}/,
+      /(?:0[1-9])[\s.-]?(?:\d{2}[\s.-]?){4}/,
     ];
     if (!prospect.phone) {
       for (const pattern of phonePatterns) {
@@ -159,80 +172,12 @@ function parseSearchResults(results: SearchResult[], query: string, zone: string
       }
     }
 
-    // --- Extract email ---
-    if (!prospect.email) {
-      const emailMatch = content.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-      if (emailMatch) {
-        const email = emailMatch[0].toLowerCase();
-        // Skip generic/spam emails
-        if (!email.includes('example') && !email.includes('noreply') && !email.includes('pagesjaunes') && !email.includes('google')) {
-          prospect.email = email;
-        }
-      }
-    }
-
-    // --- Extract address (multiple patterns for Réunion addresses) ---
-    if (!prospect.address) {
-      const addressPatterns = [
-        // Numbered street addresses: "12 rue des Lilas, 97400 Saint-Denis"
-        /(\d{1,4}[\s,]*(?:rue|avenue|ave|boulevard|blvd|chemin|impasse|allée|route|rte|place|lot|résidence|lotissement|zone|za|zi|zac)[^,\n]{3,60})/i,
-        // Addresses with postal code: "97400 Saint-Denis" or similar
-        /(\d{1,4}[^,\n]{3,40},?\s*974\d{2}\s+[A-ZÀ-Ÿ][\wÀ-ÿ-]+)/i,
-        // Just postal code + city
-        /(974\d{2}\s+[A-ZÀ-Ÿ][\wÀ-ÿ\s-]{2,30})/,
-        // "Adresse :" pattern from structured pages
-        /(?:adresse|localisation|situé)\s*[:\-–]\s*([^\n]{5,80})/i,
-      ];
-      for (const pattern of addressPatterns) {
-        const match = content.match(pattern);
-        if (match) {
-          let addr = (match[1] || match[0]).trim();
-          // Clean up trailing punctuation
-          addr = addr.replace(/[,;.]+$/, '').trim();
-          if (addr.length >= 5 && addr.length <= 120) {
-            prospect.address = addr;
-            break;
-          }
-        }
-      }
-    }
-
-    // --- Extract rating ---
-    if (!prospect.rating) {
-      const ratingPatterns = [
-        /(\d[.,]\d)\s*(?:\/\s*5|étoile|star|★)/i,
-        /note\s*[:\-–]?\s*(\d[.,]\d)/i,
-        /(\d[.,]\d)\s*sur\s*5/i,
-      ];
-      for (const pattern of ratingPatterns) {
-        const match = content.match(pattern);
-        if (match) {
-          prospect.rating = parseFloat(match[1].replace(',', '.'));
-          break;
-        }
-      }
-    }
-
-    // --- Extract reviews count ---
-    if (!prospect.reviews_count) {
-      const reviewsMatch = content.match(/(\d+)\s*(?:avis|review|commentaire|note)/i);
-      if (reviewsMatch) {
-        prospect.reviews_count = parseInt(reviewsMatch[1]);
-      }
-    }
-
-    // --- Google Maps URL ---
-    if (!prospect.google_maps_url && result.url?.includes('google.com/maps')) {
-      prospect.google_maps_url = result.url;
-    }
-
-    // --- Website ---
-    if (!prospect.website) {
-      const urlMatch = content.match(/(?:site\s*(?:web|internet)?\s*[:\-–]?\s*)?(?:https?:\/\/|www\.)([\w.-]+\.[a-z]{2,}(?:\/[\w.-]*)?)/i);
+    // Detect if business has a website
+    if (!prospect.has_website) {
+      const urlMatch = content.match(/(?:site\s*(?:web|internet)?\s*[:\-–]?\s*)?(?:https?:\/\/|www\.)([\w.-]+\.[a-z]{2,})/i);
       if (urlMatch) {
         const domain = urlMatch[1].toLowerCase();
-        if (!domain.includes('google') && !domain.includes('pagesjaunes') && !domain.includes('facebook') && !domain.includes('instagram')) {
-          prospect.website = domain.startsWith('http') ? domain : `https://${domain}`;
+        if (!skipDomains.some(d => domain.includes(d))) {
           prospect.has_website = true;
         }
       }
@@ -241,8 +186,8 @@ function parseSearchResults(results: SearchResult[], query: string, zone: string
     prospectMap.set(key, prospect);
   }
 
-  // Filter: only keep prospects with at least an address or phone
+  // Only return businesses WITHOUT a website and WITH a phone number
   return Array.from(prospectMap.values()).filter(
-    (p) => p.address || p.phone || p.email
+    (p) => !p.has_website && p.phone
   );
 }

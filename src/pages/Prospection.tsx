@@ -171,9 +171,32 @@ export default function Prospection() {
     }
     try {
       const results = await searchProspects.mutateAsync({ query, zone: searchZone });
-      setSearchResults(results);
+      
+      // Dédoublonner les résultats par nom normalisé
+      const seen = new Set<string>();
+      const uniqueResults = results.filter((r) => {
+        const key = r.business_name.toLowerCase().replace(/[^a-zà-ÿ0-9]/g, "");
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      // Filtrer les prospects déjà existants en base
+      const existingNames = new Set(
+        (prospects || []).map((p) => p.business_name.toLowerCase().replace(/[^a-zà-ÿ0-9]/g, ""))
+      );
+      const newResults = uniqueResults.filter((r) => {
+        const key = r.business_name.toLowerCase().replace(/[^a-zà-ÿ0-9]/g, "");
+        return !existingNames.has(key);
+      });
+
+      setSearchResults(newResults);
       setShowResults(true);
-      toast.success(`${results.length} prospect(s) trouvé(s)`);
+      const filtered = uniqueResults.length - newResults.length;
+      toast.success(
+        `${newResults.length} nouveau(x) prospect(s) trouvé(s)` +
+        (filtered > 0 ? ` (${filtered} déjà en base ignoré(s))` : "")
+      );
     } catch (error: any) {
       toast.error(error.message || "Erreur de recherche");
     }

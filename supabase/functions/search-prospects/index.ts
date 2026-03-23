@@ -99,6 +99,7 @@ interface SearchResult {
 
 interface ParsedProspect {
   business_name: string;
+  address?: string;
   phone?: string;
   city?: string;
   sector?: string;

@@ -35,8 +35,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Search for businesses - single optimized query to save credits
-    const searchQuery = `${query} ${zone} La Réunion adresse téléphone`;
+    // Search targeting Google My Business / fiche Google results
+    const searchQuery = `${query} ${zone} La Réunion téléphone site:google.com/maps`;
 
     console.log('Searching prospects with query:', searchQuery);
 
@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
 
     const responses = [searchData];
 
-    // Merge results from both searches
+    // Merge results
     const allResults: SearchResult[] = [];
     for (const data of responses) {
       if (data.data) {
@@ -99,45 +99,38 @@ interface SearchResult {
 
 interface ParsedProspect {
   business_name: string;
-  address?: string;
-  city?: string;
   phone?: string;
-  email?: string;
-  website?: string;
-  has_website: boolean;
+  city?: string;
   sector?: string;
-  rating?: number;
-  reviews_count?: number;
+  has_website: boolean;
   google_maps_url?: string;
 }
 
 function parseSearchResults(results: SearchResult[], query: string, zone: string): ParsedProspect[] {
   const prospectMap = new Map<string, ParsedProspect>();
 
-  // Skip aggregator/directory pages
-  const skipDomains = ['pagesjaunes', 'google.com/maps', 'alentoor', 'kelest', 'facebook', 'instagram', 'tripadvisor', 'yelp', 'reunion.fr', 'linternaute', 'justacote'];
+  // Directories/aggregators to ignore
+  const skipDomains = ['pagesjaunes', 'alentoor', 'kelest', 'facebook.com', 'instagram.com', 'tripadvisor', 'yelp', 'linternaute', 'justacote', 'horaires.lefigaro'];
 
   for (const result of results) {
     if (!result.title) continue;
 
-    // Skip directory/aggregator results
     const url = (result.url || '').toLowerCase();
+
+    // Skip directory pages (but allow google.com/maps)
     if (skipDomains.some(d => url.includes(d))) continue;
 
-    // Skip titles that look like directories
+    // Skip aggregator titles
     const titleLower = result.title.toLowerCase();
     if (titleLower.includes('meilleures') || titleLower.includes('top ') || titleLower.includes('annuaire') || titleLower.includes('liste des')) continue;
 
+    // Clean business name
     let businessName = result.title
       .replace(/ - Google Maps$/i, '')
-      .replace(/ \| Pages Jaunes$/i, '')
+      .replace(/ · .*$/i, '')
       .replace(/ - Avis.*$/i, '')
       .replace(/ - Horaires.*$/i, '')
-      .replace(/ - Instagram$/i, '')
-      .replace(/ - Facebook$/i, '')
-      .replace(/ à [\w-]+.*$/i, '')
       .replace(/\s*\(.*?\)\s*/g, ' ')
-      .replace(/\s*[|–—].*$/g, '')
       .replace(/\s+/g, ' ')
       .trim();
 
@@ -157,12 +150,12 @@ function parseSearchResults(results: SearchResult[], query: string, zone: string
     const content = result.markdown || result.description || '';
 
     // Extract phone
-    const phonePatterns = [
-      /(?:\+262|0262)[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}/,
-      /(?:06|07)\d[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}/,
-      /(?:0[1-9])[\s.-]?(?:\d{2}[\s.-]?){4}/,
-    ];
     if (!prospect.phone) {
+      const phonePatterns = [
+        /(?:\+262|0262)[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}/,
+        /(?:06|07)\d[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}/,
+        /(?:0[1-9])[\s.-]?(?:\d{2}[\s.-]?){4}/,
+      ];
       for (const pattern of phonePatterns) {
         const match = content.match(pattern);
         if (match) {
@@ -172,12 +165,17 @@ function parseSearchResults(results: SearchResult[], query: string, zone: string
       }
     }
 
-    // Detect if business has a website
+    // Google Maps URL
+    if (!prospect.google_maps_url && url.includes('google.com/maps')) {
+      prospect.google_maps_url = result.url;
+    }
+
+    // Detect website (to filter out businesses that already have one)
     if (!prospect.has_website) {
-      const urlMatch = content.match(/(?:site\s*(?:web|internet)?\s*[:\-–]?\s*)?(?:https?:\/\/|www\.)([\w.-]+\.[a-z]{2,})/i);
-      if (urlMatch) {
-        const domain = urlMatch[1].toLowerCase();
-        if (!skipDomains.some(d => domain.includes(d))) {
+      const siteMatch = content.match(/(?:site\s*(?:web|internet)?\s*[:\-–]?\s*)?(?:https?:\/\/|www\.)([\w.-]+\.[a-z]{2,})/i);
+      if (siteMatch) {
+        const domain = siteMatch[1].toLowerCase();
+        if (!domain.includes('google') && !skipDomains.some(d => domain.includes(d))) {
           prospect.has_website = true;
         }
       }
@@ -186,7 +184,7 @@ function parseSearchResults(results: SearchResult[], query: string, zone: string
     prospectMap.set(key, prospect);
   }
 
-  // Only return businesses WITHOUT a website and WITH a phone number
+  // Only businesses WITHOUT a website and WITH a phone
   return Array.from(prospectMap.values()).filter(
     (p) => !p.has_website && p.phone
   );

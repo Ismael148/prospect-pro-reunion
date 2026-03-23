@@ -67,6 +67,24 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Nullify all FK references to this user across tables
+    await Promise.all([
+      adminClient.from("notifications").delete().eq("user_id", user_id),
+      adminClient.from("commissions").delete().eq("user_id", user_id),
+      adminClient.from("client_activities").delete().eq("user_id", user_id),
+      adminClient.from("prospects").update({ assigned_to: null }).eq("assigned_to", user_id),
+      adminClient.from("prospects").update({ created_by: callerId }).eq("created_by", user_id),
+      adminClient.from("clients").update({ assigned_to: null }).eq("assigned_to", user_id),
+      adminClient.from("clients").update({ created_by: callerId }).eq("created_by", user_id),
+      adminClient.from("clients").update({ signed_by: null }).eq("signed_by", user_id),
+      adminClient.from("projects").update({ assigned_to: null }).eq("assigned_to", user_id),
+      adminClient.from("projects").update({ created_by: callerId }).eq("created_by", user_id),
+      adminClient.from("project_tasks").update({ assigned_to: null }).eq("assigned_to", user_id),
+      adminClient.from("expenses").update({ created_by: callerId }).eq("created_by", user_id),
+      adminClient.from("invoices").update({ created_by: callerId }).eq("created_by", user_id),
+      adminClient.from("social_publications").update({ created_by: callerId }).eq("created_by", user_id),
+    ]);
+
     // Delete user roles
     await adminClient.from("user_roles").delete().eq("user_id", user_id);
 

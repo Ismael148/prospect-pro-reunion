@@ -165,7 +165,7 @@ export default function Pipeline() {
                   transition={{ delay: idx * 0.04, duration: 0.25 }}
                 >
                   <Card
-                    className="border-border/40 shadow-soft hover:shadow-medium transition-all duration-200 cursor-pointer group"
+                    className="border border-border/50 hover:border-primary/20 shadow-soft hover:shadow-medium transition-all duration-200 cursor-pointer group"
                     onClick={() => navigate(`/clients/${client.id}`)}
                   >
                     <CardContent className="p-4">

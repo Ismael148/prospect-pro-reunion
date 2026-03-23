@@ -209,7 +209,7 @@ export default function Projects() {
               transition={{ delay: i * 0.05, duration: 0.3 }}
             >
               <Card
-                className="border-0 shadow-md shadow-primary/5 cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+                className="border border-border/50 hover:border-primary/20 shadow-soft hover:shadow-medium cursor-pointer hover:-translate-y-0.5 transition-all duration-200"
                 onClick={() => navigate(`/projets/${project.id}`)}
               >
                 <CardHeader className="pb-3">

@@ -238,7 +238,7 @@ export default function Clients() {
         <div className="grid gap-2">
           {filtered?.map((client, i) => (
             <motion.div key={client.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03, duration: 0.25 }}>
-              <Card className="border-0 shadow-soft hover:shadow-medium transition-all duration-200 cursor-pointer group" onClick={() => navigate(`/clients/${client.id}`)}>
+              <Card className="border border-border/50 hover:border-primary/20 shadow-soft hover:shadow-medium transition-all duration-200 cursor-pointer group" onClick={() => navigate(`/clients/${client.id}`)}>
                 <CardContent className="flex items-center gap-4 py-3.5 px-4">
                   <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/8 text-primary shrink-0 group-hover:bg-primary/12 transition-colors">
                     <Building2 className="w-4.5 h-4.5" />

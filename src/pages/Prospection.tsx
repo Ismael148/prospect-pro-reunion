@@ -379,7 +379,7 @@ export default function Prospection() {
 
       {/* Search Section - Admin only */}
       {isAdmin && (
-        <Card className="border-0 shadow-soft">
+        <Card className="border border-border/50 hover:border-primary/20 transition-all duration-200">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <Radar className="w-4 h-4 text-primary" />
@@ -721,7 +721,7 @@ export default function Prospection() {
             const rdvCount = agentProspects.filter((p) => p.status === "rdv_planifie").length;
             const contacteCount = agentProspects.filter((p) => p.status === "contacte" || p.status === "a_contacter").length;
             return (
-              <Card key={agent.user_id} className="border-0 shadow-soft">
+              <Card key={agent.user_id} className="border border-border/50 hover:border-primary/20 transition-all duration-200">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
@@ -768,7 +768,7 @@ export default function Prospection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.02, duration: 0.2 }}
             >
-              <Card className="border-0 shadow-soft hover:shadow-medium transition-all duration-200 cursor-pointer"
+              <Card className="border border-border/50 hover:border-primary/20 shadow-soft hover:shadow-medium transition-all duration-200 cursor-pointer"
                 onClick={() => setProspectDetail(prospectDetail?.id === prospect.id ? null : prospect)}>
                 <CardContent className="flex items-center gap-4 py-3 px-4">
                   <div className={cn(

@@ -35,42 +35,32 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Search for businesses, prioritizing those without websites
-    const searches = [
-      `${query} ${zone} La Réunion adresse téléphone email -site web -www`,
-      `${query} ${zone} 974 La Réunion site:pagesjaunes.fr`,
-    ];
+    // Search for businesses - single optimized query to save credits
+    const searchQuery = `${query} ${zone} La Réunion adresse téléphone`;
 
-    console.log('Searching prospects with queries:', searches);
+    console.log('Searching prospects with query:', searchQuery);
 
-    const responses = await Promise.all(
-      searches.map(async (q) => {
-        const res = await fetch('https://api.firecrawl.dev/v1/search', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            query: q,
-            limit: 20,
-            scrapeOptions: {
-              formats: ['markdown'],
-              onlyMainContent: true,
-            },
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          console.error(`Firecrawl error [${res.status}]:`, JSON.stringify(data));
-          if (res.status === 402) {
-            throw new Error('Crédits Firecrawl insuffisants. Veuillez recharger votre compte Firecrawl ou connectez-vous avec le code promo LOVABLE50 pour 50% de réduction.');
-          }
-          throw new Error(data.error || `Firecrawl error: ${res.status}`);
-        }
-        return data;
-      })
-    );
+    const res = await fetch('https://api.firecrawl.dev/v1/search', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: searchQuery,
+        limit: 10,
+      }),
+    });
+    const searchData = await res.json();
+    if (!res.ok) {
+      console.error(`Firecrawl error [${res.status}]:`, JSON.stringify(searchData));
+      if (res.status === 402) {
+        throw new Error('Crédits Firecrawl insuffisants. Veuillez recharger votre compte Firecrawl ou connectez-vous avec le code promo LOVABLE50 pour 50% de réduction.');
+      }
+      throw new Error(searchData.error || `Firecrawl error: ${res.status}`);
+    }
+
+    const responses = [searchData];
 
     // Merge results from both searches
     const allResults: SearchResult[] = [];

@@ -208,31 +208,22 @@ export default function Invoices() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-0 shadow-soft">
-          <CardContent className="p-4">
-            <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Total facturé</p>
-            <p className="text-xl font-bold">{stats.total.toFixed(2)} €</p>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-soft">
-          <CardContent className="p-4">
-            <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Encaissé</p>
-            <p className="text-xl font-bold text-success">{stats.paid.toFixed(2)} €</p>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-soft">
-          <CardContent className="p-4">
-            <p className="text-[11px] text-muted-foreground uppercase tracking-wider">En attente</p>
-            <p className="text-xl font-bold text-warning">{stats.pending.toFixed(2)} €</p>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-soft">
-          <CardContent className="p-4">
-            <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Brouillons</p>
-            <p className="text-xl font-bold">{stats.draft}</p>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {[
+          { label: "Total facturé", value: `${stats.total.toFixed(2)} €`, color: "text-primary", icon: "bg-primary/10" },
+          { label: "Encaissé", value: `${stats.paid.toFixed(2)} €`, color: "text-success", icon: "bg-success/10" },
+          { label: "En attente", value: `${stats.pending.toFixed(2)} €`, color: "text-warning", icon: "bg-warning/10" },
+          { label: "Brouillons", value: stats.draft, color: "text-foreground", icon: "bg-muted" },
+        ].map((s) => (
+          <Card key={s.label} className="border border-border/50 hover:border-primary/20 transition-all duration-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{s.label}</span>
+              </div>
+              <p className={`text-2xl font-bold tracking-tight ${s.color}`}>{s.value}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* Filters */}

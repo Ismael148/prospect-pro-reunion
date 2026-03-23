@@ -5,7 +5,8 @@ type WebhookEvent =
   | "invoice.created"
   | "support.created"
   | "support.resolved"
-  | "project.progress";
+  | "project.progress"
+  | "prospect.rdv_planifie";
 
 export async function triggerN8nWebhook(event: WebhookEvent, data: Record<string, unknown>) {
   try {

@@ -344,12 +344,31 @@ export default function Prospection() {
       return;
     }
     try {
+      const rdvDate = format(appointmentDate, "yyyy-MM-dd");
       await updateProspect.mutateAsync({
         id: selectedProspect.id,
         status: "rdv_planifie" as ProspectStatus,
-        appointment_date: format(appointmentDate, "yyyy-MM-dd"),
+        appointment_date: rdvDate,
         appointment_time: appointmentTime,
       });
+
+      // Trouver le nom de l'agent assigné
+      const agentName = agents?.find(a => a.user_id === selectedProspect.assigned_to)?.full_name || "Non assigné";
+
+      // Envoyer le webhook n8n pour notification Discord
+      triggerN8nWebhook("prospect.rdv_planifie", {
+        business_name: selectedProspect.business_name,
+        address: selectedProspect.address || "Non renseignée",
+        city: selectedProspect.city || "Non renseignée",
+        phone: selectedProspect.phone || "Non renseigné",
+        sector: selectedProspect.sector || "Non renseigné",
+        appointment_date: format(appointmentDate, "dd/MM/yyyy"),
+        appointment_time: appointmentTime,
+        notes: selectedProspect.notes || "",
+        agent_name: agentName,
+        google_maps_url: selectedProspect.google_maps_url || "",
+      });
+
       toast.success("RDV planifié !");
       setSelectedProspect(null);
       setAppointmentDate(undefined);

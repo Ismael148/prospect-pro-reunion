@@ -247,14 +247,14 @@ export default function Invoices() {
       {isLoading ? (
         <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
       ) : filteredInvoices.length === 0 ? (
-        <Card className="border-0 shadow-soft">
+        <Card className="border border-dashed border-border/60">
           <CardContent className="py-12 text-center">
             <FileText className="w-12 h-12 mx-auto text-muted-foreground/30 mb-4" />
             <p className="text-muted-foreground">Aucune facture trouvée</p>
           </CardContent>
         </Card>
       ) : (
-        <Card className="border-0 shadow-soft">
+        <Card className="border border-border/50"
           <Table>
             <TableHeader>
               <TableRow>

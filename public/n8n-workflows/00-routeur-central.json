@@ -249,6 +249,26 @@
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2,
       "position": [800, 700]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.DISCORD_WEBHOOK_URL }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"embeds\": [\n    {\n      \"title\": \"📅 NOUVEAU RDV PLANIFIÉ\",\n      \"color\": 3066993,\n      \"fields\": [\n        { \"name\": \"🏢 Entreprise\", \"value\": \"{{ $json.body.business_name }}\", \"inline\": false },\n        { \"name\": \"📍 Adresse\", \"value\": \"{{ $json.body.address }}\", \"inline\": true },\n        { \"name\": \"🏙️ Ville\", \"value\": \"{{ $json.body.city }}\", \"inline\": true },\n        { \"name\": \"📞 Téléphone\", \"value\": \"{{ $json.body.phone }}\", \"inline\": true },\n        { \"name\": \"🔧 Secteur\", \"value\": \"{{ $json.body.sector }}\", \"inline\": true },\n        { \"name\": \"📆 Date du RDV\", \"value\": \"{{ $json.body.appointment_date }}\", \"inline\": true },\n        { \"name\": \"🕐 Heure\", \"value\": \"{{ $json.body.appointment_time }}\", \"inline\": true },\n        { \"name\": \"📝 Notes\", \"value\": \"{{ $json.body.notes || 'Aucune' }}\", \"inline\": false },\n        { \"name\": \"👤 Qualifié par\", \"value\": \"{{ $json.body.agent_name }}\", \"inline\": false }\n      ],\n      \"footer\": { \"text\": \"Merci de confirmer la prise en charge avec un ✅\" },\n      \"timestamp\": \"{{ $json.body.timestamp }}\"\n    }\n  ]\n}"
+      },
+      "id": "discord-rdv",
+      "name": "Discord RDV",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [800, 850]
     }
   ],
   "connections": {
@@ -296,6 +316,13 @@
         [
           {
             "node": "Email Progression Projet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Discord RDV",
             "type": "main",
             "index": 0
           }

@@ -127,7 +127,29 @@
                 "combinator": "and"
               },
               "renameOutput": true,
-              "outputKey": "Projet 80%"
+             "outputKey": "Projet 80%"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.event }}",
+                    "rightValue": "prospect.rdv_planifie",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Prospect RDV"
             }
           ]
         },

@@ -70,11 +70,67 @@ const STATUS_COLORS: Record<ProspectStatus, string> = {
 };
 
 const SECTORS = [
-  "Restaurant", "Boulangerie", "Coiffeur", "Garage automobile",
-  "Agence immobilière", "Commerce alimentaire", "Boutique vêtements",
-  "Pharmacie", "Cabinet médical", "Artisan", "Hôtel", "Bar",
-  "Fleuriste", "Boucherie", "Électricien", "Plombier",
-];
+  // Restauration & Alimentation
+  "Restaurant", "Boulangerie", "Pâtisserie", "Boucherie", "Charcuterie",
+  "Poissonnerie", "Traiteur", "Pizzeria", "Snack / Fast-food", "Bar",
+  "Café", "Salon de thé", "Glacier", "Cave à vins", "Épicerie fine",
+  "Commerce alimentaire", "Food truck", "Rôtisserie",
+  // Santé & Bien-être
+  "Pharmacie", "Cabinet médical", "Dentiste", "Kinésithérapeute",
+  "Ostéopathe", "Opticien", "Laboratoire d'analyses", "Infirmier libéral",
+  "Podologue", "Psychologue", "Orthophoniste", "Sage-femme",
+  "Vétérinaire", "Naturopathe", "Diététicien", "Chiropracteur",
+  // Beauté & Soins
+  "Coiffeur", "Barbier", "Institut de beauté", "Salon d'esthétique",
+  "Onglerie / Nail bar", "Spa / Hammam", "Tatoueur", "Prothésiste ongulaire",
+  // BTP & Artisanat
+  "Électricien", "Plombier", "Maçon", "Peintre en bâtiment", "Carreleur",
+  "Menuisier", "Charpentier", "Couvreur", "Serrurier", "Climaticien",
+  "Pisciniste", "Terrassement", "Paysagiste", "Jardinier",
+  "Métallier / Ferronnier", "Vitrier", "Isolation / Étanchéité",
+  "Béton / Coffrage", "Démolition", "Rénovation générale",
+  // Automobile & Transport
+  "Garage automobile", "Carrosserie", "Auto-école", "Location de véhicules",
+  "Lavage auto", "Contrôle technique", "Moto / Scooter", "Taxi / VTC",
+  "Transporteur", "Déménagement", "Dépannage auto",
+  // Commerce & Retail
+  "Boutique vêtements", "Bijouterie", "Fleuriste", "Librairie / Papeterie",
+  "Magasin de sport", "Quincaillerie", "Bricolage", "Décoration d'intérieur",
+  "Magasin de meubles", "Électroménager", "High-tech / Informatique",
+  "Magasin bio", "Animalerie", "Jouets", "Cadeaux / Souvenirs",
+  // Immobilier & Habitat
+  "Agence immobilière", "Syndic de copropriété", "Promoteur immobilier",
+  "Diagnostiqueur immobilier", "Architecte", "Architecte d'intérieur",
+  "Bureau d'études", "Géomètre",
+  // Services aux entreprises
+  "Expert-comptable", "Avocat", "Notaire", "Huissier",
+  "Cabinet de conseil", "Agence de communication", "Agence web",
+  "Imprimerie", "Formation professionnelle", "Courtier en assurances",
+  "Courtier en crédit", "Nettoyage / Entretien", "Sécurité / Gardiennage",
+  "Traduction / Interprétariat",
+  // Hôtellerie & Tourisme
+  "Hôtel", "Gîte / Chambre d'hôtes", "Camping", "Agence de voyage",
+  "Guide touristique", "Location saisonnière", "Activités de loisirs",
+  // Éducation & Garde
+  "Crèche / Garderie", "Soutien scolaire", "École de musique",
+  "École de danse", "Centre de formation", "Coach sportif",
+  // Services à la personne
+  "Aide à domicile", "Garde d'enfants", "Ménage / Repassage",
+  "Assistance informatique", "Cours particuliers", "Pompes funèbres",
+  // Sport & Loisirs
+  "Salle de sport / Fitness", "Club de yoga / Pilates", "Arts martiaux",
+  "Centre équestre", "Bowling / Laser game", "Escape game",
+  "Location de matériel sportif",
+  // Événementiel
+  "DJ / Animateur", "Photographe", "Vidéaste", "Organisateur d'événements",
+  "Location de salle", "Décorateur événementiel", "Fleuriste événementiel",
+  // Artisanat d'art
+  "Ébéniste", "Tapissier", "Céramiste", "Couturier / Retoucheur",
+  "Cordonnier", "Graveur", "Encadreur",
+  // Autres
+  "Artisan", "Pressing / Blanchisserie", "Réparation de téléphones",
+  "Photocopie / Impression", "Conciergerie", "Autre",
+].sort((a, b) => a.localeCompare(b, 'fr'));
 
 export default function Prospection() {
   const { user, hasRole } = useAuth();

@@ -35,8 +35,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Search targeting Google My Business / fiche Google results
-    const searchQuery = `${query} ${zone} La Réunion téléphone site:google.com/maps`;
+    // Search for businesses - prioritize Google Maps results
+    const searchQuery = `${query} ${zone} La Réunion téléphone`;
 
     console.log('Searching prospects with query:', searchQuery);
 

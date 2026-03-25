@@ -10,10 +10,14 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   Upload, CreditCard, Loader2, Search, Phone, Mail, MapPin,
-  CheckCircle2, AlertCircle, FileSpreadsheet, Users, X,
+  CheckCircle2, AlertCircle, FileSpreadsheet, Users, X, ArrowRightLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 // CSV aliases for auto-mapping
 const ALIASES: Record<string, string[]> = {

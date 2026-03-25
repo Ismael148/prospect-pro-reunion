@@ -508,6 +508,31 @@ export default function ProjectDeliverableEmail() {
               </Select>
             </div>
 
+            {/* Saved templates */}
+            {savedTemplates && savedTemplates.length > 0 && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2"><FolderOpen className="h-4 w-4" />Mes modèles sauvegardés</Label>
+                <div className="grid gap-2 max-h-[160px] overflow-auto pr-1">
+                  {savedTemplates.map((tpl: any) => (
+                    <div key={tpl.id} className="flex items-center gap-2 rounded-lg border border-border p-2.5 hover:bg-muted/50 transition-colors group">
+                      <button type="button" className="flex-1 text-left min-w-0" onClick={() => handleLoadSavedTemplate(tpl)}>
+                        <p className="text-sm font-medium truncate">{tpl.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{tpl.subject}</p>
+                      </button>
+                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive" onClick={() => handleDeleteSavedTemplate(tpl.id, tpl.name)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Save current as template */}
+            <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => { setSaveTemplateName(""); setSaveDialogOpen(true); }}>
+              <BookmarkPlus className="h-4 w-4" />Sauvegarder ce modèle
+            </Button>
+
             <div className="space-y-2">
               <Label htmlFor="recipientEmail">Destinataire</Label>
               <Input id="recipientEmail" value={recipientEmail} onChange={(e) => setRecipientEmail(e.target.value)} placeholder="client@exemple.com" />

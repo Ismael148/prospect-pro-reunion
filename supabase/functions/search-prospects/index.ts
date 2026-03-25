@@ -35,39 +35,45 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Search for businesses - prioritize Google Maps results
-    const searchQuery = `${query} ${zone} La Réunion téléphone`;
+    // Two targeted searches: Google Maps (best for businesses without websites) + general
+    const searchQueries = [
+      `site:google.com/maps ${query} ${zone} La Réunion`,
+      `${query} ${zone} La Réunion téléphone adresse -site:facebook.com -site:instagram.com`,
+    ];
 
-    console.log('Searching prospects with query:', searchQuery);
+    console.log('Searching prospects with queries:', searchQueries);
 
-    const res = await fetch('https://api.firecrawl.dev/v1/search', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        query: searchQuery,
-        limit: 30,
-      }),
-    });
-    const searchData = await res.json();
-    if (!res.ok) {
-      console.error(`Firecrawl error [${res.status}]:`, JSON.stringify(searchData));
-      if (res.status === 402) {
-        throw new Error('Crédits Firecrawl insuffisants. Veuillez recharger votre compte Firecrawl ou connectez-vous avec le code promo LOVABLE50 pour 50% de réduction.');
+    const responses: any[] = [];
+    for (const sq of searchQueries) {
+      try {
+        const res = await fetch('https://api.firecrawl.dev/v1/search', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: sq,
+            limit: 20,
+          }),
+        });
+        const searchData = await res.json();
+        if (!res.ok) {
+          console.error(`Firecrawl error [${res.status}] for query "${sq}":`, JSON.stringify(searchData));
+          if (res.status === 402) {
+            throw new Error('Crédits Firecrawl insuffisants. Veuillez recharger votre compte Firecrawl.');
+          }
+          continue; // Skip this query but try the next one
+        }
+        responses.push(searchData);
+      } catch (e) {
+        if (e instanceof Error && e.message.includes('Crédits')) throw e;
+        console.error(`Search query failed: "${sq}"`, e);
       }
-      throw new Error(searchData.error || `Firecrawl error: ${res.status}`);
     }
 
-    const responses = [searchData];
-
-    // Merge results
-    const allResults: SearchResult[] = [];
-    for (const data of responses) {
-      if (data.data) {
-        allResults.push(...data.data);
-      }
+    if (responses.length === 0) {
+      throw new Error('Aucun résultat de recherche disponible');
     }
 
     console.log(`Raw results: ${allResults.length}`);

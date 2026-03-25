@@ -16,7 +16,10 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, CheckCircle2, Clock, Loader2, Mail, MailX, Paperclip, Send, TriangleAlert } from "lucide-react";
+import { ArrowLeft, BookmarkPlus, CheckCircle2, Clock, FolderOpen, Loader2, Mail, MailX, Paperclip, Save, Send, Trash2, TriangleAlert } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
 import DOMPurify from "dompurify";
 
 // ── Types ──────────────────────────────────────────────
@@ -229,6 +232,20 @@ function useEmailHistory(deliverableId: string | undefined) {
   });
 }
 
+function useSavedTemplates() {
+  return useQuery({
+    queryKey: ["saved_email_templates"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("saved_email_templates" as any)
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+}
+
 // ── Status badge helper ───────────────────────────────
 function StatusBadge({ status }: { status: string }) {
   if (status === "sent") return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 gap-1"><CheckCircle2 className="h-3 w-3" />Envoyé</Badge>;
@@ -244,6 +261,7 @@ export default function ProjectDeliverableEmail() {
   const { data: project, isLoading: isProjectLoading } = useProject(projectId || "");
   const { data: deliverables, isLoading: isDeliverablesLoading } = useDeliverables(projectId || "");
   const { data: emailHistory } = useEmailHistory(deliverableId);
+  const { data: savedTemplates } = useSavedTemplates();
   const deliverable = useMemo(
     () => deliverables?.find((item) => item.id === deliverableId),
     [deliverables, deliverableId],
@@ -263,6 +281,9 @@ export default function ProjectDeliverableEmail() {
   const [uploadedAttachment, setUploadedAttachment] = useState<UploadedAttachment | null>(null);
   const [sending, setSending] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [saveTemplateName, setSaveTemplateName] = useState("");
+  const [savingTemplate, setSavingTemplate] = useState(false);
 
   useEffect(() => {
     if (!deliverable || initialized) return;
@@ -283,6 +304,42 @@ export default function ProjectDeliverableEmail() {
     setSelectedTemplateId(templateId);
     const tpl = EMAIL_TEMPLATES.find((t) => t.id === templateId);
     if (tpl) { setSubject(tpl.subject); setMessage(tpl.body); }
+  };
+
+  const handleLoadSavedTemplate = (tpl: any) => {
+    setSelectedTemplateId("custom_saved");
+    setSubject(tpl.subject);
+    setMessage(tpl.body);
+    toast.success(`Modèle "${tpl.name}" chargé`);
+  };
+
+  const handleSaveTemplate = async () => {
+    if (!saveTemplateName.trim()) { toast.error("Donnez un nom au modèle"); return; }
+    setSavingTemplate(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Non authentifié");
+      const { error } = await supabase.from("saved_email_templates" as any).insert({
+        name: saveTemplateName.trim(),
+        subject,
+        body: message,
+        category: selectedTemplateId || "custom",
+        created_by: user.id,
+      } as any);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["saved_email_templates"] });
+      toast.success("Modèle sauvegardé !");
+      setSaveDialogOpen(false);
+      setSaveTemplateName("");
+    } catch (e: any) { toast.error(e.message || "Erreur"); }
+    finally { setSavingTemplate(false); }
+  };
+
+  const handleDeleteSavedTemplate = async (id: string, name: string) => {
+    const { error } = await supabase.from("saved_email_templates" as any).delete().eq("id", id);
+    if (error) { toast.error("Erreur suppression"); return; }
+    queryClient.invalidateQueries({ queryKey: ["saved_email_templates"] });
+    toast.success(`"${name}" supprimé`);
   };
 
   const replaceVariables = useCallback(
@@ -451,6 +508,31 @@ export default function ProjectDeliverableEmail() {
               </Select>
             </div>
 
+            {/* Saved templates */}
+            {savedTemplates && savedTemplates.length > 0 && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2"><FolderOpen className="h-4 w-4" />Mes modèles sauvegardés</Label>
+                <div className="grid gap-2 max-h-[160px] overflow-auto pr-1">
+                  {savedTemplates.map((tpl: any) => (
+                    <div key={tpl.id} className="flex items-center gap-2 rounded-lg border border-border p-2.5 hover:bg-muted/50 transition-colors group">
+                      <button type="button" className="flex-1 text-left min-w-0" onClick={() => handleLoadSavedTemplate(tpl)}>
+                        <p className="text-sm font-medium truncate">{tpl.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{tpl.subject}</p>
+                      </button>
+                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive" onClick={() => handleDeleteSavedTemplate(tpl.id, tpl.name)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Save current as template */}
+            <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => { setSaveTemplateName(""); setSaveDialogOpen(true); }}>
+              <BookmarkPlus className="h-4 w-4" />Sauvegarder ce modèle
+            </Button>
+
             <div className="space-y-2">
               <Label htmlFor="recipientEmail">Destinataire</Label>
               <Input id="recipientEmail" value={recipientEmail} onChange={(e) => setRecipientEmail(e.target.value)} placeholder="client@exemple.com" />
@@ -561,6 +643,32 @@ export default function ProjectDeliverableEmail() {
           </Card>
         </div>
       </div>
+
+      {/* Save template dialog */}
+      <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Save className="h-5 w-5 text-primary" />Sauvegarder le modèle</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="tpl-name">Nom du modèle</Label>
+              <Input id="tpl-name" value={saveTemplateName} onChange={(e) => setSaveTemplateName(e.target.value)} placeholder="Ex: Email livraison site vitrine" />
+            </div>
+            <div className="rounded-lg bg-muted/50 p-3 text-xs space-y-1">
+              <p><strong>Objet :</strong> {subject}</p>
+              <p className="text-muted-foreground">Le contenu HTML actuel sera sauvegardé avec les variables dynamiques intactes.</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>Annuler</Button>
+            <Button onClick={handleSaveTemplate} disabled={savingTemplate} className="gap-2">
+              {savingTemplate ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Sauvegarder
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

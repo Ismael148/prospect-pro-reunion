@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useProject, useDeliverables } from "@/hooks/use-projects";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,8 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Mail, Paperclip, Send, TriangleAlert } from "lucide-react";
+import { ArrowLeft, Code, FileText, Loader2, Mail, Paperclip, Send, TriangleAlert } from "lucide-react";
+import DOMPurify from "dompurify";
 
 type UploadedAttachment = {
   content: string;
@@ -19,63 +22,48 @@ type UploadedAttachment = {
   size: number;
 };
 
-const DEFAULT_MESSAGE = ({ clientName, deliverableName }: { clientName: string; deliverableName: string }) =>
-  `Bonjour ${clientName},\n\nVoici le livrable "${deliverableName}". Vous pouvez le consulter ci-dessous.\n\nDites-moi si vous souhaitez des ajustements avant validation.\n\nCordialement,\nL'équipe AdamKom`;
+const VARIABLES = [
+  { code: "{{nom_entreprise}}", label: "Nom entreprise", description: "Le nom de l'entreprise du client" },
+  { code: "{{nom_livrable}}", label: "Nom livrable", description: "Le nom du livrable" },
+  { code: "{{lien_livrable}}", label: "Lien livrable", description: "L'URL du livrable" },
+] as const;
 
-function escapeHtml(value: string) {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
+const DEFAULT_TEXT_MESSAGE = `Bonjour {{nom_entreprise}},
+
+Voici le livrable "{{nom_livrable}}". Vous pouvez le consulter ci-dessous.
+
+Dites-moi si vous souhaitez des ajustements avant validation.
+
+Cordialement,
+L'équipe AdamKom`;
+
+const DEFAULT_HTML_MESSAGE = `<div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;background:#ffffff;color:#0f172a">
+  <div style="background:#1E3A5F;padding:24px;text-align:center">
+    <h1 style="color:#ffffff;margin:0;font-size:28px">ADAMKOM by JJP</h1>
+    <p style="color:#DAA520;margin:8px 0 0">Envoi de livrable</p>
+  </div>
+  <div style="padding:32px 24px">
+    <p style="margin-top:0">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
+    <p style="line-height:1.7;font-size:15px">
+      Voici le livrable <strong>{{nom_livrable}}</strong>. Vous pouvez le consulter ci-dessous.
+    </p>
+    <div style="margin:28px 0;text-align:center">
+      <a href="{{lien_livrable}}" style="display:inline-block;background:#1E3A5F;color:#ffffff;padding:14px 24px;border-radius:999px;text-decoration:none;font-weight:700">
+        Ouvrir {{nom_livrable}}
+      </a>
+    </div>
+    <p>N'hésitez pas à nous contacter pour toute remarque.</p>
+    <p>Cordialement,<br>L'équipe AdamKom</p>
+  </div>
+  <div style="background:#f8fafc;padding:18px 24px;border-top:1px solid #e2e8f0">
+    <p style="margin:0;font-size:12px;color:#475569">ADAMKOM by JJP — contact@adamkom.com — 0693 802 201</p>
+  </div>
+</div>`;
 
 function formatBytes(bytes: number) {
   if (bytes < 1024) return `${bytes} o`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} Ko`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
-}
-
-function buildEmailHtml({
-  clientName,
-  deliverableName,
-  message,
-  linkUrl,
-}: {
-  clientName: string;
-  deliverableName: string;
-  message: string;
-  linkUrl: string;
-}) {
-  const safeMessage = escapeHtml(message).replace(/\n/g, "<br />");
-  const safeClientName = escapeHtml(clientName);
-  const safeDeliverableName = escapeHtml(deliverableName);
-  const safeLinkUrl = linkUrl.trim();
-
-  return `
-    <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;background:#ffffff;color:#0f172a">
-      <div style="background:#1E3A5F;padding:24px;text-align:center">
-        <h1 style="color:#ffffff;margin:0;font-size:28px">ADAMKOM by JJP</h1>
-        <p style="color:#DAA520;margin:8px 0 0">Envoi de livrable</p>
-      </div>
-      <div style="padding:32px 24px">
-        <p style="margin-top:0">Bonjour <strong>${safeClientName}</strong>,</p>
-        <div style="line-height:1.7;font-size:15px">${safeMessage}</div>
-        ${safeLinkUrl ? `
-          <div style="margin:28px 0;text-align:center">
-            <a href="${safeLinkUrl}" style="display:inline-block;background:#1E3A5F;color:#ffffff;padding:14px 24px;border-radius:999px;text-decoration:none;font-weight:700">
-              Ouvrir ${safeDeliverableName}
-            </a>
-          </div>
-          <p style="font-size:13px;color:#475569;word-break:break-all">Lien direct : <a href="${safeLinkUrl}" style="color:#1E3A5F">${safeLinkUrl}</a></p>
-        ` : ""}
-      </div>
-      <div style="background:#f8fafc;padding:18px 24px;border-top:1px solid #e2e8f0">
-        <p style="margin:0;font-size:12px;color:#475569">ADAMKOM by JJP — contact@adamkom.com — 0693 802 201</p>
-      </div>
-    </div>
-  `;
 }
 
 export default function ProjectDeliverableEmail() {
@@ -95,6 +83,7 @@ export default function ProjectDeliverableEmail() {
   const [recipientEmail, setRecipientEmail] = useState(clientEmail);
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
+  const [editorMode, setEditorMode] = useState<"text" | "html">("text");
   const [linkUrl, setLinkUrl] = useState("");
   const [uploadedAttachment, setUploadedAttachment] = useState<UploadedAttachment | null>(null);
   const [attachDeliverableLink, setAttachDeliverableLink] = useState(true);
@@ -103,19 +92,73 @@ export default function ProjectDeliverableEmail() {
   useEffect(() => {
     if (!deliverable) return;
     setSubject((current) => current || `Votre livrable est prêt - ${deliverable.name}`);
-    setMessage((current) => current || DEFAULT_MESSAGE({ clientName, deliverableName: deliverable.name }));
+    setMessage((current) => current || DEFAULT_TEXT_MESSAGE);
     setLinkUrl((current) => current || deliverable.file_url || "");
   }, [deliverable, clientName]);
 
-  const htmlContent = useMemo(() => {
+  const replaceVariables = useCallback(
+    (text: string) => {
+      if (!deliverable) return text;
+      return text
+        .replace(/\{\{nom_entreprise\}\}/g, clientName)
+        .replace(/\{\{nom_livrable\}\}/g, deliverable.name)
+        .replace(/\{\{lien_livrable\}\}/g, linkUrl.trim());
+    },
+    [clientName, deliverable, linkUrl],
+  );
+
+  const resolvedHtmlContent = useMemo(() => {
     if (!deliverable) return "";
-    return buildEmailHtml({
-      clientName,
-      deliverableName: deliverable.name,
-      message,
-      linkUrl,
-    });
-  }, [clientName, deliverable, linkUrl, message]);
+    const resolved = replaceVariables(message);
+    if (editorMode === "html") {
+      return DOMPurify.sanitize(resolved, { ADD_TAGS: ["style"], ADD_ATTR: ["style"] });
+    }
+    // Text mode: wrap in the branded template
+    const escapedMsg = resolved
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\n/g, "<br />");
+    const safeLinkUrl = linkUrl.trim();
+    const safeName = deliverable.name
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+    return `
+      <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;background:#ffffff;color:#0f172a">
+        <div style="background:#1E3A5F;padding:24px;text-align:center">
+          <h1 style="color:#ffffff;margin:0;font-size:28px">ADAMKOM by JJP</h1>
+          <p style="color:#DAA520;margin:8px 0 0">Envoi de livrable</p>
+        </div>
+        <div style="padding:32px 24px;line-height:1.7;font-size:15px">${escapedMsg}
+          ${safeLinkUrl ? `
+            <div style="margin:28px 0;text-align:center">
+              <a href="${safeLinkUrl}" style="display:inline-block;background:#1E3A5F;color:#ffffff;padding:14px 24px;border-radius:999px;text-decoration:none;font-weight:700">
+                Ouvrir ${safeName}
+              </a>
+            </div>
+          ` : ""}
+        </div>
+        <div style="background:#f8fafc;padding:18px 24px;border-top:1px solid #e2e8f0">
+          <p style="margin:0;font-size:12px;color:#475569">ADAMKOM by JJP — contact@adamkom.com — 0693 802 201</p>
+        </div>
+      </div>
+    `;
+  }, [deliverable, editorMode, linkUrl, message, replaceVariables]);
+
+  const handleInsertVariable = (varCode: string) => {
+    setMessage((prev) => prev + varCode);
+  };
+
+  const handleSwitchMode = (mode: string) => {
+    if (mode === "html" && editorMode === "text") {
+      setMessage(DEFAULT_HTML_MESSAGE);
+      setEditorMode("html");
+    } else if (mode === "text" && editorMode === "html") {
+      setMessage(DEFAULT_TEXT_MESSAGE);
+      setEditorMode("text");
+    }
+  };
 
   const handleAttachmentChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -186,7 +229,7 @@ export default function ProjectDeliverableEmail() {
           designUrl: linkUrl.trim(),
           designName: deliverable.name,
           subject: subject.trim(),
-          htmlContent,
+          htmlContent: resolvedHtmlContent,
           attachment: attachments,
         },
       });
@@ -277,18 +320,45 @@ export default function ProjectDeliverableEmail() {
                 onChange={(e) => setLinkUrl(e.target.value)}
                 placeholder="https://..."
               />
-              <p className="text-xs text-muted-foreground">Vous pouvez mettre ici le lien du site, du chatbot, d'une vidéo ou de tout autre livrable.</p>
+              <p className="text-xs text-muted-foreground">Lien du site, chatbot, vidéo, etc. Utilisable dans le message via <code className="rounded bg-muted px-1">{"{{lien_livrable}}"}</code></p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="message">Message</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="message">Contenu du message</Label>
+                <Tabs value={editorMode} onValueChange={handleSwitchMode}>
+                  <TabsList className="h-7">
+                    <TabsTrigger value="text" className="gap-1 text-xs px-2 py-0.5"><FileText className="h-3 w-3" />Texte</TabsTrigger>
+                    <TabsTrigger value="html" className="gap-1 text-xs px-2 py-0.5"><Code className="h-3 w-3" />HTML</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+
+              <div className="flex flex-wrap gap-1.5 pb-1">
+                <span className="text-xs text-muted-foreground mr-1 self-center">Variables :</span>
+                {VARIABLES.map((v) => (
+                  <Badge
+                    key={v.code}
+                    variant="secondary"
+                    className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors text-xs"
+                    onClick={() => handleInsertVariable(v.code)}
+                    title={v.description}
+                  >
+                    {v.code}
+                  </Badge>
+                ))}
+              </div>
+
               <Textarea
                 id="message"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                className="min-h-[220px]"
-                placeholder="Votre message..."
+                className={editorMode === "html" ? "min-h-[320px] font-mono text-xs" : "min-h-[220px]"}
+                placeholder={editorMode === "html" ? "<div>Votre contenu HTML ici...</div>" : "Votre message texte..."}
               />
+              {editorMode === "html" && (
+                <p className="text-xs text-muted-foreground">Écrivez directement du HTML/CSS. Les variables <code className="rounded bg-muted px-1">{"{{...}}"}</code> seront remplacées automatiquement.</p>
+              )}
             </div>
 
             <div className="space-y-3 rounded-xl border border-border p-4">
@@ -356,7 +426,7 @@ export default function ProjectDeliverableEmail() {
             <div className="overflow-hidden rounded-xl border border-border bg-background">
               <div className="border-b border-border px-4 py-3 text-sm text-muted-foreground">Prévisualisation du message</div>
               <div className="max-h-[560px] overflow-auto p-4">
-                <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(resolvedHtmlContent, { ADD_TAGS: ["style"], ADD_ATTR: ["style"] }) }} />
               </div>
             </div>
           </CardContent>

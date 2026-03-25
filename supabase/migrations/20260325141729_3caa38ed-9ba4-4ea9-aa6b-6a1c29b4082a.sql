@@ -1,0 +1,1 @@
+ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS module_links jsonb DEFAULT '{}'::jsonb;

@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,7 @@ interface NfcClient {
 export default function NfcClients() {
   const { user, hasRole } = useAuth();
   const isAdmin = hasRole("admin");
+  const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Import state
@@ -369,7 +371,7 @@ export default function NfcClients() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.01, duration: 0.15 }}
             >
-              <Card className="border border-border/50 hover:border-primary/20 shadow-soft hover:shadow-medium transition-all duration-200">
+              <Card className="border border-border/50 hover:border-primary/20 shadow-soft hover:shadow-medium transition-all duration-200 cursor-pointer" onClick={() => navigate(`/clients/${client.id}`)}>
                 <CardContent className="flex items-center gap-4 py-3 px-4">
                   <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                     <CreditCard className="w-4 h-4 text-primary" />

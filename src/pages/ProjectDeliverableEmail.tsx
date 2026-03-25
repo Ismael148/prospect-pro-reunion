@@ -261,6 +261,7 @@ export default function ProjectDeliverableEmail() {
   const { data: project, isLoading: isProjectLoading } = useProject(projectId || "");
   const { data: deliverables, isLoading: isDeliverablesLoading } = useDeliverables(projectId || "");
   const { data: emailHistory } = useEmailHistory(deliverableId);
+  const { data: savedTemplates } = useSavedTemplates();
   const deliverable = useMemo(
     () => deliverables?.find((item) => item.id === deliverableId),
     [deliverables, deliverableId],
@@ -280,6 +281,9 @@ export default function ProjectDeliverableEmail() {
   const [uploadedAttachment, setUploadedAttachment] = useState<UploadedAttachment | null>(null);
   const [sending, setSending] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [saveTemplateName, setSaveTemplateName] = useState("");
+  const [savingTemplate, setSavingTemplate] = useState(false);
 
   useEffect(() => {
     if (!deliverable || initialized) return;

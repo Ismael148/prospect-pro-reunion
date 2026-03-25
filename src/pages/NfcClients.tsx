@@ -228,7 +228,7 @@ export default function NfcClients() {
             <CreditCard className="w-6 h-6 text-primary" /> Cartes NFC
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Gestion des clients avec cartes NFC
+            {filteredClients.length} / {nfcClients.length} client{nfcClients.length > 1 ? "s" : ""} NFC
           </p>
         </div>
         {isAdmin && (

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,9 +13,8 @@ import {
 import {
   DELIVERABLE_STATUS_LABELS, PACK_DELIVERABLES,
 } from "@/lib/constants";
-import { Plus, Loader2, Package, CheckCircle2, Circle, AlertTriangle, Mail, Send } from "lucide-react";
+import { Plus, Loader2, Package, CheckCircle2, Circle, AlertTriangle, Send } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -36,9 +36,9 @@ interface Props {
 export default function ProjectDeliverables({
   projectId, packType, deliverables, clientEmail, clientName, onAdd, onStatusChange, onAutoCreate, isCreating,
 }: Props) {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: "", description: "" });
-  const [sendingDesign, setSendingDesign] = useState<string | null>(null);
 
   const handleAdd = async () => {
     if (!form.name.trim()) { toast.error("Nom requis"); return; }
@@ -48,35 +48,7 @@ export default function ProjectDeliverables({
   };
 
   const handleSendDesign = async (deliverable: Deliverable) => {
-    if (!clientEmail) {
-      toast.error("Ce client n'a pas d'adresse email");
-      return;
-    }
-    if (!deliverable.file_url) {
-      toast.error("Aucun fichier attaché à ce livrable. Ajoutez d'abord un visuel.");
-      return;
-    }
-
-    setSendingDesign(deliverable.id);
-    try {
-      const { data, error } = await supabase.functions.invoke("send-brevo-campaign", {
-        body: {
-          action: "send_design",
-          recipientEmail: clientEmail,
-          recipientName: clientName || "",
-          clientName: clientName || "",
-          designUrl: deliverable.file_url,
-          designName: deliverable.name,
-        },
-      });
-
-      if (error) throw error;
-      toast.success(`Design "${deliverable.name}" envoyé à ${clientEmail}`);
-    } catch (err: any) {
-      toast.error("Erreur d'envoi: " + (err.message || "Erreur inconnue"));
-    } finally {
-      setSendingDesign(null);
-    }
+    navigate(`/projets/${projectId}/livrables/${deliverable.id}/envoyer`);
   };
 
   return (
@@ -118,7 +90,6 @@ export default function ProjectDeliverables({
           <div className="space-y-2">
             {deliverables.map((d) => {
               const StatusIcon = d.status === "approuve" ? CheckCircle2 : d.status === "rejete" ? AlertTriangle : Circle;
-              const isSending = sendingDesign === d.id;
               return (
                 <div key={d.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
                   <StatusIcon className={`w-5 h-5 shrink-0 ${
@@ -137,15 +108,10 @@ export default function ProjectDeliverables({
                     variant="ghost"
                     size="sm"
                     className="gap-1.5 text-xs"
-                    disabled={isSending || !d.file_url}
                     onClick={() => handleSendDesign(d)}
-                    title={!d.file_url ? "Ajoutez d'abord un fichier" : `Envoyer à ${clientEmail || "pas d'email"}`}
+                    title={`Préparer l'email pour ${clientName || clientEmail || "ce client"}`}
                   >
-                    {isSending ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <Send className="w-3.5 h-3.5" />
-                    )}
+                    <Send className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline">Envoyer</span>
                   </Button>
                   <Select value={d.status} onValueChange={(v) => onStatusChange(d.id, v as DeliverableStatus)}>

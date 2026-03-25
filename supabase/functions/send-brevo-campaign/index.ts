@@ -95,13 +95,13 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'send_design') {
-      const { recipientEmail, recipientName, clientName, designUrl, designName } = body;
+      const { recipientEmail, recipientName, clientName, designUrl, designName, subject, htmlContent: customHtmlContent, attachment } = body;
 
-      if (!recipientEmail || !designUrl) {
+      if (!recipientEmail) {
         return new Response(JSON.stringify({ error: 'Champs manquants' }), { status: 400, headers: corsHeaders });
       }
 
-      const htmlContent = `
+      const htmlContent = customHtmlContent || `
         <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
           <div style="background:#1E3A5F;padding:20px;text-align:center">
             <h1 style="color:#fff;margin:0">ADAMKOM by JJP</h1>
@@ -110,9 +110,11 @@ Deno.serve(async (req) => {
           <div style="padding:30px">
             <p>Bonjour <strong>${recipientName || clientName}</strong>,</p>
             <p>Voici votre nouveau design <strong>${designName || ''}</strong> :</p>
-            <div style="text-align:center;margin:20px 0">
-              <img src="${designUrl}" alt="Design" style="max-width:100%;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.1)" />
-            </div>
+            ${designUrl ? `
+              <div style="text-align:center;margin:20px 0">
+                <img src="${designUrl}" alt="Design" style="max-width:100%;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.1)" />
+              </div>
+            ` : ''}
             <p>N'hésitez pas à nous contacter si vous avez des remarques ou modifications à apporter.</p>
             <p>Cordialement,<br>L'équipe AdamKom</p>
           </div>
@@ -121,6 +123,10 @@ Deno.serve(async (req) => {
           </div>
         </div>
       `;
+
+      const normalizedAttachments = Array.isArray(attachment)
+        ? attachment.filter((item) => item && typeof item.name === 'string' && (typeof item.url === 'string' || typeof item.content === 'string'))
+        : [];
 
       const response = await fetch('https://api.brevo.com/v3/smtp/email', {
         method: 'POST',
@@ -132,8 +138,9 @@ Deno.serve(async (req) => {
         body: JSON.stringify({
           sender: { name: 'AdamKom Design', email: 'contact@adamkom.com' },
           to: [{ email: recipientEmail, name: recipientName || clientName }],
-          subject: `Votre nouveau design - ${designName || clientName}`,
+          subject: subject || `Votre nouveau design - ${designName || clientName}`,
           htmlContent,
+          ...(normalizedAttachments.length ? { attachment: normalizedAttachments } : {}),
         }),
       });
 

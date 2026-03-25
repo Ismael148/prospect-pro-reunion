@@ -72,6 +72,7 @@ export default function Campaigns() {
   const [selectedTemplate, setSelectedTemplate] = useState("promo");
   const [subject, setSubject] = useState(EMAIL_TEMPLATES[0].subject);
   const [htmlContent, setHtmlContent] = useState(EMAIL_TEMPLATES[0].html);
+  const [campaignName, setCampaignName] = useState("");
   const [selectedClients, setSelectedClients] = useState<Set<string>>(new Set());
   const [sending, setSending] = useState(false);
   const [results, setResults] = useState<{ sent: number; failed: number } | null>(null);

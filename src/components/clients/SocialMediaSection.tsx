@@ -1,4 +1,5 @@
 import { useState } from "react";
+import EditorialCalendar from "@/components/clients/EditorialCalendar";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

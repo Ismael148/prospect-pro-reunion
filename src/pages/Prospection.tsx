@@ -40,6 +40,38 @@ import type { Database } from "@/integrations/supabase/types";
 
 type ProspectStatus = Database["public"]["Enums"]["prospect_status"];
 
+// Platform icon + label helper
+function getPlatformInfo(url: string): { icon: React.ReactNode; label: string; color: string } {
+  const u = url.toLowerCase();
+  if (u.includes("google.com/maps") || u.includes("goo.gl/maps"))
+    return { icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" fill="#EA4335"/></svg>, label: "Google Maps", color: "text-red-500" };
+  if (u.includes("facebook.com"))
+    return { icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none"><path d="M24 12c0-6.627-5.373-12-12-12S0 5.373 0 12c0 5.99 4.388 10.954 10.125 11.854V15.47H7.078V12h3.047V9.356c0-3.007 1.792-4.668 4.533-4.668 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874V12h3.328l-.532 3.47h-2.796v8.385C19.612 22.954 24 17.99 24 12z" fill="#1877F2"/></svg>, label: "Facebook", color: "text-blue-600" };
+  if (u.includes("instagram.com"))
+    return { icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="ig" x1="0" y1="24" x2="24" y2="0"><stop offset="0%" stopColor="#FFDC80"/><stop offset="25%" stopColor="#F77737"/><stop offset="50%" stopColor="#E1306C"/><stop offset="75%" stopColor="#C13584"/><stop offset="100%" stopColor="#833AB4"/></linearGradient></defs><rect x="2" y="2" width="20" height="20" rx="5" stroke="url(#ig)" strokeWidth="2"/><circle cx="12" cy="12" r="4.5" stroke="url(#ig)" strokeWidth="2"/><circle cx="17.5" cy="6.5" r="1.25" fill="url(#ig)"/></svg>, label: "Instagram", color: "text-pink-500" };
+  if (u.includes("linkedin.com"))
+    return { icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 1 1 0-4.125 2.062 2.062 0 0 1 0 4.125zM6.866 20.452H3.809V9h3.057v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" fill="#0A66C2"/></svg>, label: "LinkedIn", color: "text-blue-700" };
+  if (u.includes("pagesjaunes.fr"))
+    return { icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none"><rect x="3" y="2" width="18" height="20" rx="2" fill="#FFD200"/><path d="M8 7h8M8 11h8M8 15h5" stroke="#333" strokeWidth="1.5" strokeLinecap="round"/></svg>, label: "Pages Jaunes", color: "text-yellow-500" };
+  if (u.includes("tripadvisor"))
+    return { icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none"><circle cx="8" cy="14" r="3" stroke="#00AF87" strokeWidth="2"/><circle cx="16" cy="14" r="3" stroke="#00AF87" strokeWidth="2"/><path d="M12 5c-3 0-5.5 1.5-7 3h14c-1.5-1.5-4-3-7-3z" fill="#00AF87"/></svg>, label: "TripAdvisor", color: "text-emerald-500" };
+  if (u.includes("yelp.com"))
+    return { icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none"><path d="M12 2L9 14l-5-3 5 7 3-2 3 2 5-7-5 3z" fill="#D32323"/></svg>, label: "Yelp", color: "text-red-600" };
+  return { icon: <ExternalLink className="w-4 h-4" />, label: "Site web", color: "text-muted-foreground" };
+}
+
+function SourceLink({ url, className = "" }: { url: string; className?: string }) {
+  const { icon, label } = getPlatformInfo(url);
+  return (
+    <div className={cn("flex items-center gap-2", className)}>
+      {icon}
+      <a href={url} target="_blank" rel="noopener noreferrer" className="text-primary underline text-xs" onClick={(e) => e.stopPropagation()}>
+        {label}
+      </a>
+    </div>
+  );
+}
+
 const REUNION_CITIES = [
   "Saint-Denis", "Saint-Paul", "Saint-Pierre", "Le Tampon", "Saint-André",
   "Saint-Louis", "Le Port", "Saint-Benoît", "Saint-Joseph", "Sainte-Marie",

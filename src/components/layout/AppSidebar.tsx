@@ -15,6 +15,7 @@ import {
   LifeBuoy,
   FileText,
   Mail,
+  CreditCard,
 } from "lucide-react";
 import logo from "@/assets/logo.webp";
 import {
@@ -33,7 +34,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useMemo } from "react";
 
 const ROLE_ACCESS: Record<string, string[]> = {
-  admin: ["/", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/comptabilite", "/facturation", "/support", "/campagnes", "/equipe", "/parametres"],
+  admin: ["/", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/comptabilite", "/facturation", "/support", "/campagnes", "/equipe", "/parametres", "/cartes-nfc"],
   agent_telephonique: ["/", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support"],
   commercial_terrain: ["/", "/prospection", "/clients", "/pipeline", "/commissions"],
   webmaster: ["/", "/projets", "/webmaster"],
@@ -43,6 +44,7 @@ const ROLE_ACCESS: Record<string, string[]> = {
 const allMenuItems = [
   { title: "Dashboard", icon: LayoutDashboard, path: "/" },
   { title: "Clients", icon: Users, path: "/clients" },
+  { title: "Cartes NFC", icon: CreditCard, path: "/cartes-nfc" },
   { title: "Prospection", icon: Search, path: "/prospection" },
   { title: "Pipeline", icon: FolderKanban, path: "/pipeline" },
   { title: "Projets", icon: Briefcase, path: "/projets" },

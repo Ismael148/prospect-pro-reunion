@@ -173,151 +173,179 @@ export default function Campaigns() {
         </Badge>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Template & Content */}
-        <div className="lg:col-span-2 space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Modèle d'email</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex gap-2 flex-wrap">
-                {EMAIL_TEMPLATES.map((tpl) => (
-                  <Button
-                    key={tpl.id}
-                    variant={selectedTemplate === tpl.id ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleTemplateChange(tpl.id)}
-                  >
-                    {tpl.label}
-                  </Button>
-                ))}
-              </div>
+      <Tabs defaultValue="compose" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="compose" className="gap-1.5">
+            <Send className="w-4 h-4" />
+            Composer
+          </TabsTrigger>
+          <TabsTrigger value="history" className="gap-1.5">
+            <History className="w-4 h-4" />
+            Suivi des envois
+          </TabsTrigger>
+        </TabsList>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Objet de l'email</label>
-                <Input
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  placeholder="Objet de votre email..."
-                />
-              </div>
+        <TabsContent value="compose">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Template & Content */}
+            <div className="lg:col-span-2 space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Modèle d'email</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex gap-2 flex-wrap">
+                    {EMAIL_TEMPLATES.map((tpl) => (
+                      <Button
+                        key={tpl.id}
+                        variant={selectedTemplate === tpl.id ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handleTemplateChange(tpl.id)}
+                      >
+                        {tpl.label}
+                      </Button>
+                    ))}
+                  </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Contenu HTML</label>
-                <Textarea
-                  value={htmlContent}
-                  onChange={(e) => setHtmlContent(e.target.value)}
-                  placeholder="Contenu HTML de votre email..."
-                  className="min-h-[300px] font-mono text-xs"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Preview */}
-          {htmlContent && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Aperçu</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div
-                  className="border rounded-lg p-4 bg-white"
-                  dangerouslySetInnerHTML={{ __html: htmlContent }}
-                />
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Recipients */}
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                Destinataires ({selectedClients.size})
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center gap-2 pb-2 border-b">
-                <Checkbox
-                  checked={selectAll}
-                  onCheckedChange={(checked) => handleSelectAll(!!checked)}
-                />
-                <span className="text-sm font-medium">
-                  Tout sélectionner ({clientsWithEmail.length})
-                </span>
-              </div>
-
-              <div className="max-h-[400px] overflow-y-auto space-y-2">
-                {clientsWithEmail.map((client) => (
-                  <label
-                    key={client.id}
-                    className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                  >
-                    <Checkbox
-                      checked={selectedClients.has(client.id)}
-                      onCheckedChange={() => toggleClient(client.id)}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Nom de la campagne</label>
+                    <Input
+                      value={campaignName}
+                      onChange={(e) => setCampaignName(e.target.value)}
+                      placeholder="Ex: Promo été 2026, Newsletter mars..."
                     />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium truncate">{client.company_name}</p>
-                      <p className="text-xs text-muted-foreground truncate">{client.email}</p>
-                    </div>
-                  </label>
-                ))}
-              </div>
+                  </div>
 
-              {clientsWithEmail.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  Aucun client avec une adresse email
-                </p>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Objet de l'email</label>
+                    <Input
+                      value={subject}
+                      onChange={(e) => setSubject(e.target.value)}
+                      placeholder="Objet de votre email..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Contenu HTML</label>
+                    <Textarea
+                      value={htmlContent}
+                      onChange={(e) => setHtmlContent(e.target.value)}
+                      placeholder="Contenu HTML de votre email..."
+                      className="min-h-[300px] font-mono text-xs"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Preview */}
+              {htmlContent && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Aperçu</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div
+                      className="border rounded-lg p-4 bg-background"
+                      dangerouslySetInnerHTML={{ __html: htmlContent }}
+                    />
+                  </CardContent>
+                </Card>
               )}
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Send */}
-          <Button
-            onClick={handleSend}
-            disabled={sending || selectedClients.size === 0}
-            className="w-full"
-            size="lg"
-          >
-            {sending ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Envoi en cours...
-              </>
-            ) : (
-              <>
-                <Send className="w-4 h-4 mr-2" />
-                Envoyer à {selectedClients.size} client(s)
-              </>
-            )}
-          </Button>
+            {/* Recipients */}
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    Destinataires ({selectedClients.size})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center gap-2 pb-2 border-b">
+                    <Checkbox
+                      checked={selectAll}
+                      onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                    />
+                    <span className="text-sm font-medium">
+                      Tout sélectionner ({clientsWithEmail.length})
+                    </span>
+                  </div>
 
-          {/* Results */}
-          {results && (
-            <Card>
-              <CardContent className="pt-4 space-y-2">
-                {results.sent > 0 && (
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle className="w-4 h-4" />
-                    <span className="text-sm">{results.sent} envoyé(s)</span>
+                  <div className="max-h-[400px] overflow-y-auto space-y-2">
+                    {clientsWithEmail.map((client) => (
+                      <label
+                        key={client.id}
+                        className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                      >
+                        <Checkbox
+                          checked={selectedClients.has(client.id)}
+                          onCheckedChange={() => toggleClient(client.id)}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium truncate">{client.company_name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{client.email}</p>
+                        </div>
+                      </label>
+                    ))}
                   </div>
+
+                  {clientsWithEmail.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      Aucun client avec une adresse email
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Send */}
+              <Button
+                onClick={handleSend}
+                disabled={sending || selectedClients.size === 0}
+                className="w-full"
+                size="lg"
+              >
+                {sending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Envoi en cours...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4 mr-2" />
+                    Envoyer à {selectedClients.size} client(s)
+                  </>
                 )}
-                {results.failed > 0 && (
-                  <div className="flex items-center gap-2 text-destructive">
-                    <AlertCircle className="w-4 h-4" />
-                    <span className="text-sm">{results.failed} en échec</span>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
+              </Button>
+
+              {/* Results */}
+              {results && (
+                <Card>
+                  <CardContent className="pt-4 space-y-2">
+                    {results.sent > 0 && (
+                      <div className="flex items-center gap-2 text-green-600">
+                        <CheckCircle className="w-4 h-4" />
+                        <span className="text-sm">{results.sent} envoyé(s)</span>
+                      </div>
+                    )}
+                    {results.failed > 0 && (
+                      <div className="flex items-center gap-2 text-destructive">
+                        <AlertCircle className="w-4 h-4" />
+                        <span className="text-sm">{results.failed} en échec</span>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="history">
+          <CampaignHistory />
+        </TabsContent>
+      </Tabs>
     </motion.div>
   );
 }

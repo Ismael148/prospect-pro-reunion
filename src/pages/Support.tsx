@@ -64,6 +64,54 @@ export default function Support() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const [adminNotes, setAdminNotes] = useState("");
+  const [teamMembers, setTeamMembers] = useState<{ user_id: string; full_name: string; role: string }[]>([]);
+
+  // Fetch team members for assignment
+  useEffect(() => {
+    if (!isAdmin) return;
+    (async () => {
+      const { data: roles } = await supabase.from("user_roles").select("user_id, role");
+      if (!roles?.length) return;
+      const { data: profiles } = await supabase.from("profiles").select("user_id, full_name");
+      const members = roles.map((r) => ({
+        user_id: r.user_id,
+        full_name: profiles?.find((p) => p.user_id === r.user_id)?.full_name || r.user_id,
+        role: r.role,
+      }));
+      // Deduplicate by user_id
+      const unique = Array.from(new Map(members.map((m) => [m.user_id, m])).values());
+      setTeamMembers(unique);
+    })();
+  }, [isAdmin]);
+
+  const getAssigneeName = (userId: string | null) => {
+    if (!userId) return null;
+    return teamMembers.find((m) => m.user_id === userId)?.full_name || "—";
+  };
+
+  const handleAssignTicket = async (ticketId: string, assignedTo: string | null) => {
+    try {
+      await updateTicket.mutateAsync({ id: ticketId, assigned_to: assignedTo } as any);
+      if (assignedTo) {
+        const memberName = getAssigneeName(assignedTo);
+        // Create notification for assigned member
+        await supabase.from("notifications").insert({
+          user_id: assignedTo,
+          title: "Ticket support assigné",
+          message: `Le ticket "${selectedTicket?.subject}" vous a été assigné.`,
+          type: "support",
+          link: "/support",
+        });
+        toast.success(`Ticket assigné à ${memberName}`);
+        setSelectedTicket((prev: any) => prev ? { ...prev, assigned_to: assignedTo } : null);
+      } else {
+        toast.success("Assignation retirée");
+        setSelectedTicket((prev: any) => prev ? { ...prev, assigned_to: null } : null);
+      }
+    } catch {
+      toast.error("Erreur d'assignation");
+    }
+  };
 
   const getClientName = (clientId: string) =>
     clients?.find((c) => c.id === clientId)?.company_name || "—";

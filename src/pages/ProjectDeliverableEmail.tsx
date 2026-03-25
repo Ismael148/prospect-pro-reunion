@@ -306,6 +306,42 @@ export default function ProjectDeliverableEmail() {
     if (tpl) { setSubject(tpl.subject); setMessage(tpl.body); }
   };
 
+  const handleLoadSavedTemplate = (tpl: any) => {
+    setSelectedTemplateId("custom_saved");
+    setSubject(tpl.subject);
+    setMessage(tpl.body);
+    toast.success(`Modèle "${tpl.name}" chargé`);
+  };
+
+  const handleSaveTemplate = async () => {
+    if (!saveTemplateName.trim()) { toast.error("Donnez un nom au modèle"); return; }
+    setSavingTemplate(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Non authentifié");
+      const { error } = await supabase.from("saved_email_templates" as any).insert({
+        name: saveTemplateName.trim(),
+        subject,
+        body: message,
+        category: selectedTemplateId || "custom",
+        created_by: user.id,
+      } as any);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["saved_email_templates"] });
+      toast.success("Modèle sauvegardé !");
+      setSaveDialogOpen(false);
+      setSaveTemplateName("");
+    } catch (e: any) { toast.error(e.message || "Erreur"); }
+    finally { setSavingTemplate(false); }
+  };
+
+  const handleDeleteSavedTemplate = async (id: string, name: string) => {
+    const { error } = await supabase.from("saved_email_templates" as any).delete().eq("id", id);
+    if (error) { toast.error("Erreur suppression"); return; }
+    queryClient.invalidateQueries({ queryKey: ["saved_email_templates"] });
+    toast.success(`"${name}" supprimé`);
+  };
+
   const replaceVariables = useCallback(
     (text: string) => {
       if (!deliverable) return text;

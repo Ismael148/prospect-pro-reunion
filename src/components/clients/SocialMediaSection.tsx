@@ -1,4 +1,5 @@
 import { useState } from "react";
+import EditorialCalendar from "@/components/clients/EditorialCalendar";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -279,6 +280,7 @@ export default function SocialMediaSection({ clientId }: { clientId: string }) {
                 </span>
               )}
             </TabsTrigger>
+            <TabsTrigger value="calendrier">📅 Calendrier</TabsTrigger>
           </TabsList>
 
           {/* ─── TAB: COMPTES ─── */}
@@ -468,6 +470,10 @@ export default function SocialMediaSection({ clientId }: { clientId: string }) {
                 })}
               </div>
             )}
+          </TabsContent>
+          {/* ─── TAB: CALENDRIER ÉDITORIAL ─── */}
+          <TabsContent value="calendrier" className="mt-0">
+            <EditorialCalendar />
           </TabsContent>
         </Tabs>
       </CardContent>

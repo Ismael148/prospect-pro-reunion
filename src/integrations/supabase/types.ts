@@ -126,6 +126,7 @@ export type Database = {
           signature_date: string | null
           signed_by: string | null
           siret: string | null
+          site_type: string | null
           support_token: string | null
           updated_at: string
           website: string | null
@@ -153,6 +154,7 @@ export type Database = {
           signature_date?: string | null
           signed_by?: string | null
           siret?: string | null
+          site_type?: string | null
           support_token?: string | null
           updated_at?: string
           website?: string | null
@@ -180,6 +182,7 @@ export type Database = {
           signature_date?: string | null
           signed_by?: string | null
           siret?: string | null
+          site_type?: string | null
           support_token?: string | null
           updated_at?: string
           website?: string | null

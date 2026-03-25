@@ -70,7 +70,9 @@ export default function NfcClients() {
     setLoaded(true);
   }, []);
 
-  if (!loaded) loadNfcClients();
+  // Load on mount
+  import { useEffect } from "react";
+
 
   // CSV parsing
   const handleFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

@@ -242,9 +242,7 @@ export default function ImportCSV() {
 
       if (target === "clients") {
         record.created_by = user.id;
-        // Les anciens clients importés sont déjà signés
         record.pipeline_status = record.pipeline_status || "contrat_signe";
-        // Normaliser pack_type
         if (record.pack_type) {
           const pt = String(record.pack_type).toLowerCase().trim();
           if (pt.includes("numerik") || pt.includes("numérik") || pt.includes("web") || pt.includes("site")) {
@@ -255,6 +253,11 @@ export default function ImportCSV() {
             record.pack_type = "autre";
           }
         }
+      } else if (target === "nfc") {
+        record.created_by = user.id;
+        record.pipeline_status = "contrat_signe";
+        record.pack_type = "star_bizness_nfc";
+        record.nfc_quantity = record.nfc_quantity || 1;
       } else {
         record.created_by = user.id;
         record.status = record.status || "nouveau";
@@ -265,13 +268,14 @@ export default function ImportCSV() {
 
     // Filter out rows missing required fields
     const validRows = allRows.filter((r) => {
-      const nameField = target === "clients" ? "company_name" : "business_name";
+      const nameField = target === "prospects" ? "business_name" : "company_name";
       return r[nameField] && String(r[nameField]).trim();
     });
 
+    const tableName = target === "nfc" ? "clients" : target;
     for (let i = 0; i < validRows.length; i += batchSize) {
       const batch = validRows.slice(i, i + batchSize);
-      const { error } = await supabase.from(target).insert(batch as any);
+      const { error } = await supabase.from(tableName).insert(batch as any);
       if (error) {
         console.error("Import batch error:", error);
         errors += batch.length;

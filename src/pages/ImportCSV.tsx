@@ -334,6 +334,7 @@ export default function ImportCSV() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="clients">Clients</SelectItem>
+                  <SelectItem value="nfc">Cartes NFC</SelectItem>
                   <SelectItem value="prospects">Prospects</SelectItem>
                 </SelectContent>
               </Select>

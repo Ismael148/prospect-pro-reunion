@@ -10,7 +10,7 @@ import {
 } from "@/hooks/use-projects";
 import {
   PROJECT_STATUS_LABELS, PACK_LABELS,
-  PACK_MODULES, PACK_DEADLINE_DAYS,
+  PACK_MODULES, PACK_DEADLINE_DAYS, getPackModules,
 } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,7 +19,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Building2, Calendar, Sparkles, Clock, AlertTriangle, RefreshCw } from "lucide-react";
+import { ArrowLeft, Loader2, Building2, Calendar, Sparkles, Clock, AlertTriangle, RefreshCw, Globe, ShoppingCart, MapPin } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 import ProjectModules from "@/components/projects/ProjectModules";
 import ProjectDeliverables from "@/components/projects/ProjectDeliverables";
@@ -47,6 +47,19 @@ export default function ProjectDetail() {
       return data || [];
     },
   });
+  
+  // Fetch client data for has_gmb
+  const clientId = project?.client_id;
+  const { data: clientData } = useQuery({
+    queryKey: ["client-gmb", clientId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("clients").select("has_gmb").eq("id", clientId!).single();
+      if (error) throw error;
+      return data as any;
+    },
+    enabled: !!clientId,
+  });
+
   const updateProject = useUpdateProject();
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
@@ -56,11 +69,33 @@ export default function ProjectDetail() {
   const [isRegenerating, setIsRegenerating] = useState(false);
   const isAdmin = hasRole("admin");
 
+  const siteType = (project as any)?.site_type || "vitrine";
+  const hasGmb = clientData?.has_gmb || false;
+
   const handleStatusChange = async (status: ProjectStatus) => {
     if (!project) return;
     try {
       await updateProject.mutateAsync({ id: project.id, status });
       toast.success("Statut mis à jour");
+    } catch { toast.error("Erreur"); }
+  };
+
+  const handleSiteTypeChange = async (type: string) => {
+    if (!project) return;
+    try {
+      await supabase.from("projects").update({ site_type: type } as any).eq("id", project.id);
+      toast.success(`Type de site : ${type === "ecommerce" ? "E-commerce" : "Vitrine"}`);
+      // Refetch project
+      window.location.reload();
+    } catch { toast.error("Erreur"); }
+  };
+
+  const handleGmbToggle = async (value: string) => {
+    if (!clientId) return;
+    try {
+      await supabase.from("clients").update({ has_gmb: value === "oui" } as any).eq("id", clientId);
+      toast.success(value === "oui" ? "Le client a déjà une fiche Google" : "Le client n'a pas de fiche Google");
+      window.location.reload();
     } catch { toast.error("Erreur"); }
   };
 
@@ -74,9 +109,13 @@ export default function ProjectDetail() {
     } catch { toast.error("Erreur"); }
   };
 
+  const handleTaskLinkUpdate = async (taskId: string, linkUrl: string) => {
+    await updateTask.mutateAsync({ id: taskId, link_url: linkUrl } as any);
+  };
+
   const handleAutoGenerateModules = async () => {
     if (!project) return;
-    const modules = PACK_MODULES[project.pack_type] || [];
+    const modules = getPackModules(project.pack_type, siteType, hasGmb);
     if (!modules.length) { toast.error("Pas de modules pour ce pack"); return; }
     try {
       let sortIndex = 0;
@@ -102,13 +141,11 @@ export default function ProjectDetail() {
 
   const handleRegenerateModules = async () => {
     if (!project || !id) return;
-    const modules = PACK_MODULES[project.pack_type] || [];
+    const modules = getPackModules(project.pack_type, siteType, hasGmb);
     if (!modules.length) { toast.error("Pas de modules pour ce pack"); return; }
     setIsRegenerating(true);
     try {
-      // Delete all existing tasks
       await deleteProjectTasks.mutateAsync(id);
-      // Recreate all tasks
       let sortIndex = 0;
       for (const mod of modules) {
         for (const task of mod.tasks) {
@@ -125,7 +162,6 @@ export default function ProjectDetail() {
           });
         }
       }
-      // Reset progress
       await updateProject.mutateAsync({ id, progress: 0 });
       const totalTasks = modules.reduce((sum, m) => sum + m.tasks.length, 0);
       toast.success(`${totalTasks} tâches regénérées dans ${modules.length} modules`);
@@ -170,7 +206,7 @@ export default function ProjectDetail() {
 
   const handleAutoCreateDeliverables = async () => {
     if (!project) return;
-    const modules = PACK_MODULES[project.pack_type] || [];
+    const modules = getPackModules(project.pack_type, siteType, hasGmb);
     const names = modules.map((m) => m.name);
     if (!names.length) { toast.error("Pas de livrables prédéfinis"); return; }
     try {
@@ -189,6 +225,7 @@ export default function ProjectDetail() {
   const daysLeft = daysUntil(project.due_date);
   const isOverdue = daysLeft !== null && daysLeft < 0;
   const isUrgent = daysLeft !== null && daysLeft >= 0 && daysLeft <= 3;
+  const isNumerik = project.pack_type === "star_bizness_numerik";
 
   return (
     <div className="space-y-6">
@@ -202,6 +239,17 @@ export default function ProjectDetail() {
             {(project as any).clients?.company_name}
             <span>•</span>
             <Badge variant="secondary" className="text-xs">{PACK_LABELS[project.pack_type]}</Badge>
+            {isNumerik && (
+              <Badge variant="outline" className="text-xs gap-1">
+                {siteType === "ecommerce" ? <><ShoppingCart className="w-3 h-3" /> E-commerce</> : <><Globe className="w-3 h-3" /> Vitrine</>}
+              </Badge>
+            )}
+            {isNumerik && (
+              <Badge variant="outline" className={`text-xs gap-1 ${hasGmb ? "bg-success/10 text-success border-success/20" : "bg-warning/10 text-warning border-warning/20"}`}>
+                <MapPin className="w-3 h-3" />
+                {hasGmb ? "Fiche Google existante" : "Pas de fiche Google"}
+              </Badge>
+            )}
           </div>
         </div>
         <Select value={project.status} onValueChange={handleStatusChange}>
@@ -213,6 +261,51 @@ export default function ProjectDetail() {
           </SelectContent>
         </Select>
       </div>
+
+      {/* Config cards for site type & GMB - only for numerik and admin, before tasks are generated */}
+      {isAdmin && isNumerik && !hasTasks && (
+        <Card className="border-0 shadow-md shadow-primary/5">
+          <CardContent className="pt-6 space-y-4">
+            <p className="text-sm font-semibold text-foreground">⚙️ Configuration du projet avant génération des tâches</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  {siteType === "ecommerce" ? <ShoppingCart className="w-4 h-4 text-primary" /> : <Globe className="w-4 h-4 text-primary" />}
+                  Type de site
+                </label>
+                <Select value={siteType} onValueChange={handleSiteTypeChange}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="vitrine">🌐 Site vitrine (One Page)</SelectItem>
+                    <SelectItem value="ecommerce">🛒 Site e-commerce (WooCommerce)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {siteType === "ecommerce" ? "43 tâches site + catalogue produits, paiement, livraison" : "33 tâches site vitrine classique"}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-primary" />
+                  Fiche Google My Business
+                </label>
+                <Select value={hasGmb ? "oui" : "non"} onValueChange={handleGmbToggle}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="non">❌ Le client n'a PAS de fiche Google</SelectItem>
+                    <SelectItem value="oui">✅ Le client a DÉJÀ une fiche Google</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {hasGmb 
+                    ? "Tâches d'optimisation + rapport PDF avant/après pour le client" 
+                    : "Tâches de création complète de la fiche Google"}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Info cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -230,7 +323,6 @@ export default function ProjectDetail() {
                 <span>Deadline : {new Date(project.due_date).toLocaleDateString("fr-FR")}</span>
               </div>
             )}
-            {/* Deadline status with colors */}
             {daysLeft !== null && (
               <div className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
                 isOverdue 
@@ -313,6 +405,7 @@ export default function ProjectDetail() {
           onTaskStatusChange={handleTaskStatusChange}
           onAddTask={handleAddTask}
           onAssignModule={handleAssignModule}
+          onTaskLinkUpdate={handleTaskLinkUpdate}
         />
       )}
 

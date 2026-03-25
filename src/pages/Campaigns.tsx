@@ -9,8 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Mail, Send, Users, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { Mail, Send, Users, CheckCircle, AlertCircle, Loader2, History } from "lucide-react";
+import CampaignHistory from "@/components/campaigns/CampaignHistory";
 
 const EMAIL_TEMPLATES = [
   {

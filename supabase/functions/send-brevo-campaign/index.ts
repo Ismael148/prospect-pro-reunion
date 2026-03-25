@@ -22,6 +22,11 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
+    const serviceSupabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) {
@@ -37,16 +42,15 @@ Deno.serve(async (req) => {
     const { action } = body;
 
     if (action === 'send_campaign') {
-      const { subject, htmlContent, senderName, senderEmail, recipients } = body;
+      const { subject, htmlContent, senderName, senderEmail, recipients, campaignName } = body;
 
       if (!subject || !htmlContent || !recipients?.length) {
         return new Response(JSON.stringify({ error: 'Champs manquants: subject, htmlContent, recipients' }), { status: 400, headers: corsHeaders });
       }
 
       const results = { sent: 0, failed: 0, errors: [] as string[] };
-
-      // Send emails in batches of 10 to respect Brevo rate limits
       const batchSize = 10;
+
       for (let i = 0; i < recipients.length; i += batchSize) {
         const batch = recipients.slice(i, i + batchSize);
         
@@ -68,21 +72,53 @@ Deno.serve(async (req) => {
             });
 
             if (response.ok) {
+              const data = await response.json();
+              const messageId = data.messageId || null;
               results.sent++;
+
+              // Log the send
+              await serviceSupabase.from('email_send_log').insert({
+                message_id: messageId,
+                recipient_email: recipient.email,
+                recipient_name: recipient.name,
+                subject,
+                status: 'sent',
+                template_name: 'campaign',
+                campaign_name: campaignName || subject,
+                metadata: { sender: senderName, campaign: true },
+              });
             } else {
               const err = await response.text();
               results.failed++;
               results.errors.push(`${recipient.email}: ${err}`);
+
+              await serviceSupabase.from('email_send_log').insert({
+                recipient_email: recipient.email,
+                recipient_name: recipient.name,
+                subject,
+                status: 'failed',
+                template_name: 'campaign',
+                campaign_name: campaignName || subject,
+                error_message: err,
+              });
             }
           } catch (e) {
             results.failed++;
             results.errors.push(`${recipient.email}: ${e.message}`);
+
+            await serviceSupabase.from('email_send_log').insert({
+              recipient_email: recipient.email,
+              recipient_name: recipient.name,
+              subject,
+              status: 'failed',
+              template_name: 'campaign',
+              campaign_name: campaignName || subject,
+              error_message: e.message,
+            });
           }
         });
 
         await Promise.all(promises);
-        
-        // Small delay between batches
         if (i + batchSize < recipients.length) {
           await new Promise(r => setTimeout(r, 1000));
         }

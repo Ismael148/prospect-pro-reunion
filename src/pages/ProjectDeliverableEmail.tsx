@@ -48,7 +48,7 @@ function buildEmailHtml({
   message: string;
   linkUrl: string;
 }) {
-  const safeMessage = escapeHtml(message).replaceAll("\n", "<br />");
+  const safeMessage = escapeHtml(message).replace(/\n/g, "<br />");
   const safeClientName = escapeHtml(clientName);
   const safeDeliverableName = escapeHtml(deliverableName);
   const safeLinkUrl = linkUrl.trim();

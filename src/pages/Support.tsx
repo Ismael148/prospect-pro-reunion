@@ -1,8 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useSupportTickets, useUpdateTicket } from "@/hooks/use-support";
 import { useClients } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";
 import { PUBLISHED_URL } from "@/lib/constants";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
   Loader2, Search, LifeBuoy, Clock, CheckCircle, AlertCircle, XCircle,
-  MessageSquare, ExternalLink, Copy,
+  MessageSquare, ExternalLink, Copy, UserPlus,
 } from "lucide-react";
 import { motion } from "framer-motion";
 

@@ -164,6 +164,8 @@ export default function Prospection() {
   const [addForm, setAddForm] = useState({ business_name: "", phone: "", email: "", address: "", city: "", sector: "", website: "", notes: "" });
   const [editingNotes, setEditingNotes] = useState<string | null>(null);
   const [noteText, setNoteText] = useState("");
+  const [editingProspect, setEditingProspect] = useState<any | null>(null);
+  const [editForm, setEditForm] = useState({ business_name: "", phone: "", email: "", address: "", city: "", postal_code: "", sector: "", website: "", notes: "" });
   const handleSearch = async () => {
     const query = searchQuery || customQuery;
     if (!query || !searchZone) {

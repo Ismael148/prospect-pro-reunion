@@ -1,8 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useSupportTickets, useUpdateTicket } from "@/hooks/use-support";
 import { useClients } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";
 import { PUBLISHED_URL } from "@/lib/constants";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
   Loader2, Search, LifeBuoy, Clock, CheckCircle, AlertCircle, XCircle,
-  MessageSquare, ExternalLink, Copy,
+  MessageSquare, ExternalLink, Copy, UserPlus,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -63,6 +64,54 @@ export default function Support() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const [adminNotes, setAdminNotes] = useState("");
+  const [teamMembers, setTeamMembers] = useState<{ user_id: string; full_name: string; role: string }[]>([]);
+
+  // Fetch team members for assignment
+  useEffect(() => {
+    if (!isAdmin) return;
+    (async () => {
+      const { data: roles } = await supabase.from("user_roles").select("user_id, role");
+      if (!roles?.length) return;
+      const { data: profiles } = await supabase.from("profiles").select("user_id, full_name");
+      const members = roles.map((r) => ({
+        user_id: r.user_id,
+        full_name: profiles?.find((p) => p.user_id === r.user_id)?.full_name || r.user_id,
+        role: r.role,
+      }));
+      // Deduplicate by user_id
+      const unique = Array.from(new Map(members.map((m) => [m.user_id, m])).values());
+      setTeamMembers(unique);
+    })();
+  }, [isAdmin]);
+
+  const getAssigneeName = (userId: string | null) => {
+    if (!userId) return null;
+    return teamMembers.find((m) => m.user_id === userId)?.full_name || "—";
+  };
+
+  const handleAssignTicket = async (ticketId: string, assignedTo: string | null) => {
+    try {
+      await updateTicket.mutateAsync({ id: ticketId, assigned_to: assignedTo } as any);
+      if (assignedTo) {
+        const memberName = getAssigneeName(assignedTo);
+        // Create notification for assigned member
+        await supabase.from("notifications").insert({
+          user_id: assignedTo,
+          title: "Ticket support assigné",
+          message: `Le ticket "${selectedTicket?.subject}" vous a été assigné.`,
+          type: "support",
+          link: "/support",
+        });
+        toast.success(`Ticket assigné à ${memberName}`);
+        setSelectedTicket((prev: any) => prev ? { ...prev, assigned_to: assignedTo } : null);
+      } else {
+        toast.success("Assignation retirée");
+        setSelectedTicket((prev: any) => prev ? { ...prev, assigned_to: null } : null);
+      }
+    } catch {
+      toast.error("Erreur d'assignation");
+    }
+  };
 
   const getClientName = (clientId: string) =>
     clients?.find((c) => c.id === clientId)?.company_name || "—";
@@ -239,6 +288,7 @@ export default function Support() {
                       <p className="font-medium text-sm truncate mt-0.5">{ticket.subject}</p>
                       <p className="text-[11px] text-muted-foreground mt-0.5">
                         {getClientName(ticket.client_id)} • {new Date(ticket.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                        {(ticket as any).assigned_to && ` • 👤 ${getAssigneeName((ticket as any).assigned_to)}`}
                       </p>
                     </div>
                     <Badge variant="outline" className={`text-[10px] shrink-0 ${STATUS_COLORS[ticket.status]}`}>
@@ -299,9 +349,44 @@ export default function Support() {
                   </p>
                 </div>
 
+                {/* Assigned to */}
+                {selectedTicket.assigned_to && (
+                  <div>
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Assigné à</p>
+                    <Badge variant="secondary" className="mt-1 gap-1">
+                      <UserPlus className="h-3 w-3" />
+                      {getAssigneeName(selectedTicket.assigned_to)}
+                    </Badge>
+                  </div>
+                )}
+
                 {isAdmin && (
                   <>
                     <div className="border-t pt-4 space-y-3">
+                      {/* Assignment */}
+                      <div className="space-y-2">
+                        <p className="text-[11px] text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                          <UserPlus className="h-3 w-3" /> Assigner à un membre
+                        </p>
+                        <Select
+                          value={selectedTicket.assigned_to || "none"}
+                          onValueChange={(v) => handleAssignTicket(selectedTicket.id, v === "none" ? null : v)}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Non assigné" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">— Non assigné —</SelectItem>
+                            {teamMembers.map((m) => (
+                              <SelectItem key={m.user_id} value={m.user_id}>
+                                {m.full_name} ({m.role})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Status */}
                       <div className="space-y-2">
                         <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Changer le statut</p>
                         <Select value={selectedTicket.status} onValueChange={(v) => handleStatusChange(selectedTicket.id, v)}>
@@ -320,7 +405,7 @@ export default function Support() {
                         <Textarea
                           value={adminNotes}
                           onChange={(e) => setAdminNotes(e.target.value)}
-                          placeholder="Notes internes..."
+                          placeholder="Notes internes, mentionnez @membre..."
                           rows={3}
                         />
                         <Button size="sm" onClick={handleSaveNotes}>

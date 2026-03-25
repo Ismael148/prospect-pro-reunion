@@ -43,26 +43,31 @@ const BRAND_DARK = "#1a1a2e";
 
 // ── Email wrapper (Adamkom branded — Firecrawl-inspired) ──
 function wrapInBrandedTemplate(bodyHtml: string, supportLink: string) {
-  return `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff">
+  return `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,0.06)">
   <!-- HEADER -->
-  <div style="padding:32px 40px;text-align:center;border-bottom:1px solid #f0f0f0">
-    <img src="${LOGO_URL}" alt="Adamkom" style="height:48px;width:auto;margin-bottom:8px" />
+  <div style="padding:40px 40px 32px;text-align:center;background:#ffffff">
+    <img src="${LOGO_URL}" alt="Adamkom" style="height:72px;width:auto;display:block;margin:0 auto 12px" />
     <p style="margin:0;font-size:13px;color:#71717a;letter-spacing:0.5px">La performance digitale pour votre entreprise</p>
   </div>
+  <!-- ACCENT BAR -->
+  <div style="height:3px;background:linear-gradient(90deg,${BRAND_COLOR},#ff5c8a,${BRAND_COLOR})"></div>
   <!-- BODY -->
-  <div style="padding:40px;line-height:1.7;font-size:15px;color:#27272a">
+  <div style="padding:40px 40px 32px;line-height:1.8;font-size:15px;color:#27272a">
     ${bodyHtml}
   </div>
-  <!-- FOOTER -->
-  <div style="padding:32px 40px;border-top:1px solid #f0f0f0;background:#fafafa">
-    ${supportLink ? `<div style="text-align:center;margin-bottom:24px">
-      <a href="${supportLink}" style="display:inline-block;background:${BRAND_COLOR};color:#ffffff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">📋 Ouvrir un ticket support</a>
+  <!-- SUPPORT SECTION -->
+  <div style="margin:0 40px 32px;padding:24px;background:#fff0f6;border-radius:12px;border:1px solid #ffe0ec">
+    <p style="margin:0 0 8px;font-size:15px;font-weight:700;color:${BRAND_DARK}">📋 Besoin d'une modification ?</p>
+    <p style="margin:0 0 16px;font-size:14px;color:#52525b;line-height:1.6">Chez <strong>Adamkom</strong>, toutes vos demandes de modifications passent par notre système de ticket support. C'est le moyen le plus rapide et le plus efficace pour être pris en charge — chaque demande est suivie, assignée et traitée par notre équipe technique.</p>
+    ${supportLink ? `<div style="text-align:center">
+      <a href="${supportLink}" style="display:inline-block;background:${BRAND_COLOR};color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;box-shadow:0 4px 12px rgba(255,0,110,0.3)">📋 Ouvrir un ticket support</a>
     </div>` : ""}
-    <div style="text-align:center;font-size:13px;color:#71717a">
-      <p style="margin:0 0 4px"><strong style="color:${BRAND_DARK}">Adamkom</strong> — La performance digitale</p>
-      <p style="margin:0 0 4px">📞 <a href="tel:0262666876" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600">0262 66 68 76</a> · ✉️ <a href="mailto:contact@adamkom.com" style="color:${BRAND_COLOR};text-decoration:none">contact@adamkom.com</a></p>
-      <p style="margin:12px 0 0;font-size:11px;color:#a1a1aa">© ${new Date().getFullYear()} Adamkom by JJP — La Réunion 🇷🇪</p>
-    </div>
+  </div>
+  <!-- FOOTER -->
+  <div style="padding:28px 40px;border-top:1px solid #f0f0f0;background:#fafafa;text-align:center">
+    <p style="margin:0 0 8px;font-size:14px;color:${BRAND_DARK}"><strong>Adamkom</strong> — La performance digitale</p>
+    <p style="margin:0 0 4px;font-size:13px;color:#71717a">📞 <a href="tel:0262666876" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600">0262 66 68 76</a></p>
+    <p style="margin:12px 0 0;font-size:11px;color:#a1a1aa">© ${new Date().getFullYear()} Adamkom by JJP — La Réunion 🇷🇪</p>
   </div>
 </div>`;
 }
@@ -80,117 +85,117 @@ const EMAIL_TEMPLATES: EmailTemplate[] = [
   {
     id: "site", label: "Site Internet", icon: "🌐",
     subject: "Votre site internet est prêt — {{nom_entreprise}}",
-    body: `<p style="margin-top:0">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
-<p>Nous avons le plaisir de vous informer que votre <strong>site internet</strong> est terminé et en ligne ! 🎉</p>
+    body: `<p style="margin:0 0 20px">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
+<p style="margin:0 0 20px">Nous avons le plaisir de vous informer que votre <strong>site internet</strong> est terminé et en ligne ! 🎉</p>
 ${makeCta("🌐 Voir mon site", "{{lien_livrable}}")}
-<p><strong>Ce qui a été réalisé :</strong></p>
-<ul style="padding-left:20px;color:#52525b">
+<p style="margin:0 0 12px"><strong>Ce qui a été réalisé :</strong></p>
+<ul style="padding-left:20px;color:#52525b;margin:0 0 24px;line-height:2">
   <li>Design responsive (mobile, tablette, desktop)</li>
   <li>Optimisation SEO et référencement local</li>
   <li>Formulaire de contact avec autorépondeur</li>
   <li>Sécurité (SSL, Wordfence) et RGPD</li>
   <li>Chatbot IA et porte-parole intégrés</li>
 </ul>
-<p>Si vous souhaitez des modifications, n'hésitez pas à ouvrir un ticket support via le bouton ci-dessous.</p>
-<p>Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
+<p style="margin:0 0 20px">Si vous souhaitez des modifications, utilisez le bouton <strong>"Ouvrir un ticket support"</strong> ci-dessous — c'est le moyen le plus rapide d'être pris en charge.</p>
+<p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
   },
   {
     id: "chatbot", label: "Chatbot IA & Porte-Parole", icon: "🤖",
     subject: "Votre chatbot IA est activé — {{nom_entreprise}}",
-    body: `<p style="margin-top:0">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
-<p>Votre <strong>chatbot IA</strong> et votre <strong>porte-parole virtuel</strong> sont désormais opérationnels ! 🤖</p>
+    body: `<p style="margin:0 0 20px">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
+<p style="margin:0 0 20px">Votre <strong>chatbot IA</strong> et votre <strong>porte-parole virtuel</strong> sont désormais opérationnels ! 🤖</p>
 ${makeCta("🤖 Tester mon chatbot", "{{lien_livrable}}")}
-<p><strong>Fonctionnalités activées :</strong></p>
-<ul style="padding-left:20px;color:#52525b">
+<p style="margin:0 0 12px"><strong>Fonctionnalités activées :</strong></p>
+<ul style="padding-left:20px;color:#52525b;margin:0 0 24px;line-height:2">
   <li>Assistant IA entraîné sur vos informations</li>
   <li>Porte-parole vidéo animé en français</li>
   <li>Réponses automatiques 24h/24</li>
   <li>Accès backoffice AICoaches</li>
 </ul>
-<p>Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
+<p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
   },
   {
     id: "nfc", label: "Carte NFC & Affiche", icon: "💳",
     subject: "Votre carte NFC est prête — {{nom_entreprise}}",
-    body: `<p style="margin-top:0">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
-<p>Votre <strong>carte BIZNESS NFC</strong> et votre <strong>affiche connectée</strong> sont prêtes ! 💳</p>
+    body: `<p style="margin:0 0 20px">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
+<p style="margin:0 0 20px">Votre <strong>carte BIZNESS NFC</strong> et votre <strong>affiche connectée</strong> sont prêtes ! 💳</p>
 ${makeCta("💳 Voir ma page NFC", "{{lien_livrable}}")}
-<p><strong>Inclus dans votre pack :</strong></p>
-<ul style="padding-left:20px;color:#52525b">
+<p style="margin:0 0 12px"><strong>Inclus dans votre pack :</strong></p>
+<ul style="padding-left:20px;color:#52525b;margin:0 0 24px;line-height:2">
   <li>Carte NFC programmée et personnalisée</li>
   <li>Page de profil digital complète</li>
   <li>QR Code personnalisé</li>
   <li>Affiche connectée pour votre vitrine</li>
 </ul>
-<p>Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
+<p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
   },
   {
     id: "seo", label: "Fiche Google My Business", icon: "🔍",
     subject: "Votre fiche Google est optimisée — {{nom_entreprise}}",
-    body: `<p style="margin-top:0">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
-<p>Votre <strong>fiche Google My Business</strong> a été créée et optimisée ! 🔍</p>
+    body: `<p style="margin:0 0 20px">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
+<p style="margin:0 0 20px">Votre <strong>fiche Google My Business</strong> a été créée et optimisée ! 🔍</p>
 ${makeCta("🔍 Voir ma fiche Google", "{{lien_livrable}}")}
-<p><strong>Optimisations réalisées :</strong></p>
-<ul style="padding-left:20px;color:#52525b">
+<p style="margin:0 0 12px"><strong>Optimisations réalisées :</strong></p>
+<ul style="padding-left:20px;color:#52525b;margin:0 0 24px;line-height:2">
   <li>Catégories et horaires configurés</li>
   <li>Photos professionnelles ajoutées</li>
   <li>Référencement local optimisé</li>
   <li>Posts Google My Business publiés</li>
 </ul>
-<p>Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
+<p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
   },
   {
     id: "reseaux", label: "Réseaux Sociaux", icon: "📱",
     subject: "Vos réseaux sociaux sont lancés — {{nom_entreprise}}",
-    body: `<p style="margin-top:0">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
-<p>Vos <strong>réseaux sociaux</strong> sont configurés et les premières publications sont en ligne ! 📱</p>
+    body: `<p style="margin:0 0 20px">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
+<p style="margin:0 0 20px">Vos <strong>réseaux sociaux</strong> sont configurés et les premières publications sont en ligne ! 📱</p>
 ${makeCta("📱 Voir mes publications", "{{lien_livrable}}")}
-<p><strong>Ce qui a été mis en place :</strong></p>
-<ul style="padding-left:20px;color:#52525b">
+<p style="margin:0 0 12px"><strong>Ce qui a été mis en place :</strong></p>
+<ul style="padding-left:20px;color:#52525b;margin:0 0 24px;line-height:2">
   <li>Création et optimisation des comptes</li>
   <li>Designs visuels personnalisés</li>
   <li>Premières publications programmées</li>
   <li>Chatbots intégrés aux réseaux</li>
 </ul>
-<p>Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
+<p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
   },
   {
     id: "formation", label: "Formation & Livraison", icon: "📚",
     subject: "Votre formation est disponible — {{nom_entreprise}}",
-    body: `<p style="margin-top:0">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
-<p>Votre <strong>session de formation</strong> est prête ! 📚</p>
+    body: `<p style="margin:0 0 20px">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
+<p style="margin:0 0 20px">Votre <strong>session de formation</strong> est prête ! 📚</p>
 ${makeCta("📚 Accéder aux ressources", "{{lien_livrable}}")}
-<ul style="padding-left:20px;color:#52525b">
+<ul style="padding-left:20px;color:#52525b;margin:0 0 24px;line-height:2">
   <li>Gestion de votre fiche Google</li>
   <li>Utilisation de votre carte NFC</li>
   <li>Publication sur les réseaux sociaux</li>
   <li>Gestion de votre chatbot IA</li>
 </ul>
-<p>Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
+<p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
   },
   {
     id: "annuaire", label: "Annuaire Entreprises974", icon: "📒",
     subject: "Votre page annuaire est en ligne — {{nom_entreprise}}",
-    body: `<p style="margin-top:0">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
-<p>Votre profil sur <strong>l'annuaire Entreprises974</strong> est publié ! 📒</p>
+    body: `<p style="margin:0 0 20px">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
+<p style="margin:0 0 20px">Votre profil sur <strong>l'annuaire Entreprises974</strong> est publié ! 📒</p>
 ${makeCta("📒 Voir mon profil", "{{lien_livrable}}")}
-<p><strong>Contenu publié :</strong></p>
-<ul style="padding-left:20px;color:#52525b">
+<p style="margin:0 0 12px"><strong>Contenu publié :</strong></p>
+<ul style="padding-left:20px;color:#52525b;margin:0 0 24px;line-height:2">
   <li>Informations et description</li>
   <li>Vidéo de présentation</li>
   <li>FAQ et photos</li>
   <li>Avis clients</li>
 </ul>
-<p>Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
+<p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
   },
   {
     id: "generique", label: "Générique", icon: "📧",
     subject: "Votre livrable est prêt — {{nom_entreprise}}",
-    body: `<p style="margin-top:0">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
-<p>Nous avons le plaisir de vous informer que le livrable <strong>{{nom_livrable}}</strong> est prêt !</p>
+    body: `<p style="margin:0 0 20px">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
+<p style="margin:0 0 20px">Nous avons le plaisir de vous informer que le livrable <strong>{{nom_livrable}}</strong> est prêt !</p>
 ${makeCta("📦 Ouvrir {{nom_livrable}}", "{{lien_livrable}}")}
-<p>N'hésitez pas à nous faire part de vos remarques.</p>
-<p>Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
+<p style="margin:0 0 20px">N'hésitez pas à utiliser le ticket support ci-dessous pour toute remarque.</p>
+<p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
   },
 ];
 

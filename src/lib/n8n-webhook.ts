@@ -6,7 +6,8 @@ type WebhookEvent =
   | "support.created"
   | "support.resolved"
   | "project.progress"
-  | "prospect.rdv_planifie";
+  | "prospect.rdv_planifie"
+  | "design.sent";
 
 export async function triggerN8nWebhook(event: WebhookEvent, data: Record<string, unknown>) {
   try {

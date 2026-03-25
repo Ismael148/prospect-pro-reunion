@@ -50,6 +50,7 @@ function EditClientDialog({ client, onSave }: { client: any; onSave: (updates: a
     nfc_quantity: (client as any).nfc_quantity || 1,
     pack_amount: client.pack_amount || "",
     payment_method: client.payment_method || "",
+    has_gmb: client.has_gmb || false,
   });
 
   const handleSave = async () => {

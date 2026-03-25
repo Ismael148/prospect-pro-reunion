@@ -16,6 +16,7 @@ type ImportTarget = "clients" | "prospects";
 const TARGET_FIELDS: Record<ImportTarget, { key: string; label: string; required?: boolean }[]> = {
   clients: [
     { key: "company_name", label: "Nom entreprise", required: true },
+    { key: "manager_name", label: "Nom du gérant" },
     { key: "phone", label: "Téléphone" },
     { key: "email", label: "Email" },
     { key: "website", label: "Site web" },

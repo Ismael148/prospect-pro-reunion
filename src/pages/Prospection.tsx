@@ -1059,6 +1059,11 @@ export default function Prospection() {
                       </Select>
                     )}
 
+                    {/* Edit button */}
+                    <Button size="sm" variant="ghost" onClick={() => handleEditProspect(prospect)} className="h-7 w-7 p-0" title="Modifier">
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
+
                     {/* Notes button */}
                     <Button size="sm" variant="ghost" onClick={() => { setEditingNotes(prospect.id); setNoteText(prospect.notes || ""); }} className="h-7 w-7 p-0" title="Notes">
                       <StickyNote className="w-3.5 h-3.5" />

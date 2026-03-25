@@ -146,15 +146,27 @@ function EditClientDialog({ client, onSave }: { client: any; onSave: (updates: a
               <Input type="number" min="1" max="20" value={form.nfc_quantity} onChange={(e) => setForm({ ...form, nfc_quantity: e.target.value })} />
             </div>
           </div>
-          <div className="space-y-1.5">
-            <Label>Fiche Google My Business</Label>
-            <Select value={form.has_gmb ? "oui" : "non"} onValueChange={(v) => setForm({ ...form, has_gmb: v === "oui" })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="non">❌ Pas de fiche Google</SelectItem>
-                <SelectItem value="oui">✅ A déjà une fiche Google</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Type de site</Label>
+              <Select value={form.site_type} onValueChange={(v) => setForm({ ...form, site_type: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="vitrine">🌐 Site vitrine</SelectItem>
+                  <SelectItem value="ecommerce">🛒 Site e-commerce</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Fiche Google</Label>
+              <Select value={form.has_gmb ? "oui" : "non"} onValueChange={(v) => setForm({ ...form, has_gmb: v === "oui" })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="non">❌ Pas de fiche Google</SelectItem>
+                  <SelectItem value="oui">✅ Fiche existante</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div className="space-y-1.5">
             <Label>Notes</Label>

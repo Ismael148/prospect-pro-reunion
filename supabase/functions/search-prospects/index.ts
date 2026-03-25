@@ -105,6 +105,8 @@ interface ParsedProspect {
   sector?: string;
   has_website: boolean;
   google_maps_url?: string;
+  source_url?: string;
+  source_platform?: string;
 }
 
 function parseSearchResults(results: SearchResult[], query: string, zone: string): ParsedProspect[] {
@@ -141,11 +143,16 @@ function parseSearchResults(results: SearchResult[], query: string, zone: string
     if (key.length < 2) continue;
 
     const existing = prospectMap.get(key);
+    // Detect platform from URL
+    const platform = detectPlatform(url);
+
     const prospect: ParsedProspect = existing || {
       business_name: businessName,
       city: zone,
       sector: query,
       has_website: false,
+      source_url: result.url || undefined,
+      source_platform: platform,
     };
 
     const content = result.markdown || result.description || '';
@@ -211,4 +218,15 @@ function parseSearchResults(results: SearchResult[], query: string, zone: string
   return Array.from(prospectMap.values()).filter(
     (p) => !p.has_website && p.phone
   );
+}
+
+function detectPlatform(url: string): string {
+  if (url.includes('google.com/maps') || url.includes('goo.gl/maps')) return 'google_maps';
+  if (url.includes('facebook.com')) return 'facebook';
+  if (url.includes('instagram.com')) return 'instagram';
+  if (url.includes('linkedin.com')) return 'linkedin';
+  if (url.includes('pagesjaunes.fr')) return 'pagesjaunes';
+  if (url.includes('tripadvisor')) return 'tripadvisor';
+  if (url.includes('yelp.com')) return 'yelp';
+  return 'web';
 }

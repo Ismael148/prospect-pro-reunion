@@ -248,8 +248,13 @@ function useSavedTemplates() {
 
 // ── Status badge helper ───────────────────────────────
 function StatusBadge({ status }: { status: string }) {
-  if (status === "sent") return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 gap-1"><CheckCircle2 className="h-3 w-3" />Envoyé</Badge>;
+  if (status === "sent") return <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 gap-1"><CheckCircle2 className="h-3 w-3" />Envoyé</Badge>;
+  if (status === "delivered") return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 gap-1"><CheckCircle2 className="h-3 w-3" />Délivré</Badge>;
+  if (status === "opened") return <Badge className="bg-emerald-600/10 text-emerald-700 border-emerald-600/20 gap-1"><CheckCircle2 className="h-3 w-3" />Ouvert</Badge>;
+  if (status === "clicked") return <Badge className="bg-purple-500/10 text-purple-600 border-purple-500/20 gap-1"><CheckCircle2 className="h-3 w-3" />Cliqué</Badge>;
+  if (status === "bounced") return <Badge className="bg-orange-500/10 text-orange-600 border-orange-500/20 gap-1"><MailX className="h-3 w-3" />Rebond</Badge>;
   if (status === "failed" || status === "dlq") return <Badge variant="destructive" className="gap-1"><MailX className="h-3 w-3" />Échoué</Badge>;
+  if (status === "spam") return <Badge variant="destructive" className="gap-1"><MailX className="h-3 w-3" />Spam</Badge>;
   return <Badge variant="secondary" className="gap-1"><Clock className="h-3 w-3" />{status}</Badge>;
 }
 
@@ -414,18 +419,7 @@ export default function ProjectDeliverableEmail() {
       });
       if (error) throw error;
 
-      // Log to email_send_log
-      await supabase.from("email_send_log" as any).insert({
-        deliverable_id: deliverable.id,
-        project_id: projectId,
-        recipient_email: recipientEmail.trim(),
-        recipient_name: clientName,
-        subject: resolvedSubject,
-        status: "sent",
-        template_name: selectedTemplateId,
-        metadata: { has_attachment: !!uploadedAttachment, link_url: linkUrl.trim() || null },
-      } as any);
-
+      // Server-side logging handles email_send_log with messageId
       queryClient.invalidateQueries({ queryKey: ["email_send_log", deliverableId] });
 
       await triggerN8nWebhook("design.sent", {
@@ -439,17 +433,7 @@ export default function ProjectDeliverableEmail() {
       toast.success(`Email envoyé pour "${deliverable.name}"`);
       navigate(`/projets/${projectId}`);
     } catch (e: any) {
-      // Log failure
-      await supabase.from("email_send_log" as any).insert({
-        deliverable_id: deliverable.id,
-        project_id: projectId,
-        recipient_email: recipientEmail.trim(),
-        recipient_name: clientName,
-        subject: resolvedSubject,
-        status: "failed",
-        template_name: selectedTemplateId,
-        error_message: e.message || "Erreur inconnue",
-      } as any);
+      // Server-side logging handles failure logging too
       queryClient.invalidateQueries({ queryKey: ["email_send_log", deliverableId] });
       toast.error(e.message || "Erreur lors de l'envoi");
     }

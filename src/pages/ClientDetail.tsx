@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useClient, useClientContacts, useClientActivities, useUpdateClient, useCreateContact, useCreateActivity } from "@/hooks/use-clients";
+import { useClient, useClientContacts, useClientActivities, useUpdateClient, useDeleteClient, useCreateContact, useCreateActivity } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSalesTeam } from "@/hooks/use-commercials";
 import { PIPELINE_LABELS, PIPELINE_COLORS, PIPELINE_ORDER, PACK_LABELS, PROJECT_STATUS_LABELS, PUBLISHED_URL } from "@/lib/constants";
@@ -14,13 +14,17 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import {
   ArrowLeft, Plus, User, Phone, Mail, Briefcase, Building2, Loader2, Clock,
   Globe, MapPin, CreditCard, FileText, MessageSquare, Send, FolderKanban, Hash, UserCheck,
-  ClipboardCopy, CheckCircle2, Eye, Download, Pencil, CreditCard as NfcIcon, Ticket,
+  ClipboardCopy, CheckCircle2, Eye, Download, Pencil, CreditCard as NfcIcon, Ticket, Trash2,
 } from "lucide-react";
 import { exportClientPDF } from "@/lib/export-client-pdf";
 import { useState } from "react";
@@ -701,7 +705,19 @@ export default function ClientDetail() {
   const { data: activities } = useClientActivities(id!);
   const { data: salesTeam } = useSalesTeam();
   const updateClient = useUpdateClient();
+  const deleteClient = useDeleteClient();
   const createActivity = useCreateActivity();
+  const { hasRole } = useAuth();
+
+  const handleDelete = async () => {
+    try {
+      await deleteClient.mutateAsync(id!);
+      toast.success("Client supprimé");
+      navigate("/clients");
+    } catch {
+      toast.error("Erreur lors de la suppression");
+    }
+  };
 
   const handleStatusChange = async (newStatus: PipelineStatus) => {
     if (!client) return;
@@ -756,6 +772,29 @@ export default function ClientDetail() {
           >
             <Download className="w-4 h-4 mr-1" /> PDF
           </Button>
+          {hasRole("admin") && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm">
+                  <Trash2 className="w-4 h-4 mr-1" /> Supprimer
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Supprimer ce client ?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Cette action est irréversible. Toutes les données associées à {client.company_name} seront supprimées.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Supprimer
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
           <Select value={client.pipeline_status} onValueChange={handleStatusChange}>
             <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
             <SelectContent>

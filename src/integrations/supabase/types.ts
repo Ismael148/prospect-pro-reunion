@@ -631,6 +631,7 @@ export type Database = {
           description: string | null
           due_date: string | null
           id: string
+          module_links: Json | null
           name: string
           pack_type: Database["public"]["Enums"]["pack_type"]
           progress: number | null
@@ -647,6 +648,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          module_links?: Json | null
           name: string
           pack_type: Database["public"]["Enums"]["pack_type"]
           progress?: number | null
@@ -663,6 +665,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          module_links?: Json | null
           name?: string
           pack_type?: Database["public"]["Enums"]["pack_type"]
           progress?: number | null

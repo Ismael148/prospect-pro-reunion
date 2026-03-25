@@ -110,8 +110,12 @@ export default function ProjectDetail() {
     } catch { toast.error("Erreur"); }
   };
 
-  const handleTaskLinkUpdate = async (taskId: string, linkUrl: string) => {
-    await updateTask.mutateAsync({ id: taskId, link_url: linkUrl } as any);
+  const handleModuleLinkUpdate = async (moduleId: string, linkUrl: string) => {
+    if (!project) return;
+    const currentLinks = (project as any).module_links || {};
+    const updatedLinks = { ...currentLinks, [moduleId]: linkUrl };
+    await supabase.from("projects").update({ module_links: updatedLinks } as any).eq("id", project.id);
+    window.location.reload();
   };
 
   const handleAutoGenerateModules = async () => {
@@ -406,7 +410,8 @@ export default function ProjectDetail() {
           onTaskStatusChange={handleTaskStatusChange}
           onAddTask={handleAddTask}
           onAssignModule={handleAssignModule}
-          onTaskLinkUpdate={handleTaskLinkUpdate}
+          moduleLinks={(project as any).module_links || {}}
+          onModuleLinkUpdate={handleModuleLinkUpdate}
         />
       )}
 
@@ -425,12 +430,13 @@ export default function ProjectDetail() {
               onClick={() => {
                 const seoTasks = tasks!.filter(t => t.description?.includes("[seo]"));
                 const doneTasks = seoTasks.filter(t => t.status === "termine");
+                const mLinks = (project as any).module_links || {};
                 generateGmbReport({
                   clientName: (project as any).clients?.company_name || "Client",
                   projectName: project.name,
                   tasksDone: doneTasks.map(t => ({
                     title: t.title,
-                    linkUrl: (t as any).link_url || undefined,
+                    linkUrl: mLinks["seo"] || undefined,
                   })),
                   tasksTotal: seoTasks.length,
                   generatedAt: new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" }),

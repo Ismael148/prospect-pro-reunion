@@ -50,6 +50,7 @@ function EditClientDialog({ client, onSave }: { client: any; onSave: (updates: a
     nfc_quantity: (client as any).nfc_quantity || 1,
     pack_amount: client.pack_amount || "",
     payment_method: client.payment_method || "",
+    has_gmb: client.has_gmb || false,
   });
 
   const handleSave = async () => {
@@ -145,6 +146,16 @@ function EditClientDialog({ client, onSave }: { client: any; onSave: (updates: a
             </div>
           </div>
           <div className="space-y-1.5">
+            <Label>Fiche Google My Business</Label>
+            <Select value={form.has_gmb ? "oui" : "non"} onValueChange={(v) => setForm({ ...form, has_gmb: v === "oui" })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="non">❌ Pas de fiche Google</SelectItem>
+                <SelectItem value="oui">✅ A déjà une fiche Google</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
             <Label>Notes</Label>
             <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={3} />
           </div>
@@ -184,6 +195,7 @@ function ClientInfoSection({ client, salesTeam }: { client: any; salesTeam?: { a
     { label: "Date signature", value: client.signature_date ? new Date(client.signature_date).toLocaleDateString("fr-FR") : null, icon: FileText },
     { label: "Commercial signataire", value: signedByName, icon: UserCheck },
     { label: "Agent assigné", value: assignedToName, icon: User },
+    { label: "Fiche Google", value: client.has_gmb ? "✅ Existante" : "❌ Aucune", icon: MapPin },
   ].filter((f) => f.value);
 
   return (

@@ -10,10 +10,14 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   Upload, CreditCard, Loader2, Search, Phone, Mail, MapPin,
-  CheckCircle2, AlertCircle, FileSpreadsheet, Users, X,
+  CheckCircle2, AlertCircle, FileSpreadsheet, Users, X, ArrowRightLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 // CSV aliases for auto-mapping
 const ALIASES: Record<string, string[]> = {
@@ -189,6 +193,19 @@ export default function NfcClients() {
   });
 
   const totalCards = nfcClients.reduce((sum, c) => sum + (c.nfc_quantity || 1), 0);
+
+  const handleConvertToClient = async (clientId: string, companyName: string) => {
+    const { error } = await supabase
+      .from("clients")
+      .update({ pack_type: "star_bizness_numerik" })
+      .eq("id", clientId);
+    if (error) {
+      toast.error("Erreur lors de la conversion");
+    } else {
+      toast.success(`${companyName} converti en client NUMERIK`);
+      loadNfcClients();
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -371,12 +388,12 @@ export default function NfcClients() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.01, duration: 0.15 }}
             >
-              <Card className="border border-border/50 hover:border-primary/20 shadow-soft hover:shadow-medium transition-all duration-200 cursor-pointer" onClick={() => navigate(`/clients/${client.id}`)}>
+              <Card className="border border-border/50 hover:border-primary/20 shadow-soft hover:shadow-medium transition-all duration-200">
                 <CardContent className="flex items-center gap-4 py-3 px-4">
                   <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                     <CreditCard className="w-4 h-4 text-primary" />
                   </div>
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0" onClick={() => navigate(`/clients/${client.id}`)}>
                     <div className="flex items-center gap-2">
                       <p className="font-semibold text-sm truncate">{client.company_name}</p>
                       <Badge className="text-[9px] bg-primary/10 text-primary border-primary/20 shrink-0" variant="outline">
@@ -390,6 +407,35 @@ export default function NfcClients() {
                       {client.city && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{client.city}</span>}
                     </div>
                   </div>
+                  {isAdmin && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="shrink-0 text-muted-foreground hover:text-primary"
+                          onClick={(e) => e.stopPropagation()}
+                          title="Convertir en client NUMERIK"
+                        >
+                          <ArrowRightLeft className="w-4 h-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Convertir en client NUMERIK ?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {client.company_name} passera du pack NFC au pack STAR BIZNESS NUMERIK. Un projet web sera automatiquement créé.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleConvertToClient(client.id, client.company_name)}>
+                            Convertir
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>

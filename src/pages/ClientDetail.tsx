@@ -35,7 +35,7 @@ import SocialMediaSection from "@/components/clients/SocialMediaSection";
 import { useClientForms, useValidateForm, ClientFormData } from "@/hooks/use-client-forms";
 
 type PipelineStatus = Database["public"]["Enums"]["pipeline_status"];
-
+type PackType = Database["public"]["Enums"]["pack_type"];
 // ============ Edit Client Dialog ============
 function EditClientDialog({ client, onSave }: { client: any; onSave: (updates: any) => Promise<void> }) {
   const [open, setOpen] = useState(false);

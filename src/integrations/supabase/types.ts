@@ -864,6 +864,7 @@ export type Database = {
       support_tickets: {
         Row: {
           admin_notes: string | null
+          assigned_to: string | null
           attachments: string[] | null
           category: Database["public"]["Enums"]["support_category"]
           client_id: string
@@ -880,6 +881,7 @@ export type Database = {
         }
         Insert: {
           admin_notes?: string | null
+          assigned_to?: string | null
           attachments?: string[] | null
           category?: Database["public"]["Enums"]["support_category"]
           client_id: string
@@ -896,6 +898,7 @@ export type Database = {
         }
         Update: {
           admin_notes?: string | null
+          assigned_to?: string | null
           attachments?: string[] | null
           category?: Database["public"]["Enums"]["support_category"]
           client_id?: string

@@ -367,16 +367,48 @@ export default function NfcClients() {
         </Card>
       )}
 
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          className="pl-10 h-9"
-          placeholder="Rechercher un client NFC..."
-          value={searchFilter}
-          onChange={(e) => setSearchFilter(e.target.value)}
-        />
+      {/* Search + Filters */}
+      <div className="flex gap-3 items-center">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            className="pl-10 h-9"
+            placeholder="Rechercher par nom, ville, tél, email..."
+            value={searchFilter}
+            onChange={(e) => setSearchFilter(e.target.value)}
+          />
+        </div>
+        <Button variant={showFilters ? "default" : "outline"} size="sm" className="gap-2" onClick={() => setShowFilters(!showFilters)}>
+          <Filter className="w-4 h-4" /> Filtres
+          {activeFilterCount > 0 && (
+            <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-[10px]">{activeFilterCount}</Badge>
+          )}
+        </Button>
+        {activeFilterCount > 0 && (
+          <Button variant="ghost" size="sm" onClick={resetFilters} className="gap-1 text-muted-foreground"><X className="w-3.5 h-3.5" /> Réinitialiser</Button>
+        )}
       </div>
+
+      {showFilters && (
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <Select value={filterCity} onValueChange={setFilterCity}>
+            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Ville" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes les villes</SelectItem>
+              {cities.map((city) => (<SelectItem key={city} value={city}>{city}</SelectItem>))}
+            </SelectContent>
+          </Select>
+          <Select value={filterQty} onValueChange={setFilterQty}>
+            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Quantité cartes" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes les quantités</SelectItem>
+              <SelectItem value="1">1 carte</SelectItem>
+              <SelectItem value="2-5">2 à 5 cartes</SelectItem>
+              <SelectItem value="5+">Plus de 5 cartes</SelectItem>
+            </SelectContent>
+          </Select>
+        </motion.div>
+      )}
 
       {/* Client list */}
       {loading ? (

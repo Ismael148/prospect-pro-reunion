@@ -146,6 +146,16 @@ function EditClientDialog({ client, onSave }: { client: any; onSave: (updates: a
             </div>
           </div>
           <div className="space-y-1.5">
+            <Label>Fiche Google My Business</Label>
+            <Select value={form.has_gmb ? "oui" : "non"} onValueChange={(v) => setForm({ ...form, has_gmb: v === "oui" })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="non">❌ Pas de fiche Google</SelectItem>
+                <SelectItem value="oui">✅ A déjà une fiche Google</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
             <Label>Notes</Label>
             <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={3} />
           </div>

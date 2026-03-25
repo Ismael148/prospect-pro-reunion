@@ -450,6 +450,43 @@ export default function Prospection() {
     }
   };
 
+  const handleEditProspect = (prospect: any) => {
+    setEditForm({
+      business_name: prospect.business_name || "",
+      phone: prospect.phone || "",
+      email: prospect.email || "",
+      address: prospect.address || "",
+      city: prospect.city || "",
+      postal_code: prospect.postal_code || "",
+      sector: prospect.sector || "",
+      website: prospect.website || "",
+      notes: prospect.notes || "",
+    });
+    setEditingProspect(prospect);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingProspect) return;
+    try {
+      await updateProspect.mutateAsync({
+        id: editingProspect.id,
+        ...editForm,
+        phone: editForm.phone || null,
+        email: editForm.email || null,
+        address: editForm.address || null,
+        city: editForm.city || null,
+        postal_code: editForm.postal_code || null,
+        sector: editForm.sector || null,
+        website: editForm.website || null,
+        notes: editForm.notes || null,
+      });
+      toast.success("Prospect mis à jour");
+      setEditingProspect(null);
+    } catch {
+      toast.error("Erreur de mise à jour");
+    }
+  };
+
   const filteredProspects = prospects?.filter((p) => {
     const matchSearch =
       p.business_name.toLowerCase().includes(searchFilter.toLowerCase()) ||

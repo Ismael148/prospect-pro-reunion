@@ -348,9 +348,44 @@ export default function Support() {
                   </p>
                 </div>
 
+                {/* Assigned to */}
+                {selectedTicket.assigned_to && (
+                  <div>
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Assigné à</p>
+                    <Badge variant="secondary" className="mt-1 gap-1">
+                      <UserPlus className="h-3 w-3" />
+                      {getAssigneeName(selectedTicket.assigned_to)}
+                    </Badge>
+                  </div>
+                )}
+
                 {isAdmin && (
                   <>
                     <div className="border-t pt-4 space-y-3">
+                      {/* Assignment */}
+                      <div className="space-y-2">
+                        <p className="text-[11px] text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                          <UserPlus className="h-3 w-3" /> Assigner à un membre
+                        </p>
+                        <Select
+                          value={selectedTicket.assigned_to || "none"}
+                          onValueChange={(v) => handleAssignTicket(selectedTicket.id, v === "none" ? null : v)}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Non assigné" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">— Non assigné —</SelectItem>
+                            {teamMembers.map((m) => (
+                              <SelectItem key={m.user_id} value={m.user_id}>
+                                {m.full_name} ({m.role})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Status */}
                       <div className="space-y-2">
                         <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Changer le statut</p>
                         <Select value={selectedTicket.status} onValueChange={(v) => handleStatusChange(selectedTicket.id, v)}>
@@ -369,7 +404,7 @@ export default function Support() {
                         <Textarea
                           value={adminNotes}
                           onChange={(e) => setAdminNotes(e.target.value)}
-                          placeholder="Notes internes..."
+                          placeholder="Notes internes, mentionnez @membre..."
                           rows={3}
                         />
                         <Button size="sm" onClick={handleSaveNotes}>

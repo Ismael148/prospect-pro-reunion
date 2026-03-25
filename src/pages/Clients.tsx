@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useClients, useCreateClient } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,7 +18,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Plus, Search, Building2, MapPin, Loader2 } from "lucide-react";
+import { Plus, Search, Building2, MapPin, Loader2, Filter, X } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -34,6 +34,10 @@ export default function Clients() {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterPack, setFilterPack] = useState<string>("all");
+  const [filterCity, setFilterCity] = useState<string>("all");
+  const [filterAgent, setFilterAgent] = useState<string>("all");
+  const [showFilters, setShowFilters] = useState(false);
 
   const [form, setForm] = useState({
     company_name: "", phone: "", email: "", address: "", city: "",
@@ -44,21 +48,31 @@ export default function Clients() {
 
   const packAmount = form.pack_type ? PACK_PRICES[form.pack_type] || 0 : 0;
 
+  const cities = useMemo(() => {
+    if (!clients) return [];
+    const set = new Set(clients.map(c => c.city).filter(Boolean) as string[]);
+    return Array.from(set).sort();
+  }, [clients]);
+
+  const teamMembers = useMemo(() => {
+    const map = new Map<string, string>();
+    agents?.forEach(a => map.set(a.user_id, a.full_name || "Sans nom"));
+    commercials?.forEach(c => map.set(c.user_id, c.full_name || "Sans nom"));
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [agents, commercials]);
+
+  const activeFilterCount = [filterStatus, filterPack, filterCity, filterAgent].filter(f => f !== "all").length;
+
   const handleCreate = async () => {
     if (!form.company_name.trim()) { toast.error("Le nom de l'entreprise est requis"); return; }
     try {
       await createClient.mutateAsync({
         company_name: form.company_name,
-        phone: form.phone || null,
-        email: form.email || null,
-        address: form.address || null,
-        city: form.city || null,
-        postal_code: form.postal_code || null,
-        sector: form.sector || null,
-        website: form.website || null,
-        notes: form.notes || null,
-        pack_type: form.pack_type || null,
-        pack_amount: packAmount || null,
+        phone: form.phone || null, email: form.email || null,
+        address: form.address || null, city: form.city || null,
+        postal_code: form.postal_code || null, sector: form.sector || null,
+        website: form.website || null, notes: form.notes || null,
+        pack_type: form.pack_type || null, pack_amount: packAmount || null,
         payment_method: form.payment_method || null,
         signature_date: form.signature_date || null,
         signed_by: form.signed_by || null,
@@ -71,12 +85,20 @@ export default function Clients() {
     } catch { toast.error("Erreur"); }
   };
 
+  const resetFilters = () => {
+    setFilterStatus("all"); setFilterPack("all"); setFilterCity("all"); setFilterAgent("all");
+  };
+
   const filtered = clients?.filter((c) => {
-    const matchSearch = c.company_name.toLowerCase().includes(search.toLowerCase()) ||
-      c.city?.toLowerCase().includes(search.toLowerCase()) ||
-      c.sector?.toLowerCase().includes(search.toLowerCase());
+    const s = search.toLowerCase();
+    const matchSearch = !s || c.company_name.toLowerCase().includes(s) ||
+      c.city?.toLowerCase().includes(s) || c.sector?.toLowerCase().includes(s) ||
+      c.phone?.toLowerCase().includes(s) || c.email?.toLowerCase().includes(s);
     const matchStatus = filterStatus === "all" || c.pipeline_status === filterStatus;
-    return matchSearch && matchStatus;
+    const matchPack = filterPack === "all" || c.pack_type === filterPack;
+    const matchCity = filterCity === "all" || c.city === filterCity;
+    const matchAgent = filterAgent === "all" || c.assigned_to === filterAgent || (c as any).signed_by === filterAgent;
+    return matchSearch && matchStatus && matchPack && matchCity && matchAgent;
   });
 
   return (
@@ -84,7 +106,7 @@ export default function Clients() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Clients</h1>
-          <p className="text-muted-foreground text-sm mt-1">{clients?.length || 0} client{(clients?.length || 0) > 1 ? "s" : ""}</p>
+          <p className="text-muted-foreground text-sm mt-1">{filtered?.length || 0} / {clients?.length || 0} client{(clients?.length || 0) > 1 ? "s" : ""}</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -98,38 +120,17 @@ export default function Clients() {
                 <Input value={form.company_name} onChange={(e) => setForm({ ...form, company_name: e.target.value })} placeholder="Ex: Boulangerie du Port" />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Téléphone</Label>
-                  <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="0692 00 00 00" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Email</Label>
-                  <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="contact@exemple.com" />
-                </div>
+                <div className="space-y-2"><Label>Téléphone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="0692 00 00 00" /></div>
+                <div className="space-y-2"><Label>Email</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="contact@exemple.com" /></div>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Secteur</Label>
-                  <Input value={form.sector} onChange={(e) => setForm({ ...form, sector: e.target.value })} placeholder="Ex: Restauration" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Site web</Label>
-                  <Input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} placeholder="https://..." />
-                </div>
+                <div className="space-y-2"><Label>Secteur</Label><Input value={form.sector} onChange={(e) => setForm({ ...form, sector: e.target.value })} placeholder="Ex: Restauration" /></div>
+                <div className="space-y-2"><Label>Site web</Label><Input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} placeholder="https://..." /></div>
               </div>
-              <div className="space-y-2">
-                <Label>Adresse</Label>
-                <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="12 rue des Lilas" />
-              </div>
+              <div className="space-y-2"><Label>Adresse</Label><Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="12 rue des Lilas" /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Ville</Label>
-                  <Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="Saint-Denis" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Code postal</Label>
-                  <Input value={form.postal_code} onChange={(e) => setForm({ ...form, postal_code: e.target.value })} placeholder="97400" />
-                </div>
+                <div className="space-y-2"><Label>Ville</Label><Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="Saint-Denis" /></div>
+                <div className="space-y-2"><Label>Code postal</Label><Input value={form.postal_code} onChange={(e) => setForm({ ...form, postal_code: e.target.value })} placeholder="97400" /></div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -143,10 +144,7 @@ export default function Clients() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label>Montant du pack</Label>
-                  <Input value={packAmount ? `${packAmount.toFixed(2)} €` : ""} readOnly className="bg-muted/50" placeholder="Sélectionnez un pack" />
-                </div>
+                <div className="space-y-2"><Label>Montant du pack</Label><Input value={packAmount ? `${packAmount.toFixed(2)} €` : ""} readOnly className="bg-muted/50" placeholder="Sélectionnez un pack" /></div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -162,39 +160,25 @@ export default function Clients() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label>Date de signature</Label>
-                  <Input type="date" value={form.signature_date} onChange={(e) => setForm({ ...form, signature_date: e.target.value })} />
-                </div>
+                <div className="space-y-2"><Label>Date de signature</Label><Input type="date" value={form.signature_date} onChange={(e) => setForm({ ...form, signature_date: e.target.value })} /></div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Commercial signataire</Label>
                   <Select value={form.signed_by} onValueChange={(v) => setForm({ ...form, signed_by: v })}>
                     <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
-                    <SelectContent>
-                      {commercials?.map((c) => (
-                        <SelectItem key={c.user_id} value={c.user_id}>{c.full_name || "Sans nom"}</SelectItem>
-                      ))}
-                    </SelectContent>
+                    <SelectContent>{commercials?.map((c) => (<SelectItem key={c.user_id} value={c.user_id}>{c.full_name || "Sans nom"}</SelectItem>))}</SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>Agent téléphonique</Label>
                   <Select value={form.assigned_to} onValueChange={(v) => setForm({ ...form, assigned_to: v })}>
                     <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
-                    <SelectContent>
-                      {agents?.map((a) => (
-                        <SelectItem key={a.user_id} value={a.user_id}>{a.full_name || "Sans nom"}</SelectItem>
-                      ))}
-                    </SelectContent>
+                    <SelectContent>{agents?.map((a) => (<SelectItem key={a.user_id} value={a.user_id}>{a.full_name || "Sans nom"}</SelectItem>))}</SelectContent>
                   </Select>
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Notes</Label>
-                <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Informations supplémentaires..." rows={3} />
-              </div>
+              <div className="space-y-2"><Label>Notes</Label><Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Informations supplémentaires..." rows={3} /></div>
               <Button onClick={handleCreate} disabled={createClient.isPending}>
                 {createClient.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 Créer le client
@@ -204,21 +188,56 @@ export default function Clients() {
         </Dialog>
       </div>
 
-      <div className="flex gap-3">
+      {/* Search + Filter toggle */}
+      <div className="flex gap-3 items-center">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input className="pl-10" placeholder="Rechercher..." value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input className="pl-10" placeholder="Rechercher par nom, ville, secteur, tél..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="Statut" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tous</SelectItem>
-            {Object.entries(PIPELINE_LABELS).map(([key, label]) => (
-              <SelectItem key={key} value={key}>{label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Button variant={showFilters ? "default" : "outline"} size="sm" className="gap-2" onClick={() => setShowFilters(!showFilters)}>
+          <Filter className="w-4 h-4" /> Filtres
+          {activeFilterCount > 0 && (
+            <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-[10px]">{activeFilterCount}</Badge>
+          )}
+        </Button>
+        {activeFilterCount > 0 && (
+          <Button variant="ghost" size="sm" onClick={resetFilters} className="gap-1 text-muted-foreground"><X className="w-3.5 h-3.5" /> Réinitialiser</Button>
+        )}
       </div>
+
+      {/* Advanced filters */}
+      {showFilters && (
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Statut" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les statuts</SelectItem>
+              {Object.entries(PIPELINE_LABELS).map(([key, label]) => (<SelectItem key={key} value={key}>{label}</SelectItem>))}
+            </SelectContent>
+          </Select>
+          <Select value={filterPack} onValueChange={setFilterPack}>
+            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Pack" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les packs</SelectItem>
+              {Object.entries(PACK_LABELS).map(([key, label]) => (<SelectItem key={key} value={key}>{label}</SelectItem>))}
+            </SelectContent>
+          </Select>
+          <Select value={filterCity} onValueChange={setFilterCity}>
+            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Ville" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes les villes</SelectItem>
+              {cities.map((city) => (<SelectItem key={city} value={city}>{city}</SelectItem>))}
+            </SelectContent>
+          </Select>
+          <Select value={filterAgent} onValueChange={setFilterAgent}>
+            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Agent / Commercial" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les membres</SelectItem>
+              {teamMembers.map(([id, name]) => (<SelectItem key={id} value={id}>{name}</SelectItem>))}
+            </SelectContent>
+          </Select>
+        </motion.div>
+      )}
 
       {isLoading ? (
         <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
@@ -226,11 +245,9 @@ export default function Clients() {
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <Building2 className="w-10 h-10 text-muted-foreground/30 mb-3" />
-            <p className="text-muted-foreground text-sm">{search ? "Aucun résultat" : "Aucun client"}</p>
-            {!search && (
-              <Button variant="outline" size="sm" className="mt-4" onClick={() => setOpen(true)}>
-                <Plus className="w-4 h-4 mr-2" /> Ajouter
-              </Button>
+            <p className="text-muted-foreground text-sm">{search || activeFilterCount > 0 ? "Aucun résultat" : "Aucun client"}</p>
+            {!search && activeFilterCount === 0 && (
+              <Button variant="outline" size="sm" className="mt-4" onClick={() => setOpen(true)}><Plus className="w-4 h-4 mr-2" /> Ajouter</Button>
             )}
           </CardContent>
         </Card>
@@ -251,12 +268,8 @@ export default function Clients() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    {client.pack_type && (
-                      <Badge variant="secondary" className="text-[10px] font-medium">{PACK_LABELS[client.pack_type]}</Badge>
-                    )}
-                    <Badge className={`text-[10px] border ${PIPELINE_COLORS[client.pipeline_status]}`} variant="outline">
-                      {PIPELINE_LABELS[client.pipeline_status]}
-                    </Badge>
+                    {client.pack_type && (<Badge variant="secondary" className="text-[10px] font-medium">{PACK_LABELS[client.pack_type]}</Badge>)}
+                    <Badge className={`text-[10px] border ${PIPELINE_COLORS[client.pipeline_status]}`} variant="outline">{PIPELINE_LABELS[client.pipeline_status]}</Badge>
                   </div>
                 </CardContent>
               </Card>

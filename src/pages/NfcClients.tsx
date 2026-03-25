@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import {
   Upload, CreditCard, Loader2, Search, Phone, Mail, MapPin,
-  CheckCircle2, AlertCircle, FileSpreadsheet, Users, X, ArrowRightLeft,
+  CheckCircle2, AlertCircle, FileSpreadsheet, Users, X, ArrowRightLeft, Filter,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -60,7 +61,9 @@ export default function NfcClients() {
   const [nfcClients, setNfcClients] = useState<NfcClient[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchFilter, setSearchFilter] = useState("");
-  const [loaded, setLoaded] = useState(false);
+  const [filterCity, setFilterCity] = useState<string>("all");
+  const [filterQty, setFilterQty] = useState<string>("all");
+  const [showFilters, setShowFilters] = useState(false);
 
   const loadNfcClients = useCallback(async () => {
     setLoading(true);
@@ -73,7 +76,6 @@ export default function NfcClients() {
       setNfcClients(data as NfcClient[]);
     }
     setLoading(false);
-    setLoaded(true);
   }, []);
 
   useEffect(() => { loadNfcClients(); }, [loadNfcClients]);
@@ -181,15 +183,26 @@ export default function NfcClients() {
     }
   };
 
+  const cities = useMemo(() => {
+    const set = new Set(nfcClients.map(c => c.city).filter(Boolean) as string[]);
+    return Array.from(set).sort();
+  }, [nfcClients]);
+
+  const activeFilterCount = [filterCity, filterQty].filter(f => f !== "all").length;
+
+  const resetFilters = () => { setFilterCity("all"); setFilterQty("all"); };
+
   const filteredClients = nfcClients.filter((c) => {
-    if (!searchFilter) return true;
     const s = searchFilter.toLowerCase();
-    return (
-      c.company_name.toLowerCase().includes(s) ||
-      c.phone?.toLowerCase().includes(s) ||
-      c.city?.toLowerCase().includes(s) ||
-      c.manager_name?.toLowerCase().includes(s)
-    );
+    const matchSearch = !s || c.company_name.toLowerCase().includes(s) ||
+      c.phone?.toLowerCase().includes(s) || c.city?.toLowerCase().includes(s) ||
+      c.manager_name?.toLowerCase().includes(s) || c.email?.toLowerCase().includes(s);
+    const matchCity = filterCity === "all" || c.city === filterCity;
+    const matchQty = filterQty === "all" ||
+      (filterQty === "1" && c.nfc_quantity === 1) ||
+      (filterQty === "2-5" && c.nfc_quantity >= 2 && c.nfc_quantity <= 5) ||
+      (filterQty === "5+" && c.nfc_quantity > 5);
+    return matchSearch && matchCity && matchQty;
   });
 
   const totalCards = nfcClients.reduce((sum, c) => sum + (c.nfc_quantity || 1), 0);
@@ -215,7 +228,7 @@ export default function NfcClients() {
             <CreditCard className="w-6 h-6 text-primary" /> Cartes NFC
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Gestion des clients avec cartes NFC
+            {filteredClients.length} / {nfcClients.length} client{nfcClients.length > 1 ? "s" : ""} NFC
           </p>
         </div>
         {isAdmin && (
@@ -354,16 +367,48 @@ export default function NfcClients() {
         </Card>
       )}
 
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          className="pl-10 h-9"
-          placeholder="Rechercher un client NFC..."
-          value={searchFilter}
-          onChange={(e) => setSearchFilter(e.target.value)}
-        />
+      {/* Search + Filters */}
+      <div className="flex gap-3 items-center">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            className="pl-10 h-9"
+            placeholder="Rechercher par nom, ville, tél, email..."
+            value={searchFilter}
+            onChange={(e) => setSearchFilter(e.target.value)}
+          />
+        </div>
+        <Button variant={showFilters ? "default" : "outline"} size="sm" className="gap-2" onClick={() => setShowFilters(!showFilters)}>
+          <Filter className="w-4 h-4" /> Filtres
+          {activeFilterCount > 0 && (
+            <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-[10px]">{activeFilterCount}</Badge>
+          )}
+        </Button>
+        {activeFilterCount > 0 && (
+          <Button variant="ghost" size="sm" onClick={resetFilters} className="gap-1 text-muted-foreground"><X className="w-3.5 h-3.5" /> Réinitialiser</Button>
+        )}
       </div>
+
+      {showFilters && (
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <Select value={filterCity} onValueChange={setFilterCity}>
+            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Ville" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes les villes</SelectItem>
+              {cities.map((city) => (<SelectItem key={city} value={city}>{city}</SelectItem>))}
+            </SelectContent>
+          </Select>
+          <Select value={filterQty} onValueChange={setFilterQty}>
+            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Quantité cartes" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes les quantités</SelectItem>
+              <SelectItem value="1">1 carte</SelectItem>
+              <SelectItem value="2-5">2 à 5 cartes</SelectItem>
+              <SelectItem value="5+">Plus de 5 cartes</SelectItem>
+            </SelectContent>
+          </Select>
+        </motion.div>
+      )}
 
       {/* Client list */}
       {loading ? (

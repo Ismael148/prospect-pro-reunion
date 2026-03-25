@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -70,7 +70,8 @@ export default function NfcClients() {
     setLoaded(true);
   }, []);
 
-  if (!loaded) loadNfcClients();
+  useEffect(() => { loadNfcClients(); }, [loadNfcClients]);
+
 
   // CSV parsing
   const handleFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

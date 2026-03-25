@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { Upload, FileSpreadsheet, ArrowRight, CheckCircle2, AlertCircle, Loader2, ArrowLeft, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-type ImportTarget = "clients" | "prospects";
+type ImportTarget = "clients" | "prospects" | "nfc";
 
 // DB fields for each target
 const TARGET_FIELDS: Record<ImportTarget, { key: string; label: string; required?: boolean }[]> = {
@@ -31,6 +31,19 @@ const TARGET_FIELDS: Record<ImportTarget, { key: string; label: string; required
     { key: "payment_method", label: "Mode de paiement" },
     { key: "signature_date", label: "Date de signature" },
     { key: "nfc_quantity", label: "Quantité NFC" },
+  ],
+  nfc: [
+    { key: "company_name", label: "Nom entreprise", required: true },
+    { key: "manager_name", label: "Nom du gérant" },
+    { key: "phone", label: "Téléphone" },
+    { key: "email", label: "Email" },
+    { key: "address", label: "Adresse" },
+    { key: "city", label: "Ville" },
+    { key: "postal_code", label: "Code postal" },
+    { key: "nfc_quantity", label: "Quantité NFC" },
+    { key: "pack_amount", label: "Montant pack" },
+    { key: "payment_method", label: "Mode de paiement" },
+    { key: "notes", label: "Notes" },
   ],
   prospects: [
     { key: "business_name", label: "Nom entreprise", required: true },

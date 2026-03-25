@@ -321,6 +321,8 @@ export default function ProjectDetail() {
         projectId={id!}
         packType={project.pack_type}
         deliverables={deliverables}
+        clientEmail={(project as any).clients?.email}
+        clientName={(project as any).clients?.company_name}
         onAdd={handleAddDeliverable}
         onStatusChange={handleDeliverableStatusChange}
         onAutoCreate={handleAutoCreateDeliverables}

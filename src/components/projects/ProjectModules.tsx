@@ -10,8 +10,9 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { PACK_MODULES, TASK_PRIORITY_LABELS } from "@/lib/constants";
-import { ChevronDown, ChevronRight, Clock, AlertTriangle, Plus, UserCircle } from "lucide-react";
+import { ChevronDown, ChevronRight, Clock, AlertTriangle, ExternalLink, Link2, Plus, UserCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -33,14 +34,17 @@ interface Props {
   onTaskStatusChange: (taskId: string, status: TaskStatus) => Promise<void>;
   onAddTask?: (task: TablesInsert<"project_tasks">) => Promise<void>;
   onAssignModule?: (moduleId: string, userId: string | null) => Promise<void>;
+  onTaskLinkUpdate?: (taskId: string, linkUrl: string) => Promise<void>;
 }
 
-export default function ProjectModules({ packType, tasks, startDate, isAdmin, teamMembers = [], onTaskStatusChange, onAddTask, onAssignModule }: Props) {
+export default function ProjectModules({ packType, tasks, startDate, isAdmin, teamMembers = [], onTaskStatusChange, onAddTask, onAssignModule, onTaskLinkUpdate }: Props) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [addDialogOpen, setAddDialogOpen] = useState<string | null>(null);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDescription, setNewTaskDescription] = useState("");
   const [newTaskPriority, setNewTaskPriority] = useState<TaskPriority>("moyenne");
+  const [editingLink, setEditingLink] = useState<string | null>(null);
+  const [linkValue, setLinkValue] = useState("");
   const modules = PACK_MODULES[packType] || [];
 
   // Group tasks by module id
@@ -74,6 +78,18 @@ export default function ProjectModules({ packType, tasks, startDate, isAdmin, te
     setNewTaskDescription("");
     setNewTaskPriority("moyenne");
     setAddDialogOpen(null);
+  };
+
+  const handleSaveLink = async (taskId: string) => {
+    if (!onTaskLinkUpdate) return;
+    try {
+      await onTaskLinkUpdate(taskId, linkValue.trim());
+      toast.success("Lien sauvegardé");
+      setEditingLink(null);
+      setLinkValue("");
+    } catch {
+      toast.error("Erreur");
+    }
   };
 
   const totalDone = tasks.filter((t) => t.status === "termine").length;
@@ -160,7 +176,6 @@ export default function ProjectModules({ packType, tasks, startDate, isAdmin, te
                       <Progress value={progress} className="flex-1 h-1.5 max-w-[200px]" />
                       <span className="text-xs text-muted-foreground">{done}/{total}</span>
                       
-                      {/* Deadline badge - more visible */}
                       {deadlineDate && (
                         <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md ${
                           isOverdue
@@ -183,7 +198,6 @@ export default function ProjectModules({ packType, tasks, startDate, isAdmin, te
                         </span>
                       )}
 
-                      {/* Assigned member */}
                       {assignedMember && (
                         <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-md">
                           <UserCircle className="w-3 h-3" />
@@ -194,7 +208,6 @@ export default function ProjectModules({ packType, tasks, startDate, isAdmin, te
                   </div>
                 </button>
                 <div className="flex items-center gap-1 mr-2">
-                  {/* Assign member */}
                   {isAdmin && onAssignModule && teamMembers.length > 0 && (
                     <Select
                       value={assignedMember?.user_id || "__none__"}
@@ -217,7 +230,6 @@ export default function ProjectModules({ packType, tasks, startDate, isAdmin, te
                       </SelectContent>
                     </Select>
                   )}
-                  {/* Add task */}
                   {isAdmin && onAddTask && (
                     <Dialog open={addDialogOpen === mod.id} onOpenChange={(open) => setAddDialogOpen(open ? mod.id : null)}>
                       <DialogTrigger asChild>
@@ -273,29 +285,75 @@ export default function ProjectModules({ packType, tasks, startDate, isAdmin, te
                     <div className="px-4 pb-4 space-y-1 border-t border-border/50 pt-3">
                       {moduleTasks.map((task) => {
                         const cleanDesc = task.description?.replace(/\[.*?\]\s*/, "").trim() || "";
+                        const taskLink = (task as any).link_url as string | null;
+                        const isEditingThis = editingLink === task.id;
+
                         return (
-                          <label
-                            key={task.id}
-                            className={`flex items-start gap-3 py-2 px-3 rounded-lg cursor-pointer transition-colors ${
-                              task.status === "termine" ? "opacity-50" : "hover:bg-muted/40"
-                            }`}
-                          >
-                            <Checkbox
-                              checked={task.status === "termine"}
-                              onCheckedChange={(checked) =>
-                                onTaskStatusChange(task.id, checked ? "termine" : "a_faire")
-                              }
-                              className="mt-0.5"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <span className={`text-sm ${task.status === "termine" ? "line-through text-muted-foreground" : ""}`}>
-                                {task.title}
-                              </span>
-                              {cleanDesc && (
-                                <p className="text-xs text-muted-foreground mt-0.5">{cleanDesc}</p>
+                          <div key={task.id} className={`rounded-lg transition-colors ${task.status === "termine" ? "opacity-50" : "hover:bg-muted/40"}`}>
+                            <label className="flex items-start gap-3 py-2 px-3 cursor-pointer">
+                              <Checkbox
+                                checked={task.status === "termine"}
+                                onCheckedChange={(checked) =>
+                                  onTaskStatusChange(task.id, checked ? "termine" : "a_faire")
+                                }
+                                className="mt-0.5"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <span className={`text-sm ${task.status === "termine" ? "line-through text-muted-foreground" : ""}`}>
+                                  {task.title}
+                                </span>
+                                {cleanDesc && (
+                                  <p className="text-xs text-muted-foreground mt-0.5">{cleanDesc}</p>
+                                )}
+                                
+                                {/* Link display / edit */}
+                                {taskLink && !isEditingThis && (
+                                  <div className="flex items-center gap-2 mt-1.5">
+                                    <a href={taskLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline truncate max-w-[300px]">
+                                      <ExternalLink className="w-3 h-3 shrink-0" />
+                                      {taskLink}
+                                    </a>
+                                    {isAdmin && (
+                                      <Badge variant="outline" className="text-[10px] bg-success/10 text-success border-success/20">
+                                        ✓ Lien soumis
+                                      </Badge>
+                                    )}
+                                  </div>
+                                )}
+
+                                {isEditingThis && (
+                                  <div className="flex items-center gap-2 mt-1.5">
+                                    <Input
+                                      value={linkValue}
+                                      onChange={(e) => setLinkValue(e.target.value)}
+                                      placeholder="https://..."
+                                      className="h-7 text-xs flex-1"
+                                      onKeyDown={(e) => { if (e.key === "Enter") handleSaveLink(task.id); }}
+                                    />
+                                    <Button size="sm" className="h-7 text-xs px-2" onClick={() => handleSaveLink(task.id)}>OK</Button>
+                                    <Button size="sm" variant="ghost" className="h-7 text-xs px-2" onClick={() => { setEditingLink(null); setLinkValue(""); }}>✕</Button>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Link button for non-admin (webmaster/CM) or admin */}
+                              {onTaskLinkUpdate && !isEditingThis && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className={`h-7 w-7 p-0 shrink-0 ${taskLink ? "text-primary" : "text-muted-foreground"}`}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    setEditingLink(task.id);
+                                    setLinkValue(taskLink || "");
+                                  }}
+                                  title={taskLink ? "Modifier le lien" : "Ajouter un lien"}
+                                >
+                                  <Link2 className="w-3.5 h-3.5" />
+                                </Button>
                               )}
-                            </div>
-                          </label>
+                            </label>
+                          </div>
                         );
                       })}
                     </div>

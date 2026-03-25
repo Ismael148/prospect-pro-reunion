@@ -419,18 +419,7 @@ export default function ProjectDeliverableEmail() {
       });
       if (error) throw error;
 
-      // Log to email_send_log
-      await supabase.from("email_send_log" as any).insert({
-        deliverable_id: deliverable.id,
-        project_id: projectId,
-        recipient_email: recipientEmail.trim(),
-        recipient_name: clientName,
-        subject: resolvedSubject,
-        status: "sent",
-        template_name: selectedTemplateId,
-        metadata: { has_attachment: !!uploadedAttachment, link_url: linkUrl.trim() || null },
-      } as any);
-
+      // Server-side logging handles email_send_log with messageId
       queryClient.invalidateQueries({ queryKey: ["email_send_log", deliverableId] });
 
       await triggerN8nWebhook("design.sent", {

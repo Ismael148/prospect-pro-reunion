@@ -52,9 +52,9 @@ export default function ProjectDetail() {
   // Fetch client data for has_gmb
   const clientId = project?.client_id;
   const { data: clientData } = useQuery({
-    queryKey: ["client-gmb", clientId],
+    queryKey: ["client-config", clientId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("clients").select("has_gmb").eq("id", clientId!).single();
+      const { data, error } = await supabase.from("clients").select("has_gmb, site_type").eq("id", clientId!).single();
       if (error) throw error;
       return data as any;
     },

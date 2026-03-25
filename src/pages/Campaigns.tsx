@@ -132,6 +132,7 @@ export default function Campaigns() {
           senderName: "AdamKom",
           senderEmail: "contact@adamkom.com",
           recipients,
+          campaignName: campaignName || subject,
         },
       });
 

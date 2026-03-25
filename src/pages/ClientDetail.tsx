@@ -705,7 +705,19 @@ export default function ClientDetail() {
   const { data: activities } = useClientActivities(id!);
   const { data: salesTeam } = useSalesTeam();
   const updateClient = useUpdateClient();
+  const deleteClient = useDeleteClient();
   const createActivity = useCreateActivity();
+  const { hasRole } = useAuth();
+
+  const handleDelete = async () => {
+    try {
+      await deleteClient.mutateAsync(id!);
+      toast.success("Client supprimé");
+      navigate("/clients");
+    } catch {
+      toast.error("Erreur lors de la suppression");
+    }
+  };
 
   const handleStatusChange = async (newStatus: PipelineStatus) => {
     if (!client) return;

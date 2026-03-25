@@ -61,7 +61,9 @@ export default function NfcClients() {
   const [nfcClients, setNfcClients] = useState<NfcClient[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchFilter, setSearchFilter] = useState("");
-  const [loaded, setLoaded] = useState(false);
+  const [filterCity, setFilterCity] = useState<string>("all");
+  const [filterQty, setFilterQty] = useState<string>("all");
+  const [showFilters, setShowFilters] = useState(false);
 
   const loadNfcClients = useCallback(async () => {
     setLoading(true);

@@ -60,14 +60,37 @@ export function useUpdateTicket() {
         .eq("id", id);
       if (error) throw error;
     },
-    onSuccess: (_data, variables) => {
+    onSuccess: async (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["support-tickets"] });
       
-      // Trigger n8n webhook when ticket is resolved
+      // Trigger n8n webhook when ticket is resolved — enrich with client data
       if (variables.status === 'resolu') {
-        triggerN8nWebhook('support.resolved', {
-          ticket_id: variables.id,
-        });
+        try {
+          // Fetch ticket + client data for the webhook
+          const { data: ticket } = await supabase
+            .from("support_tickets")
+            .select("ticket_number, subject, client_id")
+            .eq("id", variables.id)
+            .single();
+          if (ticket) {
+            const { data: client } = await supabase
+              .from("clients")
+              .select("company_name, email, support_token")
+              .eq("id", ticket.client_id)
+              .single();
+            triggerN8nWebhook('support.resolved', {
+              ticket_id: variables.id,
+              ticket_number: ticket.ticket_number,
+              subject: ticket.subject,
+              company_name: client?.company_name || '',
+              client_email: client?.email || '',
+              support_link: client?.support_token ? `https://prospect-pro-reunion.lovable.app/s/${client.support_token}` : '',
+            });
+          }
+        } catch (e) {
+          console.warn('[n8n] Failed to enrich support.resolved data', e);
+          triggerN8nWebhook('support.resolved', { ticket_id: variables.id });
+        }
       }
     },
   });

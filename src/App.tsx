@@ -14,6 +14,7 @@ import Pipeline from "./pages/Pipeline";
 import Prospection from "./pages/Prospection";
 import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
+import ProjectDeliverableEmail from "./pages/ProjectDeliverableEmail";
 import Team from "./pages/Team";
 import Settings from "./pages/Settings";
 import Commissions from "./pages/Commissions";
@@ -68,6 +69,10 @@ const App = () => (
             <Route
               path="/projets/:id"
               element={<ProtectedRoute><AppLayout><ProjectDetail /></AppLayout></ProtectedRoute>}
+            />
+            <Route
+              path="/projets/:id/livrables/:deliverableId/envoyer"
+              element={<ProtectedRoute><AppLayout><ProjectDeliverableEmail /></AppLayout></ProtectedRoute>}
             />
             <Route
               path="/webmaster"

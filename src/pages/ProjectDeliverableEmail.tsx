@@ -85,19 +85,19 @@ const EMAIL_TEMPLATES: EmailTemplate[] = [
   {
     id: "site", label: "Site Internet", icon: "🌐",
     subject: "Votre site internet est prêt — {{nom_entreprise}}",
-    body: `<p style="margin-top:0">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
-<p>Nous avons le plaisir de vous informer que votre <strong>site internet</strong> est terminé et en ligne ! 🎉</p>
+    body: `<p style="margin:0 0 20px">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
+<p style="margin:0 0 20px">Nous avons le plaisir de vous informer que votre <strong>site internet</strong> est terminé et en ligne ! 🎉</p>
 ${makeCta("🌐 Voir mon site", "{{lien_livrable}}")}
-<p><strong>Ce qui a été réalisé :</strong></p>
-<ul style="padding-left:20px;color:#52525b">
+<p style="margin:0 0 12px"><strong>Ce qui a été réalisé :</strong></p>
+<ul style="padding-left:20px;color:#52525b;margin:0 0 24px;line-height:2">
   <li>Design responsive (mobile, tablette, desktop)</li>
   <li>Optimisation SEO et référencement local</li>
   <li>Formulaire de contact avec autorépondeur</li>
   <li>Sécurité (SSL, Wordfence) et RGPD</li>
   <li>Chatbot IA et porte-parole intégrés</li>
 </ul>
-<p>Si vous souhaitez des modifications, n'hésitez pas à ouvrir un ticket support via le bouton ci-dessous.</p>
-<p>Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
+<p style="margin:0 0 20px">Si vous souhaitez des modifications, utilisez le bouton <strong>"Ouvrir un ticket support"</strong> ci-dessous — c'est le moyen le plus rapide d'être pris en charge.</p>
+<p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
   },
   {
     id: "chatbot", label: "Chatbot IA & Porte-Parole", icon: "🤖",

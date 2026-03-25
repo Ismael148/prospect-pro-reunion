@@ -213,27 +213,20 @@ function parseSearchResults(results: SearchResult[], query: string, zone: string
       prospect.google_maps_url = result.url;
     }
 
-    // Detect website (to filter out businesses that already have one)
-    // This is critical: we only want prospects WITHOUT a website
+    // Detect website — ONLY check content, not the result URL
+    // (result URLs are often listing sites, not the business's own website)
     if (!prospect.has_website) {
-      // Check if the result URL itself is a business website (not a directory/maps)
-      if (result.url && !url.includes('google.com') && !skipDomains.some(d => url.includes(d)) && !url.includes('maps')) {
-        // The result is from the business's own website
-        const urlDomain = url.replace(/^https?:\/\//, '').split('/')[0];
-        if (urlDomain && !urlDomain.includes('google') && !skipDomains.some(d => urlDomain.includes(d))) {
-          prospect.has_website = true;
-        }
-      }
-      // Also check content for website mentions
-      const siteMatch = content.match(/(?:site\s*(?:web|internet)?\s*[:\-–]?\s*)?(?:https?:\/\/|www\.)([\w.-]+\.[a-z]{2,})/i);
+      // Check content for a business website URL (www.business.com or https://business.com)
+      const siteMatch = content.match(/(?:site\s*(?:web|internet)?\s*[:\-–]?\s*)((?:https?:\/\/|www\.)([\w.-]+\.[a-z]{2,}))/i);
       if (siteMatch) {
-        const domain = siteMatch[1].toLowerCase();
-        if (!domain.includes('google') && !domain.includes('goo.gl') && !skipDomains.some(d => domain.includes(d))) {
+        const domain = (siteMatch[2] || siteMatch[1]).toLowerCase();
+        const ignoreDomains = ['google', 'goo.gl', 'facebook', 'instagram', 'youtube', 'twitter', 'tiktok', ...skipDomains];
+        if (!ignoreDomains.some(d => domain.includes(d))) {
           prospect.has_website = true;
         }
       }
-      // Check for explicit "site web" or "website" mentions with a URL
-      if (content.match(/(?:visitez|voir)\s+(?:notre|le)\s+site/i) || content.match(/(?:website|site\s*web)\s*:\s*\S+/i)) {
+      // Check for explicit "visitez notre site" with a URL nearby
+      if (content.match(/(?:visitez|voir)\s+(?:notre|le)\s+site\s*(?:web|internet)?\s*[:\-–]?\s*(?:https?:\/\/|www\.)\S+/i)) {
         prospect.has_website = true;
       }
     }

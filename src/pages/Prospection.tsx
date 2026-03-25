@@ -708,12 +708,7 @@ export default function Prospection() {
                             </div>
                           )}
                           {result.source_url && (
-                            <div className="flex items-center gap-2 text-sm">
-                              <ExternalLink className="w-4 h-4 text-muted-foreground" />
-                              <a href={result.source_url} target="_blank" rel="noopener noreferrer" className="text-primary underline text-xs" onClick={(e) => e.stopPropagation()}>
-                                🔗 Source ({result.source_platform || "web"})
-                              </a>
-                            </div>
+                            <SourceLink url={result.source_url} className="text-sm" />
                           )}
                         </motion.div>
                       )}
@@ -1112,12 +1107,7 @@ export default function Prospection() {
                             </div>
                           )}
                           {prospect.source && (
-                            <div className="flex items-center gap-2">
-                              <ExternalLink className="w-4 h-4 text-muted-foreground" />
-                              <a href={prospect.source} target="_blank" rel="noopener noreferrer" className="text-primary underline text-xs">
-                                🔗 Source
-                              </a>
-                            </div>
+                            <SourceLink url={prospect.source} />
                           )}
                           {prospect.notes && (
                             <div className="col-span-full text-xs text-muted-foreground">

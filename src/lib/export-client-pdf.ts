@@ -54,6 +54,7 @@ export function exportClientPDF({ client, contacts, activities, salesTeam }: Exp
 
   const infoRows: string[][] = [
     ["NDI", client.ndi || "-"],
+    ["Gérant", client.manager_name || "-"],
     ["SIRET", client.siret || "-"],
     ["Secteur", client.sector || "-"],
     ["Téléphone", client.phone || "-"],

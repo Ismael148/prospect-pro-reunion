@@ -42,6 +42,7 @@ function EditClientDialog({ client, onSave }: { client: any; onSave: (updates: a
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     company_name: client.company_name || "",
+    manager_name: (client as any).manager_name || "",
     phone: client.phone || "",
     email: client.email || "",
     website: client.website || "",
@@ -89,9 +90,13 @@ function EditClientDialog({ client, onSave }: { client: any; onSave: (updates: a
               <Input value={form.company_name} onChange={(e) => setForm({ ...form, company_name: e.target.value })} />
             </div>
             <div className="space-y-1.5">
-              <Label>SIRET</Label>
-              <Input value={form.siret} onChange={(e) => setForm({ ...form, siret: e.target.value })} />
+              <Label>Nom du gérant</Label>
+              <Input value={form.manager_name} onChange={(e) => setForm({ ...form, manager_name: e.target.value })} placeholder="Ex: Jean Dupont" />
             </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label>SIRET</Label>
+            <Input value={form.siret} onChange={(e) => setForm({ ...form, siret: e.target.value })} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
@@ -199,6 +204,7 @@ function ClientInfoSection({ client, salesTeam }: { client: any; salesTeam?: { a
 
   const fields = [
     { label: "NDI Client", value: client.ndi, icon: Hash },
+    { label: "Gérant", value: (client as any).manager_name, icon: User },
     { label: "SIRET", value: client.siret, icon: FileText },
     { label: "Secteur", value: client.sector, icon: Briefcase },
     { label: "Téléphone", value: client.phone, icon: Phone },

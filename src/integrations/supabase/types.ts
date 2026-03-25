@@ -113,6 +113,7 @@ export type Database = {
           email: string | null
           has_gmb: boolean | null
           id: string
+          manager_name: string | null
           ndi: string | null
           nfc_quantity: number
           notes: string | null
@@ -141,6 +142,7 @@ export type Database = {
           email?: string | null
           has_gmb?: boolean | null
           id?: string
+          manager_name?: string | null
           ndi?: string | null
           nfc_quantity?: number
           notes?: string | null
@@ -169,6 +171,7 @@ export type Database = {
           email?: string | null
           has_gmb?: boolean | null
           id?: string
+          manager_name?: string | null
           ndi?: string | null
           nfc_quantity?: number
           notes?: string | null

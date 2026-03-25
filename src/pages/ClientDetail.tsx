@@ -546,7 +546,7 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
 }
 
 // ============ Client Forms Section ============
-function ClientFormsSection({ clientId, supportToken }: { clientId: string; supportToken?: string }) {
+function ClientFormsSection({ clientId, supportToken, packType }: { clientId: string; supportToken?: string; packType?: string }) {
   const { user, hasRole } = useAuth();
   const { data: forms, isLoading } = useClientForms(clientId);
   const validateForm = useValidateForm();
@@ -587,7 +587,7 @@ function ClientFormsSection({ clientId, supportToken }: { clientId: string; supp
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[
               { label: "Carte NFC", link: nfcLink!, icon: CreditCard },
-              { label: "Site Internet", link: siteLink!, icon: Globe },
+              ...(packType !== "star_bizness_nfc" ? [{ label: "Site Internet", link: siteLink!, icon: Globe }] : []),
             ].map(({ label, link, icon: Icon }) => (
               <div key={label} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
                 <Icon className="w-5 h-5 text-primary shrink-0" />
@@ -870,8 +870,8 @@ export default function ClientDetail() {
       )}
 
       <SupportTicketsSection clientId={id!} />
-      <ClientFormsSection clientId={id!} supportToken={(client as any).support_token} />
-      <SocialMediaSection clientId={id!} />
+      <ClientFormsSection clientId={id!} supportToken={(client as any).support_token} packType={client.pack_type ?? undefined} />
+      {client.pack_type !== "star_bizness_nfc" && <SocialMediaSection clientId={id!} />}
       <NotesSection clientId={id!} activities={activities} />
     </div>
   );

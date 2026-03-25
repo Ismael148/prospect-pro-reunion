@@ -25,7 +25,7 @@
                 "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
                 "conditions": [
                   {
-                    "leftValue": "={{ $json.body.event }}",
+                    "leftValue": "={{ $json.event }}",
                     "rightValue": "prospect.rdv_planifie",
                     "operator": { "type": "string", "operation": "equals" }
                   }

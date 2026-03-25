@@ -208,6 +208,7 @@ function ClientInfoSection({ client, salesTeam }: { client: any; salesTeam?: { a
     { label: "Date signature", value: client.signature_date ? new Date(client.signature_date).toLocaleDateString("fr-FR") : null, icon: FileText },
     { label: "Commercial signataire", value: signedByName, icon: UserCheck },
     { label: "Agent assigné", value: assignedToName, icon: User },
+    { label: "Type de site", value: (client as any).site_type === "ecommerce" ? "🛒 E-commerce" : "🌐 Vitrine", icon: Globe },
     { label: "Fiche Google", value: client.has_gmb ? "✅ Existante" : "❌ Aucune", icon: MapPin },
   ].filter((f) => f.value);
 

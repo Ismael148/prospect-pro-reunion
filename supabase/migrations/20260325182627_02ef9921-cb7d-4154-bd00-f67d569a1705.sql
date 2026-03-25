@@ -1,0 +1,1 @@
+ALTER TABLE public.clients ADD COLUMN manager_name text;

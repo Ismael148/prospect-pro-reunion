@@ -333,6 +333,63 @@ export type Database = {
           },
         ]
       }
+      email_send_log: {
+        Row: {
+          created_at: string
+          deliverable_id: string | null
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          project_id: string | null
+          recipient_email: string
+          recipient_name: string | null
+          status: string
+          subject: string
+          template_name: string | null
+        }
+        Insert: {
+          created_at?: string
+          deliverable_id?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          project_id?: string | null
+          recipient_email: string
+          recipient_name?: string | null
+          status?: string
+          subject: string
+          template_name?: string | null
+        }
+        Update: {
+          created_at?: string
+          deliverable_id?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          project_id?: string | null
+          recipient_email?: string
+          recipient_name?: string | null
+          status?: string
+          subject?: string
+          template_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_send_log_deliverable_id_fkey"
+            columns: ["deliverable_id"]
+            isOneToOne: false
+            referencedRelation: "deliverables"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_send_log_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expenses: {
         Row: {
           amount: number

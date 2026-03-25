@@ -341,10 +341,12 @@ export type Database = {
       }
       email_send_log: {
         Row: {
+          campaign_name: string | null
           created_at: string
           deliverable_id: string | null
           error_message: string | null
           id: string
+          message_id: string | null
           metadata: Json | null
           project_id: string | null
           recipient_email: string
@@ -354,10 +356,12 @@ export type Database = {
           template_name: string | null
         }
         Insert: {
+          campaign_name?: string | null
           created_at?: string
           deliverable_id?: string | null
           error_message?: string | null
           id?: string
+          message_id?: string | null
           metadata?: Json | null
           project_id?: string | null
           recipient_email: string
@@ -367,10 +371,12 @@ export type Database = {
           template_name?: string | null
         }
         Update: {
+          campaign_name?: string | null
           created_at?: string
           deliverable_id?: string | null
           error_message?: string | null
           id?: string
+          message_id?: string | null
           metadata?: Json | null
           project_id?: string | null
           recipient_email?: string

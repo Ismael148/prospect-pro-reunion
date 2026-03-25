@@ -244,6 +244,7 @@ export default function Prospection() {
           rating: r.rating || null,
           reviews_count: r.reviews_count || null,
           google_maps_url: r.google_maps_url || null,
+          source: r.source_url || null,
           search_query: query,
           search_zone: searchZone,
           created_by: user.id,
@@ -370,6 +371,7 @@ export default function Prospection() {
         notes: selectedProspect.notes || "",
         agent_name: agentName,
         google_maps_url: selectedProspect.google_maps_url || "",
+        source_url: selectedProspect.source || "",
       });
 
       toast.success("RDV planifié !");

@@ -125,8 +125,8 @@ interface ParsedProspect {
 function parseSearchResults(results: SearchResult[], query: string, zone: string): ParsedProspect[] {
   const prospectMap = new Map<string, ParsedProspect>();
 
-  // Directories/aggregators to ignore
-  const skipDomains = ['pagesjaunes', 'alentoor', 'kelest', 'facebook.com', 'instagram.com', 'tripadvisor', 'yelp', 'linternaute', 'justacote', 'horaires.lefigaro'];
+  // Directories/aggregators to ignore (not business websites)
+  const directoryDomains = ['pagesjaunes', 'alentoor', 'kelest', 'facebook.com', 'instagram.com', 'tripadvisor', 'yelp', 'linternaute', 'justacote', 'horaires.lefigaro', 'google.com', 'goo.gl', 'youtube.com', 'twitter.com', 'tiktok.com', 'linkedin.com', 'mappy.com', 'laposte.fr', 'societe.com', 'infogreffe', 'verif.com', 'annuaire', 'kompass', 'europages', 'cylex', 'starofservice', 'habitatpresto', 'houzz', 'hellowork'];
 
   for (const result of results) {
     if (!result.title) continue;
@@ -134,7 +134,7 @@ function parseSearchResults(results: SearchResult[], query: string, zone: string
     const url = (result.url || '').toLowerCase();
 
     // Skip directory pages (but allow google.com/maps)
-    if (skipDomains.some(d => url.includes(d))) continue;
+    if (directoryDomains.some(d => url.includes(d)) && !url.includes('google.com/maps')) continue;
 
     // Skip aggregator titles
     const titleLower = result.title.toLowerCase();
@@ -156,7 +156,6 @@ function parseSearchResults(results: SearchResult[], query: string, zone: string
     if (key.length < 2) continue;
 
     const existing = prospectMap.get(key);
-    // Detect platform from URL
     const platform = detectPlatform(url);
 
     const prospect: ParsedProspect = existing || {
@@ -183,16 +182,14 @@ function parseSearchResults(results: SearchResult[], query: string, zone: string
           prospect.phone = match[0].replace(/[\s.-]/g, '');
           break;
         }
+      }
     }
 
     // Extract address from content
     if (!prospect.address) {
       const addressPatterns = [
-        // Full address with postal code: "12 rue des Lilas, 97410 Saint-Pierre"
         /(\d{1,4}[\s,]*(?:rue|avenue|ave|boulevard|blvd|chemin|impasse|allée|route|rte|place|lot|résidence|lotissement|zone|za|zi|zac)[^,\n]{3,60},?\s*974\d{2}\s+[A-ZÀ-Ÿ][\wÀ-ÿ\s-]{2,30})/i,
-        // Street + postal code
         /(\d{1,4}[\s,]*(?:rue|avenue|ave|boulevard|blvd|chemin|impasse|allée|route|rte|place|lot)[^,\n]{3,60})/i,
-        // Postal code + city
         /(974\d{2}\s+[A-ZÀ-Ÿ][\wÀ-ÿ\s-]{2,30})/,
       ];
       for (const pattern of addressPatterns) {
@@ -206,28 +203,45 @@ function parseSearchResults(results: SearchResult[], query: string, zone: string
         }
       }
     }
-    }
 
     // Google Maps URL
     if (!prospect.google_maps_url && url.includes('google.com/maps')) {
       prospect.google_maps_url = result.url;
     }
 
-    // Detect website — ONLY check content, not the result URL
-    // (result URLs are often listing sites, not the business's own website)
+    // ===== WEBSITE DETECTION (aggressive) =====
     if (!prospect.has_website) {
-      // Check content for a business website URL (www.business.com or https://business.com)
-      const siteMatch = content.match(/(?:site\s*(?:web|internet)?\s*[:\-–]?\s*)((?:https?:\/\/|www\.)([\w.-]+\.[a-z]{2,}))/i);
-      if (siteMatch) {
-        const domain = (siteMatch[2] || siteMatch[1]).toLowerCase();
-        const ignoreDomains = ['google', 'goo.gl', 'facebook', 'instagram', 'youtube', 'twitter', 'tiktok', ...skipDomains];
-        if (!ignoreDomains.some(d => domain.includes(d))) {
-          prospect.has_website = true;
-        }
+      // 1. Check if the result URL itself is the business's own website (not a directory)
+      if (result.url) {
+        try {
+          const resultHost = new URL(result.url).hostname.toLowerCase().replace('www.', '');
+          const isDirectory = directoryDomains.some(d => resultHost.includes(d));
+          const isGoogleMaps = resultHost.includes('google.com');
+          if (!isDirectory && !isGoogleMaps && resultHost.includes('.')) {
+            // This result URL is likely the business's own website
+            prospect.has_website = true;
+          }
+        } catch { /* invalid URL, skip */ }
       }
-      // Check for explicit "visitez notre site" with a URL nearby
-      if (content.match(/(?:visitez|voir)\s+(?:notre|le)\s+site\s*(?:web|internet)?\s*[:\-–]?\s*(?:https?:\/\/|www\.)\S+/i)) {
-        prospect.has_website = true;
+
+      // 2. Check content for explicit website mentions
+      if (!prospect.has_website) {
+        const websitePatterns = [
+          /(?:site\s*(?:web|internet)?\s*[:\-–]?\s*)((?:https?:\/\/|www\.)([\w.-]+\.[a-z]{2,}))/i,
+          /(?:visitez|voir|consulter|découvrir)\s+(?:notre|le|mon)\s+site/i,
+          /(?:https?:\/\/|www\.)([\w-]+\.(?:re|fr|com|net|org))/i,
+        ];
+        for (const pattern of websitePatterns) {
+          const match = content.match(pattern);
+          if (match) {
+            const domain = (match[2] || match[1] || '').toLowerCase();
+            const ignoreDomains = ['google', 'goo.gl', 'facebook', 'instagram', 'youtube', 'twitter', 'tiktok', ...directoryDomains];
+            if (!ignoreDomains.some(d => domain.includes(d))) {
+              prospect.has_website = true;
+              break;
+            }
+          }
+        }
       }
     }
 

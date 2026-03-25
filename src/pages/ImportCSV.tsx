@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { Upload, FileSpreadsheet, ArrowRight, CheckCircle2, AlertCircle, Loader2, ArrowLeft, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-type ImportTarget = "clients" | "prospects";
+type ImportTarget = "clients" | "prospects" | "nfc";
 
 // DB fields for each target
 const TARGET_FIELDS: Record<ImportTarget, { key: string; label: string; required?: boolean }[]> = {
@@ -31,6 +31,19 @@ const TARGET_FIELDS: Record<ImportTarget, { key: string; label: string; required
     { key: "payment_method", label: "Mode de paiement" },
     { key: "signature_date", label: "Date de signature" },
     { key: "nfc_quantity", label: "Quantité NFC" },
+  ],
+  nfc: [
+    { key: "company_name", label: "Nom entreprise", required: true },
+    { key: "manager_name", label: "Nom du gérant" },
+    { key: "phone", label: "Téléphone" },
+    { key: "email", label: "Email" },
+    { key: "address", label: "Adresse" },
+    { key: "city", label: "Ville" },
+    { key: "postal_code", label: "Code postal" },
+    { key: "nfc_quantity", label: "Quantité NFC" },
+    { key: "pack_amount", label: "Montant pack" },
+    { key: "payment_method", label: "Mode de paiement" },
+    { key: "notes", label: "Notes" },
   ],
   prospects: [
     { key: "business_name", label: "Nom entreprise", required: true },
@@ -229,9 +242,7 @@ export default function ImportCSV() {
 
       if (target === "clients") {
         record.created_by = user.id;
-        // Les anciens clients importés sont déjà signés
         record.pipeline_status = record.pipeline_status || "contrat_signe";
-        // Normaliser pack_type
         if (record.pack_type) {
           const pt = String(record.pack_type).toLowerCase().trim();
           if (pt.includes("numerik") || pt.includes("numérik") || pt.includes("web") || pt.includes("site")) {
@@ -242,6 +253,11 @@ export default function ImportCSV() {
             record.pack_type = "autre";
           }
         }
+      } else if (target === "nfc") {
+        record.created_by = user.id;
+        record.pipeline_status = "contrat_signe";
+        record.pack_type = "star_bizness_nfc";
+        record.nfc_quantity = record.nfc_quantity || 1;
       } else {
         record.created_by = user.id;
         record.status = record.status || "nouveau";
@@ -252,13 +268,14 @@ export default function ImportCSV() {
 
     // Filter out rows missing required fields
     const validRows = allRows.filter((r) => {
-      const nameField = target === "clients" ? "company_name" : "business_name";
+      const nameField = target === "prospects" ? "business_name" : "company_name";
       return r[nameField] && String(r[nameField]).trim();
     });
 
+    const tableName = target === "nfc" ? "clients" : target;
     for (let i = 0; i < validRows.length; i += batchSize) {
       const batch = validRows.slice(i, i + batchSize);
-      const { error } = await supabase.from(target).insert(batch as any);
+      const { error } = await supabase.from(tableName).insert(batch as any);
       if (error) {
         console.error("Import batch error:", error);
         errors += batch.length;
@@ -317,6 +334,7 @@ export default function ImportCSV() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="clients">Clients</SelectItem>
+                  <SelectItem value="nfc">Cartes NFC</SelectItem>
                   <SelectItem value="prospects">Prospects</SelectItem>
                 </SelectContent>
               </Select>
@@ -436,7 +454,7 @@ export default function ImportCSV() {
               <div>
                 <CardTitle>Aperçu de l'import</CardTitle>
                 <CardDescription>
-                  {csvData.rows.length} ligne(s) à importer dans {target === "clients" ? "Clients" : "Prospects"}
+                  {csvData.rows.length} ligne(s) à importer dans {target === "clients" ? "Clients" : target === "nfc" ? "Cartes NFC" : "Prospects"}
                 </CardDescription>
               </div>
               <Badge variant="outline">{Object.keys(mapping).length} colonnes mappées</Badge>
@@ -509,8 +527,8 @@ export default function ImportCSV() {
             </div>
             <div className="flex justify-center gap-3 pt-4">
               <Button variant="outline" onClick={reset}>Nouvel import</Button>
-              <Button onClick={() => navigate(target === "clients" ? "/clients" : "/prospection")}>
-                Voir les {target === "clients" ? "clients" : "prospects"}
+              <Button onClick={() => navigate(target === "nfc" ? "/cartes-nfc" : target === "clients" ? "/clients" : "/prospection")}>
+                Voir les {target === "clients" ? "clients" : target === "nfc" ? "cartes NFC" : "prospects"}
               </Button>
             </div>
           </CardContent>

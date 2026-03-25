@@ -35,7 +35,7 @@ import SocialMediaSection from "@/components/clients/SocialMediaSection";
 import { useClientForms, useValidateForm, ClientFormData } from "@/hooks/use-client-forms";
 
 type PipelineStatus = Database["public"]["Enums"]["pipeline_status"];
-
+type PackType = Database["public"]["Enums"]["pack_type"];
 // ============ Edit Client Dialog ============
 function EditClientDialog({ client, onSave }: { client: any; onSave: (updates: any) => Promise<void> }) {
   const [open, setOpen] = useState(false);
@@ -770,7 +770,33 @@ export default function ClientDetail() {
             {client.pack_type && <Badge variant="secondary" className="text-xs">{PACK_LABELS[client.pack_type]}</Badge>}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Quick pack type change */}
+          {hasRole("admin") && (
+            <Select
+              value={client.pack_type || ""}
+              onValueChange={async (val) => {
+                try {
+                  await updateClient.mutateAsync({ id: client.id, pack_type: val as any });
+                  await createActivity.mutateAsync({
+                    client_id: client.id, user_id: user!.id, activity_type: "pack_change",
+                    description: `Pack changé en "${PACK_LABELS[val as PackType] || val}"`,
+                  });
+                  toast.success(`Pack changé en ${PACK_LABELS[val as PackType] || val}`);
+                } catch { toast.error("Erreur lors du changement de pack"); }
+              }}
+            >
+              <SelectTrigger className="w-48 h-8 text-xs">
+                <CreditCard className="w-3.5 h-3.5 mr-1.5 text-primary" />
+                <SelectValue placeholder="Changer de pack" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="star_bizness_numerik">STAR BIZNESS NUMERIK</SelectItem>
+                <SelectItem value="star_bizness_nfc">STAR BIZNESS NFC</SelectItem>
+                <SelectItem value="autre">Autre</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
           <EditClientDialog client={client} onSave={handleEditSave} />
           <Button
             variant="outline" size="sm"

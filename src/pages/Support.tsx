@@ -288,6 +288,7 @@ export default function Support() {
                       <p className="font-medium text-sm truncate mt-0.5">{ticket.subject}</p>
                       <p className="text-[11px] text-muted-foreground mt-0.5">
                         {getClientName(ticket.client_id)} • {new Date(ticket.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                        {(ticket as any).assigned_to && ` • 👤 ${getAssigneeName((ticket as any).assigned_to)}`}
                       </p>
                     </div>
                     <Badge variant="outline" className={`text-[10px] shrink-0 ${STATUS_COLORS[ticket.status]}`}>

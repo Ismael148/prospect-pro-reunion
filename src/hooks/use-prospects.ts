@@ -129,6 +129,8 @@ export function useSearchProspects() {
         rating?: number;
         reviews_count?: number;
         google_maps_url?: string;
+        source_url?: string;
+        source_platform?: string;
       }>;
     },
   });

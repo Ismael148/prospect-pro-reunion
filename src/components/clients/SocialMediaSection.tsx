@@ -280,6 +280,7 @@ export default function SocialMediaSection({ clientId }: { clientId: string }) {
                 </span>
               )}
             </TabsTrigger>
+            <TabsTrigger value="calendrier">📅 Calendrier</TabsTrigger>
           </TabsList>
 
           {/* ─── TAB: COMPTES ─── */}

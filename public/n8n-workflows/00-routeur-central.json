@@ -5,18 +5,20 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "bee5d5e1-ce36-42a2-9e82-4662ea996d43",
-        "responseMode": "onReceived",
-        "responseCode": 200
+        "options": {}
       },
-      "id": "webhook-central",
+      "id": "fa168e60-f533-4786-a1c6-3459f602868a",
       "name": "Webhook Central",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [250, 300]
+      "position": [
+        64,
+        496
+      ],
+      "webhookId": "b3ae6b93-144d-4f25-aec9-03f39add542c"
     },
     {
       "parameters": {
-        "mode": "rules",
         "rules": {
           "values": [
             {
@@ -24,7 +26,8 @@
                 "options": {
                   "caseSensitive": true,
                   "leftValue": "",
-                  "typeValidation": "strict"
+                  "typeValidation": "strict",
+                  "version": 1
                 },
                 "conditions": [
                   {
@@ -33,7 +36,8 @@
                     "operator": {
                       "type": "string",
                       "operation": "equals"
-                    }
+                    },
+                    "id": "3f2646cd-3901-43a0-aaae-b2ee198b77b3"
                   }
                 ],
                 "combinator": "and"
@@ -46,7 +50,8 @@
                 "options": {
                   "caseSensitive": true,
                   "leftValue": "",
-                  "typeValidation": "strict"
+                  "typeValidation": "strict",
+                  "version": 1
                 },
                 "conditions": [
                   {
@@ -55,7 +60,8 @@
                     "operator": {
                       "type": "string",
                       "operation": "equals"
-                    }
+                    },
+                    "id": "f0d640d3-8c74-420c-b7c9-c52644c3647f"
                   }
                 ],
                 "combinator": "and"
@@ -68,7 +74,8 @@
                 "options": {
                   "caseSensitive": true,
                   "leftValue": "",
-                  "typeValidation": "strict"
+                  "typeValidation": "strict",
+                  "version": 1
                 },
                 "conditions": [
                   {
@@ -77,7 +84,8 @@
                     "operator": {
                       "type": "string",
                       "operation": "equals"
-                    }
+                    },
+                    "id": "f24e66f4-0a21-4959-b392-6d9716776361"
                   }
                 ],
                 "combinator": "and"
@@ -90,7 +98,8 @@
                 "options": {
                   "caseSensitive": true,
                   "leftValue": "",
-                  "typeValidation": "strict"
+                  "typeValidation": "strict",
+                  "version": 1
                 },
                 "conditions": [
                   {
@@ -99,7 +108,8 @@
                     "operator": {
                       "type": "string",
                       "operation": "equals"
-                    }
+                    },
+                    "id": "dd0e0194-4410-4e73-b60a-0ac7983db276"
                   }
                 ],
                 "combinator": "and"
@@ -112,7 +122,8 @@
                 "options": {
                   "caseSensitive": true,
                   "leftValue": "",
-                  "typeValidation": "strict"
+                  "typeValidation": "strict",
+                  "version": 1
                 },
                 "conditions": [
                   {
@@ -121,171 +132,173 @@
                     "operator": {
                       "type": "string",
                       "operation": "equals"
-                    }
+                    },
+                    "id": "b16ef12f-bba3-40be-8b90-bb7afcf334c0"
                   }
                 ],
                 "combinator": "and"
               },
               "renameOutput": true,
-             "outputKey": "Projet 80%"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict"
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.body.event }}",
-                    "rightValue": "prospect.rdv_planifie",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "Prospect RDV"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict"
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.body.event }}",
-                    "rightValue": "design.sent",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "Design Envoyé"
+              "outputKey": "Projet 80%"
             }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b9259942-92b7-4229-971f-1574ffd88933",
+      "name": "Router par Event",
+      "type": "n8n-nodes-base.switch",
       "typeVersion": 3,
-      "position": [500, 300]
+      "position": [
+        320,
+        496
+      ]
     },
     {
       "parameters": {
         "fromEmail": "contact@adamkom.com",
         "toEmail": "={{ $json.body.client_email }}",
-        "subject": "Bienvenue chez AdamKom - {{ $json.body.company_name }}",
-        "emailType": "html",
-        "html": "<h1>Bienvenue {{ $json.body.company_name }} !</h1><p>Nous sommes ravis de vous compter parmi nos clients.</p><p><strong>Pack choisi :</strong> {{ $json.body.pack_type }}</p><p><strong>Votre référence client :</strong> {{ $json.body.ndi }}</p><p>Notre équipe va maintenant commencer à travailler sur votre projet. Vous recevrez des mises à jour régulières.</p><p>Cordialement,<br>L'équipe AdamKom</p>"
+        "subject": "=Bienvenue chez AdamKom by JJP -  {{ $('Webhook Central').item.json.body.company_name }}",
+        "emailFormat": "html",
+        "html": "=<!DOCTYPE html>\n<html lang=\"fr\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Bienvenue chez Adamkom</title>\n    <style>\n        body {\n            margin: 0;\n            padding: 0;\n            background-color: #f9f9fb;\n            font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif;\n            color: #1d1d1f;\n        }\n        .container {\n            max-width: 600px;\n            margin: 40px auto;\n            background: #ffffff;\n            border-radius: 20px;\n            overflow: hidden;\n            box-shadow: 0 10px 30px rgba(0,0,0,0.05);\n        }\n        .header {\n            padding: 40px 20px;\n            text-align: center;\n            background-color: #ffffff;\n        }\n        .logo {\n            max-width: 180px;\n            height: auto;\n        }\n        .content {\n            padding: 0 40px 40px 40px;\n            line-height: 1.6;\n        }\n        h1 {\n            font-size: 24px;\n            font-weight: 600;\n            color: #1d1d1f;\n            margin-bottom: 20px;\n        }\n        p {\n            font-size: 16px;\n            color: #424245;\n        }\n        .support-box {\n            background-color: #f5f5f7;\n            border-radius: 12px;\n            padding: 25px;\n            margin: 30px 0;\n        }\n        .support-item {\n            display: block;\n            margin-bottom: 15px;\n            text-decoration: none;\n            color: #0066cc;\n            font-weight: 500;\n        }\n        .support-item:last-child {\n            margin-bottom: 0;\n        }\n        .btn {\n            display: inline-block;\n            padding: 12px 25px;\n            background-color: #1d1d1f;\n            color: #ffffff !important;\n            text-decoration: none;\n            border-radius: 8px;\n            font-weight: 500;\n            margin-top: 10px;\n        }\n        .footer {\n            padding: 30px;\n            text-align: center;\n            font-size: 14px;\n            color: #86868b;\n            border-top: 1px solid #f5f5f7;\n        }\n    </style>\n</head>\n<body>\n    <div class=\"container\">\n        <div class=\"header\">\n            <img src=\"https://adamkom.com/wp-content/uploads/2026/01/logo-Adamkom-by-jjp-1.png\" alt=\"Adamkom\" class=\"logo\">\n        </div>\n\n        <div class=\"content\">\n            <h1>Bienvenue dans l'aventure Adamkom !</h1>\n            <p>Bonjour {{ $('Webhook Central').item.json.body.company_name }},</p>\n            <p>C'est un plaisir de vous compter parmi nos nouveaux clients. Toute l'équipe est déjà prête à donner vie à vos projets et à accompagner votre transformation digitale.</p>\n            \n            <p>Pour que votre expérience soit la plus fluide possible, voici vos accès directs au support client :</p>\n\n            <div class=\"support-box\">\n                \n                <a href=\"tel:0262666876\" class=\"support-item\">📞 Ligne directe : 0262 66 68 76</a>\n                <a href=\"{{ $('Webhook Central').item.json.body.support_link }}\" class=\"support-item\">✉️ Envoyer un ticket support</a>\n            </div>\n\n            <p>Besoin d'aide pour démarrer ? Nos conseillers sont disponibles du lundi au vendredi pour répondre à vos questions.</p>\n            \n           \n\n        <div class=\"footer\">\n            À très vite,<br>\n            <strong>L'équipe de chez Adamkom by JJP</strong><br>\n           \n        </div>\n    </div>\n</body>\n</html>",
+        "options": {}
       },
-      "id": "email-bienvenue",
+      "id": "d471f3c1-2800-4496-8629-f479d8ef08c9",
       "name": "Email Bienvenue",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2,
-      "position": [800, 100]
-    },
-    {
-      "parameters": {
-        "operation": "toBinary",
-        "sourceProperty": "body.pdf_base64",
-        "options": {
-          "fileName": "={{ $json.body.pdf_filename }}",
-          "mimeType": "application/pdf",
-          "keepSource": "json"
+      "position": [
+        608,
+        288
+      ],
+      "webhookId": "30f2f71c-f618-4d23-bdfc-130fa1e3d451",
+      "credentials": {
+        "smtp": {
+          "id": "4q7rxX5hDVEUV4vH",
+          "name": "SMTP account"
         }
-      },
-      "id": "convert-pdf",
-      "name": "Convertir PDF",
-      "type": "n8n-nodes-base.convertToFile",
-      "typeVersion": 1.1,
-      "position": [800, 250]
+      }
     },
     {
       "parameters": {
-        "fromEmail": "facturation@adamkom.com",
-        "toEmail": "={{ $json.body.client_email }}",
-        "subject": "Facture {{ $json.body.invoice_number }} - AdamKom",
-        "emailType": "html",
-        "html": "<div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto'><div style='background:#1E3A5F;padding:20px;text-align:center'><h1 style='color:#fff;margin:0'>ADAMKOM by JJP</h1><p style='color:#DAA520;margin:5px 0 0'>Solutions digitales pour entreprises</p></div><div style='padding:30px'><p>Bonjour <strong>{{ $json.body.company_name }}</strong>,</p><p>Veuillez trouver ci-joint votre facture <strong>{{ $json.body.invoice_number }}</strong>.</p><table style='width:100%;border-collapse:collapse;margin:20px 0'><tr style='background:#f5f7fa'><td style='padding:10px;font-weight:bold'>Montant TTC</td><td style='padding:10px;text-align:right'>{{ $json.body.total_amount }} €</td></tr><tr><td style='padding:10px;font-weight:bold'>Échéance</td><td style='padding:10px;text-align:right'>{{ $json.body.due_date }}</td></tr></table><hr style='border:1px solid #eee'><h3 style='color:#1E3A5F'>📋 Vos accès client</h3><ul style='list-style:none;padding:0'><li style='margin:10px 0'>🎫 <a href='{{ $json.body.support_link }}' style='color:#1E3A5F;font-weight:bold'>Accès Support Client</a></li><li style='margin:10px 0'>💳 <a href='{{ $json.body.form_nfc_link }}' style='color:#1E3A5F;font-weight:bold'>Formulaire Carte NFC</a></li><li style='margin:10px 0'>🌐 <a href='{{ $json.body.form_site_link }}' style='color:#1E3A5F;font-weight:bold'>Formulaire Site Internet</a></li></ul></div><div style='background:#1E3A5F;padding:15px;text-align:center'><p style='color:#fff;margin:0;font-size:12px'>ADAMKOM by JJP — contact@adamkom.com — 0693 802 201</p></div></div>",
+        "fromEmail": "contact@adamkom.com",
+        "toEmail": "={{ $('Webhook Central').item.json.body.client_email }}",
+        "subject": "Votre Facture  chez AdamKom by JJP 🎉",
+        "emailFormat": "html",
+        "html": "=<!DOCTYPE html>\n<html lang=\"fr\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <style>\n        body { margin: 0; padding: 0; background-color: #f9f9fb; font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; }\n        .wrapper { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.04); border: 1px solid #edf2f7; }\n        .header { padding: 45px 20px 30px; text-align: center; background: #ffffff; }\n        .logo { max-width: 170px; height: auto; margin-bottom: 10px; }\n        .subtitle { color: #86868b; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; font-weight: 600; }\n        .content { padding: 0 40px 40px; color: #1d1d1f; }\n        .greeting { font-size: 18px; font-weight: 600; margin-bottom: 8px; }\n        .intro-text { color: #424245; font-size: 15px; line-height: 1.5; margin-bottom: 25px; }\n        .invoice-card { background: #f5f5f7; border-radius: 16px; padding: 25px; margin-bottom: 30px; }\n        .invoice-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e5e5e7; }\n        .invoice-row:last-child { border-bottom: none; }\n        .label { color: #86868b; font-size: 14px; }\n        .value { font-weight: 600; color: #1d1d1f; text-align: right; }\n        .total-amount { color: #0066cc; font-size: 20px; }\n        .section-title { font-size: 16px; font-weight: 700; color: #1d1d1f; margin: 30px 0 15px; border-left: 4px solid #0066cc; padding-left: 12px; }\n        .link-card { display: block; background: #ffffff; border: 1px solid #e5e5e7; border-radius: 12px; padding: 14px 18px; margin-bottom: 10px; text-decoration: none; color: #1d1d1f; font-weight: 500; transition: all 0.2s; }\n        .link-card:hover { border-color: #0066cc; background: #fbfbfb; }\n        .attachment-note { background: #eef7ff; border-radius: 10px; padding: 12px 18px; margin-top: 25px; display: flex; align-items: center; }\n        .footer { background: #1d1d1f; padding: 30px; text-align: center; color: #86868b; font-size: 12px; }\n        .footer strong { color: #ffffff; display: block; margin-bottom: 5px; }\n    </style>\n</head>\n<body>\n    <div class=\"wrapper\">\n        <div class=\"header\">\n            <img src=\"https://adamkom.com/wp-content/uploads/2026/01/logo-Adamkom-by-jjp-1.png\" alt=\"Adamkom by JJP\" class=\"logo\">\n            <div class=\"subtitle\">Solutions Digitales & Innovation</div>\n        </div>\n\n        <div class=\"content\">\n            <p class=\"greeting\">Bonjour {{ $('Webhook Central').item.json.body.company_name }},</p>\n            <p class=\"intro-text\">Votre facture n° <strong> {{ $('Webhook Central').item.json.body.invoice_number }}</strong> est maintenant disponible. Vous trouverez le récapitulatif détaillé ci-dessous.</p>\n\n            <div class=\"invoice-card\">\n                <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">\n                    <tr>\n                        <td class=\"label\" style=\"padding: 8px 0;\">📄 N° Facture</td>\n                        <td class=\"value\" style=\"padding: 8px 0;\">{{ $('Webhook Central').item.json.body.invoice_number }}</td>\n                    </tr>\n                   \n                    <tr>\n                        <td class=\"label\" style=\"padding: 15px 0 0; border-top: 1px solid #d2d2d7;\">Montant Total TTC</td>\n                        <td class=\"value total-amount\" style=\"padding: 15px 0 0; border-top: 1px solid #d2d2d7;\">{{ $('Webhook Central').item.json.body.total_amount }} €</td>\n                    </tr>\n                </table>\n            </div>\n\n            <h3 class=\"section-title\">Espace Client & Services</h3>\n            \n            <a href=\"{{ $('Webhook Central').item.json.body.support_link }}\" class=\"link-card\">🎫 Accès Support Client</a>\n            <a href=\"{{ $('Webhook Central').item.json.body.form_nfc_link }}\" class=\"link-card\">💳 Configurer ma Carte NFC</a>\n            <a href=\"{{ $('Webhook Central').item.json.body.form_site_link }}\" class=\"link-card\">🌐 Formulaire Site Internet</a>\n\n            <div class=\"attachment-note\">\n                <span style=\"font-size: 18px; margin-right: 10px;\">📎</span>\n                <span style=\"font-size: 13px; color: #004488;\">Votre facture détaillée est jointe à cet email au format PDF.</span>\n            </div>\n        </div>\n\n        <div class=\"footer\">\n            <strong>Adamkom by JJP</strong>\n            73 Rue Général Ailleret, Le Tampon, La Réunion<br>\n            contact@adamkom.com — 0262 66 68 76\n        </div>\n    </div>\n</body>\n</html>",
         "options": {
           "attachments": "data"
         }
       },
-      "id": "email-facture",
+      "id": "cb0831e5-9b8f-40c3-b467-fc97e99c11a9",
       "name": "Email Facture",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2,
-      "position": [1050, 250]
+      "position": [
+        928,
+        384
+      ],
+      "webhookId": "e495adce-2b4c-442d-83df-0f3a44b5c72b",
+      "credentials": {
+        "smtp": {
+          "id": "4q7rxX5hDVEUV4vH",
+          "name": "SMTP account"
+        }
+      }
     },
     {
       "parameters": {
-        "fromEmail": "support@adamkom.com",
-        "toEmail": "={{ $json.body.client_email }}",
-        "subject": "Ticket {{ $json.body.ticket_number }} reçu - AdamKom Support",
-        "emailType": "html",
-        "html": "<h1>Votre demande a bien été reçue</h1><p>Bonjour {{ $json.body.company_name }},</p><p>Nous avons bien reçu votre ticket de support :</p><p><strong>Numéro :</strong> {{ $json.body.ticket_number }}</p><p><strong>Objet :</strong> {{ $json.body.subject }}</p><p><strong>Catégorie :</strong> {{ $json.body.category }}</p><p>Notre équipe va traiter votre demande dans les plus brefs délais.</p><p>Cordialement,<br>L'équipe Support AdamKom</p>"
+        "fromEmail": "contact@adamkom.com",
+        "toEmail": "={{ $('Webhook Central').item.json.body.client_email }}",
+        "subject": "Ticket  {{ $('Webhook Central').item.json.body.ticket_number }} reçu - AdamKom Support",
+        "emailFormat": "html",
+        "html": "=<!DOCTYPE html>\n<html lang=\"fr\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Ticket Support Reçu - Adamkom by JJP</title>\n    <style>\n        body {\n            margin: 0;\n            padding: 0;\n            background-color: #f4f7f9;\n            font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif;\n            color: #333333;\n        }\n        .container {\n            max-width: 600px;\n            margin: 40px auto;\n            background: #ffffff;\n            border-radius: 16px;\n            overflow: hidden;\n            box-shadow: 0 4px 15px rgba(0,0,0,0.05);\n        }\n        .header {\n            padding: 40px 20px;\n            text-align: center;\n            background-color: #ffffff;\n        }\n        .logo {\n            max-width: 180px;\n            height: auto;\n        }\n        .content {\n            padding: 0 40px 40px 40px;\n            line-height: 1.6;\n        }\n        .status-badge {\n            display: inline-block;\n            padding: 6px 16px;\n            background-color: #e8f4fd;\n            color: #007aff;\n            border-radius: 20px;\n            font-size: 14px;\n            font-weight: 600;\n            margin-bottom: 20px;\n        }\n        h1 {\n            font-size: 24px;\n            font-weight: 700;\n            margin: 0 0 20px 0;\n            color: #1d1d1f;\n        }\n        p {\n            margin-bottom: 20px;\n            font-size: 16px;\n            color: #515154;\n        }\n        .ticket-box {\n            background-color: #f9f9fb;\n            border-radius: 12px;\n            padding: 20px;\n            margin-bottom: 30px;\n            border: 1px solid #eeeeee;\n        }\n        .ticket-id {\n            font-weight: bold;\n            color: #1d1d1f;\n        }\n        .footer {\n            padding: 30px;\n            text-align: center;\n            font-size: 12px;\n            color: #86868b;\n            background-color: #f9f9fb;\n        }\n        .button {\n            display: inline-block;\n            padding: 14px 30px;\n            background-color: #000000;\n            color: #ffffff !important;\n            text-decoration: none;\n            border-radius: 8px;\n            font-weight: 600;\n            margin-top: 10px;\n        }\n    </style>\n</head>\n<body>\n    <div class=\"container\">\n        <div class=\"header\">\n            <img src=\"https://adamkom.com/wp-content/uploads/2026/01/logo-Adamkom-by-jjp-1.png\" alt=\"Adamkom by JJP\" class=\"logo\">\n        </div>\n\n        <div class=\"content\">\n            <div class=\"status-badge\">Ticket Confirmé</div>\n            <h1>Nous avons bien reçu votre demande</h1>\n            \n            <p>Bonjour {{ $('Webhook Central').item.json.body.company_name }},</p>\n            \n            <p>Nous vous confirmons que votre demande d'assistance a été enregistrée avec succès. Notre équipe technique a été alertée et traite votre dossier dans les plus brefs délais.</p>\n\n            \n\n          \n            \n           \n        </div>\n\n        <div class=\"footer\">\n            <p>© 2026 Adamkom by JJP — la Performance Digitale de votre entreprise<br>\n            La Réunion | Le Tampon</p>\n            <p>Vous recevez cet email car vous avez ouvert un ticket de support auprès de nos services.</p>\n        </div>\n    </div>\n</body>\n</html>",
+        "options": {}
       },
-      "id": "email-support-confirm",
+      "id": "c24df58f-abf9-4076-bac6-8ac04edcb7e8",
       "name": "Email Confirmation Support",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2,
-      "position": [800, 400]
+      "position": [
+        608,
+        592
+      ],
+      "webhookId": "1c99f5f3-1e07-4829-af8d-05de7fbac41a",
+      "credentials": {
+        "smtp": {
+          "id": "4q7rxX5hDVEUV4vH",
+          "name": "SMTP account"
+        }
+      }
     },
     {
       "parameters": {
         "fromEmail": "support@adamkom.com",
         "toEmail": "={{ $json.body.client_email }}",
-        "subject": "Ticket {{ $json.body.ticket_number }} résolu - AdamKom",
-        "emailType": "html",
-        "html": "<h1>Votre ticket a été résolu</h1><p>Bonjour {{ $json.body.company_name }},</p><p>Votre ticket <strong>{{ $json.body.ticket_number }}</strong> a été résolu.</p><p><strong>Objet :</strong> {{ $json.body.subject }}</p><p>Si vous avez d'autres questions, n'hésitez pas à nous contacter.</p><p>Cordialement,<br>L'équipe Support AdamKom</p>"
+        "subject": "Ticket {{ $json.body.ticket_number }} résolu - AdamKom by JJP",
+        "emailFormat": "html",
+        "html": "=<!DOCTYPE html>\n<html lang=\"fr\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Demande Résolue - Adamkom by JJP</title>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #f7f9fc; font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;\">\n    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" style=\"table-layout: fixed;\">\n        <tr>\n            <td align=\"center\" style=\"padding: 50px 0;\">\n                <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"600\" style=\"background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.06);\">\n                    \n                    <tr>\n                        <td align=\"center\" style=\"padding: 40px 0;\">\n                            <img src=\"https://adamkom.com/wp-content/uploads/2026/01/logo-Adamkom-by-jjp-1.png\" alt=\"Adamkom by JJP\" width=\"220\" style=\"display: block; border: 0; outline: none; text-decoration: none;\">\n                        </td>\n                    </tr>\n\n                    <tr>\n                        <td style=\"padding: 0 40px 40px 40px;\">\n                            <h1 style=\"color: #1a1a1a; font-size: 26px; margin: 0 0 25px 0; text-align: center; font-weight: 600; letter-spacing: -0.5px;\">Bonne nouvelle ! Votre demande est résolue</h1>\n                            \n                            <p style=\"color: #555555; font-size: 16px; line-height: 1.7; margin: 0 0 25px 0;\">\n                                Bonjour {{ $('Webhook Central').item.json.body.company_name }},<br><br>\n                                Notre équipe technique a finalisé l'intervention concernant votre ticket de support <strong>#{{ticket_id}}</strong>.\n                            </p>\n\n                            <div style=\"background-color: #f0f7ff; border-radius: 8px; border: 1px solid #e0efff; padding: 20px; margin-bottom: 25px;\">\n                                <p style=\"margin: 0 0 10px 0; font-size: 14px; color: #007bff; font-weight: 600; text-transform: uppercase;\">Résumé de la résolution :</p>\n                                <p style=\"margin: 0; font-size: 15px; color: #333; line-height: 1.6;\">\n                                    {{resolution_summary}}\n                                </p>\n                            </div>\n\n                            <p style=\"color: #555555; font-size: 16px; line-height: 1.7; margin: 0 0 35px 0;\">\n                                Si la solution proposée vous satisfait, vous n'avez rien à faire : le ticket sera automatiquement clôturé. Si vous avez d'autres questions, n'hésitez pas à nous solliciter.\n                            </p>\n\n                            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">\n                                <tr>\n                                    <td align=\"center\">\n                                        <a href=\"{{ticket_url}}\" target=\"_blank\" style=\"background-color: #007bff; color: #ffffff; padding: 14px 28px; text-decoration: none; font-weight: 500; border-radius: 6px; font-size: 15px; display: inline-block;\">Consulter les détails du ticket</a>\n                                    </td>\n                                </tr>\n                            </table>\n                        </td>\n                    </tr>\n\n                    <tr>\n                        <td style=\"padding: 40px; background-color: #fbfcfd; border-top: 1px solid #e1e8ed; text-align: center;\">\n                            <p style=\"margin: 0; font-size: 14px; color: #6e7a89; line-height: 1.6;\">\n                                <strong style=\"color: #1a1a1a;\">Adamkom by JJP</strong><br>\n                                Expertise technologique et digitale à votre service<br>\n                                <a href=\"https://adamkom.com\" style=\"color: #007bff; text-decoration: none;\">www.adamkom.com</a>\n                            </p>\n                            <p style=\"margin: 20px 0 0 0; font-size: 11px; color: #a1abb7;\">\n                                Vous recevez cet email suite à votre demande de support technique.\n                            </p>\n                        </td>\n                    </tr>\n                </table>\n            </td>\n        </tr>\n    </table>\n</body>\n</html>",
+        "options": {}
       },
-      "id": "email-support-resolu",
+      "id": "af05bfb1-cc43-45a6-8926-26f448f734e9",
       "name": "Email Ticket Résolu",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2,
-      "position": [800, 550]
+      "position": [
+        608,
+        752
+      ],
+      "webhookId": "96fcfdc8-a841-451e-a249-9994e6e9c169",
+      "credentials": {
+        "smtp": {
+          "id": "4q7rxX5hDVEUV4vH",
+          "name": "SMTP account"
+        }
+      }
     },
     {
       "parameters": {
         "fromEmail": "projets@adamkom.com",
         "toEmail": "={{ $json.body.client_email }}",
         "subject": "Votre projet est presque terminé ! - AdamKom",
-        "emailType": "html",
-        "html": "<h1>Votre projet avance bien !</h1><p>Bonjour {{ $json.body.company_name }},</p><p>Votre projet <strong>{{ $json.body.project_name }}</strong> est maintenant à <strong>{{ $json.body.progress }}%</strong> d'avancement.</p><p>Notre équipe finalise les derniers détails. Vous serez bientôt contacté pour la livraison.</p><p>Cordialement,<br>L'équipe AdamKom</p>"
+        "options": {}
       },
-      "id": "email-progress",
+      "id": "768a898e-ad9f-459f-b039-ff2b05ebb279",
       "name": "Email Progression Projet",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2,
-      "position": [800, 700]
+      "position": [
+        608,
+        896
+      ],
+      "webhookId": "94b9f0df-2ff8-4c26-b078-88fd305e7ba8",
+      "credentials": {
+        "smtp": {
+          "id": "4q7rxX5hDVEUV4vH",
+          "name": "SMTP account"
+        }
+      }
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "={{ $vars.DISCORD_WEBHOOK_URL }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            { "name": "Content-Type", "value": "application/json" }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"embeds\": [\n    {\n      \"title\": \"📅 NOUVEAU RDV PLANIFIÉ\",\n      \"color\": 3066993,\n      \"fields\": [\n        { \"name\": \"🏢 Entreprise\", \"value\": \"{{ $json.body.business_name }}\", \"inline\": false },\n        { \"name\": \"📍 Adresse\", \"value\": \"{{ $json.body.address }}\", \"inline\": true },\n        { \"name\": \"🏙️ Ville\", \"value\": \"{{ $json.body.city }}\", \"inline\": true },\n        { \"name\": \"📞 Téléphone\", \"value\": \"{{ $json.body.phone }}\", \"inline\": true },\n        { \"name\": \"🔧 Secteur\", \"value\": \"{{ $json.body.sector }}\", \"inline\": true },\n        { \"name\": \"📆 Date du RDV\", \"value\": \"{{ $json.body.appointment_date }}\", \"inline\": true },\n        { \"name\": \"🕐 Heure\", \"value\": \"{{ $json.body.appointment_time }}\", \"inline\": true },\n        { \"name\": \"📝 Notes\", \"value\": \"{{ $json.body.notes || 'Aucune' }}\", \"inline\": false },\n        { \"name\": \"👤 Qualifié par\", \"value\": \"{{ $json.body.agent_name }}\", \"inline\": false }\n      ],\n      \"footer\": { \"text\": \"Merci de confirmer la prise en charge avec un ✅\" },\n      \"timestamp\": \"{{ $json.body.timestamp }}\"\n    }\n  ]\n}"
+        "operation": "toBinary",
+        "sourceProperty": "body.pdf_base64",
+        "options": {
+          "fileName": "={{ $('Webhook Central').item.json.body.pdf_filename }}",
+          "mimeType": "application/pdf"
+        }
       },
-      "id": "discord-rdv",
-      "name": "Discord RDV",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [800, 850]
+      "id": "bc616985-2ae9-49ad-a48e-917f64953c9c",
+      "name": "Convertir PDF2",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        608,
+        432
+      ]
     }
   ],
+  "pinData": {},
   "connections": {
     "Webhook Central": {
       "main": [
@@ -309,7 +322,7 @@
         ],
         [
           {
-            "node": "Convertir PDF",
+            "node": "Convertir PDF2",
             "type": "main",
             "index": 0
           }
@@ -334,17 +347,10 @@
             "type": "main",
             "index": 0
           }
-        ],
-        [
-          {
-            "node": "Discord RDV",
-            "type": "main",
-            "index": 0
-          }
         ]
       ]
     },
-    "Convertir PDF": {
+    "Convertir PDF2": {
       "main": [
         [
           {
@@ -356,10 +362,19 @@
       ]
     }
   },
+  "active": true,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner"
   },
+  "versionId": "c0b0964d-78e1-4d23-aae0-3a2ff7607a5f",
   "meta": {
-    "description": "Workflow central AdamKom. Les données sont dans $json.body (event, client_email, etc.). Route les events: client.signed, invoice.created, support.created, support.resolved, project.progress"
-  }
+    "templateCredsSetupCompleted": true,
+    "instanceId": "22a84d037820bbd55abaa3c41765f0a3cbf1db86d2b601d798c977ac99bfc468"
+  },
+  "id": "Wo8E03pI0Hoemcg4",
+  "tags": []
 }

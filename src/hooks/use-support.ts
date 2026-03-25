@@ -14,6 +14,7 @@ export interface SupportTicket {
   priority: string;
   resolved_at: string | null;
   resolved_by: string | null;
+  assigned_to: string | null;
   admin_notes: string | null;
   created_at: string;
   updated_at: string;

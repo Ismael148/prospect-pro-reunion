@@ -33,7 +33,7 @@ import { cn } from "@/lib/utils";
 import {
   Search, MapPin, Phone, Globe, Star, Loader2, UserPlus,
   CheckCircle2, Building2, Radar, CalendarIcon, Clock,
-  Users, ArrowRight, PhoneCall, Mail, Plus, StickyNote, Pencil,
+  Users, ArrowRight, PhoneCall, Mail, Plus, StickyNote, Pencil, ExternalLink,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Database } from "@/integrations/supabase/types";
@@ -244,6 +244,7 @@ export default function Prospection() {
           rating: r.rating || null,
           reviews_count: r.reviews_count || null,
           google_maps_url: r.google_maps_url || null,
+          source: r.source_url || null,
           search_query: query,
           search_zone: searchZone,
           created_by: user.id,
@@ -370,6 +371,7 @@ export default function Prospection() {
         notes: selectedProspect.notes || "",
         agent_name: agentName,
         google_maps_url: selectedProspect.google_maps_url || "",
+        source_url: selectedProspect.source || "",
       });
 
       toast.success("RDV planifié !");
@@ -670,6 +672,14 @@ export default function Prospection() {
                               <MapPin className="w-4 h-4 text-muted-foreground" />
                               <a href={result.google_maps_url} target="_blank" rel="noopener noreferrer" className="text-primary underline text-xs" onClick={(e) => e.stopPropagation()}>
                                 Voir sur Google Maps
+                              </a>
+                            </div>
+                          )}
+                          {result.source_url && (
+                            <div className="flex items-center gap-2 text-sm">
+                              <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                              <a href={result.source_url} target="_blank" rel="noopener noreferrer" className="text-primary underline text-xs" onClick={(e) => e.stopPropagation()}>
+                                🔗 Source ({result.source_platform || "web"})
                               </a>
                             </div>
                           )}
@@ -1066,6 +1076,14 @@ export default function Prospection() {
                               <MapPin className="w-4 h-4 text-muted-foreground" />
                               <a href={prospect.google_maps_url} target="_blank" rel="noopener noreferrer" className="text-primary underline text-xs">
                                 Google Maps
+                              </a>
+                            </div>
+                          )}
+                          {prospect.source && (
+                            <div className="flex items-center gap-2">
+                              <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                              <a href={prospect.source} target="_blank" rel="noopener noreferrer" className="text-primary underline text-xs">
+                                🔗 Source
                               </a>
                             </div>
                           )}

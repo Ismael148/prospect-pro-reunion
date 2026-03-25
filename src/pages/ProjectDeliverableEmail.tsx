@@ -643,6 +643,32 @@ export default function ProjectDeliverableEmail() {
           </Card>
         </div>
       </div>
+
+      {/* Save template dialog */}
+      <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Save className="h-5 w-5 text-primary" />Sauvegarder le modèle</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="tpl-name">Nom du modèle</Label>
+              <Input id="tpl-name" value={saveTemplateName} onChange={(e) => setSaveTemplateName(e.target.value)} placeholder="Ex: Email livraison site vitrine" />
+            </div>
+            <div className="rounded-lg bg-muted/50 p-3 text-xs space-y-1">
+              <p><strong>Objet :</strong> {subject}</p>
+              <p className="text-muted-foreground">Le contenu HTML actuel sera sauvegardé avec les variables dynamiques intactes.</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>Annuler</Button>
+            <Button onClick={handleSaveTemplate} disabled={savingTemplate} className="gap-2">
+              {savingTemplate ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Sauvegarder
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

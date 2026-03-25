@@ -41,6 +41,7 @@ interface NfcClient {
 export default function NfcClients() {
   const { user, hasRole } = useAuth();
   const isAdmin = hasRole("admin");
+  const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Import state

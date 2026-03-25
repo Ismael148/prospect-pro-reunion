@@ -232,6 +232,20 @@ function useEmailHistory(deliverableId: string | undefined) {
   });
 }
 
+function useSavedTemplates() {
+  return useQuery({
+    queryKey: ["saved_email_templates"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("saved_email_templates" as any)
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+}
+
 // ── Status badge helper ───────────────────────────────
 function StatusBadge({ status }: { status: string }) {
   if (status === "sent") return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 gap-1"><CheckCircle2 className="h-3 w-3" />Envoyé</Badge>;

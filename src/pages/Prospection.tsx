@@ -33,7 +33,7 @@ import { cn } from "@/lib/utils";
 import {
   Search, MapPin, Phone, Globe, Star, Loader2, UserPlus,
   CheckCircle2, Building2, Radar, CalendarIcon, Clock,
-  Users, ArrowRight, PhoneCall, Mail, Plus, StickyNote,
+  Users, ArrowRight, PhoneCall, Mail, Plus, StickyNote, Pencil,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Database } from "@/integrations/supabase/types";
@@ -164,6 +164,8 @@ export default function Prospection() {
   const [addForm, setAddForm] = useState({ business_name: "", phone: "", email: "", address: "", city: "", sector: "", website: "", notes: "" });
   const [editingNotes, setEditingNotes] = useState<string | null>(null);
   const [noteText, setNoteText] = useState("");
+  const [editingProspect, setEditingProspect] = useState<any | null>(null);
+  const [editForm, setEditForm] = useState({ business_name: "", phone: "", email: "", address: "", city: "", postal_code: "", sector: "", website: "", notes: "" });
   const handleSearch = async () => {
     const query = searchQuery || customQuery;
     if (!query || !searchZone) {
@@ -445,6 +447,43 @@ export default function Prospection() {
       setNoteText("");
     } catch {
       toast.error("Erreur");
+    }
+  };
+
+  const handleEditProspect = (prospect: any) => {
+    setEditForm({
+      business_name: prospect.business_name || "",
+      phone: prospect.phone || "",
+      email: prospect.email || "",
+      address: prospect.address || "",
+      city: prospect.city || "",
+      postal_code: prospect.postal_code || "",
+      sector: prospect.sector || "",
+      website: prospect.website || "",
+      notes: prospect.notes || "",
+    });
+    setEditingProspect(prospect);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingProspect) return;
+    try {
+      await updateProspect.mutateAsync({
+        id: editingProspect.id,
+        ...editForm,
+        phone: editForm.phone || null,
+        email: editForm.email || null,
+        address: editForm.address || null,
+        city: editForm.city || null,
+        postal_code: editForm.postal_code || null,
+        sector: editForm.sector || null,
+        website: editForm.website || null,
+        notes: editForm.notes || null,
+      });
+      toast.success("Prospect mis à jour");
+      setEditingProspect(null);
+    } catch {
+      toast.error("Erreur de mise à jour");
     }
   };
 
@@ -809,6 +848,63 @@ export default function Prospection() {
         </DialogContent>
       </Dialog>
 
+      {/* Edit Prospect Dialog */}
+      <Dialog open={!!editingProspect} onOpenChange={(open) => { if (!open) setEditingProspect(null); }}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="w-5 h-5" /> Modifier le prospect
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-3 py-4">
+            <div className="space-y-1.5">
+              <Label>Nom entreprise</Label>
+              <Input value={editForm.business_name} onChange={(e) => setEditForm({ ...editForm, business_name: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Téléphone</Label>
+                <Input value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Email</Label>
+                <Input type="email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Adresse</Label>
+              <Input value={editForm.address} onChange={(e) => setEditForm({ ...editForm, address: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-1.5">
+                <Label>Ville</Label>
+                <Input value={editForm.city} onChange={(e) => setEditForm({ ...editForm, city: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Code postal</Label>
+                <Input value={editForm.postal_code} onChange={(e) => setEditForm({ ...editForm, postal_code: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Secteur</Label>
+                <Input value={editForm.sector} onChange={(e) => setEditForm({ ...editForm, sector: e.target.value })} />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Site web</Label>
+              <Input value={editForm.website} onChange={(e) => setEditForm({ ...editForm, website: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Notes</Label>
+              <Textarea value={editForm.notes} onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })} rows={3} />
+            </div>
+            <Button onClick={handleSaveEdit} disabled={updateProspect.isPending} className="w-full gap-2">
+              {updateProspect.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+              <CheckCircle2 className="w-4 h-4" /> Enregistrer
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -1019,6 +1115,11 @@ export default function Prospection() {
                         </SelectContent>
                       </Select>
                     )}
+
+                    {/* Edit button */}
+                    <Button size="sm" variant="ghost" onClick={() => handleEditProspect(prospect)} className="h-7 w-7 p-0" title="Modifier">
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
 
                     {/* Notes button */}
                     <Button size="sm" variant="ghost" onClick={() => { setEditingNotes(prospect.id); setNoteText(prospect.notes || ""); }} className="h-7 w-7 p-0" title="Notes">

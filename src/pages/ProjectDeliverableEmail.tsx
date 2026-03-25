@@ -1,4 +1,4 @@
-import { ChangeEvent, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useProject, useDeliverables } from "@/hooks/use-projects";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,11 +24,11 @@ const DEFAULT_MESSAGE = ({ clientName, deliverableName }: { clientName: string; 
 
 function escapeHtml(value: string) {
   return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function formatBytes(bytes: number) {
@@ -100,7 +100,7 @@ export default function ProjectDeliverableEmail() {
   const [attachDeliverableLink, setAttachDeliverableLink] = useState(true);
   const [sending, setSending] = useState(false);
 
-  useMemo(() => {
+  useEffect(() => {
     if (!deliverable) return;
     setSubject((current) => current || `Votre livrable est prêt - ${deliverable.name}`);
     setMessage((current) => current || DEFAULT_MESSAGE({ clientName, deliverableName: deliverable.name }));

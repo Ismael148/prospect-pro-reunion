@@ -454,7 +454,7 @@ export default function ImportCSV() {
               <div>
                 <CardTitle>Aperçu de l'import</CardTitle>
                 <CardDescription>
-                  {csvData.rows.length} ligne(s) à importer dans {target === "clients" ? "Clients" : "Prospects"}
+                  {csvData.rows.length} ligne(s) à importer dans {target === "clients" ? "Clients" : target === "nfc" ? "Cartes NFC" : "Prospects"}
                 </CardDescription>
               </div>
               <Badge variant="outline">{Object.keys(mapping).length} colonnes mappées</Badge>

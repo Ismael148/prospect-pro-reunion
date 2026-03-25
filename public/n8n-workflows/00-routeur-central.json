@@ -150,14 +150,29 @@
               },
               "renameOutput": true,
               "outputKey": "Prospect RDV"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.event }}",
+                    "rightValue": "design.sent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Design Envoyé"
             }
-          ]
-        },
-        "options": {}
-      },
-      "id": "switch-event",
-      "name": "Router par Event",
-      "type": "n8n-nodes-base.switch",
       "typeVersion": 3,
       "position": [500, 300]
     },

@@ -13,6 +13,7 @@ import {
   PACK_MODULES, PACK_DEADLINE_DAYS, getPackModules,
 } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
+import { generateGmbReport } from "@/lib/export-gmb-report";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -407,6 +408,40 @@ export default function ProjectDetail() {
           onAssignModule={handleAssignModule}
           onTaskLinkUpdate={handleTaskLinkUpdate}
         />
+      )}
+
+      {/* GMB Report button */}
+      {isNumerik && hasTasks && (
+        <Card className="border-0 shadow-md shadow-primary/5">
+          <CardContent className="pt-6 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold">📊 Rapport Google My Business</p>
+              <p className="text-xs text-muted-foreground">Générer un PDF de preuve de travail à envoyer au client</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => {
+                const seoTasks = tasks!.filter(t => t.description?.includes("[seo]"));
+                const doneTasks = seoTasks.filter(t => t.status === "termine");
+                generateGmbReport({
+                  clientName: (project as any).clients?.company_name || "Client",
+                  projectName: project.name,
+                  tasksDone: doneTasks.map(t => ({
+                    title: t.title,
+                    linkUrl: (t as any).link_url || undefined,
+                  })),
+                  tasksTotal: seoTasks.length,
+                  generatedAt: new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" }),
+                });
+                toast.success("Rapport PDF généré !");
+              }}
+            >
+              📄 Générer le rapport PDF
+            </Button>
+          </CardContent>
+        </Card>
       )}
 
       {/* Deliverables */}

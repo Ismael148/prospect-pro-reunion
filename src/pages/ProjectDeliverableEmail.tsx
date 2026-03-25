@@ -39,31 +39,47 @@ function formatBytes(bytes: number) {
 
 // ── Email wrapper (header + footer with support) ──────
 function wrapInBrandedTemplate(bodyHtml: string, supportLink: string) {
-  return `<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:640px;margin:0 auto;background:#ffffff;color:#1a1a2e">
+  return `<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:640px;margin:0 auto;background:#ffffff;color:#1a1a2e;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08)">
   <!-- HEADER -->
-  <div style="background:linear-gradient(135deg,#1E3A5F 0%,#142d4c 100%);padding:28px 24px;text-align:center">
-    <h1 style="color:#ffffff;margin:0;font-size:26px;letter-spacing:1px">ADAMKOM <span style="font-weight:300;font-size:16px;color:#DAA520">by JJP</span></h1>
-    <p style="color:#DAA520;margin:8px 0 0;font-size:13px;letter-spacing:2px">SOLUTIONS DIGITALES POUR ENTREPRISES</p>
+  <div style="background:linear-gradient(135deg,#0f2847 0%,#1E3A5F 50%,#2a5298 100%);padding:40px 32px;text-align:center;position:relative">
+    <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><defs><pattern id=%22g%22 width=%2220%22 height=%2220%22 patternUnits=%22userSpaceOnUse%22><circle cx=%2210%22 cy=%2210%22 r=%221%22 fill=%22rgba(218,165,32,0.08)%22/></pattern></defs><rect fill=%22url(%23g)%22 width=%22100%22 height=%22100%22/></svg>');opacity:1"></div>
+    <div style="position:relative;z-index:1">
+      <div style="display:inline-block;background:rgba(255,255,255,0.1);border:1px solid rgba(218,165,32,0.3);border-radius:16px;padding:16px 40px;backdrop-filter:blur(10px)">
+        <h1 style="color:#ffffff;margin:0;font-size:32px;font-weight:800;letter-spacing:2px;text-shadow:0 2px 8px rgba(0,0,0,0.3)">ADAMKOM</h1>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px">
+          <div style="height:1px;width:32px;background:linear-gradient(90deg,transparent,#DAA520)"></div>
+          <span style="color:#DAA520;font-size:14px;font-weight:600;letter-spacing:3px">by JJP</span>
+          <div style="height:1px;width:32px;background:linear-gradient(90deg,#DAA520,transparent)"></div>
+        </div>
+      </div>
+      <p style="color:rgba(255,255,255,0.7);margin:16px 0 0;font-size:12px;letter-spacing:4px;text-transform:uppercase;font-weight:500">Solutions digitales pour entreprises</p>
+    </div>
   </div>
+  <!-- ACCENT BAR -->
+  <div style="height:4px;background:linear-gradient(90deg,#DAA520,#f4c542,#DAA520)"></div>
   <!-- BODY -->
-  <div style="padding:32px 28px;line-height:1.7;font-size:15px;color:#334155">
+  <div style="padding:36px 32px;line-height:1.8;font-size:15px;color:#334155">
     ${bodyHtml}
   </div>
   <!-- FOOTER -->
-  <div style="background:#f1f5f9;padding:24px 28px;border-top:2px solid #DAA520">
+  <div style="background:linear-gradient(180deg,#f8fafc,#f1f5f9);padding:28px 32px;border-top:1px solid #e2e8f0">
     <table style="width:100%;border-spacing:0"><tr>
-      <td style="font-size:13px;color:#475569;vertical-align:top">
-        <strong style="color:#1E3A5F">ADAMKOM by JJP</strong><br>
-        📞 <a href="tel:0262666876" style="color:#1E3A5F;text-decoration:none">0262 66 68 76</a><br>
-        ✉️ <a href="mailto:contact@adamkom.com" style="color:#1E3A5F;text-decoration:none">contact@adamkom.com</a>
+      <td style="font-size:13px;color:#475569;vertical-align:top;padding-right:16px">
+        <div style="display:inline-block;background:#1E3A5F;color:#DAA520;font-weight:800;font-size:11px;padding:4px 10px;border-radius:6px;letter-spacing:1px;margin-bottom:10px">ADAMKOM</div><br>
+        <span style="font-size:14px">📞</span> <a href="tel:0262666876" style="color:#1E3A5F;text-decoration:none;font-weight:600;font-size:14px">0262 66 68 76</a><br>
+        <span style="font-size:14px">✉️</span> <a href="mailto:contact@adamkom.com" style="color:#1E3A5F;text-decoration:none;font-size:13px">contact@adamkom.com</a>
       </td>
-      <td style="text-align:right;vertical-align:top">
-        ${supportLink ? `<a href="${supportLink}" style="display:inline-block;background:#1E3A5F;color:#ffffff;padding:10px 20px;border-radius:999px;text-decoration:none;font-weight:600;font-size:13px">📋 Ouvrir un ticket support</a>` : ""}
+      <td style="text-align:right;vertical-align:middle">
+        ${supportLink ? `<a href="${supportLink}" style="display:inline-block;background:linear-gradient(135deg,#1E3A5F,#2a5298);color:#ffffff;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(30,58,95,0.25);letter-spacing:0.5px">📋 Ouvrir un ticket</a>` : ""}
       </td>
     </tr></table>
-    <p style="margin:12px 0 0;font-size:11px;color:#94a3b8;text-align:center">© ${new Date().getFullYear()} AdamKom by JJP — Tous droits réservés</p>
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e2e8f0;text-align:center">
+      <p style="margin:0;font-size:11px;color:#94a3b8">© ${new Date().getFullYear()} AdamKom by JJP — Tous droits réservés</p>
+      <p style="margin:4px 0 0;font-size:10px;color:#cbd5e1">La Réunion 🇷🇪 • Solutions digitales sur mesure</p>
+    </div>
   </div>
 </div>`;
+
 }
 
 // ── Templates par type de livrable ────────────────────

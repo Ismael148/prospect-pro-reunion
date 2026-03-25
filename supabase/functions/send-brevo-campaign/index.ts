@@ -131,7 +131,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'send_design') {
-      const { recipientEmail, recipientName, clientName, designUrl, designName, subject, htmlContent: customHtmlContent, attachment } = body;
+      const { recipientEmail, recipientName, clientName, designUrl, designName, subject, htmlContent: customHtmlContent, attachment, deliverable_id, project_id, template_name: tplName } = body;
 
       if (!recipientEmail) {
         return new Response(JSON.stringify({ error: 'Champs manquants' }), { status: 400, headers: corsHeaders });
@@ -164,6 +164,8 @@ Deno.serve(async (req) => {
         ? attachment.filter((item) => item && typeof item.name === 'string' && (typeof item.url === 'string' || typeof item.content === 'string'))
         : [];
 
+      const finalSubject = subject || `Votre nouveau design - ${designName || clientName}`;
+
       const response = await fetch('https://api.brevo.com/v3/smtp/email', {
         method: 'POST',
         headers: {
@@ -174,7 +176,7 @@ Deno.serve(async (req) => {
         body: JSON.stringify({
           sender: { name: 'AdamKom Design', email: 'contact@adamkom.com' },
           to: [{ email: recipientEmail, name: recipientName || clientName }],
-          subject: subject || `Votre nouveau design - ${designName || clientName}`,
+          subject: finalSubject,
           htmlContent,
           ...(normalizedAttachments.length ? { attachment: normalizedAttachments } : {}),
         }),
@@ -182,13 +184,40 @@ Deno.serve(async (req) => {
 
       if (!response.ok) {
         const err = await response.text();
+        // Log failure
+        await serviceSupabase.from('email_send_log').insert({
+          recipient_email: recipientEmail,
+          recipient_name: recipientName || clientName,
+          subject: finalSubject,
+          status: 'failed',
+          template_name: tplName || 'design',
+          deliverable_id: deliverable_id || null,
+          project_id: project_id || null,
+          error_message: err,
+        });
         return new Response(JSON.stringify({ error: `Brevo error: ${err}` }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
-      return new Response(JSON.stringify({ success: true }), {
+      const brevoData = await response.json();
+      const messageId = brevoData.messageId || null;
+
+      // Log success with messageId for webhook tracking
+      await serviceSupabase.from('email_send_log').insert({
+        message_id: messageId,
+        recipient_email: recipientEmail,
+        recipient_name: recipientName || clientName,
+        subject: finalSubject,
+        status: 'sent',
+        template_name: tplName || 'design',
+        deliverable_id: deliverable_id || null,
+        project_id: project_id || null,
+        metadata: { has_attachment: normalizedAttachments.length > 0, design_name: designName },
+      });
+
+      return new Response(JSON.stringify({ success: true, messageId }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

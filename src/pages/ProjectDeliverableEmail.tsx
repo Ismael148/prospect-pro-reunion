@@ -1,5 +1,6 @@
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useProject, useDeliverables } from "@/hooks/use-projects";
 import { supabase } from "@/integrations/supabase/client";
 import { triggerN8nWebhook } from "@/lib/n8n-webhook";
@@ -14,9 +15,8 @@ import { Badge } from "@/components/ui/badge";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { ArrowLeft, Code, FileText, Loader2, Mail, Paperclip, Send, TriangleAlert } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Clock, Loader2, Mail, MailX, Paperclip, Send, TriangleAlert } from "lucide-react";
 import DOMPurify from "dompurify";
 
 // ── Types ──────────────────────────────────────────────
@@ -37,243 +37,208 @@ function formatBytes(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
 }
 
-// ── Email wrapper (header + footer with support) ──────
+const LOGO_URL = "https://adamkom.com/wp-content/uploads/2026/01/logo-Adamkom-by-jjp-1.png";
+const BRAND_COLOR = "#ff006e";
+const BRAND_DARK = "#1a1a2e";
+
+// ── Email wrapper (Adamkom branded — Firecrawl-inspired) ──
 function wrapInBrandedTemplate(bodyHtml: string, supportLink: string) {
-  return `<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:640px;margin:0 auto;background:#ffffff;color:#1a1a2e;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08)">
+  return `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff">
   <!-- HEADER -->
-  <div style="background:linear-gradient(135deg,#0f2847 0%,#1E3A5F 50%,#2a5298 100%);padding:40px 32px;text-align:center;position:relative">
-    <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><defs><pattern id=%22g%22 width=%2220%22 height=%2220%22 patternUnits=%22userSpaceOnUse%22><circle cx=%2210%22 cy=%2210%22 r=%221%22 fill=%22rgba(218,165,32,0.08)%22/></pattern></defs><rect fill=%22url(%23g)%22 width=%22100%22 height=%22100%22/></svg>');opacity:1"></div>
-    <div style="position:relative;z-index:1">
-      <div style="display:inline-block;background:rgba(255,255,255,0.1);border:1px solid rgba(218,165,32,0.3);border-radius:16px;padding:16px 40px;backdrop-filter:blur(10px)">
-        <h1 style="color:#ffffff;margin:0;font-size:32px;font-weight:800;letter-spacing:2px;text-shadow:0 2px 8px rgba(0,0,0,0.3)">ADAMKOM</h1>
-        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px">
-          <div style="height:1px;width:32px;background:linear-gradient(90deg,transparent,#DAA520)"></div>
-          <span style="color:#DAA520;font-size:14px;font-weight:600;letter-spacing:3px">by JJP</span>
-          <div style="height:1px;width:32px;background:linear-gradient(90deg,#DAA520,transparent)"></div>
-        </div>
-      </div>
-      <p style="color:rgba(255,255,255,0.7);margin:16px 0 0;font-size:12px;letter-spacing:4px;text-transform:uppercase;font-weight:500">Solutions digitales pour entreprises</p>
-    </div>
+  <div style="padding:32px 40px;text-align:center;border-bottom:1px solid #f0f0f0">
+    <img src="${LOGO_URL}" alt="Adamkom" style="height:48px;width:auto;margin-bottom:8px" />
+    <p style="margin:0;font-size:13px;color:#71717a;letter-spacing:0.5px">La performance digitale pour votre entreprise</p>
   </div>
-  <!-- ACCENT BAR -->
-  <div style="height:4px;background:linear-gradient(90deg,#DAA520,#f4c542,#DAA520)"></div>
   <!-- BODY -->
-  <div style="padding:36px 32px;line-height:1.8;font-size:15px;color:#334155">
+  <div style="padding:40px;line-height:1.7;font-size:15px;color:#27272a">
     ${bodyHtml}
   </div>
   <!-- FOOTER -->
-  <div style="background:linear-gradient(180deg,#f8fafc,#f1f5f9);padding:28px 32px;border-top:1px solid #e2e8f0">
-    <table style="width:100%;border-spacing:0"><tr>
-      <td style="font-size:13px;color:#475569;vertical-align:top;padding-right:16px">
-        <div style="display:inline-block;background:#1E3A5F;color:#DAA520;font-weight:800;font-size:11px;padding:4px 10px;border-radius:6px;letter-spacing:1px;margin-bottom:10px">ADAMKOM</div><br>
-        <span style="font-size:14px">📞</span> <a href="tel:0262666876" style="color:#1E3A5F;text-decoration:none;font-weight:600;font-size:14px">0262 66 68 76</a><br>
-        <span style="font-size:14px">✉️</span> <a href="mailto:contact@adamkom.com" style="color:#1E3A5F;text-decoration:none;font-size:13px">contact@adamkom.com</a>
-      </td>
-      <td style="text-align:right;vertical-align:middle">
-        ${supportLink ? `<a href="${supportLink}" style="display:inline-block;background:linear-gradient(135deg,#1E3A5F,#2a5298);color:#ffffff;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:700;font-size:13px;box-shadow:0 4px 12px rgba(30,58,95,0.25);letter-spacing:0.5px">📋 Ouvrir un ticket</a>` : ""}
-      </td>
-    </tr></table>
-    <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e2e8f0;text-align:center">
-      <p style="margin:0;font-size:11px;color:#94a3b8">© ${new Date().getFullYear()} AdamKom by JJP — Tous droits réservés</p>
-      <p style="margin:4px 0 0;font-size:10px;color:#cbd5e1">La Réunion 🇷🇪 • Solutions digitales sur mesure</p>
+  <div style="padding:32px 40px;border-top:1px solid #f0f0f0;background:#fafafa">
+    ${supportLink ? `<div style="text-align:center;margin-bottom:24px">
+      <a href="${supportLink}" style="display:inline-block;background:${BRAND_COLOR};color:#ffffff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">📋 Ouvrir un ticket support</a>
+    </div>` : ""}
+    <div style="text-align:center;font-size:13px;color:#71717a">
+      <p style="margin:0 0 4px"><strong style="color:${BRAND_DARK}">Adamkom</strong> — La performance digitale</p>
+      <p style="margin:0 0 4px">📞 <a href="tel:0262666876" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600">0262 66 68 76</a> · ✉️ <a href="mailto:contact@adamkom.com" style="color:${BRAND_COLOR};text-decoration:none">contact@adamkom.com</a></p>
+      <p style="margin:12px 0 0;font-size:11px;color:#a1a1aa">© ${new Date().getFullYear()} Adamkom by JJP — La Réunion 🇷🇪</p>
     </div>
   </div>
 </div>`;
-
 }
 
 // ── Templates par type de livrable ────────────────────
-interface EmailTemplate {
-  id: string;
-  label: string;
-  icon: string;
-  subject: string;
-  body: string;
+interface EmailTemplate { id: string; label: string; icon: string; subject: string; body: string; }
+
+function makeCta(text: string, variable: string) {
+  return `<div style="margin:28px 0;text-align:center">
+  <a href="${variable}" style="display:inline-block;background:${BRAND_COLOR};color:#ffffff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px">${text}</a>
+</div>`;
 }
 
 const EMAIL_TEMPLATES: EmailTemplate[] = [
   {
-    id: "site",
-    label: "Site Internet",
-    icon: "🌐",
+    id: "site", label: "Site Internet", icon: "🌐",
     subject: "Votre site internet est prêt — {{nom_entreprise}}",
     body: `<p style="margin-top:0">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
 <p>Nous avons le plaisir de vous informer que votre <strong>site internet</strong> est terminé et en ligne ! 🎉</p>
-<p>Vous pouvez le découvrir dès maintenant :</p>
-<div style="margin:24px 0;text-align:center">
-  <a href="{{lien_livrable}}" style="display:inline-block;background:linear-gradient(135deg,#1E3A5F,#2a5298);color:#ffffff;padding:14px 32px;border-radius:999px;text-decoration:none;font-weight:700;font-size:16px;box-shadow:0 4px 15px rgba(30,58,95,0.3)">🌐 Voir mon site</a>
-</div>
+${makeCta("🌐 Voir mon site", "{{lien_livrable}}")}
 <p><strong>Ce qui a été réalisé :</strong></p>
-<ul style="padding-left:20px;color:#475569">
+<ul style="padding-left:20px;color:#52525b">
   <li>Design responsive (mobile, tablette, desktop)</li>
   <li>Optimisation SEO et référencement local</li>
   <li>Formulaire de contact avec autorépondeur</li>
   <li>Sécurité (SSL, Wordfence) et RGPD</li>
   <li>Chatbot IA et porte-parole intégrés</li>
 </ul>
-<p>Si vous souhaitez des modifications, n'hésitez pas à <a href="{{lien_support}}" style="color:#1E3A5F;font-weight:600">ouvrir un ticket support</a>. Notre équipe technique vous répondra rapidement.</p>
-<p>Cordialement,<br><strong>L'équipe AdamKom</strong></p>`,
+<p>Si vous souhaitez des modifications, n'hésitez pas à ouvrir un ticket support via le bouton ci-dessous.</p>
+<p>Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
   },
   {
-    id: "chatbot",
-    label: "Chatbot IA & Porte-Parole",
-    icon: "🤖",
+    id: "chatbot", label: "Chatbot IA & Porte-Parole", icon: "🤖",
     subject: "Votre chatbot IA est activé — {{nom_entreprise}}",
     body: `<p style="margin-top:0">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
-<p>Votre <strong>chatbot IA</strong> et votre <strong>porte-parole virtuel</strong> sont désormais opérationnels sur votre site ! 🤖</p>
-<div style="margin:24px 0;text-align:center">
-  <a href="{{lien_livrable}}" style="display:inline-block;background:linear-gradient(135deg,#1E3A5F,#2a5298);color:#ffffff;padding:14px 32px;border-radius:999px;text-decoration:none;font-weight:700;font-size:16px;box-shadow:0 4px 15px rgba(30,58,95,0.3)">🤖 Tester mon chatbot</a>
-</div>
+<p>Votre <strong>chatbot IA</strong> et votre <strong>porte-parole virtuel</strong> sont désormais opérationnels ! 🤖</p>
+${makeCta("🤖 Tester mon chatbot", "{{lien_livrable}}")}
 <p><strong>Fonctionnalités activées :</strong></p>
-<ul style="padding-left:20px;color:#475569">
-  <li>Assistant IA entraîné sur les informations de votre entreprise</li>
+<ul style="padding-left:20px;color:#52525b">
+  <li>Assistant IA entraîné sur vos informations</li>
   <li>Porte-parole vidéo animé en français</li>
-  <li>Réponses automatiques 24h/24 pour vos visiteurs</li>
-  <li>Accès à votre backoffice AICoaches</li>
+  <li>Réponses automatiques 24h/24</li>
+  <li>Accès backoffice AICoaches</li>
 </ul>
-<p>Pour toute question ou ajustement, <a href="{{lien_support}}" style="color:#1E3A5F;font-weight:600">contactez notre support</a>.</p>
-<p>Cordialement,<br><strong>L'équipe AdamKom</strong></p>`,
+<p>Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
   },
   {
-    id: "nfc",
-    label: "Carte NFC & Affiche",
-    icon: "💳",
+    id: "nfc", label: "Carte NFC & Affiche", icon: "💳",
     subject: "Votre carte NFC est prête — {{nom_entreprise}}",
     body: `<p style="margin-top:0">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
-<p>Excellente nouvelle ! Votre <strong>carte BIZNESS NFC</strong> et votre <strong>affiche connectée</strong> sont prêtes ! 💳</p>
-<div style="margin:24px 0;text-align:center">
-  <a href="{{lien_livrable}}" style="display:inline-block;background:linear-gradient(135deg,#1E3A5F,#2a5298);color:#ffffff;padding:14px 32px;border-radius:999px;text-decoration:none;font-weight:700;font-size:16px;box-shadow:0 4px 15px rgba(30,58,95,0.3)">💳 Voir ma page NFC</a>
-</div>
+<p>Votre <strong>carte BIZNESS NFC</strong> et votre <strong>affiche connectée</strong> sont prêtes ! 💳</p>
+${makeCta("💳 Voir ma page NFC", "{{lien_livrable}}")}
 <p><strong>Inclus dans votre pack :</strong></p>
-<ul style="padding-left:20px;color:#475569">
+<ul style="padding-left:20px;color:#52525b">
   <li>Carte NFC programmée et personnalisée</li>
   <li>Page de profil digital complète</li>
   <li>QR Code personnalisé</li>
   <li>Affiche connectée pour votre vitrine</li>
-  <li>Intégration réseaux sociaux</li>
 </ul>
-<p>La livraison physique de la carte sera organisée prochainement. En attendant, vous pouvez tester le scan.</p>
-<p>Besoin d'aide ? <a href="{{lien_support}}" style="color:#1E3A5F;font-weight:600">Ouvrez un ticket support</a>.</p>
-<p>Cordialement,<br><strong>L'équipe AdamKom</strong></p>`,
+<p>Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
   },
   {
-    id: "seo",
-    label: "Fiche Google My Business",
-    icon: "🔍",
+    id: "seo", label: "Fiche Google My Business", icon: "🔍",
     subject: "Votre fiche Google est optimisée — {{nom_entreprise}}",
     body: `<p style="margin-top:0">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
 <p>Votre <strong>fiche Google My Business</strong> a été créée et optimisée ! 🔍</p>
-<div style="margin:24px 0;text-align:center">
-  <a href="{{lien_livrable}}" style="display:inline-block;background:linear-gradient(135deg,#1E3A5F,#2a5298);color:#ffffff;padding:14px 32px;border-radius:999px;text-decoration:none;font-weight:700;font-size:16px;box-shadow:0 4px 15px rgba(30,58,95,0.3)">🔍 Voir ma fiche Google</a>
-</div>
+${makeCta("🔍 Voir ma fiche Google", "{{lien_livrable}}")}
 <p><strong>Optimisations réalisées :</strong></p>
-<ul style="padding-left:20px;color:#475569">
+<ul style="padding-left:20px;color:#52525b">
   <li>Catégories et horaires configurés</li>
   <li>Photos professionnelles ajoutées</li>
-  <li>Référencement local (NAP) optimisé</li>
+  <li>Référencement local optimisé</li>
   <li>Posts Google My Business publiés</li>
-  <li>Flux Google géré</li>
 </ul>
-<p>Pour toute modification, <a href="{{lien_support}}" style="color:#1E3A5F;font-weight:600">ouvrez un ticket support</a>.</p>
-<p>Cordialement,<br><strong>L'équipe AdamKom</strong></p>`,
+<p>Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
   },
   {
-    id: "reseaux",
-    label: "Réseaux Sociaux",
-    icon: "📱",
+    id: "reseaux", label: "Réseaux Sociaux", icon: "📱",
     subject: "Vos réseaux sociaux sont lancés — {{nom_entreprise}}",
     body: `<p style="margin-top:0">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
 <p>Vos <strong>réseaux sociaux</strong> sont configurés et les premières publications sont en ligne ! 📱</p>
-<div style="margin:24px 0;text-align:center">
-  <a href="{{lien_livrable}}" style="display:inline-block;background:linear-gradient(135deg,#1E3A5F,#2a5298);color:#ffffff;padding:14px 32px;border-radius:999px;text-decoration:none;font-weight:700;font-size:16px;box-shadow:0 4px 15px rgba(30,58,95,0.3)">📱 Voir mes publications</a>
-</div>
+${makeCta("📱 Voir mes publications", "{{lien_livrable}}")}
 <p><strong>Ce qui a été mis en place :</strong></p>
-<ul style="padding-left:20px;color:#475569">
-  <li>Création et optimisation des comptes sociaux</li>
+<ul style="padding-left:20px;color:#52525b">
+  <li>Création et optimisation des comptes</li>
   <li>Designs visuels personnalisés</li>
   <li>Premières publications programmées</li>
   <li>Chatbots intégrés aux réseaux</li>
 </ul>
-<p>Pour toute demande, <a href="{{lien_support}}" style="color:#1E3A5F;font-weight:600">ouvrez un ticket support</a>.</p>
-<p>Cordialement,<br><strong>L'équipe AdamKom</strong></p>`,
+<p>Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
   },
   {
-    id: "formation",
-    label: "Formation & Livraison",
-    icon: "📚",
+    id: "formation", label: "Formation & Livraison", icon: "📚",
     subject: "Votre formation est disponible — {{nom_entreprise}}",
     body: `<p style="margin-top:0">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
 <p>Votre <strong>session de formation</strong> est prête ! 📚</p>
-<p>Nous vous accompagnons pour la prise en main de vos outils digitaux :</p>
-<ul style="padding-left:20px;color:#475569">
-  <li>Gestion de votre fiche Google My Business</li>
+${makeCta("📚 Accéder aux ressources", "{{lien_livrable}}")}
+<ul style="padding-left:20px;color:#52525b">
+  <li>Gestion de votre fiche Google</li>
   <li>Utilisation de votre carte NFC</li>
   <li>Publication sur les réseaux sociaux</li>
   <li>Gestion de votre chatbot IA</li>
 </ul>
-<p>Un membre de notre équipe vous contactera pour planifier la session.</p>
-<p>En attendant, vous pouvez consulter vos livrables ci-dessous :</p>
-<div style="margin:24px 0;text-align:center">
-  <a href="{{lien_livrable}}" style="display:inline-block;background:linear-gradient(135deg,#1E3A5F,#2a5298);color:#ffffff;padding:14px 32px;border-radius:999px;text-decoration:none;font-weight:700;font-size:16px;box-shadow:0 4px 15px rgba(30,58,95,0.3)">📚 Accéder aux ressources</a>
-</div>
-<p>Besoin d'aide ? <a href="{{lien_support}}" style="color:#1E3A5F;font-weight:600">Contactez notre support</a>.</p>
-<p>Cordialement,<br><strong>L'équipe AdamKom</strong></p>`,
+<p>Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
   },
   {
-    id: "annuaire",
-    label: "Annuaire Entreprises974",
-    icon: "📒",
+    id: "annuaire", label: "Annuaire Entreprises974", icon: "📒",
     subject: "Votre page annuaire est en ligne — {{nom_entreprise}}",
     body: `<p style="margin-top:0">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
 <p>Votre profil sur <strong>l'annuaire Entreprises974</strong> est publié ! 📒</p>
-<div style="margin:24px 0;text-align:center">
-  <a href="{{lien_livrable}}" style="display:inline-block;background:linear-gradient(135deg,#1E3A5F,#2a5298);color:#ffffff;padding:14px 32px;border-radius:999px;text-decoration:none;font-weight:700;font-size:16px;box-shadow:0 4px 15px rgba(30,58,95,0.3)">📒 Voir mon profil</a>
-</div>
+${makeCta("📒 Voir mon profil", "{{lien_livrable}}")}
 <p><strong>Contenu publié :</strong></p>
-<ul style="padding-left:20px;color:#475569">
-  <li>Informations de base et description</li>
+<ul style="padding-left:20px;color:#52525b">
+  <li>Informations et description</li>
   <li>Vidéo de présentation</li>
   <li>FAQ et photos</li>
   <li>Avis clients</li>
 </ul>
-<p>Pour des modifications, <a href="{{lien_support}}" style="color:#1E3A5F;font-weight:600">ouvrez un ticket support</a>.</p>
-<p>Cordialement,<br><strong>L'équipe AdamKom</strong></p>`,
+<p>Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
   },
   {
-    id: "generique",
-    label: "Générique",
-    icon: "📧",
+    id: "generique", label: "Générique", icon: "📧",
     subject: "Votre livrable est prêt — {{nom_entreprise}}",
     body: `<p style="margin-top:0">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
 <p>Nous avons le plaisir de vous informer que le livrable <strong>{{nom_livrable}}</strong> est prêt !</p>
-<div style="margin:24px 0;text-align:center">
-  <a href="{{lien_livrable}}" style="display:inline-block;background:linear-gradient(135deg,#1E3A5F,#2a5298);color:#ffffff;padding:14px 32px;border-radius:999px;text-decoration:none;font-weight:700;font-size:16px;box-shadow:0 4px 15px rgba(30,58,95,0.3)">📦 Ouvrir {{nom_livrable}}</a>
-</div>
+${makeCta("📦 Ouvrir {{nom_livrable}}", "{{lien_livrable}}")}
 <p>N'hésitez pas à nous faire part de vos remarques.</p>
-<p>Besoin d'aide ? <a href="{{lien_support}}" style="color:#1E3A5F;font-weight:600">Ouvrez un ticket support</a> et notre équipe technique vous répondra sous 24h.</p>
-<p>Cordialement,<br><strong>L'équipe AdamKom</strong></p>`,
+<p>Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
   },
 ];
 
-// Auto-detect template from deliverable name
-function detectTemplateId(deliverableName: string): string {
-  const lower = deliverableName.toLowerCase();
-  if (lower.includes("site") || lower.includes("landing") || lower.includes("web")) return "site";
-  if (lower.includes("chatbot") || lower.includes("ia") || lower.includes("porte-parole")) return "chatbot";
-  if (lower.includes("nfc") || lower.includes("carte") || lower.includes("affiche")) return "nfc";
-  if (lower.includes("google") || lower.includes("gmb") || lower.includes("fiche")) return "seo";
-  if (lower.includes("réseau") || lower.includes("social") || lower.includes("publication")) return "reseaux";
-  if (lower.includes("formation") || lower.includes("livraison")) return "formation";
-  if (lower.includes("annuaire") || lower.includes("974")) return "annuaire";
+function detectTemplateId(name: string): string {
+  const l = name.toLowerCase();
+  if (l.includes("site") || l.includes("landing") || l.includes("web")) return "site";
+  if (l.includes("chatbot") || l.includes("ia") || l.includes("porte-parole")) return "chatbot";
+  if (l.includes("nfc") || l.includes("carte") || l.includes("affiche")) return "nfc";
+  if (l.includes("google") || l.includes("gmb") || l.includes("fiche")) return "seo";
+  if (l.includes("réseau") || l.includes("social") || l.includes("publication")) return "reseaux";
+  if (l.includes("formation") || l.includes("livraison")) return "formation";
+  if (l.includes("annuaire") || l.includes("974")) return "annuaire";
   return "generique";
+}
+
+// ── Hook: email send history ──────────────────────────
+function useEmailHistory(deliverableId: string | undefined) {
+  return useQuery({
+    queryKey: ["email_send_log", deliverableId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("email_send_log" as any)
+        .select("*")
+        .eq("deliverable_id", deliverableId!)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!deliverableId,
+  });
+}
+
+// ── Status badge helper ───────────────────────────────
+function StatusBadge({ status }: { status: string }) {
+  if (status === "sent") return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 gap-1"><CheckCircle2 className="h-3 w-3" />Envoyé</Badge>;
+  if (status === "failed" || status === "dlq") return <Badge variant="destructive" className="gap-1"><MailX className="h-3 w-3" />Échoué</Badge>;
+  return <Badge variant="secondary" className="gap-1"><Clock className="h-3 w-3" />{status}</Badge>;
 }
 
 // ── Main component ────────────────────────────────────
 export default function ProjectDeliverableEmail() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { id: projectId, deliverableId } = useParams<{ id: string; deliverableId: string }>();
   const { data: project, isLoading: isProjectLoading } = useProject(projectId || "");
   const { data: deliverables, isLoading: isDeliverablesLoading } = useDeliverables(projectId || "");
+  const { data: emailHistory } = useEmailHistory(deliverableId);
   const deliverable = useMemo(
     () => deliverables?.find((item) => item.id === deliverableId),
     [deliverables, deliverableId],
@@ -288,14 +253,12 @@ export default function ProjectDeliverableEmail() {
   const [recipientEmail, setRecipientEmail] = useState(clientEmail);
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
-  const [editorMode, setEditorMode] = useState<"html">("html");
   const [selectedTemplateId, setSelectedTemplateId] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
   const [uploadedAttachment, setUploadedAttachment] = useState<UploadedAttachment | null>(null);
   const [sending, setSending] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
-  // Auto-detect template and initialize
   useEffect(() => {
     if (!deliverable || initialized) return;
     const detected = detectTemplateId(deliverable.name);
@@ -307,7 +270,6 @@ export default function ProjectDeliverableEmail() {
     setInitialized(true);
   }, [deliverable, initialized]);
 
-  // Update email on recipient load
   useEffect(() => {
     if (clientEmail && !recipientEmail) setRecipientEmail(clientEmail);
   }, [clientEmail]);
@@ -315,10 +277,7 @@ export default function ProjectDeliverableEmail() {
   const handleTemplateChange = (templateId: string) => {
     setSelectedTemplateId(templateId);
     const tpl = EMAIL_TEMPLATES.find((t) => t.id === templateId);
-    if (tpl) {
-      setSubject(tpl.subject);
-      setMessage(tpl.body);
-    }
+    if (tpl) { setSubject(tpl.subject); setMessage(tpl.body); }
   };
 
   const replaceVariables = useCallback(
@@ -342,9 +301,7 @@ export default function ProjectDeliverableEmail() {
 
   const resolvedSubject = useMemo(() => replaceVariables(subject), [subject, replaceVariables]);
 
-  const handleInsertVariable = (varCode: string) => {
-    setMessage((prev) => prev + varCode);
-  };
+  const handleInsertVariable = (varCode: string) => setMessage((prev) => prev + varCode);
 
   const handleAttachmentChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -387,9 +344,28 @@ export default function ProjectDeliverableEmail() {
           subject: resolvedSubject,
           htmlContent: resolvedHtmlContent,
           attachment: attachments,
+          // For logging
+          deliverable_id: deliverable.id,
+          project_id: projectId,
+          template_name: selectedTemplateId,
         },
       });
       if (error) throw error;
+
+      // Log to email_send_log
+      await supabase.from("email_send_log" as any).insert({
+        deliverable_id: deliverable.id,
+        project_id: projectId,
+        recipient_email: recipientEmail.trim(),
+        recipient_name: clientName,
+        subject: resolvedSubject,
+        status: "sent",
+        template_name: selectedTemplateId,
+        metadata: { has_attachment: !!uploadedAttachment, link_url: linkUrl.trim() || null },
+      } as any);
+
+      queryClient.invalidateQueries({ queryKey: ["email_send_log", deliverableId] });
+
       await triggerN8nWebhook("design.sent", {
         project_id: projectId,
         deliverable_id: deliverable.id,
@@ -400,7 +376,21 @@ export default function ProjectDeliverableEmail() {
       });
       toast.success(`Email envoyé pour "${deliverable.name}"`);
       navigate(`/projets/${projectId}`);
-    } catch (e: any) { toast.error(e.message || "Erreur lors de l'envoi"); }
+    } catch (e: any) {
+      // Log failure
+      await supabase.from("email_send_log" as any).insert({
+        deliverable_id: deliverable.id,
+        project_id: projectId,
+        recipient_email: recipientEmail.trim(),
+        recipient_name: clientName,
+        subject: resolvedSubject,
+        status: "failed",
+        template_name: selectedTemplateId,
+        error_message: e.message || "Erreur inconnue",
+      } as any);
+      queryClient.invalidateQueries({ queryKey: ["email_send_log", deliverableId] });
+      toast.error(e.message || "Erreur lors de l'envoi");
+    }
     finally { setSending(false); }
   };
 
@@ -468,7 +458,6 @@ export default function ProjectDeliverableEmail() {
             <div className="space-y-2">
               <Label htmlFor="linkUrl">Lien du livrable</Label>
               <Input id="linkUrl" value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="https://..." />
-              <p className="text-xs text-muted-foreground">URL du site, chatbot, vidéo, etc. Variable : <code className="rounded bg-muted px-1">{"{{lien_livrable}}"}</code></p>
             </div>
 
             {/* Variables */}
@@ -483,7 +472,7 @@ export default function ProjectDeliverableEmail() {
                 ))}
               </div>
               <Textarea id="message" value={message} onChange={(e) => setMessage(e.target.value)} className="min-h-[280px] font-mono text-xs" placeholder="<p>Votre contenu HTML ici...</p>" />
-              <p className="text-xs text-muted-foreground">HTML/CSS direct. Les variables sont remplacées automatiquement. Le header AdamKom et le footer avec support sont ajoutés automatiquement.</p>
+              <p className="text-xs text-muted-foreground">Le header (logo Adamkom) et le footer (support + contact) sont ajoutés automatiquement.</p>
             </div>
 
             {/* Attachments */}
@@ -491,7 +480,7 @@ export default function ProjectDeliverableEmail() {
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-medium">Pièces jointes</p>
-                  <p className="text-xs text-muted-foreground">Fichier, image, PDF ou vidéo.</p>
+                  <p className="text-xs text-muted-foreground">Max 15 Mo</p>
                 </div>
                 <Button type="button" variant="outline" asChild>
                   <label htmlFor="attachment-upload" className="cursor-pointer"><Paperclip className="mr-2 h-4 w-4" />Ajouter</label>
@@ -507,14 +496,6 @@ export default function ProjectDeliverableEmail() {
               )}
             </div>
 
-            {/* Support link info */}
-            {supportLink && (
-              <div className="rounded-lg bg-success/5 border border-success/20 p-3 text-sm">
-                <p className="font-medium text-success">✅ Lien support intégré</p>
-                <p className="text-xs text-muted-foreground mt-1">Le footer inclut un bouton "Ouvrir un ticket support" qui pointe vers : <code className="text-xs break-all">{supportLink}</code></p>
-              </div>
-            )}
-
             <div className="flex flex-wrap gap-3">
               <Button onClick={handleSend} disabled={sending} className="gap-2">
                 {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
@@ -525,22 +506,55 @@ export default function ProjectDeliverableEmail() {
           </CardContent>
         </Card>
 
-        {/* RIGHT: Preview */}
-        <Card className="border-0 shadow-md shadow-primary/5">
-          <CardHeader><CardTitle>Aperçu</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <div className="rounded-xl border border-border bg-card p-4">
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Objet</p>
-              <p className="mt-1 text-sm font-medium">{resolvedSubject || "Aucun objet"}</p>
-            </div>
-            <div className="overflow-hidden rounded-xl border border-border bg-background">
-              <div className="border-b border-border px-4 py-3 text-sm text-muted-foreground">Prévisualisation</div>
-              <div className="max-h-[600px] overflow-auto p-1">
-                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(resolvedHtmlContent, { ADD_TAGS: ["style"], ADD_ATTR: ["style"] }) }} />
+        {/* RIGHT: Preview + History */}
+        <div className="space-y-6">
+          {/* Preview */}
+          <Card className="border-0 shadow-md shadow-primary/5">
+            <CardHeader><CardTitle>Aperçu</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-xl border border-border bg-card p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Objet</p>
+                <p className="mt-1 text-sm font-medium">{resolvedSubject || "Aucun objet"}</p>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="overflow-hidden rounded-xl border border-border bg-white">
+                <div className="border-b border-border px-4 py-3 text-sm text-muted-foreground">Prévisualisation</div>
+                <div className="max-h-[500px] overflow-auto">
+                  <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(resolvedHtmlContent, { ADD_TAGS: ["style"], ADD_ATTR: ["style"] }) }} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Email History */}
+          <Card className="border-0 shadow-md shadow-primary/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-muted-foreground" />
+                Historique d'envoi
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {!emailHistory || emailHistory.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">Aucun email envoyé pour ce livrable.</p>
+              ) : (
+                <div className="space-y-3">
+                  {emailHistory.map((log: any) => (
+                    <div key={log.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">{log.recipient_email}</p>
+                        <p className="text-xs text-muted-foreground truncate">{log.subject}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(log.created_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                        </p>
+                      </div>
+                      <StatusBadge status={log.status} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

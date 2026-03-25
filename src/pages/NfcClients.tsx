@@ -76,7 +76,6 @@ export default function NfcClients() {
       setNfcClients(data as NfcClient[]);
     }
     setLoading(false);
-    setLoaded(true);
   }, []);
 
   useEffect(() => { loadNfcClients(); }, [loadNfcClients]);

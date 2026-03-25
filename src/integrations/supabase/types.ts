@@ -767,6 +767,39 @@ export type Database = {
           },
         ]
       }
+      saved_email_templates: {
+        Row: {
+          body: string
+          category: string | null
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          category?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          name: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          category?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       social_accounts: {
         Row: {
           access_token: string | null

@@ -273,7 +273,7 @@ export default function Invoices() {
                   <TableRow key={inv.id}>
                     <TableCell className="font-mono font-medium">{inv.invoice_number}</TableCell>
                     <TableCell>{client?.company_name || "—"}</TableCell>
-                    <TableCell>{new Date(inv.issued_date).toLocaleDateString("fr-FR")}</TableCell>
+                    <TableCell>{new Date(inv.issued_date).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion" })}</TableCell>
                     <TableCell className="font-mono font-medium">{Number(inv.total_amount).toFixed(2)} €</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={STATUS_COLORS[inv.status] || ""}>

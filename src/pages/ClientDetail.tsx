@@ -215,7 +215,7 @@ function ClientInfoSection({ client, salesTeam }: { client: any; salesTeam?: { a
     { label: "Montant", value: client.pack_amount ? `${Number(client.pack_amount).toFixed(2)} €` : null, icon: CreditCard },
     { label: "Qté cartes NFC", value: (client as any).nfc_quantity > 1 ? `${(client as any).nfc_quantity} cartes` : null, icon: NfcIcon },
     { label: "Règlement", value: client.payment_method ? PAYMENT_LABELS[client.payment_method] || client.payment_method : null, icon: CreditCard },
-    { label: "Date signature", value: client.signature_date ? new Date(client.signature_date).toLocaleDateString("fr-FR") : null, icon: FileText },
+    { label: "Date signature", value: client.signature_date ? new Date(client.signature_date).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion" }) : null, icon: FileText },
     { label: "Commercial signataire", value: signedByName, icon: UserCheck },
     { label: "Agent assigné", value: assignedToName, icon: User },
     { label: "Type de site", value: (client as any).site_type === "ecommerce" ? "🛒 E-commerce" : "🌐 Vitrine", icon: Globe },
@@ -436,7 +436,7 @@ function SupportTicketsSection({ clientId }: { clientId: string }) {
               </div>
             )}
             <p className="text-[10px] text-muted-foreground mt-1">
-              {new Date(t.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+              {new Date(t.created_at).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
             </p>
           </div>
         ))}
@@ -515,7 +515,7 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-medium text-primary">{authorName}</span>
                     <span className="text-[10px] text-muted-foreground">
-                      {new Date(activity.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                      {new Date(activity.created_at).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                     </span>
                   </div>
                   <p className="text-sm whitespace-pre-wrap">{renderDescription(activity.description || "")}</p>
@@ -533,7 +533,7 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
                 <div>
                   <p>{activity.description}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {new Date(activity.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    {new Date(activity.created_at).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                   </p>
                 </div>
               </div>
@@ -635,7 +635,7 @@ function ClientFormsSection({ clientId, supportToken, packType }: { clientId: st
                   </div>
                   {form.submitted_at && (
                     <p className="text-[11px] text-muted-foreground">
-                      Soumis le {new Date(form.submitted_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      Soumis le {new Date(form.submitted_at).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                     </p>
                   )}
                   {viewingForm?.id === form.id && fd && (

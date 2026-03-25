@@ -41,7 +41,7 @@ function getMonthOptions() {
   for (let i = 0; i < 12; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    const label = d.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+    const label = d.toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion", month: "long", year: "numeric" });
     options.push({ value, label: label.charAt(0).toUpperCase() + label.slice(1) });
   }
   return options;

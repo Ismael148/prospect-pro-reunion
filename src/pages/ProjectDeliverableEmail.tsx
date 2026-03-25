@@ -615,7 +615,7 @@ export default function ProjectDeliverableEmail() {
                         <p className="text-sm font-medium truncate">{log.recipient_email}</p>
                         <p className="text-xs text-muted-foreground truncate">{log.subject}</p>
                         <p className="text-xs text-muted-foreground">
-                          {new Date(log.created_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                          {new Date(log.created_at).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion", day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                         </p>
                       </div>
                       <StatusBadge status={log.status} />

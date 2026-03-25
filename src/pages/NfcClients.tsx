@@ -194,6 +194,19 @@ export default function NfcClients() {
 
   const totalCards = nfcClients.reduce((sum, c) => sum + (c.nfc_quantity || 1), 0);
 
+  const handleConvertToClient = async (clientId: string, companyName: string) => {
+    const { error } = await supabase
+      .from("clients")
+      .update({ pack_type: "star_bizness_numerik" })
+      .eq("id", clientId);
+    if (error) {
+      toast.error("Erreur lors de la conversion");
+    } else {
+      toast.success(`${companyName} converti en client NUMERIK`);
+      loadNfcClients();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">

@@ -215,7 +215,7 @@ function ClientInfoSection({ client, salesTeam }: { client: any; salesTeam?: { a
     { label: "Montant", value: client.pack_amount ? `${Number(client.pack_amount).toFixed(2)} €` : null, icon: CreditCard },
     { label: "Qté cartes NFC", value: (client as any).nfc_quantity > 1 ? `${(client as any).nfc_quantity} cartes` : null, icon: NfcIcon },
     { label: "Règlement", value: client.payment_method ? PAYMENT_LABELS[client.payment_method] || client.payment_method : null, icon: CreditCard },
-    { label: "Date signature", value: client.signature_date ? new Date(client.signature_date).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion", timeZone: "Indian/Reunion" }) : null, icon: FileText },
+    { label: "Date signature", value: client.signature_date ? new Date(client.signature_date).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion" }) : null, icon: FileText },
     { label: "Commercial signataire", value: signedByName, icon: UserCheck },
     { label: "Agent assigné", value: assignedToName, icon: User },
     { label: "Type de site", value: (client as any).site_type === "ecommerce" ? "🛒 E-commerce" : "🌐 Vitrine", icon: Globe },

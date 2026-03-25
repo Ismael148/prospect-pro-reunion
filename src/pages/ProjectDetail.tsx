@@ -319,13 +319,13 @@ export default function ProjectDetail() {
             {project.start_date && (
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-muted-foreground" />
-                <span>Signature : {new Date(project.start_date).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion", timeZone: "Indian/Reunion" })}</span>
+                <span>Signature : {new Date(project.start_date).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion" })}</span>
               </div>
             )}
             {project.due_date && (
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-muted-foreground" />
-                <span>Deadline : {new Date(project.due_date).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion", timeZone: "Indian/Reunion" })}</span>
+                <span>Deadline : {new Date(project.due_date).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion" })}</span>
               </div>
             )}
             {daysLeft !== null && (

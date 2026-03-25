@@ -75,6 +75,13 @@ Deno.serve(async (req) => {
     if (responses.length === 0) {
       throw new Error('Aucun résultat de recherche disponible');
     }
+    // Merge all results
+    const allResults: SearchResult[] = [];
+    for (const data of responses) {
+      if (data.data) {
+        allResults.push(...data.data);
+      }
+    }
 
     console.log(`Raw results: ${allResults.length}`);
 

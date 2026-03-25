@@ -110,8 +110,12 @@ export default function ProjectDetail() {
     } catch { toast.error("Erreur"); }
   };
 
-  const handleTaskLinkUpdate = async (taskId: string, linkUrl: string) => {
-    await updateTask.mutateAsync({ id: taskId, link_url: linkUrl } as any);
+  const handleModuleLinkUpdate = async (moduleId: string, linkUrl: string) => {
+    if (!project) return;
+    const currentLinks = (project as any).module_links || {};
+    const updatedLinks = { ...currentLinks, [moduleId]: linkUrl };
+    await supabase.from("projects").update({ module_links: updatedLinks } as any).eq("id", project.id);
+    window.location.reload();
   };
 
   const handleAutoGenerateModules = async () => {
@@ -406,7 +410,8 @@ export default function ProjectDetail() {
           onTaskStatusChange={handleTaskStatusChange}
           onAddTask={handleAddTask}
           onAssignModule={handleAssignModule}
-          onTaskLinkUpdate={handleTaskLinkUpdate}
+          moduleLinks={(project as any).module_links || {}}
+          onModuleLinkUpdate={handleModuleLinkUpdate}
         />
       )}
 

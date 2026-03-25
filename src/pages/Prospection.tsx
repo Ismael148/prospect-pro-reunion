@@ -675,6 +675,14 @@ export default function Prospection() {
                               </a>
                             </div>
                           )}
+                          {result.source_url && (
+                            <div className="flex items-center gap-2 text-sm">
+                              <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                              <a href={result.source_url} target="_blank" rel="noopener noreferrer" className="text-primary underline text-xs" onClick={(e) => e.stopPropagation()}>
+                                🔗 Source ({result.source_platform || "web"})
+                              </a>
+                            </div>
+                          )}
                         </motion.div>
                       )}
                     </div>
@@ -1068,6 +1076,14 @@ export default function Prospection() {
                               <MapPin className="w-4 h-4 text-muted-foreground" />
                               <a href={prospect.google_maps_url} target="_blank" rel="noopener noreferrer" className="text-primary underline text-xs">
                                 Google Maps
+                              </a>
+                            </div>
+                          )}
+                          {prospect.source && (
+                            <div className="flex items-center gap-2">
+                              <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                              <a href={prospect.source} target="_blank" rel="noopener noreferrer" className="text-primary underline text-xs">
+                                🔗 Source
                               </a>
                             </div>
                           )}

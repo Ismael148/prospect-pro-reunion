@@ -433,17 +433,7 @@ export default function ProjectDeliverableEmail() {
       toast.success(`Email envoyé pour "${deliverable.name}"`);
       navigate(`/projets/${projectId}`);
     } catch (e: any) {
-      // Log failure
-      await supabase.from("email_send_log" as any).insert({
-        deliverable_id: deliverable.id,
-        project_id: projectId,
-        recipient_email: recipientEmail.trim(),
-        recipient_name: clientName,
-        subject: resolvedSubject,
-        status: "failed",
-        template_name: selectedTemplateId,
-        error_message: e.message || "Erreur inconnue",
-      } as any);
+      // Server-side logging handles failure logging too
       queryClient.invalidateQueries({ queryKey: ["email_send_log", deliverableId] });
       toast.error(e.message || "Erreur lors de l'envoi");
     }

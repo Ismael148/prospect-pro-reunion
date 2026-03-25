@@ -51,6 +51,7 @@ function EditClientDialog({ client, onSave }: { client: any; onSave: (updates: a
     pack_amount: client.pack_amount || "",
     payment_method: client.payment_method || "",
     has_gmb: client.has_gmb || false,
+    site_type: (client as any).site_type || "vitrine",
   });
 
   const handleSave = async () => {

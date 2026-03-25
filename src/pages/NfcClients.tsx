@@ -183,15 +183,26 @@ export default function NfcClients() {
     }
   };
 
+  const cities = useMemo(() => {
+    const set = new Set(nfcClients.map(c => c.city).filter(Boolean) as string[]);
+    return Array.from(set).sort();
+  }, [nfcClients]);
+
+  const activeFilterCount = [filterCity, filterQty].filter(f => f !== "all").length;
+
+  const resetFilters = () => { setFilterCity("all"); setFilterQty("all"); };
+
   const filteredClients = nfcClients.filter((c) => {
-    if (!searchFilter) return true;
     const s = searchFilter.toLowerCase();
-    return (
-      c.company_name.toLowerCase().includes(s) ||
-      c.phone?.toLowerCase().includes(s) ||
-      c.city?.toLowerCase().includes(s) ||
-      c.manager_name?.toLowerCase().includes(s)
-    );
+    const matchSearch = !s || c.company_name.toLowerCase().includes(s) ||
+      c.phone?.toLowerCase().includes(s) || c.city?.toLowerCase().includes(s) ||
+      c.manager_name?.toLowerCase().includes(s) || c.email?.toLowerCase().includes(s);
+    const matchCity = filterCity === "all" || c.city === filterCity;
+    const matchQty = filterQty === "all" ||
+      (filterQty === "1" && c.nfc_quantity === 1) ||
+      (filterQty === "2-5" && c.nfc_quantity >= 2 && c.nfc_quantity <= 5) ||
+      (filterQty === "5+" && c.nfc_quantity > 5);
+    return matchSearch && matchCity && matchQty;
   });
 
   const totalCards = nfcClients.reduce((sum, c) => sum + (c.nfc_quantity || 1), 0);

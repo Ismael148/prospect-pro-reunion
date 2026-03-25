@@ -27,6 +27,7 @@ import MetaCallback from "./pages/MetaCallback";
 import ClientForm from "./pages/ClientForm";
 import ImportCSV from "./pages/ImportCSV";
 import Campaigns from "./pages/Campaigns";
+import NfcClients from "./pages/NfcClients";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
@@ -109,6 +110,10 @@ const App = () => (
             <Route
               path="/campagnes"
               element={<ProtectedRoute><AppLayout><Campaigns /></AppLayout></ProtectedRoute>}
+            />
+            <Route
+              path="/cartes-nfc"
+              element={<ProtectedRoute><AppLayout><NfcClients /></AppLayout></ProtectedRoute>}
             />
             {/* Public routes */}
             <Route path="/privacy" element={<Privacy />} />

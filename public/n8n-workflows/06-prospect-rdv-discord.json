@@ -1,6 +1,21 @@
 {
-  "name": "06 - Prospect RDV → Discord (via Routeur Central)",
+  "name": "06 - Prospect RDV → Discord",
   "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bee5d5e1-ce36-42a2-9e82-4662ea996d43",
+        "responseMode": "onReceived",
+        "responseCode": 200,
+        "options": {}
+      },
+      "id": "webhook-central",
+      "name": "Webhook Central",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [380, 300],
+      "webhookId": "bee5d5e1-ce36-42a2-9e82-4662ea996d43"
+    },
     {
       "parameters": {
         "rules": {
@@ -10,7 +25,7 @@
                 "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
                 "conditions": [
                   {
-                    "leftValue": "={{ $json.event }}",
+                    "leftValue": "={{ $json.body.event }}",
                     "rightValue": "prospect.rdv_planifie",
                     "operator": { "type": "string", "operation": "equals" }
                   }
@@ -22,10 +37,10 @@
             }
           ]
         },
-        "options": {}
+        "options": { "fallbackOutput": "none" }
       },
       "id": "switch-rdv",
-      "name": "Filtre RDV",
+      "name": "Filtre Événement",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3,
       "position": [620, 300]
@@ -42,17 +57,22 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"embeds\": [\n    {\n      \"title\": \"📅 NOUVEAU RDV PLANIFIÉ\",\n      \"color\": 3066993,\n      \"fields\": [\n        { \"name\": \"🏢 Entreprise\", \"value\": \"{{ $json.business_name || 'Non renseigné' }}\", \"inline\": false },\n        { \"name\": \"📍 Adresse\", \"value\": \"{{ $json.address || 'Non renseignée' }}\", \"inline\": true },\n        { \"name\": \"🏙️ Ville\", \"value\": \"{{ $json.city || 'Non renseignée' }}\", \"inline\": true },\n        { \"name\": \"📞 Téléphone\", \"value\": \"{{ $json.phone || 'Non renseigné' }}\", \"inline\": true },\n        { \"name\": \"🔧 Secteur\", \"value\": \"{{ $json.sector || 'Non renseigné' }}\", \"inline\": true },\n        { \"name\": \"📆 Date du RDV\", \"value\": \"{{ $json.appointment_date }}\", \"inline\": true },\n        { \"name\": \"🕐 Heure\", \"value\": \"{{ $json.appointment_time }}\", \"inline\": true },\n        { \"name\": \"🗺️ Google Maps\", \"value\": \"{{ $json.google_maps_url ? '[Voir sur Maps](' + $json.google_maps_url + ')' : 'Non disponible' }}\", \"inline\": false },\n        { \"name\": \"📝 Notes\", \"value\": \"{{ $json.notes || 'Aucune' }}\", \"inline\": false },\n        { \"name\": \"👤 Qualifié par\", \"value\": \"{{ $json.agent_name || 'Non assigné' }}\", \"inline\": false }\n      ],\n      \"footer\": { \"text\": \"AdamKom CRM — Merci de confirmer la prise en charge avec un ✅\" },\n      \"timestamp\": \"{{ new Date().toISOString() }}\"\n    }\n  ]\n}"
+        "jsonBody": "={\n  \"embeds\": [\n    {\n      \"title\": \"📅 NOUVEAU RDV PLANIFIÉ\",\n      \"color\": 3066993,\n      \"fields\": [\n        { \"name\": \"🏢 Entreprise\", \"value\": \"{{ $json.body.business_name || 'Non renseigné' }}\", \"inline\": false },\n        { \"name\": \"📍 Adresse\", \"value\": \"{{ $json.body.address || 'Non renseignée' }}\", \"inline\": true },\n        { \"name\": \"🏙️ Ville\", \"value\": \"{{ $json.body.city || 'Non renseignée' }}\", \"inline\": true },\n        { \"name\": \"📞 Téléphone\", \"value\": \"{{ $json.body.phone || 'Non renseigné' }}\", \"inline\": true },\n        { \"name\": \"🔧 Secteur\", \"value\": \"{{ $json.body.sector || 'Non renseigné' }}\", \"inline\": true },\n        { \"name\": \"📆 Date du RDV\", \"value\": \"{{ $json.body.appointment_date }}\", \"inline\": true },\n        { \"name\": \"🕐 Heure\", \"value\": \"{{ $json.body.appointment_time }}\", \"inline\": true },\n        { \"name\": \"🗺️ Google Maps\", \"value\": \"{{ $json.body.google_maps_url ? '[Voir sur Maps](' + $json.body.google_maps_url + ')' : 'Non disponible' }}\", \"inline\": false },\n        { \"name\": \"📝 Notes\", \"value\": \"{{ $json.body.notes || 'Aucune' }}\", \"inline\": false },\n        { \"name\": \"👤 Qualifié par\", \"value\": \"{{ $json.body.agent_name || 'Non assigné' }}\", \"inline\": false }\n      ],\n      \"footer\": { \"text\": \"AdamKom CRM — Merci de confirmer la prise en charge avec un ✅\" },\n      \"timestamp\": \"{{ new Date().toISOString() }}\"\n    }\n  ]\n}"
       },
       "id": "discord-send",
       "name": "Envoyer Discord",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [860, 300]
+      "position": [880, 300]
     }
   ],
   "connections": {
-    "Filtre RDV": {
+    "Webhook Central": {
+      "main": [
+        [{ "node": "Filtre Événement", "type": "main", "index": 0 }]
+      ]
+    },
+    "Filtre Événement": {
       "main": [
         [{ "node": "Envoyer Discord", "type": "main", "index": 0 }]
       ]
@@ -63,6 +83,6 @@
   "staticData": null,
   "tags": [{ "name": "prospect" }, { "name": "discord" }],
   "meta": {
-    "description": "Branche du routeur central : envoie un embed Discord détaillé quand un prospect passe en RDV planifié. Connecter la sortie 'prospect.rdv_planifie' du Switch central vers le nœud 'Filtre RDV'. Variable requise : DISCORD_WEBHOOK_URL (dans n8n → Settings → Variables)."
+    "description": "Workflow complet : Webhook → Filtre event prospect.rdv_planifie → Envoi embed Discord. Variable requise dans n8n : DISCORD_WEBHOOK_URL."
   }
 }

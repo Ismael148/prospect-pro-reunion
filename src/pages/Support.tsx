@@ -287,7 +287,7 @@ export default function Support() {
                       </div>
                       <p className="font-medium text-sm truncate mt-0.5">{ticket.subject}</p>
                       <p className="text-[11px] text-muted-foreground mt-0.5">
-                        {getClientName(ticket.client_id)} • {new Date(ticket.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                        {getClientName(ticket.client_id)} • {new Date(ticket.created_at).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                         {(ticket as any).assigned_to && ` • 👤 ${getAssigneeName((ticket as any).assigned_to)}`}
                       </p>
                     </div>
@@ -343,7 +343,7 @@ export default function Support() {
                 <div>
                   <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Date</p>
                   <p className="text-sm">
-                    {new Date(selectedTicket.created_at).toLocaleDateString("fr-FR", {
+                    {new Date(selectedTicket.created_at).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion",
                       day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
                     })}
                   </p>

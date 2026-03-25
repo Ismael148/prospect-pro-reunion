@@ -424,7 +424,7 @@ export default function SocialMediaSection({ clientId }: { clientId: string }) {
                           {pub.scheduled_date && (
                             <div className="flex items-center gap-1 mt-1.5 text-xs text-muted-foreground">
                               <Calendar className="w-3 h-3" />
-                              {new Date(pub.scheduled_date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                              {new Date(pub.scheduled_date).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion", day: "numeric", month: "long", year: "numeric" })}
                             </div>
                           )}
                         </div>

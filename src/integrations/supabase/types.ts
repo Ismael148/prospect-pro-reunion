@@ -111,6 +111,7 @@ export type Database = {
           created_at: string
           created_by: string
           email: string | null
+          has_gmb: boolean | null
           id: string
           ndi: string | null
           nfc_quantity: number
@@ -137,6 +138,7 @@ export type Database = {
           created_at?: string
           created_by: string
           email?: string | null
+          has_gmb?: boolean | null
           id?: string
           ndi?: string | null
           nfc_quantity?: number
@@ -163,6 +165,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           email?: string | null
+          has_gmb?: boolean | null
           id?: string
           ndi?: string | null
           nfc_quantity?: number
@@ -573,6 +576,7 @@ export type Database = {
           description: string | null
           due_date: string | null
           id: string
+          link_url: string | null
           priority: Database["public"]["Enums"]["task_priority"]
           project_id: string
           sort_order: number | null
@@ -586,6 +590,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          link_url?: string | null
           priority?: Database["public"]["Enums"]["task_priority"]
           project_id: string
           sort_order?: number | null
@@ -599,6 +604,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          link_url?: string | null
           priority?: Database["public"]["Enums"]["task_priority"]
           project_id?: string
           sort_order?: number | null
@@ -628,6 +634,7 @@ export type Database = {
           name: string
           pack_type: Database["public"]["Enums"]["pack_type"]
           progress: number | null
+          site_type: string | null
           start_date: string | null
           status: Database["public"]["Enums"]["project_status"]
           updated_at: string
@@ -643,6 +650,7 @@ export type Database = {
           name: string
           pack_type: Database["public"]["Enums"]["pack_type"]
           progress?: number | null
+          site_type?: string | null
           start_date?: string | null
           status?: Database["public"]["Enums"]["project_status"]
           updated_at?: string
@@ -658,6 +666,7 @@ export type Database = {
           name?: string
           pack_type?: Database["public"]["Enums"]["pack_type"]
           progress?: number | null
+          site_type?: string | null
           start_date?: string | null
           status?: Database["public"]["Enums"]["project_status"]
           updated_at?: string

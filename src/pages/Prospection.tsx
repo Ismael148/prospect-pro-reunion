@@ -848,6 +848,63 @@ export default function Prospection() {
         </DialogContent>
       </Dialog>
 
+      {/* Edit Prospect Dialog */}
+      <Dialog open={!!editingProspect} onOpenChange={(open) => { if (!open) setEditingProspect(null); }}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="w-5 h-5" /> Modifier le prospect
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-3 py-4">
+            <div className="space-y-1.5">
+              <Label>Nom entreprise</Label>
+              <Input value={editForm.business_name} onChange={(e) => setEditForm({ ...editForm, business_name: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Téléphone</Label>
+                <Input value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Email</Label>
+                <Input type="email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Adresse</Label>
+              <Input value={editForm.address} onChange={(e) => setEditForm({ ...editForm, address: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-1.5">
+                <Label>Ville</Label>
+                <Input value={editForm.city} onChange={(e) => setEditForm({ ...editForm, city: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Code postal</Label>
+                <Input value={editForm.postal_code} onChange={(e) => setEditForm({ ...editForm, postal_code: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Secteur</Label>
+                <Input value={editForm.sector} onChange={(e) => setEditForm({ ...editForm, sector: e.target.value })} />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Site web</Label>
+              <Input value={editForm.website} onChange={(e) => setEditForm({ ...editForm, website: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Notes</Label>
+              <Textarea value={editForm.notes} onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })} rows={3} />
+            </div>
+            <Button onClick={handleSaveEdit} disabled={updateProspect.isPending} className="w-full gap-2">
+              {updateProspect.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+              <CheckCircle2 className="w-4 h-4" /> Enregistrer
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

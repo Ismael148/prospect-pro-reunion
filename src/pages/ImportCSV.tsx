@@ -527,8 +527,8 @@ export default function ImportCSV() {
             </div>
             <div className="flex justify-center gap-3 pt-4">
               <Button variant="outline" onClick={reset}>Nouvel import</Button>
-              <Button onClick={() => navigate(target === "clients" ? "/clients" : "/prospection")}>
-                Voir les {target === "clients" ? "clients" : "prospects"}
+              <Button onClick={() => navigate(target === "nfc" ? "/cartes-nfc" : target === "clients" ? "/clients" : "/prospection")}>
+                Voir les {target === "clients" ? "clients" : target === "nfc" ? "cartes NFC" : "prospects"}
               </Button>
             </div>
           </CardContent>

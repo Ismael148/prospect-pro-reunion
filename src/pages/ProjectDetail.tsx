@@ -430,12 +430,13 @@ export default function ProjectDetail() {
               onClick={() => {
                 const seoTasks = tasks!.filter(t => t.description?.includes("[seo]"));
                 const doneTasks = seoTasks.filter(t => t.status === "termine");
+                const mLinks = (project as any).module_links || {};
                 generateGmbReport({
                   clientName: (project as any).clients?.company_name || "Client",
                   projectName: project.name,
                   tasksDone: doneTasks.map(t => ({
                     title: t.title,
-                    linkUrl: (t as any).link_url || undefined,
+                    linkUrl: mLinks["seo"] || undefined,
                   })),
                   tasksTotal: seoTasks.length,
                   generatedAt: new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" }),

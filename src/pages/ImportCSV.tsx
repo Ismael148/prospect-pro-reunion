@@ -672,6 +672,8 @@ export default function ImportCSV() {
               <Button onClick={handleImport} disabled={importing}>
                 {importing ? (
                   <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Import en cours...</>
+                ) : updateMode && duplicates.length > 0 ? (
+                  <>🔄 {duplicates.length} mise(s) à jour + {newRows.length} nouveau(x)</>
                 ) : (
                   <>Importer {csvData.rows.length} ligne(s)</>
                 )}

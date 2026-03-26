@@ -150,7 +150,8 @@ export default function ImportCSV() {
   const [mapping, setMapping] = useState<Record<number, string>>({});
   const [step, setStep] = useState<"upload" | "mapping" | "preview" | "done">("upload");
   const [importing, setImporting] = useState(false);
-  const [importResult, setImportResult] = useState<{ success: number; errors: number } | null>(null);
+  const [importResult, setImportResult] = useState<{ success: number; errors: number; updated: number } | null>(null);
+  const [updateMode, setUpdateMode] = useState(false);
 
   const handleFile = useCallback(
     (file: File) => {

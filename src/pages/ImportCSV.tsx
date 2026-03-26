@@ -154,6 +154,9 @@ export default function ImportCSV() {
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{ success: number; errors: number; updated: number } | null>(null);
   const [updateMode, setUpdateMode] = useState(false);
+  const [duplicates, setDuplicates] = useState<{ name: string; csvRow: Record<string, string>; existingId: string }[]>([]);
+  const [newRows, setNewRows] = useState<string[]>([]);
+  const [checkingDuplicates, setCheckingDuplicates] = useState(false);
 
   const handleFile = useCallback(
     (file: File) => {

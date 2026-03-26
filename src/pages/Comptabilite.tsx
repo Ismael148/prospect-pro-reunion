@@ -485,101 +485,206 @@ function ExpenseTable({
   isAdmin,
   onToggle,
   onDelete,
+  onUpdate,
 }: {
   expenses: any[];
   selectedMonth: string;
   isAdmin: boolean;
   onToggle: (id: string, active: boolean) => void;
   onDelete: (id: string) => void;
+  onUpdate: (id: string, updates: Record<string, any>) => Promise<void>;
 }) {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({
+    name: "", description: "", category: "autre",
+    amount: "", frequency: "mensuel", start_date: "", end_date: "",
+  });
+
+  const openEdit = (e: any) => {
+    setEditForm({
+      name: e.name,
+      description: e.description || "",
+      category: e.category,
+      amount: String(e.amount),
+      frequency: e.frequency,
+      start_date: e.start_date || "",
+      end_date: e.end_date || "",
+    });
+    setEditingId(e.id);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingId || !editForm.name.trim() || !editForm.amount) {
+      toast.error("Nom et montant requis");
+      return;
+    }
+    try {
+      await onUpdate(editingId, {
+        name: editForm.name,
+        description: editForm.description || null,
+        category: editForm.category,
+        amount: parseFloat(editForm.amount),
+        frequency: editForm.frequency,
+        start_date: editForm.start_date || null,
+        end_date: editForm.end_date || null,
+      });
+      toast.success("Charge mise à jour");
+      setEditingId(null);
+    } catch {
+      toast.error("Erreur lors de la mise à jour");
+    }
+  };
+
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Charge</TableHead>
-          <TableHead>Catégorie</TableHead>
-          <TableHead>Fréquence</TableHead>
-          <TableHead className="text-right">Montant</TableHead>
-          <TableHead className="text-right">Ce mois</TableHead>
-          <TableHead>Statut</TableHead>
-          {isAdmin && <TableHead>Actions</TableHead>}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {!expenses.length ? (
+    <>
+      <Dialog open={!!editingId} onOpenChange={(open) => { if (!open) setEditingId(null); }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Modifier la charge</DialogTitle></DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label>Nom *</Label>
+              <Input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Catégorie</Label>
+                <Select value={editForm.category} onValueChange={(v) => setEditForm({ ...editForm, category: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(CATEGORY_LABELS).map(([k, v]) => (
+                      <SelectItem key={k} value={k}>{v}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Montant (€) *</Label>
+                <Input type="number" step="0.01" value={editForm.amount} onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })} />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Fréquence</Label>
+              <Select value={editForm.frequency} onValueChange={(v) => setEditForm({ ...editForm, frequency: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {Object.entries(FREQUENCY_LABELS).map(([k, v]) => (
+                    <SelectItem key={k} value={k}>{v}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {editForm.frequency !== "ponctuel" && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Date de début</Label>
+                  <Input type="date" value={editForm.start_date} onChange={(e) => setEditForm({ ...editForm, start_date: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Date de fin</Label>
+                  <Input type="date" value={editForm.end_date} onChange={(e) => setEditForm({ ...editForm, end_date: e.target.value })} />
+                </div>
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Textarea value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} rows={2} />
+            </div>
+            <Button onClick={handleSaveEdit}>Enregistrer</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Table>
+        <TableHeader>
           <TableRow>
-            <TableCell colSpan={isAdmin ? 7 : 6} className="text-center text-muted-foreground py-8">
-              Aucune charge enregistrée
-            </TableCell>
+            <TableHead>Charge</TableHead>
+            <TableHead>Catégorie</TableHead>
+            <TableHead>Fréquence</TableHead>
+            <TableHead className="text-right">Montant</TableHead>
+            <TableHead className="text-right">Ce mois</TableHead>
+            <TableHead>Statut</TableHead>
+            {isAdmin && <TableHead>Actions</TableHead>}
           </TableRow>
-        ) : (
-          expenses.map((e) => {
-            const monthAmount = getMonthlyAmount(e, selectedMonth);
-            const Icon = CATEGORY_ICONS[e.category] || Calculator;
-            return (
-              <TableRow key={e.id} className={!e.is_active ? "opacity-50" : ""}>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Icon className="w-4 h-4 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium text-sm">{e.name}</p>
-                      {e.description && <p className="text-xs text-muted-foreground truncate max-w-48">{e.description}</p>}
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className="text-[10px]">
-                    {CATEGORY_LABELS[e.category] || e.category}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1 text-sm">
-                    {e.frequency !== "ponctuel" && <Repeat className="w-3 h-3 text-muted-foreground" />}
-                    {FREQUENCY_LABELS[e.frequency] || e.frequency}
-                  </div>
-                </TableCell>
-                <TableCell className="text-right font-mono text-sm">{Number(e.amount).toFixed(2)} €</TableCell>
-                <TableCell className="text-right font-mono text-sm font-semibold">
-                  {monthAmount > 0 ? `${monthAmount.toFixed(2)} €` : "—"}
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className={`text-[10px] ${e.is_active ? "bg-success/10 text-success border-success/20" : "bg-muted text-muted-foreground"}`}>
-                    {e.is_active ? "Actif" : "Inactif"}
-                  </Badge>
-                </TableCell>
-                {isAdmin && (
+        </TableHeader>
+        <TableBody>
+          {!expenses.length ? (
+            <TableRow>
+              <TableCell colSpan={isAdmin ? 7 : 6} className="text-center text-muted-foreground py-8">
+                Aucune charge enregistrée
+              </TableCell>
+            </TableRow>
+          ) : (
+            expenses.map((e) => {
+              const monthAmount = getMonthlyAmount(e, selectedMonth);
+              const Icon = CATEGORY_ICONS[e.category] || Calculator;
+              return (
+                <TableRow key={e.id} className={!e.is_active ? "opacity-50" : ""}>
                   <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => onToggle(e.id, e.is_active)}>
-                        {e.is_active ? "Désactiver" : "Activer"}
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive">
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Supprimer cette charge ?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Cette action est irréversible. La charge "{e.name}" sera définitivement supprimée.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Annuler</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => onDelete(e.id)}>Supprimer</AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                    <div className="flex items-center gap-2">
+                      <Icon className="w-4 h-4 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium text-sm">{e.name}</p>
+                        {e.description && <p className="text-xs text-muted-foreground truncate max-w-48">{e.description}</p>}
+                      </div>
                     </div>
                   </TableCell>
-                )}
-              </TableRow>
-            );
-          })
-        )}
-      </TableBody>
-    </Table>
+                  <TableCell>
+                    <Badge variant="outline" className="text-[10px]">
+                      {CATEGORY_LABELS[e.category] || e.category}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1 text-sm">
+                      {e.frequency !== "ponctuel" && <Repeat className="w-3 h-3 text-muted-foreground" />}
+                      {FREQUENCY_LABELS[e.frequency] || e.frequency}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right font-mono text-sm">{Number(e.amount).toFixed(2)} €</TableCell>
+                  <TableCell className="text-right font-mono text-sm font-semibold">
+                    {monthAmount > 0 ? `${monthAmount.toFixed(2)} €` : "—"}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={`text-[10px] ${e.is_active ? "bg-success/10 text-success border-success/20" : "bg-muted text-muted-foreground"}`}>
+                      {e.is_active ? "Actif" : "Inactif"}
+                    </Badge>
+                  </TableCell>
+                  {isAdmin && (
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-primary" onClick={() => openEdit(e)} title="Modifier">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => onToggle(e.id, e.is_active)}>
+                          {e.is_active ? "Désactiver" : "Activer"}
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive">
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Supprimer cette charge ?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Cette action est irréversible. La charge "{e.name}" sera définitivement supprimée.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Annuler</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => onDelete(e.id)}>Supprimer</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </TableCell>
+                  )}
+                </TableRow>
+              );
+            })
+          )}
+        </TableBody>
+      </Table>
+    </>
   );
 }

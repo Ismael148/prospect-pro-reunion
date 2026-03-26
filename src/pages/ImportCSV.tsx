@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Upload, FileSpreadsheet, ArrowRight, CheckCircle2, AlertCircle, Loader2, ArrowLeft, X, RefreshCw } from "lucide-react";
@@ -157,6 +158,18 @@ export default function ImportCSV() {
   const [duplicates, setDuplicates] = useState<{ name: string; csvRow: Record<string, string>; existingId: string }[]>([]);
   const [newRows, setNewRows] = useState<string[]>([]);
   const [checkingDuplicates, setCheckingDuplicates] = useState(false);
+  const [excludedDuplicates, setExcludedDuplicates] = useState<Set<string>>(new Set());
+
+  const toggleDuplicate = (existingId: string) => {
+    setExcludedDuplicates((prev) => {
+      const next = new Set(prev);
+      if (next.has(existingId)) next.delete(existingId);
+      else next.add(existingId);
+      return next;
+    });
+  };
+
+  const activeDuplicates = duplicates.filter((d) => !excludedDuplicates.has(d.existingId));
 
   const handleFile = useCallback(
     (file: File) => {
@@ -289,6 +302,10 @@ export default function ImportCSV() {
           .limit(1);
 
         if (existing && existing.length > 0) {
+          // Skip if excluded
+          if (excludedDuplicates.has(existing[0].id)) {
+            continue;
+          }
           // Update existing record
           const { created_by, pipeline_status, status, ...updateFields } = row;
           const { error } = await supabase
@@ -344,6 +361,7 @@ export default function ImportCSV() {
     setImportResult(null);
     setDuplicates([]);
     setNewRows([]);
+    setExcludedDuplicates(new Set());
     if (fileRef.current) fileRef.current.value = "";
   };
 
@@ -590,6 +608,15 @@ export default function ImportCSV() {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead className="w-10">
+                          <Checkbox
+                            checked={excludedDuplicates.size === 0}
+                            onCheckedChange={(checked) => {
+                              if (checked) setExcludedDuplicates(new Set());
+                              else setExcludedDuplicates(new Set(duplicates.map((d) => d.existingId)));
+                            }}
+                          />
+                        </TableHead>
                         <TableHead className="w-8">#</TableHead>
                         <TableHead>Nom entreprise</TableHead>
                         {Object.entries(mapping)
@@ -605,7 +632,13 @@ export default function ImportCSV() {
                     </TableHeader>
                     <TableBody>
                       {duplicates.slice(0, 10).map((d, i) => (
-                        <TableRow key={i}>
+                        <TableRow key={i} className={excludedDuplicates.has(d.existingId) ? "opacity-40" : ""}>
+                          <TableCell>
+                            <Checkbox
+                              checked={!excludedDuplicates.has(d.existingId)}
+                              onCheckedChange={() => toggleDuplicate(d.existingId)}
+                            />
+                          </TableCell>
                           <TableCell className="text-muted-foreground text-xs">{i + 1}</TableCell>
                           <TableCell className="font-medium">{d.name}</TableCell>
                           {Object.entries(mapping)
@@ -617,7 +650,11 @@ export default function ImportCSV() {
                               </TableCell>
                             ))}
                           <TableCell>
-                            <Badge variant="secondary" className="text-xs">🔄 Mise à jour</Badge>
+                            {excludedDuplicates.has(d.existingId) ? (
+                              <Badge variant="outline" className="text-xs">⏭ Ignoré</Badge>
+                            ) : (
+                              <Badge variant="secondary" className="text-xs">🔄 Mise à jour</Badge>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -673,7 +710,7 @@ export default function ImportCSV() {
                 {importing ? (
                   <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Import en cours...</>
                 ) : updateMode && duplicates.length > 0 ? (
-                  <>🔄 {duplicates.length} mise(s) à jour + {newRows.length} nouveau(x)</>
+                  <>🔄 {activeDuplicates.length} mise(s) à jour + {newRows.length} nouveau(x)</>
                 ) : (
                   <>Importer {csvData.rows.length} ligne(s)</>
                 )}

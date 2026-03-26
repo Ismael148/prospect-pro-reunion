@@ -26,7 +26,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
-  TrendingUp, TrendingDown, Euro, Loader2, Plus, Trash2,
+  TrendingUp, TrendingDown, Euro, Loader2, Plus, Trash2, Pencil,
   BarChart3, CreditCard, Building, Calculator, Repeat, Percent,
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -455,6 +455,7 @@ export default function Comptabilite() {
                     isAdmin={isAdmin}
                     onToggle={handleToggleActive}
                     onDelete={handleDelete}
+                    onUpdate={async (id, updates) => { await updateExpense.mutateAsync({ id, ...updates }); }}
                   />
                 </CardContent>
               </Card>
@@ -468,6 +469,7 @@ export default function Comptabilite() {
                     isAdmin={isAdmin}
                     onToggle={handleToggleActive}
                     onDelete={handleDelete}
+                    onUpdate={async (id, updates) => { await updateExpense.mutateAsync({ id, ...updates }); }}
                   />
                 </CardContent>
               </Card>

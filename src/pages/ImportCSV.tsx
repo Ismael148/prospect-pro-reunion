@@ -279,11 +279,11 @@ export default function ImportCSV() {
       // Upsert mode: check each row individually
       for (const row of validRows) {
         const name = String(row[nameField]).trim();
-        const { data: existing } = await supabase
-          .from(tableName)
+        const { data: existing } = await (supabase
+          .from(tableName) as any)
           .select("id")
           .eq(nameField, name)
-          .limit(1) as any;
+          .limit(1);
 
         if (existing && existing.length > 0) {
           // Update existing record

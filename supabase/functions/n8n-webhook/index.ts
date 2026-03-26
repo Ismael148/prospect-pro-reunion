@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
     const payload = {
       event,
       timestamp: new Date().toISOString(),
-      triggered_by: claimsData.claims.sub,
+      triggered_by: user.id,
       ...data,
     };
 

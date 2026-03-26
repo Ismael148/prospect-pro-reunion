@@ -565,9 +565,71 @@ export default function ImportCSV() {
                   {csvData.rows.length} ligne(s) à importer dans {target === "clients" ? "Clients" : target === "nfc" ? "Cartes NFC" : "Prospects"}
                 </CardDescription>
               </div>
-              <Badge variant="outline">{Object.keys(mapping).length} colonnes mappées</Badge>
+              <div className="flex gap-2">
+                {updateMode && duplicates.length > 0 && (
+                  <Badge variant="secondary" className="text-sm">🔄 {duplicates.length} mise(s) à jour</Badge>
+                )}
+                {updateMode && newRows.length > 0 && (
+                  <Badge variant="default" className="text-sm">✨ {newRows.length} nouveau(x)</Badge>
+                )}
+                <Badge variant="outline">{Object.keys(mapping).length} colonnes mappées</Badge>
+              </div>
             </div>
           </CardHeader>
+
+          {updateMode && duplicates.length > 0 && (
+            <CardContent className="pt-0 pb-2">
+              <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-3">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <RefreshCw className="w-4 h-4 text-primary" />
+                  <span>{duplicates.length} enregistrement(s) existant(s) seront mis à jour :</span>
+                </div>
+                <div className="rounded-md border overflow-auto max-h-[200px]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-8">#</TableHead>
+                        <TableHead>Nom entreprise</TableHead>
+                        {Object.entries(mapping)
+                          .filter(([_, f]) => f !== "company_name" && f !== "business_name")
+                          .slice(0, 4)
+                          .map(([_, dbField]) => (
+                            <TableHead key={dbField}>
+                              {fields.find((f) => f.key === dbField)?.label || dbField}
+                            </TableHead>
+                          ))}
+                        <TableHead>Statut</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {duplicates.slice(0, 10).map((d, i) => (
+                        <TableRow key={i}>
+                          <TableCell className="text-muted-foreground text-xs">{i + 1}</TableCell>
+                          <TableCell className="font-medium">{d.name}</TableCell>
+                          {Object.entries(mapping)
+                            .filter(([_, f]) => f !== "company_name" && f !== "business_name")
+                            .slice(0, 4)
+                            .map(([_, dbField]) => (
+                              <TableCell key={dbField} className="text-sm truncate max-w-[150px]">
+                                {d.csvRow[dbField] || "—"}
+                              </TableCell>
+                            ))}
+                          <TableCell>
+                            <Badge variant="secondary" className="text-xs">🔄 Mise à jour</Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                {duplicates.length > 10 && (
+                  <p className="text-xs text-muted-foreground text-center">
+                    ... et {duplicates.length - 10} autre(s) mise(s) à jour
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          )}
           <CardContent className="space-y-4">
             <div className="rounded-lg border overflow-auto max-h-[400px]">
               <Table>

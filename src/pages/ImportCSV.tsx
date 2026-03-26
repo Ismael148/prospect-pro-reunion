@@ -342,6 +342,8 @@ export default function ImportCSV() {
     setMapping({});
     setStep("upload");
     setImportResult(null);
+    setDuplicates([]);
+    setNewRows([]);
     if (fileRef.current) fileRef.current.value = "";
   };
 

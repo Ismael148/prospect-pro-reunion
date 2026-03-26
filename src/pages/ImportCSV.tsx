@@ -157,6 +157,18 @@ export default function ImportCSV() {
   const [duplicates, setDuplicates] = useState<{ name: string; csvRow: Record<string, string>; existingId: string }[]>([]);
   const [newRows, setNewRows] = useState<string[]>([]);
   const [checkingDuplicates, setCheckingDuplicates] = useState(false);
+  const [excludedDuplicates, setExcludedDuplicates] = useState<Set<string>>(new Set());
+
+  const toggleDuplicate = (existingId: string) => {
+    setExcludedDuplicates((prev) => {
+      const next = new Set(prev);
+      if (next.has(existingId)) next.delete(existingId);
+      else next.add(existingId);
+      return next;
+    });
+  };
+
+  const activeDuplicates = duplicates.filter((d) => !excludedDuplicates.has(d.existingId));
 
   const handleFile = useCallback(
     (file: File) => {

@@ -273,6 +273,7 @@ export default function ImportCSV() {
     });
 
     const validRows = allRows.filter((r) => r[nameField] && String(r[nameField]).trim());
+    const table = tableName as "clients" | "prospects";
 
     if (updateMode) {
       // Upsert mode: check each row individually

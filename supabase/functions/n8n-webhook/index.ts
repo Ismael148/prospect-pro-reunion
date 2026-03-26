@@ -59,17 +59,20 @@ Deno.serve(async (req) => {
     console.log(`Payload keys: ${Object.keys(payload).join(', ')}`);
     console.log(`Payload sample: company_name=${payload.company_name}, invoice_number=${payload.invoice_number}, total_amount=${payload.total_amount}`);
 
+    console.log(`Sending payload to n8n: ${JSON.stringify(payload).substring(0, 500)}`);
+    
     const n8nResponse = await fetch(webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
 
+    const responseText = await n8nResponse.text();
+    console.log(`n8n response status: ${n8nResponse.status}, body: ${responseText.substring(0, 300)}`);
+
     if (!n8nResponse.ok) {
-      const errorText = await n8nResponse.text();
-      console.error(`n8n webhook error [${n8nResponse.status}]: ${errorText}`);
-      // Don't fail the user action if n8n is down
-      return new Response(JSON.stringify({ success: false, warning: 'Webhook delivery failed but action completed' }), {
+      console.error(`n8n webhook error [${n8nResponse.status}]: ${responseText}`);
+      return new Response(JSON.stringify({ success: false, warning: 'Webhook delivery failed but action completed', n8n_status: n8nResponse.status }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

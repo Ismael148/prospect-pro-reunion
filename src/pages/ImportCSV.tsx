@@ -367,19 +367,34 @@ export default function ImportCSV() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center gap-4">
-              <p className="text-sm font-medium">Importer dans :</p>
-              <Select value={target} onValueChange={(v) => setTarget(v as ImportTarget)}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="clients">Clients</SelectItem>
-                  <SelectItem value="nfc">Cartes NFC</SelectItem>
-                  <SelectItem value="prospects">Prospects</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-4">
+                <p className="text-sm font-medium">Importer dans :</p>
+                <Select value={target} onValueChange={(v) => setTarget(v as ImportTarget)}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="clients">Clients</SelectItem>
+                    <SelectItem value="nfc">Cartes NFC</SelectItem>
+                    <SelectItem value="prospects">Prospects</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center gap-2 ml-auto p-2 rounded-lg border border-border bg-muted/50">
+                <RefreshCw className="w-4 h-4 text-muted-foreground" />
+                <Label htmlFor="update-mode" className="text-sm cursor-pointer">Mode mise à jour</Label>
+                <Switch id="update-mode" checked={updateMode} onCheckedChange={setUpdateMode} />
+              </div>
             </div>
+
+            {updateMode && (
+              <div className="text-sm text-muted-foreground bg-accent/50 rounded-lg p-3 flex items-start gap-2">
+                <RefreshCw className="w-4 h-4 mt-0.5 shrink-0" />
+                <span>Les enregistrements existants (même nom d'entreprise) seront mis à jour avec les nouvelles données. Les nouveaux seront créés normalement.</span>
+              </div>
+            )}
 
             <div
               onDragOver={(e) => e.preventDefault()}
@@ -556,10 +571,17 @@ export default function ImportCSV() {
           <CardContent className="pt-8 pb-6 text-center space-y-4">
             <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto" />
             <h2 className="text-xl font-bold">Import terminé !</h2>
-            <div className="flex justify-center gap-4">
-              <Badge variant="default" className="text-base px-4 py-1">
-                ✅ {importResult.success} importé(s)
-              </Badge>
+            <div className="flex justify-center gap-4 flex-wrap">
+              {importResult.success > 0 && (
+                <Badge variant="default" className="text-base px-4 py-1">
+                  ✅ {importResult.success} créé(s)
+                </Badge>
+              )}
+              {importResult.updated > 0 && (
+                <Badge variant="secondary" className="text-base px-4 py-1">
+                  🔄 {importResult.updated} mis à jour
+                </Badge>
+              )}
               {importResult.errors > 0 && (
                 <Badge variant="destructive" className="text-base px-4 py-1">
                   ❌ {importResult.errors} erreur(s)

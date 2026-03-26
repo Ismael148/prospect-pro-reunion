@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Upload, FileSpreadsheet, ArrowRight, CheckCircle2, AlertCircle, Loader2, ArrowLeft, X } from "lucide-react";
+import { Upload, FileSpreadsheet, ArrowRight, CheckCircle2, AlertCircle, Loader2, ArrowLeft, X, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 type ImportTarget = "clients" | "prospects" | "nfc";
@@ -150,7 +152,8 @@ export default function ImportCSV() {
   const [mapping, setMapping] = useState<Record<number, string>>({});
   const [step, setStep] = useState<"upload" | "mapping" | "preview" | "done">("upload");
   const [importing, setImporting] = useState(false);
-  const [importResult, setImportResult] = useState<{ success: number; errors: number } | null>(null);
+  const [importResult, setImportResult] = useState<{ success: number; errors: number; updated: number } | null>(null);
+  const [updateMode, setUpdateMode] = useState(false);
 
   const handleFile = useCallback(
     (file: File) => {
@@ -223,8 +226,11 @@ export default function ImportCSV() {
     setImporting(true);
     let success = 0;
     let errors = 0;
+    let updated = 0;
 
-    const batchSize = 50;
+    const nameField = target === "prospects" ? "business_name" : "company_name";
+    const tableName = target === "nfc" ? "clients" : target;
+
     const allRows = csvData.rows.map((row) => {
       const record: Record<string, any> = {};
       Object.entries(mapping).forEach(([csvIdx, dbField]) => {
@@ -266,30 +272,65 @@ export default function ImportCSV() {
       return record;
     });
 
-    // Filter out rows missing required fields
-    const validRows = allRows.filter((r) => {
-      const nameField = target === "prospects" ? "business_name" : "company_name";
-      return r[nameField] && String(r[nameField]).trim();
-    });
+    const validRows = allRows.filter((r) => r[nameField] && String(r[nameField]).trim());
+    const table = tableName as "clients" | "prospects";
 
-    const tableName = target === "nfc" ? "clients" : target;
-    for (let i = 0; i < validRows.length; i += batchSize) {
-      const batch = validRows.slice(i, i + batchSize);
-      const { error } = await supabase.from(tableName).insert(batch as any);
-      if (error) {
-        console.error("Import batch error:", error);
-        errors += batch.length;
-      } else {
-        success += batch.length;
+    if (updateMode) {
+      // Upsert mode: check each row individually
+      for (const row of validRows) {
+        const name = String(row[nameField]).trim();
+        const { data: existing } = await (supabase
+          .from(tableName) as any)
+          .select("id")
+          .eq(nameField, name)
+          .limit(1);
+
+        if (existing && existing.length > 0) {
+          // Update existing record
+          const { created_by, pipeline_status, status, ...updateFields } = row;
+          const { error } = await supabase
+            .from(tableName)
+            .update(updateFields)
+            .eq("id", existing[0].id) as any;
+          if (error) {
+            console.error("Update error:", error);
+            errors++;
+          } else {
+            updated++;
+          }
+        } else {
+          // Insert new record
+          const { error } = await supabase.from(tableName).insert(row as any);
+          if (error) {
+            console.error("Insert error:", error);
+            errors++;
+          } else {
+            success++;
+          }
+        }
+      }
+    } else {
+      // Classic insert mode (batch)
+      const batchSize = 50;
+      for (let i = 0; i < validRows.length; i += batchSize) {
+        const batch = validRows.slice(i, i + batchSize);
+        const { error } = await supabase.from(tableName).insert(batch as any);
+        if (error) {
+          console.error("Import batch error:", error);
+          errors += batch.length;
+        } else {
+          success += batch.length;
+        }
       }
     }
 
     errors += allRows.length - validRows.length;
 
-    setImportResult({ success, errors });
+    setImportResult({ success, errors, updated });
     setStep("done");
     setImporting(false);
-    if (success > 0) toast.success(`${success} enregistrement(s) importé(s)`);
+    if (success > 0) toast.success(`${success} enregistrement(s) créé(s)`);
+    if (updated > 0) toast.success(`${updated} enregistrement(s) mis à jour`);
     if (errors > 0) toast.error(`${errors} erreur(s) lors de l'import`);
   };
 
@@ -326,19 +367,34 @@ export default function ImportCSV() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center gap-4">
-              <p className="text-sm font-medium">Importer dans :</p>
-              <Select value={target} onValueChange={(v) => setTarget(v as ImportTarget)}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="clients">Clients</SelectItem>
-                  <SelectItem value="nfc">Cartes NFC</SelectItem>
-                  <SelectItem value="prospects">Prospects</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-4">
+                <p className="text-sm font-medium">Importer dans :</p>
+                <Select value={target} onValueChange={(v) => setTarget(v as ImportTarget)}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="clients">Clients</SelectItem>
+                    <SelectItem value="nfc">Cartes NFC</SelectItem>
+                    <SelectItem value="prospects">Prospects</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center gap-2 ml-auto p-2 rounded-lg border border-border bg-muted/50">
+                <RefreshCw className="w-4 h-4 text-muted-foreground" />
+                <Label htmlFor="update-mode" className="text-sm cursor-pointer">Mode mise à jour</Label>
+                <Switch id="update-mode" checked={updateMode} onCheckedChange={setUpdateMode} />
+              </div>
             </div>
+
+            {updateMode && (
+              <div className="text-sm text-muted-foreground bg-accent/50 rounded-lg p-3 flex items-start gap-2">
+                <RefreshCw className="w-4 h-4 mt-0.5 shrink-0" />
+                <span>Les enregistrements existants (même nom d'entreprise) seront mis à jour avec les nouvelles données. Les nouveaux seront créés normalement.</span>
+              </div>
+            )}
 
             <div
               onDragOver={(e) => e.preventDefault()}
@@ -515,10 +571,17 @@ export default function ImportCSV() {
           <CardContent className="pt-8 pb-6 text-center space-y-4">
             <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto" />
             <h2 className="text-xl font-bold">Import terminé !</h2>
-            <div className="flex justify-center gap-4">
-              <Badge variant="default" className="text-base px-4 py-1">
-                ✅ {importResult.success} importé(s)
-              </Badge>
+            <div className="flex justify-center gap-4 flex-wrap">
+              {importResult.success > 0 && (
+                <Badge variant="default" className="text-base px-4 py-1">
+                  ✅ {importResult.success} créé(s)
+                </Badge>
+              )}
+              {importResult.updated > 0 && (
+                <Badge variant="secondary" className="text-base px-4 py-1">
+                  🔄 {importResult.updated} mis à jour
+                </Badge>
+              )}
               {importResult.errors > 0 && (
                 <Badge variant="destructive" className="text-base px-4 py-1">
                   ❌ {importResult.errors} erreur(s)

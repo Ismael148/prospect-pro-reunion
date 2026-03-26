@@ -497,8 +497,57 @@ export default function ImportCSV() {
 
             <div className="flex justify-between">
               <Button variant="outline" onClick={reset}>Retour</Button>
-              <Button onClick={() => setStep("preview")} disabled={!canProceed}>
-                Aperçu <ArrowRight className="w-4 h-4 ml-1" />
+              <Button onClick={async () => {
+                if (updateMode && csvData) {
+                  setCheckingDuplicates(true);
+                  const nameField = target === "prospects" ? "business_name" : "company_name";
+                  const nameIdx = Object.entries(mapping).find(([_, v]) => v === nameField)?.[0];
+                  if (nameIdx !== undefined) {
+                    const csvNames = csvData.rows
+                      .map((row) => row[Number(nameIdx)]?.trim())
+                      .filter(Boolean);
+                    const tableName = target === "nfc" ? "clients" : target;
+                    const { data: existingRecords } = await (supabase
+                      .from(tableName) as any)
+                      .select("id, " + nameField)
+                      .in(nameField, csvNames);
+                    
+                    const existingMap = new Map<string, string>();
+                    (existingRecords || []).forEach((r: any) => {
+                      existingMap.set(String(r[nameField]).toLowerCase().trim(), r.id);
+                    });
+
+                    const dupes: typeof duplicates = [];
+                    const news: string[] = [];
+                    csvData.rows.forEach((row) => {
+                      const name = row[Number(nameIdx)]?.trim();
+                      if (!name) return;
+                      const key = name.toLowerCase();
+                      if (existingMap.has(key)) {
+                        const csvRow: Record<string, string> = {};
+                        Object.entries(mapping).forEach(([idx, field]) => {
+                          csvRow[field] = row[Number(idx)] || "";
+                        });
+                        dupes.push({ name, csvRow, existingId: existingMap.get(key)! });
+                      } else {
+                        news.push(name);
+                      }
+                    });
+                    setDuplicates(dupes);
+                    setNewRows(news);
+                  }
+                  setCheckingDuplicates(false);
+                } else {
+                  setDuplicates([]);
+                  setNewRows([]);
+                }
+                setStep("preview");
+              }} disabled={!canProceed || checkingDuplicates}>
+                {checkingDuplicates ? (
+                  <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Analyse...</>
+                ) : (
+                  <>Aperçu <ArrowRight className="w-4 h-4 ml-1" /></>
+                )}
               </Button>
             </div>
           </CardContent>

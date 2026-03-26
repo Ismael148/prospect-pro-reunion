@@ -361,6 +361,7 @@ export default function ImportCSV() {
     setImportResult(null);
     setDuplicates([]);
     setNewRows([]);
+    setExcludedDuplicates(new Set());
     if (fileRef.current) fileRef.current.value = "";
   };
 

@@ -1,0 +1,171 @@
+{
+  "name": "07 - Emails Client (Support, Formulaires, Relances)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "client-emails",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-client-emails",
+      "name": "Webhook Client Emails",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+                "conditions": [
+                  { "leftValue": "={{ $json.trigger }}", "rightValue": "support_link", "operator": { "type": "string", "operation": "equals" } }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Support Link"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+                "conditions": [
+                  { "leftValue": "={{ $json.trigger }}", "rightValue": "form_reminder_nfc", "operator": { "type": "string", "operation": "equals" } }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Relance NFC"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+                "conditions": [
+                  { "leftValue": "={{ $json.trigger }}", "rightValue": "form_reminder_site", "operator": { "type": "string", "operation": "equals" } }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Relance Site"
+            }
+          ]
+        },
+        "options": { "fallbackOutput": "extra" }
+      },
+      "id": "switch-trigger",
+      "name": "Router Trigger",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "contact@adamkom.com",
+        "toEmail": "={{ $json.recipient_email }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "html",
+        "html": "={{ $json.html_content }}",
+        "options": {
+          "fromName": "AdamKom"
+        }
+      },
+      "id": "send-support-link",
+      "name": "Email Support Link",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [740, 140],
+      "credentials": {
+        "smtp": { "id": "VOTRE_SMTP_ID", "name": "Brevo SMTP" }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "contact@adamkom.com",
+        "toEmail": "={{ $json.recipient_email }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "html",
+        "html": "={{ $json.html_content }}",
+        "options": {
+          "fromName": "AdamKom"
+        }
+      },
+      "id": "send-nfc-reminder",
+      "name": "Email Relance NFC",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [740, 300],
+      "credentials": {
+        "smtp": { "id": "VOTRE_SMTP_ID", "name": "Brevo SMTP" }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "contact@adamkom.com",
+        "toEmail": "={{ $json.recipient_email }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "html",
+        "html": "={{ $json.html_content }}",
+        "options": {
+          "fromName": "AdamKom"
+        }
+      },
+      "id": "send-site-reminder",
+      "name": "Email Relance Site",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [740, 460],
+      "credentials": {
+        "smtp": { "id": "VOTRE_SMTP_ID", "name": "Brevo SMTP" }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, trigger: $json.trigger, recipient: $json.recipient_email }) }}"
+      },
+      "id": "response-ok",
+      "name": "Response OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1000, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Client Emails": {
+      "main": [
+        [{ "node": "Router Trigger", "type": "main", "index": 0 }]
+      ]
+    },
+    "Router Trigger": {
+      "main": [
+        [{ "node": "Email Support Link", "type": "main", "index": 0 }],
+        [{ "node": "Email Relance NFC", "type": "main", "index": 0 }],
+        [{ "node": "Email Relance Site", "type": "main", "index": 0 }],
+        [{ "node": "Response OK", "type": "main", "index": 0 }]
+      ]
+    },
+    "Email Support Link": {
+      "main": [
+        [{ "node": "Response OK", "type": "main", "index": 0 }]
+      ]
+    },
+    "Email Relance NFC": {
+      "main": [
+        [{ "node": "Response OK", "type": "main", "index": 0 }]
+      ]
+    },
+    "Email Relance Site": {
+      "main": [
+        [{ "node": "Response OK", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-03-30T00:00:00.000Z",
+  "versionId": "1"
+}

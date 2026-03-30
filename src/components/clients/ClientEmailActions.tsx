@@ -147,17 +147,6 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
   const [editableBody, setEditableBody] = useState("");
   const [activeTab, setActiveTab] = useState<string>("preview");
 
-  if (!client.email) return null;
-
-  const actions = getEmailActions(client).filter(a => !a.condition || a.condition(client));
-
-  const handlePreview = (action: EmailAction) => {
-    setCustomSubject(action.subject);
-    setEditableBody(action.bodyFn(client));
-    setActiveTab("preview");
-    setPreviewAction(action);
-  };
-
   const supportLink = client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined;
 
   const previewHtml = useMemo(() => {
@@ -165,6 +154,10 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
     const sanitized = DOMPurify.sanitize(editableBody, { ADD_TAGS: ["style"], ADD_ATTR: ["style"] });
     return wrapInBrandedTemplate(sanitized, supportLink);
   }, [editableBody, supportLink]);
+
+  if (!client.email) return null;
+
+  const actions = getEmailActions(client).filter(a => !a.condition || a.condition(client));
 
   const handleSend = async () => {
     if (!client.email || !previewAction) { toast.error("Pas d'email client"); return; }

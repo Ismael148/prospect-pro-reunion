@@ -32,6 +32,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import SocialMediaSection from "@/components/clients/SocialMediaSection";
+import ClientEmailActions from "@/components/clients/ClientEmailActions";
 import { useClientForms, useValidateForm, ClientFormData } from "@/hooks/use-client-forms";
 
 type PipelineStatus = Database["public"]["Enums"]["pipeline_status"];
@@ -895,6 +896,14 @@ export default function ClientDetail() {
         </Card>
       )}
 
+      <ClientEmailActions client={{
+        id: client.id,
+        company_name: client.company_name,
+        email: client.email,
+        support_token: (client as any).support_token,
+        pack_type: client.pack_type,
+        manager_name: client.manager_name,
+      }} />
       <SupportTicketsSection clientId={id!} />
       <ClientFormsSection clientId={id!} supportToken={(client as any).support_token} packType={client.pack_type ?? undefined} />
       {client.pack_type !== "star_bizness_nfc" && <SocialMediaSection clientId={id!} />}

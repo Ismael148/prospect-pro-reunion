@@ -1,27 +1,28 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { triggerN8nWebhook } from "@/lib/n8n-webhook";
 import { PUBLISHED_URL } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
-  Mail, Send, Loader2, Ticket, FileText, CreditCard, Globe, Eye,
+  Mail, Send, Loader2, Ticket, CreditCard, Globe, Eye, Pencil,
 } from "lucide-react";
+import DOMPurify from "dompurify";
 
+const LOGO_URL = "https://adamkom.com/wp-content/uploads/2026/01/logo-Adamkom-by-jjp-1.png";
 const BRAND_COLOR = "#ff006e";
 
 function wrapInBrandedTemplate(bodyHtml: string, supportLink?: string) {
   return `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,0.06)">
   <div style="padding:40px 40px 32px;text-align:center;background:#ffffff">
-    <img src="https://ai.adamkom.com/lovable-uploads/d6c24753-6c76-49a3-8a6d-fe0dd4a898be.png" alt="Adamkom" style="height:72px;width:auto;display:block;margin:0 auto 12px" />
+    <img src="${LOGO_URL}" alt="Adamkom" style="height:72px;width:auto;display:block;margin:0 auto 12px" />
     <p style="margin:0;font-size:13px;color:#71717a;letter-spacing:0.5px">La performance digitale pour votre entreprise</p>
   </div>
   <div style="height:3px;background:linear-gradient(90deg,${BRAND_COLOR},#ff5c8a,${BRAND_COLOR})"></div>
@@ -50,7 +51,7 @@ interface EmailAction {
   subject: string;
   bodyFn: (client: ClientData) => string;
   trigger: string;
-  condition?: (client: ClientData, forms?: any[]) => boolean;
+  condition?: (client: ClientData) => boolean;
 }
 
 interface ClientData {
@@ -143,44 +144,50 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
   const [sendingAction, setSendingAction] = useState<string | null>(null);
   const [previewAction, setPreviewAction] = useState<EmailAction | null>(null);
   const [customSubject, setCustomSubject] = useState("");
-  const [customBody, setCustomBody] = useState("");
+  const [editableBody, setEditableBody] = useState("");
+  const [activeTab, setActiveTab] = useState<string>("preview");
 
-  if (!client.email) {
-    return null;
-  }
+  if (!client.email) return null;
 
   const actions = getEmailActions(client).filter(a => !a.condition || a.condition(client));
 
   const handlePreview = (action: EmailAction) => {
     setCustomSubject(action.subject);
-    setCustomBody(""); // Will use default
+    setEditableBody(action.bodyFn(client));
+    setActiveTab("preview");
     setPreviewAction(action);
   };
 
-  const handleSend = async (action: EmailAction) => {
-    if (!client.email) { toast.error("Pas d'email client"); return; }
+  const supportLink = client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined;
+
+  const previewHtml = useMemo(() => {
+    if (!editableBody) return "";
+    const sanitized = DOMPurify.sanitize(editableBody, { ADD_TAGS: ["style"], ADD_ATTR: ["style"] });
+    return wrapInBrandedTemplate(sanitized, supportLink);
+  }, [editableBody, supportLink]);
+
+  const handleSend = async () => {
+    if (!client.email || !previewAction) { toast.error("Pas d'email client"); return; }
     
-    setSendingAction(action.id);
+    setSendingAction(previewAction.id);
     try {
-      const supportLink = client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined;
-      const bodyHtml = action.bodyFn(client);
-      const htmlContent = wrapInBrandedTemplate(bodyHtml, supportLink);
-      const subject = customSubject || action.subject;
+      const sanitized = DOMPurify.sanitize(editableBody, { ADD_TAGS: ["style"], ADD_ATTR: ["style"] });
+      const htmlContent = wrapInBrandedTemplate(sanitized, supportLink);
 
       const { error } = await supabase.functions.invoke("send-brevo-campaign", {
         body: {
           action: "send_client_email",
           recipientEmail: client.email,
           recipientName: client.company_name,
-          subject,
+          subject: customSubject,
           htmlContent,
-          trigger: action.trigger,
+          trigger: previewAction.trigger,
           client_id: client.id,
         },
       });
 
       if (error) throw error;
-      toast.success(`Email "${action.label}" envoyé à ${client.email}`);
+      toast.success(`Email envoyé à ${client.email}`);
       setPreviewAction(null);
     } catch (e: any) {
       toast.error(e.message || "Erreur lors de l'envoi");
@@ -188,13 +195,6 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
       setSendingAction(null);
     }
   };
-
-  const previewHtml = previewAction
-    ? wrapInBrandedTemplate(
-        previewAction.bodyFn(client),
-        client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined
-      )
-    : "";
 
   return (
     <>
@@ -212,29 +212,13 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
                   {action.icon}
                   <span className="text-sm font-medium">{action.label}</span>
                 </div>
-                <div className="flex gap-2 mt-auto">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => handlePreview(action)}
-                  >
-                    <Eye className="w-3.5 h-3.5 mr-1" /> Aperçu
-                  </Button>
-                  <Button
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => handleSend(action)}
-                    disabled={sendingAction === action.id}
-                  >
-                    {sendingAction === action.id ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
-                    ) : (
-                      <Send className="w-3.5 h-3.5 mr-1" />
-                    )}
-                    Envoyer
-                  </Button>
-                </div>
+                <Button
+                  size="sm"
+                  className="w-full"
+                  onClick={() => handlePreview(action)}
+                >
+                  <Pencil className="w-3.5 h-3.5 mr-1" /> Personnaliser & Envoyer
+                </Button>
               </div>
             ))}
           </div>
@@ -244,36 +228,64 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
         </CardContent>
       </Card>
 
-      {/* Preview Dialog */}
+      {/* Compose & Preview Dialog */}
       <Dialog open={!!previewAction} onOpenChange={(open) => !open && setPreviewAction(null)}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {previewAction?.icon}
-              {previewAction?.label}
+              {previewAction?.label} — Personnaliser l'email
             </DialogTitle>
           </DialogHeader>
+
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Objet</Label>
+            {/* Subject */}
+            <div className="space-y-1">
+              <Label>Objet de l'email</Label>
               <Input
-                value={customSubject || previewAction?.subject || ""}
+                value={customSubject}
                 onChange={(e) => setCustomSubject(e.target.value)}
               />
             </div>
-            <div className="space-y-2">
-              <Label>Aperçu de l'email</Label>
-              <div
-                className="border border-border rounded-lg overflow-hidden bg-white"
-                dangerouslySetInnerHTML={{ __html: previewHtml }}
-              />
-            </div>
+
+            {/* Tabs: Edit / Preview */}
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="edit" className="gap-1.5">
+                  <Pencil className="w-3.5 h-3.5" /> Modifier le contenu
+                </TabsTrigger>
+                <TabsTrigger value="preview" className="gap-1.5">
+                  <Eye className="w-3.5 h-3.5" /> Aperçu final
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="edit" className="space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  Modifiez le HTML du corps de l'email. L'en-tête (logo), le footer et la section support sont ajoutés automatiquement.
+                </p>
+                <Textarea
+                  value={editableBody}
+                  onChange={(e) => setEditableBody(e.target.value)}
+                  rows={16}
+                  className="font-mono text-xs"
+                  placeholder="Contenu HTML de l'email..."
+                />
+              </TabsContent>
+
+              <TabsContent value="preview">
+                <div
+                  className="border border-border rounded-lg overflow-hidden bg-white"
+                  dangerouslySetInnerHTML={{ __html: previewHtml }}
+                />
+              </TabsContent>
+            </Tabs>
           </div>
-          <DialogFooter>
+
+          <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setPreviewAction(null)}>Annuler</Button>
             <Button
-              onClick={() => previewAction && handleSend(previewAction)}
-              disabled={!!sendingAction}
+              onClick={handleSend}
+              disabled={!!sendingAction || !customSubject.trim() || !editableBody.trim()}
             >
               {sendingAction ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
               Envoyer à {client.email}

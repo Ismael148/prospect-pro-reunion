@@ -155,6 +155,8 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
     return wrapInBrandedTemplate(sanitized, supportLink);
   }, [editableBody, supportLink]);
 
+  const actions = getEmailActions(client).filter(a => !a.condition || a.condition(client));
+
   if (!client.email) return null;
 
   const handlePreview = (action: EmailAction) => {

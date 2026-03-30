@@ -157,7 +157,12 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
 
   if (!client.email) return null;
 
-  const actions = getEmailActions(client).filter(a => !a.condition || a.condition(client));
+  const handlePreview = (action: EmailAction) => {
+    setCustomSubject(action.subject);
+    setEditableBody(action.bodyFn(client));
+    setActiveTab("preview");
+    setPreviewAction(action);
+  };
 
   const handleSend = async () => {
     if (!client.email || !previewAction) { toast.error("Pas d'email client"); return; }

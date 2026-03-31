@@ -37,7 +37,8 @@ const ROLE_ACCESS: Record<string, string[]> = {
   admin: ["/", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/comptabilite", "/facturation", "/support", "/campagnes", "/equipe", "/parametres", "/cartes-nfc"],
   agent_master: ["/", "/agent-master", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc"],
   agent_telephonique: ["/", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc"],
-  commercial_terrain: ["/", "/prospection", "/clients", "/pipeline", "/commissions"],
+  agent_support: ["/", "/clients", "/support", "/projets", "/cartes-nfc"],
+  commercial_terrain: ["/", "/projets", "/commissions"],
   webmaster: ["/", "/projets", "/webmaster"],
   designer: ["/", "/projets", "/webmaster"],
 };
@@ -76,6 +77,8 @@ export function AppSidebar() {
     ? "Admin"
     : roles.includes("agent_master")
     ? "Agent Master"
+    : roles.includes("agent_support")
+    ? "Agent Support"
     : roles.includes("webmaster")
     ? "Webmaster"
     : roles.includes("designer")

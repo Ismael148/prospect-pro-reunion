@@ -414,6 +414,32 @@ export default function Team() {
                                 <SelectItem value="designer">Designer</SelectItem>
                               </SelectContent>
                             </Select>
+                            {/* Reset Password */}
+                            <Dialog open={resetPasswordOpen === member.user_id} onOpenChange={(open) => { if (!open) { setResetPasswordOpen(null); setNewPassword(""); } else setResetPasswordOpen(member.user_id); }}>
+                              <DialogTrigger asChild>
+                                <Button variant="ghost" size="icon" title="Réinitialiser le mot de passe" className="hover:bg-amber-100 hover:text-amber-700">
+                                  <RotateCcw className="w-4 h-4" />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle className="flex items-center gap-2"><Key className="w-5 h-5" /> Réinitialiser le mot de passe</DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-4 mt-2">
+                                  <p className="text-sm text-muted-foreground">
+                                    Nouveau mot de passe pour <span className="font-semibold text-foreground">{member.full_name}</span>
+                                  </p>
+                                  <div className="space-y-2">
+                                    <Label>Nouveau mot de passe</Label>
+                                    <Input type="text" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Min. 6 caractères" />
+                                  </div>
+                                  <Button onClick={() => handleResetPassword(member.user_id, member.full_name || "Ce membre")} disabled={resetting || newPassword.length < 6} className="w-full">
+                                    {resetting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                                    Réinitialiser
+                                  </Button>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10">

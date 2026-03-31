@@ -640,7 +640,7 @@ export default function Prospection() {
               </div>
               <div className="space-y-2">
                 <Label className="text-xs">Zone</Label>
-                <Select value={searchZone} onValueChange={(v) => { setSearchZone(v); setForceSearch(false); }}>
+                <Select value={searchZone} onValueChange={setSearchZone}>
                   <SelectTrigger className="h-9"><SelectValue placeholder="Ville" /></SelectTrigger>
                   <SelectContent>
                     {REUNION_CITIES.map((city) => <SelectItem key={city} value={city}>{city}</SelectItem>)}

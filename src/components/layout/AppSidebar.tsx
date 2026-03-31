@@ -77,6 +77,8 @@ export function AppSidebar() {
     ? "Admin"
     : roles.includes("agent_master")
     ? "Agent Master"
+    : roles.includes("agent_support")
+    ? "Agent Support"
     : roles.includes("webmaster")
     ? "Webmaster"
     : roles.includes("designer")

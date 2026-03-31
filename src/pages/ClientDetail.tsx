@@ -41,7 +41,7 @@ import { motion } from "framer-motion";
 type PipelineStatus = Database["public"]["Enums"]["pipeline_status"];
 type PackType = Database["public"]["Enums"]["pack_type"];
 // ============ Edit Client Dialog ============
-function EditClientDialog({ client, onSave }: { client: any; onSave: (updates: any) => Promise<void> }) {
+function EditClientDialog({ client, onSave, salesTeam }: { client: any; onSave: (updates: any) => Promise<void>; salesTeam?: { agents: any[]; commercials: any[]; externalCommercials?: any[] } }) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -61,6 +61,8 @@ function EditClientDialog({ client, onSave }: { client: any; onSave: (updates: a
     payment_method: client.payment_method || "",
     has_gmb: client.has_gmb || false,
     site_type: (client as any).site_type || "vitrine",
+    assigned_to: client.assigned_to || "",
+    signed_by_commercial: client.signed_by_commercial || "",
   });
 
   const handleSave = async () => {
@@ -70,6 +72,8 @@ function EditClientDialog({ client, onSave }: { client: any; onSave: (updates: a
         ...form,
         pack_amount: form.pack_amount ? parseFloat(form.pack_amount) : null,
         nfc_quantity: parseInt(form.nfc_quantity) || 1,
+        assigned_to: form.assigned_to || null,
+        signed_by_commercial: form.signed_by_commercial || null,
       });
       setOpen(false);
       toast.success("Fiche client mise à jour");
@@ -177,6 +181,32 @@ function EditClientDialog({ client, onSave }: { client: any; onSave: (updates: a
                 <SelectContent>
                   <SelectItem value="non">❌ Pas de fiche Google</SelectItem>
                   <SelectItem value="oui">✅ Fiche existante</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Agent téléphonique</Label>
+              <Select value={form.assigned_to} onValueChange={(v) => setForm({ ...form, assigned_to: v === "none" ? "" : v })}>
+                <SelectTrigger><SelectValue placeholder="— Aucun —" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— Aucun —</SelectItem>
+                  {salesTeam?.agents.map((a) => (
+                    <SelectItem key={a.user_id} value={a.user_id}>{a.full_name || "Sans nom"}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Commercial signataire</Label>
+              <Select value={form.signed_by_commercial} onValueChange={(v) => setForm({ ...form, signed_by_commercial: v === "none" ? "" : v })}>
+                <SelectTrigger><SelectValue placeholder="— Aucun —" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— Aucun —</SelectItem>
+                  {salesTeam?.externalCommercials?.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -1009,7 +1039,7 @@ export default function ClientDetail() {
               </SelectContent>
             </Select>
           )}
-          <EditClientDialog client={client} onSave={handleEditSave} />
+          <EditClientDialog client={client} onSave={handleEditSave} salesTeam={salesTeam} />
           <Button
             variant="outline" size="sm"
             onClick={() => exportClientPDF({ client, contacts: contacts || [], activities: activities || [], salesTeam })}

@@ -15,7 +15,7 @@ export function useAgents() {
       const { data: roles, error: rolesError } = await supabase
         .from("user_roles")
         .select("user_id")
-        .eq("role", "agent_telephonique");
+        .in("role", ["agent_telephonique", "agent_master"]);
       if (rolesError) throw rolesError;
       if (!roles?.length) return [] as Agent[];
 

@@ -19,7 +19,7 @@ export interface EmailBranding {
 
 export const DEFAULT_BRANDING: EmailBranding = {
   id: "",
-  logo_url: "https://ai.adamkom.com/lovable-uploads/d6c24753-6c76-49a3-8a6d-fe0dd4a898be.png",
+  logo_url: "https://qaxlpmxekcvbrcnqopbp.supabase.co/storage/v1/object/public/email-assets/logo-adamkom-black.png",
   slogan: "La performance digitale pour votre entreprise",
   brand_color: "#ff006e",
   footer_company: "Adamkom",

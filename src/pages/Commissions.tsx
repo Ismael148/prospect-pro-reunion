@@ -60,7 +60,12 @@ export default function Commissions() {
   const { data: clients } = useClients();
   const updateStatus = useUpdateCommissionStatus();
 
-  const getUserName = (userId: string) => {
+  const getUserName = (userId: string, commercialId?: string | null) => {
+    // Check external commercial first
+    if (commercialId) {
+      const ext = salesTeam?.externalCommercials?.find((c) => c.id === commercialId);
+      if (ext) return ext.full_name;
+    }
     const all = [...(salesTeam?.agents || []), ...(salesTeam?.commercials || [])];
     return all.find((u) => u.user_id === userId)?.full_name || "Inconnu";
   };

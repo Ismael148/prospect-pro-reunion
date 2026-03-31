@@ -72,6 +72,8 @@ function EditClientDialog({ client, onSave, salesTeam }: { client: any; onSave: 
         ...form,
         pack_amount: form.pack_amount ? parseFloat(form.pack_amount) : null,
         nfc_quantity: parseInt(form.nfc_quantity) || 1,
+        assigned_to: form.assigned_to || null,
+        signed_by_commercial: form.signed_by_commercial || null,
       });
       setOpen(false);
       toast.success("Fiche client mise à jour");

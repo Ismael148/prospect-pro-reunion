@@ -204,8 +204,11 @@ function EditClientDialog({ client, onSave, salesTeam }: { client: any; onSave: 
                 <SelectTrigger><SelectValue placeholder="— Aucun —" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">— Aucun —</SelectItem>
+                  {salesTeam?.commercials?.map((c) => (
+                    <SelectItem key={c.user_id} value={c.user_id}>{c.full_name || "Sans nom"}</SelectItem>
+                  ))}
                   {salesTeam?.externalCommercials?.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
+                    <SelectItem key={c.id} value={c.id}>{c.full_name} (externe)</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

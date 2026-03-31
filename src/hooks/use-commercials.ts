@@ -105,7 +105,7 @@ export function useSalesTeam() {
         .in("user_id", userIds);
       if (profilesError) throw profilesError;
 
-      const agentIds = roles.filter((r) => r.role === "agent_telephonique").map((r) => r.user_id);
+      const agentIds = roles.filter((r) => r.role === "agent_telephonique" || r.role === "agent_master").map((r) => r.user_id);
       const commercialIds = roles.filter((r) => r.role === "commercial_terrain").map((r) => r.user_id);
 
       // External commercials

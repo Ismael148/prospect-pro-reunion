@@ -601,7 +601,7 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ajouter une note..." rows={3} />
+          <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ajouter une note... (utilisez #resolu pour fermer les tickets)" rows={3} />
           <div className="flex items-center justify-between">
             <div className="flex gap-1 flex-wrap">
               {teamMembers?.slice(0, 5).map((m) => (

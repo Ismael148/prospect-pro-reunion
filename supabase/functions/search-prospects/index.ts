@@ -35,10 +35,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Two targeted searches: Google Maps (best for businesses without websites) + general
+    // Use Firecrawl search with scrapeOptions to get full page content (phones, addresses)
     const searchQueries = [
-      `site:google.com/maps ${query} ${zone} La Réunion`,
-      `${query} ${zone} La Réunion téléphone adresse -site:facebook.com -site:instagram.com`,
+      `${query} ${zone} La Réunion téléphone adresse`,
+      `${query} ${zone} 974 annuaire téléphone`,
     ];
 
     console.log('Searching prospects with queries:', searchQueries);
@@ -54,7 +54,11 @@ Deno.serve(async (req) => {
           },
           body: JSON.stringify({
             query: sq,
-            limit: 20,
+            limit: 10,
+            scrapeOptions: {
+              formats: ['markdown'],
+              onlyMainContent: true,
+            },
           }),
         });
         const searchData = await res.json();
@@ -63,7 +67,7 @@ Deno.serve(async (req) => {
           if (res.status === 402) {
             throw new Error('Crédits Firecrawl insuffisants. Veuillez recharger votre compte Firecrawl.');
           }
-          continue; // Skip this query but try the next one
+          continue;
         }
         responses.push(searchData);
       } catch (e) {
@@ -75,7 +79,7 @@ Deno.serve(async (req) => {
     if (responses.length === 0) {
       throw new Error('Aucun résultat de recherche disponible');
     }
-    // Merge all results
+
     const allResults: SearchResult[] = [];
     for (const data of responses) {
       if (data.data) {
@@ -122,25 +126,157 @@ interface ParsedProspect {
   source_platform?: string;
 }
 
+// Phone patterns for La Réunion (0262, 0692, 0693, 06xx, 07xx)
+const PHONE_PATTERNS = [
+  /(?:\+262|0262)[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}/g,
+  /(?:0693|0692|0691|0690)[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}/g,
+  /(?:06|07)\d[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}/g,
+  /(?:0[1-9])[\s.-]?(?:\d{2}[\s.-]?){4}/g,
+];
+
+// Directories/aggregators to skip as source but NOT to flag as "has website"
+const DIRECTORY_DOMAINS = [
+  'pagesjaunes', 'alentoor', 'kelest', 'facebook.com', 'instagram.com',
+  'tripadvisor', 'yelp', 'linternaute', 'justacote', 'horaires.lefigaro',
+  'youtube.com', 'twitter.com', 'tiktok.com', 'linkedin.com', 'mappy.com',
+  'laposte.fr', 'societe.com', 'infogreffe', 'verif.com', 'annuaire',
+  'kompass', 'europages', 'cylex', 'starofservice', 'habitatpresto',
+  'houzz', 'hellowork', 'google.com', 'goo.gl', 'gralon.net',
+  'local.fr', 'magicmaman.com', 'lejournaldesentreprises', 'manageo.fr',
+];
+
+function isDirectoryUrl(url: string): boolean {
+  const lower = url.toLowerCase();
+  return DIRECTORY_DOMAINS.some(d => lower.includes(d));
+}
+
+function extractPhones(content: string): string[] {
+  const phones: string[] = [];
+  for (const pattern of PHONE_PATTERNS) {
+    const matches = content.match(pattern);
+    if (matches) {
+      for (const m of matches) {
+        const cleaned = m.replace(/[\s.-]/g, '');
+        if (cleaned.length >= 10 && !phones.includes(cleaned)) {
+          phones.push(cleaned);
+        }
+      }
+    }
+  }
+  return phones;
+}
+
+function extractBusinessNames(content: string, query: string): string[] {
+  // Try to find business names in markdown content (typically bold or headings)
+  const names: string[] = [];
+  const headingPattern = /^#{1,3}\s+(.+)$/gm;
+  const boldPattern = /\*\*([^*]{3,60})\*\*/g;
+
+  let match;
+  while ((match = headingPattern.exec(content)) !== null) {
+    const name = match[1].trim();
+    if (name.length >= 3 && name.length <= 80 && !name.toLowerCase().includes('avis') && !name.toLowerCase().includes('annuaire')) {
+      names.push(name);
+    }
+  }
+  while ((match = boldPattern.exec(content)) !== null) {
+    const name = match[1].trim();
+    if (name.length >= 3 && name.length <= 80) {
+      names.push(name);
+    }
+  }
+  return names;
+}
+
 function parseSearchResults(results: SearchResult[], query: string, zone: string): ParsedProspect[] {
   const prospectMap = new Map<string, ParsedProspect>();
-
-  // Directories/aggregators to ignore (not business websites)
-  const directoryDomains = ['pagesjaunes', 'alentoor', 'kelest', 'facebook.com', 'instagram.com', 'tripadvisor', 'yelp', 'linternaute', 'justacote', 'horaires.lefigaro', 'google.com', 'goo.gl', 'youtube.com', 'twitter.com', 'tiktok.com', 'linkedin.com', 'mappy.com', 'laposte.fr', 'societe.com', 'infogreffe', 'verif.com', 'annuaire', 'kompass', 'europages', 'cylex', 'starofservice', 'habitatpresto', 'houzz', 'hellowork'];
 
   for (const result of results) {
     if (!result.title) continue;
 
     const url = (result.url || '').toLowerCase();
-
-    // Skip directory pages (but allow google.com/maps)
-    if (directoryDomains.some(d => url.includes(d)) && !url.includes('google.com/maps')) continue;
-
-    // Skip aggregator titles
     const titleLower = result.title.toLowerCase();
-    if (titleLower.includes('meilleures') || titleLower.includes('top ') || titleLower.includes('annuaire') || titleLower.includes('liste des')) continue;
 
-    // Clean business name
+    // Skip aggregator listing pages
+    if (titleLower.includes('meilleures') || titleLower.includes('top ') ||
+        titleLower.includes('annuaire') || titleLower.includes('liste des') ||
+        titleLower.includes('comparatif') || titleLower.includes('classement')) continue;
+
+    const content = result.markdown || result.description || '';
+    const isFromDirectory = isDirectoryUrl(url) || url.includes('google.com/maps');
+
+    // ── Strategy 1: Extract individual businesses from directory pages ──
+    if (isFromDirectory && content.length > 100) {
+      // Directory pages often list multiple businesses — extract them
+      const phones = extractPhones(content);
+      const businessNames = extractBusinessNames(content, query);
+
+      // Also look for business entries in structured format: "Name - phone"
+      const entryPattern = /(?:^|\n)\s*(?:\d+[\.\)]\s*)?([A-ZÀ-Ÿ][A-Za-zÀ-ÿ\s&'-]{2,50})[\s–—-]+(?:.*?)((?:0262|0692|0693|06|07)\d[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2})/gm;
+      let entryMatch;
+      while ((entryMatch = entryPattern.exec(content)) !== null) {
+        const bName = entryMatch[1].trim();
+        const bPhone = entryMatch[2].replace(/[\s.-]/g, '');
+        const key = bName.toLowerCase().replace(/[^a-zà-ÿ0-9]/g, '');
+        if (key.length >= 3 && !prospectMap.has(key)) {
+          prospectMap.set(key, {
+            business_name: bName,
+            phone: bPhone,
+            city: zone,
+            sector: query,
+            has_website: false,
+            source_url: result.url || undefined,
+            source_platform: detectPlatform(url),
+          });
+        }
+      }
+
+      // For phones found in content, try to associate with business names
+      if (phones.length > 0 && businessNames.length > 0) {
+        const minLen = Math.min(phones.length, businessNames.length);
+        for (let i = 0; i < minLen; i++) {
+          const key = businessNames[i].toLowerCase().replace(/[^a-zà-ÿ0-9]/g, '');
+          if (key.length >= 3 && !prospectMap.has(key)) {
+            prospectMap.set(key, {
+              business_name: businessNames[i],
+              phone: phones[i],
+              city: zone,
+              sector: query,
+              has_website: false,
+              source_url: result.url || undefined,
+              source_platform: detectPlatform(url),
+            });
+          }
+        }
+      }
+
+      // If only phones found (no structured names), use the page title as hint
+      if (phones.length > 0 && prospectMap.size === 0) {
+        // Just grab the first phone with a cleaned title
+        let cleanTitle = result.title
+          .replace(/\s*[-–—|]\s*Pages Jaunes.*$/i, '')
+          .replace(/\s*[-–—|]\s*Annuaire.*$/i, '')
+          .replace(/\s*[-–—|]\s*\d+\s*résultats?.*$/i, '')
+          .trim();
+        if (cleanTitle.length >= 3) {
+          const key = cleanTitle.toLowerCase().replace(/[^a-zà-ÿ0-9]/g, '');
+          if (key.length >= 3 && !prospectMap.has(key)) {
+            prospectMap.set(key, {
+              business_name: cleanTitle,
+              phone: phones[0],
+              city: zone,
+              sector: query,
+              has_website: false,
+              source_url: result.url || undefined,
+              source_platform: detectPlatform(url),
+            });
+          }
+        }
+      }
+      continue;
+    }
+
+    // ── Strategy 2: Non-directory result = individual business page ──
     let businessName = result.title
       .replace(/ - Google Maps$/i, '')
       .replace(/ · .*$/i, '')
@@ -167,25 +303,15 @@ function parseSearchResults(results: SearchResult[], query: string, zone: string
       source_platform: platform,
     };
 
-    const content = result.markdown || result.description || '';
-
-    // Extract phone
+    // Extract phone from content
     if (!prospect.phone) {
-      const phonePatterns = [
-        /(?:\+262|0262)[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}/,
-        /(?:06|07)\d[\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{2}/,
-        /(?:0[1-9])[\s.-]?(?:\d{2}[\s.-]?){4}/,
-      ];
-      for (const pattern of phonePatterns) {
-        const match = content.match(pattern);
-        if (match) {
-          prospect.phone = match[0].replace(/[\s.-]/g, '');
-          break;
-        }
+      const phones = extractPhones(content);
+      if (phones.length > 0) {
+        prospect.phone = phones[0];
       }
     }
 
-    // Extract address from content
+    // Extract address
     if (!prospect.address) {
       const addressPatterns = [
         /(\d{1,4}[\s,]*(?:rue|avenue|ave|boulevard|blvd|chemin|impasse|allée|route|rte|place|lot|résidence|lotissement|zone|za|zi|zac)[^,\n]{3,60},?\s*974\d{2}\s+[A-ZÀ-Ÿ][\wÀ-ÿ\s-]{2,30})/i,
@@ -209,37 +335,21 @@ function parseSearchResults(results: SearchResult[], query: string, zone: string
       prospect.google_maps_url = result.url;
     }
 
-    // ===== WEBSITE DETECTION (aggressive) =====
+    // Website detection — ONLY check actual content for explicit website mentions
+    // Do NOT flag a result's own URL as "having a website" (the search result URL is not the business's site)
     if (!prospect.has_website) {
-      // 1. Check if the result URL itself is the business's own website (not a directory)
-      if (result.url) {
-        try {
-          const resultHost = new URL(result.url).hostname.toLowerCase().replace('www.', '');
-          const isDirectory = directoryDomains.some(d => resultHost.includes(d));
-          const isGoogleMaps = resultHost.includes('google.com');
-          if (!isDirectory && !isGoogleMaps && resultHost.includes('.')) {
-            // This result URL is likely the business's own website
+      const websitePatterns = [
+        /(?:site\s*(?:web|internet)?\s*[:\-–]?\s*)((?:https?:\/\/|www\.)([\w.-]+\.[a-z]{2,}))/i,
+        /(?:visitez|voir|consulter|découvrir)\s+(?:notre|le|mon)\s+site/i,
+      ];
+      for (const pattern of websitePatterns) {
+        const match = content.match(pattern);
+        if (match) {
+          const domain = (match[2] || match[1] || '').toLowerCase();
+          const ignoreDomains = ['google', 'goo.gl', 'facebook', 'instagram', 'youtube', 'twitter', 'tiktok', ...DIRECTORY_DOMAINS];
+          if (domain && !ignoreDomains.some(d => domain.includes(d))) {
             prospect.has_website = true;
-          }
-        } catch { /* invalid URL, skip */ }
-      }
-
-      // 2. Check content for explicit website mentions
-      if (!prospect.has_website) {
-        const websitePatterns = [
-          /(?:site\s*(?:web|internet)?\s*[:\-–]?\s*)((?:https?:\/\/|www\.)([\w.-]+\.[a-z]{2,}))/i,
-          /(?:visitez|voir|consulter|découvrir)\s+(?:notre|le|mon)\s+site/i,
-          /(?:https?:\/\/|www\.)([\w-]+\.(?:re|fr|com|net|org))/i,
-        ];
-        for (const pattern of websitePatterns) {
-          const match = content.match(pattern);
-          if (match) {
-            const domain = (match[2] || match[1] || '').toLowerCase();
-            const ignoreDomains = ['google', 'goo.gl', 'facebook', 'instagram', 'youtube', 'twitter', 'tiktok', ...directoryDomains];
-            if (!ignoreDomains.some(d => domain.includes(d))) {
-              prospect.has_website = true;
-              break;
-            }
+            break;
           }
         }
       }
@@ -248,10 +358,18 @@ function parseSearchResults(results: SearchResult[], query: string, zone: string
     prospectMap.set(key, prospect);
   }
 
-  // Only businesses WITHOUT a website and WITH a phone
-  return Array.from(prospectMap.values()).filter(
-    (p) => !p.has_website && p.phone
-  );
+  // Return ALL found businesses — include those with or without phone
+  // Sort: with phone first, then without
+  const all = Array.from(prospectMap.values());
+  all.sort((a, b) => {
+    if (a.phone && !b.phone) return -1;
+    if (!a.phone && b.phone) return 1;
+    return 0;
+  });
+
+  console.log(`Parsed stats: total=${all.length}, with_phone=${all.filter(p => p.phone).length}, has_website=${all.filter(p => p.has_website).length}`);
+
+  return all;
 }
 
 function detectPlatform(url: string): string {

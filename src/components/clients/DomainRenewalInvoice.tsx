@@ -17,8 +17,7 @@ import { motion } from "framer-motion";
 import EmailTemplateSaver from "@/components/EmailTemplateSaver";
 import type { SavedTemplate } from "@/hooks/use-email-templates";
 
-const BRAND_COLOR = "#ff006e";
-const LOGO_URL = "https://ai.adamkom.com/lovable-uploads/d6c24753-6c76-49a3-8a6d-fe0dd4a898be.png";
+import { BRAND_COLOR, wrapInBrandedTemplate } from "@/lib/email-template";
 
 function buildEmailBody(companyName: string, domainName: string, amount: number, invoiceNumber: string) {
   return `<p style="margin:0 0 20px">Bonjour <strong>${companyName}</strong>,</p>
@@ -30,24 +29,6 @@ function buildEmailBody(companyName: string, domainName: string, amount: number,
 </div>
 <p style="margin:0 0 20px">Merci de procéder au règlement dans les meilleurs délais.</p>
 <p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`;
-}
-
-function wrapInBrandedTemplate(bodyHtml: string) {
-  return `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,0.06)">
-  <div style="padding:40px 40px 32px;text-align:center;background:#ffffff">
-    <img src="${LOGO_URL}" alt="Adamkom" style="height:72px;width:auto;display:block;margin:0 auto 12px" />
-    <p style="margin:0;font-size:13px;color:#71717a;letter-spacing:0.5px">La performance digitale pour votre entreprise</p>
-  </div>
-  <div style="height:3px;background:linear-gradient(90deg,${BRAND_COLOR},#ff5c8a,${BRAND_COLOR})"></div>
-  <div style="padding:40px 40px 32px;line-height:1.8;font-size:15px;color:#27272a">
-    ${bodyHtml}
-  </div>
-  <div style="padding:28px 40px;border-top:1px solid #f0f0f0;background:#fafafa;text-align:center">
-    <p style="margin:0 0 8px;font-size:14px;color:#b8004a"><strong>Adamkom</strong> — La performance digitale</p>
-    <p style="margin:0 0 4px;font-size:13px;color:#71717a">📞 <a href="tel:0262666876" style="color:${BRAND_COLOR};text-decoration:none;font-weight:600">0262 66 68 76</a></p>
-    <p style="margin:12px 0 0;font-size:11px;color:#a1a1aa">© ${new Date().getFullYear()} Adamkom by JJP — La Réunion 🇷🇪</p>
-  </div>
-</div>`;
 }
 
 interface ClientData {

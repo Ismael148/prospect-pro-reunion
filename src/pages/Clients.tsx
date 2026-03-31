@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useClients, useCreateClient } from "@/hooks/use-clients";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAllCommercials } from "@/hooks/use-commercials";
 import { useAgents } from "@/hooks/use-agents";

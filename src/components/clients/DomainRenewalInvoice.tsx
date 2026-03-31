@@ -47,6 +47,7 @@ interface ClientData {
 export default function DomainRenewalInvoice({ client }: { client: ClientData }) {
   const { user } = useAuth();
   const createInvoice = useCreateInvoice();
+  const { data: branding } = useEmailBranding();
   const [domainName, setDomainName] = useState("");
   const [amount, setAmount] = useState("");
   const [sending, setSending] = useState(false);

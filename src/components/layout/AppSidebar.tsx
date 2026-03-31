@@ -35,8 +35,8 @@ import { useMemo } from "react";
 
 const ROLE_ACCESS: Record<string, string[]> = {
   admin: ["/", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/comptabilite", "/facturation", "/support", "/campagnes", "/equipe", "/parametres", "/cartes-nfc"],
-  agent_master: ["/", "/agent-master", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support"],
-  agent_telephonique: ["/", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support"],
+  agent_master: ["/", "/agent-master", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc"],
+  agent_telephonique: ["/", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc"],
   commercial_terrain: ["/", "/prospection", "/clients", "/pipeline", "/commissions"],
   webmaster: ["/", "/projets", "/webmaster"],
   designer: ["/", "/projets", "/webmaster"],
@@ -45,8 +45,8 @@ const ROLE_ACCESS: Record<string, string[]> = {
 const allMenuItems = [
   { title: "Dashboard", icon: LayoutDashboard, path: "/" },
   { title: "Agent Master", icon: Users, path: "/agent-master" },
-  { title: "Clients", icon: Users, path: "/clients" },
-  { title: "Cartes NFC", icon: CreditCard, path: "/cartes-nfc" },
+  { title: "Clients 2.0", icon: Users, path: "/clients" },
+  { title: "Clients 1.0", icon: CreditCard, path: "/cartes-nfc" },
   { title: "Prospection", icon: Search, path: "/prospection" },
   { title: "Pipeline", icon: FolderKanban, path: "/pipeline" },
   { title: "Projets", icon: Briefcase, path: "/projets" },

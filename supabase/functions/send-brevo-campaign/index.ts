@@ -57,10 +57,12 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: 'Non autorisé' }), { status: 401, headers: corsHeaders });
     }
+    const user = { id: claimsData.claims.sub, email: claimsData.claims.email };
 
     const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY');
     if (!BREVO_API_KEY) {

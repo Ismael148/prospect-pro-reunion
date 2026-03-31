@@ -1039,7 +1039,7 @@ export default function ClientDetail() {
               </SelectContent>
             </Select>
           )}
-          <EditClientDialog client={client} onSave={handleEditSave} />
+          <EditClientDialog client={client} onSave={handleEditSave} salesTeam={salesTeam} />
           <Button
             variant="outline" size="sm"
             onClick={() => exportClientPDF({ client, contacts: contacts || [], activities: activities || [], salesTeam })}

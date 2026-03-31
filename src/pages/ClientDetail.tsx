@@ -35,6 +35,7 @@ import SocialMediaSection from "@/components/clients/SocialMediaSection";
 import ClientEmailActions from "@/components/clients/ClientEmailActions";
 import DomainRenewalInvoice from "@/components/clients/DomainRenewalInvoice";
 import { useClientForms, useValidateForm, ClientFormData } from "@/hooks/use-client-forms";
+import { triggerN8nWebhook } from "@/lib/n8n-webhook";
 
 type PipelineStatus = Database["public"]["Enums"]["pipeline_status"];
 type PackType = Database["public"]["Enums"]["pack_type"];
@@ -533,6 +534,48 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
         client_id: clientId, user_id: user!.id, activity_type: "note", description: note,
       });
       toast.success("Note ajoutée");
+
+      // Detect #resolu tag → auto-resolve open tickets for this client
+      if (/#resolu/i.test(note)) {
+        try {
+          const { data: openTickets } = await supabase
+            .from("support_tickets")
+            .select("id, ticket_number, subject")
+            .eq("client_id", clientId)
+            .in("status", ["ouvert", "en_cours"]);
+
+          if (openTickets && openTickets.length > 0) {
+            const { data: client } = await supabase
+              .from("clients")
+              .select("company_name, email, support_token")
+              .eq("id", clientId)
+              .single();
+
+            for (const ticket of openTickets) {
+              await supabase
+                .from("support_tickets")
+                .update({ status: "resolu", resolved_at: new Date().toISOString(), resolved_by: user!.id })
+                .eq("id", ticket.id);
+
+              triggerN8nWebhook("support.resolved", {
+                ticket_id: ticket.id,
+                ticket_number: ticket.ticket_number,
+                subject: ticket.subject,
+                company_name: client?.company_name || "",
+                client_email: client?.email || "",
+                support_link: client?.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : "",
+              });
+            }
+            toast.success(`${openTickets.length} ticket(s) marqué(s) résolu(s) — email envoyé au client`);
+          } else {
+            toast.info("Aucun ticket ouvert à résoudre pour ce client");
+          }
+        } catch (e) {
+          console.warn("Auto-resolve tickets error:", e);
+          toast.error("Erreur lors de la résolution automatique des tickets");
+        }
+      }
+
       setNote("");
     } catch { toast.error("Erreur"); }
   };
@@ -558,7 +601,7 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ajouter une note..." rows={3} />
+          <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ajouter une note... (utilisez #resolu pour fermer les tickets)" rows={3} />
           <div className="flex items-center justify-between">
             <div className="flex gap-1 flex-wrap">
               {teamMembers?.slice(0, 5).map((m) => (
@@ -566,6 +609,9 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
                   @{m.full_name?.split(" ")[0] || "?"}
                 </Button>
               ))}
+              <Button variant="outline" size="sm" className="text-xs h-7 px-2 text-green-600 border-green-200 hover:bg-green-50" onClick={() => setNote((prev) => prev + "#resolu ")}>
+                <CheckCircle2 className="w-3 h-3 mr-1" /> #resolu
+              </Button>
             </div>
             <Button size="sm" onClick={handleAddNote} disabled={createActivity.isPending || !note.trim()}>
               {createActivity.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}

@@ -332,8 +332,8 @@ export default function ProjectDeliverableEmail() {
     if (!deliverable) return "";
     const resolvedBody = replaceVariables(message);
     const sanitizedBody = DOMPurify.sanitize(resolvedBody, { ADD_TAGS: ["style"], ADD_ATTR: ["style"] });
-    return wrapInBrandedTemplate(sanitizedBody, replaceVariables(supportLink));
-  }, [deliverable, message, replaceVariables, supportLink]);
+    return wrapInBrandedTemplate(sanitizedBody, replaceVariables(supportLink), emailBranding || undefined);
+  }, [deliverable, message, replaceVariables, supportLink, emailBranding]);
 
   const resolvedSubject = useMemo(() => replaceVariables(subject), [subject, replaceVariables]);
 

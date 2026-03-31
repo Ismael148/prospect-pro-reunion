@@ -230,28 +230,12 @@ export default function Prospection() {
     return Array.from(historyMap.values()).sort((a, b) => b.lastDate.localeCompare(a.lastDate));
   }, [prospects]);
 
-  const [forceSearch, setForceSearch] = useState(false);
-
   const handleSearch = async () => {
     const query = searchQuery || customQuery;
     if (!query || !searchZone) {
       toast.error("Sélectionnez un secteur et une zone");
       return;
     }
-
-    // Check if this search was already done
-    const alreadySearched = searchHistory.find(
-      (h) => h.query.toLowerCase() === query.toLowerCase() && h.zone.toLowerCase() === searchZone.toLowerCase()
-    );
-    if (alreadySearched && !forceSearch) {
-      toast.warning(
-        `Cette recherche a déjà été effectuée (${alreadySearched.count} prospect(s) importé(s) le ${format(new Date(alreadySearched.lastDate), "dd/MM/yyyy", { locale: fr })}). Cliquez à nouveau pour forcer.`,
-        { duration: 5000 }
-      );
-      setForceSearch(true);
-      return;
-    }
-    setForceSearch(false);
 
     try {
       const results = await searchProspects.mutateAsync({ query, zone: searchZone });
@@ -265,21 +249,29 @@ export default function Prospection() {
         return true;
       });
 
-      // Filtrer les prospects déjà existants en base
+      // Normaliser les noms existants + téléphones pour détecter les doublons
       const existingNames = new Set(
         (prospects || []).map((p) => p.business_name.toLowerCase().replace(/[^a-zà-ÿ0-9]/g, ""))
       );
-      const newResults = uniqueResults.filter((r) => {
-        const key = r.business_name.toLowerCase().replace(/[^a-zà-ÿ0-9]/g, "");
-        return !existingNames.has(key);
+      const existingPhones = new Set(
+        (prospects || []).filter((p) => p.phone).map((p) => p.phone!.replace(/[\s.-]/g, ""))
+      );
+
+      // Marquer chaque résultat comme doublon ou non (mais garder tous dans la liste)
+      const markedResults = uniqueResults.map((r) => {
+        const nameKey = r.business_name.toLowerCase().replace(/[^a-zà-ÿ0-9]/g, "");
+        const phoneKey = r.phone ? r.phone.replace(/[\s.-]/g, "") : null;
+        const isDuplicate = existingNames.has(nameKey) || (phoneKey && existingPhones.has(phoneKey));
+        return { ...r, _isDuplicate: !!isDuplicate };
       });
 
-      setSearchResults(newResults);
+      setSearchResults(markedResults);
       setShowResults(true);
-      const filtered = uniqueResults.length - newResults.length;
+      const newCount = markedResults.filter((r) => !r._isDuplicate).length;
+      const dupCount = markedResults.filter((r) => r._isDuplicate).length;
       toast.success(
-        `${newResults.length} nouveau(x) prospect(s) trouvé(s)` +
-        (filtered > 0 ? ` (${filtered} déjà en base ignoré(s))` : "")
+        `${newCount} nouveau(x) prospect(s) trouvé(s)` +
+        (dupCount > 0 ? ` · ${dupCount} déjà en base` : "")
       );
     } catch (error: any) {
       toast.error(error.message || "Erreur de recherche");
@@ -291,25 +283,11 @@ export default function Prospection() {
     try {
       const query = searchQuery || customQuery;
       
-      // Statuts déjà traités qu'on ne doit pas ré-importer
-      const treatedStatuses = new Set(["contacte", "qualifie", "rdv_planifie", "converti", "non_interesse", "a_rappeler"]);
-      const existingMap = new Map(
-        (prospects || []).map((p) => [
-          p.business_name.toLowerCase().replace(/[^a-zà-ÿ0-9]/g, ""),
-          p.status,
-        ])
-      );
-
-      const toImport = searchResults.filter((r) => {
-        const key = r.business_name.toLowerCase().replace(/[^a-zà-ÿ0-9]/g, "");
-        const existingStatus = existingMap.get(key);
-        // Skip si déjà en base (tout statut)
-        if (existingStatus) return false;
-        return true;
-      });
+      // Only import results not flagged as duplicates
+      const toImport = searchResults.filter((r) => !r._isDuplicate);
 
       if (!toImport.length) {
-        toast.info("Tous les prospects sont déjà en base ou traités");
+        toast.info("Tous les prospects sont déjà en base");
         return;
       }
 
@@ -638,17 +616,17 @@ export default function Prospection() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs">Secteur d'activité</Label>
-                <Select value={searchQuery} onValueChange={(v) => { setSearchQuery(v); setCustomQuery(""); setForceSearch(false); }}>
+                <Select value={searchQuery} onValueChange={(v) => { setSearchQuery(v); setCustomQuery(""); }}>
                   <SelectTrigger className="h-9"><SelectValue placeholder="Choisir" /></SelectTrigger>
                   <SelectContent>
                     {SECTORS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <Input placeholder="Ou secteur personnalisé..." value={customQuery} onChange={(e) => { setCustomQuery(e.target.value); setSearchQuery(""); setForceSearch(false); }} className="h-9 text-sm" />
+                <Input placeholder="Ou secteur personnalisé..." value={customQuery} onChange={(e) => { setCustomQuery(e.target.value); setSearchQuery(""); }} className="h-9 text-sm" />
               </div>
               <div className="space-y-2">
                 <Label className="text-xs">Zone</Label>
-                <Select value={searchZone} onValueChange={(v) => { setSearchZone(v); setForceSearch(false); }}>
+                <Select value={searchZone} onValueChange={setSearchZone}>
                   <SelectTrigger className="h-9"><SelectValue placeholder="Ville" /></SelectTrigger>
                   <SelectContent>
                     {REUNION_CITIES.map((city) => <SelectItem key={city} value={city}>{city}</SelectItem>)}
@@ -688,7 +666,6 @@ export default function Prospection() {
                       setSearchQuery("");
                       setCustomQuery(h.query);
                       setSearchZone(h.zone);
-                      setForceSearch(false);
                     }}
                     className={cn(
                       "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs border transition-colors",
@@ -715,25 +692,34 @@ export default function Prospection() {
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between gap-2">
-              <span>{searchResults.length} résultat(s)</span>
+              <span>
+                {searchResults.filter((r) => !r._isDuplicate).length} nouveau(x)
+                {searchResults.some((r) => r._isDuplicate) && (
+                  <span className="text-muted-foreground font-normal text-sm ml-1">
+                    · {searchResults.filter((r) => r._isDuplicate).length} déjà en base
+                  </span>
+                )}
+              </span>
               <div className="flex items-center gap-2">
                 <Badge variant="secondary" className="text-[10px]">
-                  {searchResults.filter((r) => !r.has_website && !r.website).length} sans site
+                  {searchResults.filter((r) => !r._isDuplicate && !r.has_website && !r.website).length} sans site
                 </Badge>
-                <Button size="sm" onClick={handleImportAll} disabled={createProspects.isPending} className="gap-2">
+                <Button size="sm" onClick={handleImportAll} disabled={createProspects.isPending || searchResults.every((r) => r._isDuplicate)} className="gap-2">
                   {createProspects.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
-                  Tout importer
+                  Importer les nouveaux
                 </Button>
               </div>
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-2 mt-3">
-            {searchResults.map((result, i) => (
+            {/* Show new results first, then duplicates */}
+            {[...searchResults].sort((a, b) => (a._isDuplicate === b._isDuplicate ? 0 : a._isDuplicate ? 1 : -1)).map((result, i) => (
               <Card
                 key={i}
                 className={cn(
                   "border shadow-soft cursor-pointer hover:shadow-medium transition-all",
-                  !result.website && !result.has_website && "border-l-4 border-l-success"
+                  result._isDuplicate && "opacity-40 border-dashed",
+                  !result._isDuplicate && !result.website && !result.has_website && "border-l-4 border-l-success"
                 )}
                 onClick={() => setSelectedSearchResult(selectedSearchResult === i ? null : i)}
               >
@@ -741,19 +727,25 @@ export default function Prospection() {
                   <div className="flex items-start gap-3">
                     <div className={cn(
                       "w-9 h-9 rounded-xl flex items-center justify-center shrink-0",
+                      result._isDuplicate ? "bg-muted text-muted-foreground" :
                       !result.website ? "bg-success/10 text-success" : "bg-primary/8 text-primary"
                     )}>
-                      <Building2 className="w-4 h-4" />
+                      {result._isDuplicate ? <CheckCircle2 className="w-4 h-4" /> : <Building2 className="w-4 h-4" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="font-semibold text-sm">{result.business_name}</p>
-                        {!result.website && !result.has_website && (
+                        <p className={cn("font-semibold text-sm", result._isDuplicate && "line-through")}>{result.business_name}</p>
+                        {result._isDuplicate && (
+                          <Badge className="text-[9px] bg-muted text-muted-foreground border-border" variant="outline">
+                            Déjà en base
+                          </Badge>
+                        )}
+                        {!result._isDuplicate && !result.website && !result.has_website && (
                           <Badge className="text-[9px] bg-success/10 text-success border-success/20" variant="outline">
                             Sans site web
                           </Badge>
                         )}
-                        {result.website && (
+                        {!result._isDuplicate && result.website && (
                           <Badge className="text-[9px] bg-muted text-muted-foreground" variant="outline">
                             A un site
                           </Badge>

@@ -166,9 +166,6 @@ export default function DomainRenewalInvoice({ client }: { client: ClientData })
     }
   };
 
-  const previewHtml = useMemo(() => {
-    return wrapInBrandedTemplate(emailBodyOverride || defaultBody);
-  }, [emailBodyOverride, defaultBody]);
 
   return (
     <>

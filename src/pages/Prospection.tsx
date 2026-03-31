@@ -638,7 +638,7 @@ export default function Prospection() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs">Secteur d'activité</Label>
-                <Select value={searchQuery} onValueChange={(v) => { setSearchQuery(v); setCustomQuery(""); }}>
+                <Select value={searchQuery} onValueChange={(v) => { setSearchQuery(v); setCustomQuery(""); setForceSearch(false); }}>
                   <SelectTrigger className="h-9"><SelectValue placeholder="Choisir" /></SelectTrigger>
                   <SelectContent>
                     {SECTORS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}

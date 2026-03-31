@@ -680,7 +680,6 @@ export default function Prospection() {
                       setSearchQuery("");
                       setCustomQuery(h.query);
                       setSearchZone(h.zone);
-                      setForceSearch(false);
                     }}
                     className={cn(
                       "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs border transition-colors",

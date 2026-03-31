@@ -283,25 +283,11 @@ export default function Prospection() {
     try {
       const query = searchQuery || customQuery;
       
-      // Statuts déjà traités qu'on ne doit pas ré-importer
-      const treatedStatuses = new Set(["contacte", "qualifie", "rdv_planifie", "converti", "non_interesse", "a_rappeler"]);
-      const existingMap = new Map(
-        (prospects || []).map((p) => [
-          p.business_name.toLowerCase().replace(/[^a-zà-ÿ0-9]/g, ""),
-          p.status,
-        ])
-      );
-
-      const toImport = searchResults.filter((r) => {
-        const key = r.business_name.toLowerCase().replace(/[^a-zà-ÿ0-9]/g, "");
-        const existingStatus = existingMap.get(key);
-        // Skip si déjà en base (tout statut)
-        if (existingStatus) return false;
-        return true;
-      });
+      // Only import results not flagged as duplicates
+      const toImport = searchResults.filter((r) => !r._isDuplicate);
 
       if (!toImport.length) {
-        toast.info("Tous les prospects sont déjà en base ou traités");
+        toast.info("Tous les prospects sont déjà en base");
         return;
       }
 

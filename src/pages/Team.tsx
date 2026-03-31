@@ -275,6 +275,7 @@ export default function Team() {
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="admin">Administrateur</SelectItem>
+                      <SelectItem value="agent_master">Agent Master</SelectItem>
                       <SelectItem value="agent_telephonique">Agent téléphonique</SelectItem>
                       <SelectItem value="commercial_terrain">Commercial terrain</SelectItem>
                       <SelectItem value="webmaster">Webmaster</SelectItem>

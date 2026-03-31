@@ -726,12 +726,14 @@ export default function Prospection() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-2 mt-3">
-            {searchResults.map((result, i) => (
+            {/* Show new results first, then duplicates */}
+            {[...searchResults].sort((a, b) => (a._isDuplicate === b._isDuplicate ? 0 : a._isDuplicate ? 1 : -1)).map((result, i) => (
               <Card
                 key={i}
                 className={cn(
                   "border shadow-soft cursor-pointer hover:shadow-medium transition-all",
-                  !result.website && !result.has_website && "border-l-4 border-l-success"
+                  result._isDuplicate && "opacity-40 border-dashed",
+                  !result._isDuplicate && !result.website && !result.has_website && "border-l-4 border-l-success"
                 )}
                 onClick={() => setSelectedSearchResult(selectedSearchResult === i ? null : i)}
               >
@@ -739,19 +741,25 @@ export default function Prospection() {
                   <div className="flex items-start gap-3">
                     <div className={cn(
                       "w-9 h-9 rounded-xl flex items-center justify-center shrink-0",
+                      result._isDuplicate ? "bg-muted text-muted-foreground" :
                       !result.website ? "bg-success/10 text-success" : "bg-primary/8 text-primary"
                     )}>
-                      <Building2 className="w-4 h-4" />
+                      {result._isDuplicate ? <CheckCircle2 className="w-4 h-4" /> : <Building2 className="w-4 h-4" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="font-semibold text-sm">{result.business_name}</p>
-                        {!result.website && !result.has_website && (
+                        <p className={cn("font-semibold text-sm", result._isDuplicate && "line-through")}>{result.business_name}</p>
+                        {result._isDuplicate && (
+                          <Badge className="text-[9px] bg-muted text-muted-foreground border-border" variant="outline">
+                            Déjà en base
+                          </Badge>
+                        )}
+                        {!result._isDuplicate && !result.website && !result.has_website && (
                           <Badge className="text-[9px] bg-success/10 text-success border-success/20" variant="outline">
                             Sans site web
                           </Badge>
                         )}
-                        {result.website && (
+                        {!result._isDuplicate && result.website && (
                           <Badge className="text-[9px] bg-muted text-muted-foreground" variant="outline">
                             A un site
                           </Badge>

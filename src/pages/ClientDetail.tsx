@@ -386,6 +386,7 @@ function ContactsSection({ clientId, contacts }: { clientId: string; contacts: a
 
 // ============ Support Tickets Section ============
 function SupportTicketsSection({ clientId }: { clientId: string }) {
+  const navigate = useNavigate();
   const { data: tickets, isLoading } = useQuery({
     queryKey: ["client-tickets", clientId],
     queryFn: async () => {
@@ -398,49 +399,112 @@ function SupportTicketsSection({ clientId }: { clientId: string }) {
     enabled: !!clientId,
   });
 
-  const TICKET_STATUS: Record<string, string> = {
-    ouvert: "bg-warning/10 text-warning border-warning/20",
-    en_cours: "bg-primary/10 text-primary border-primary/20",
-    resolu: "bg-success/10 text-success border-success/20",
-    ferme: "bg-muted text-muted-foreground",
+  const TICKET_STATUS: Record<string, { label: string; color: string; icon: string }> = {
+    ouvert: { label: "Ouvert", color: "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-700", icon: "🟡" },
+    en_cours: { label: "En cours", color: "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-700", icon: "🔵" },
+    resolu: { label: "Résolu", color: "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-700", icon: "🟢" },
+    ferme: { label: "Fermé", color: "bg-muted text-muted-foreground border-border", icon: "⚫" },
   };
 
-  if (isLoading || !tickets?.length) return null;
+  const PRIORITY_CONFIG: Record<string, { label: string; color: string }> = {
+    urgente: { label: "🔴 Urgent", color: "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300" },
+    haute: { label: "🟠 Haute", color: "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300" },
+    normale: { label: "🟢 Normale", color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300" },
+  };
+
+  const CATEGORY_LABELS: Record<string, string> = {
+    modification_site: "🌐 Modification site",
+    modification_carte_nfc: "💳 Modification carte NFC",
+    fiche_google: "📍 Fiche Google",
+    reseaux_sociaux: "📱 Réseaux sociaux",
+    bug_technique: "🐛 Bug technique",
+    question: "❓ Question",
+    autre: "📋 Autre",
+  };
+
+  const openCount = tickets?.filter((t) => t.status === "ouvert" || t.status === "en_cours").length || 0;
+
+  if (isLoading) return null;
 
   return (
-    <Card className="border-0 shadow-md shadow-primary/5">
-      <CardHeader>
+    <Card className={`border-0 shadow-lg ${openCount > 0 ? "shadow-rose-200/50 dark:shadow-rose-900/30 ring-1 ring-rose-200 dark:ring-rose-800" : "shadow-primary/5"}`}>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg flex items-center gap-2">
-          <Ticket className="w-5 h-5" /> Tickets support ({tickets.length})
+          <Ticket className="w-5 h-5 text-rose-600" />
+          Tickets Support
+          {tickets && tickets.length > 0 && (
+            <Badge variant="secondary" className="ml-1">{tickets.length}</Badge>
+          )}
+          {openCount > 0 && (
+            <Badge className="bg-rose-500 text-white text-[10px] animate-pulse ml-1">
+              {openCount} en attente
+            </Badge>
+          )}
         </CardTitle>
+        <Button size="sm" variant="outline" onClick={() => navigate("/support")} className="gap-1">
+          <Eye className="w-3.5 h-3.5" /> Voir tout
+        </Button>
       </CardHeader>
-      <CardContent className="space-y-2">
-        {tickets.map((t) => (
-          <div key={t.id} className="p-3 rounded-lg bg-muted/30">
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono text-muted-foreground">{t.ticket_number}</span>
-                <span className="font-medium text-sm">{t.subject}</span>
-              </div>
-              <Badge variant="outline" className={`text-[10px] ${TICKET_STATUS[t.status] || ""}`}>
-                {t.status === "ouvert" ? "Ouvert" : t.status === "en_cours" ? "En cours" : t.status === "resolu" ? "Résolu" : "Fermé"}
-              </Badge>
-            </div>
-            <p className="text-xs text-muted-foreground line-clamp-2">{t.message}</p>
-            {t.attachments && t.attachments.length > 0 && (
-              <div className="flex gap-1 mt-2">
-                {t.attachments.map((url: string, i: number) => (
-                  <a key={i} href={url} target="_blank" rel="noopener noreferrer">
-                    <img src={url} alt={`Pièce jointe ${i + 1}`} className="w-12 h-12 object-cover rounded border border-border hover:opacity-80 transition-opacity" />
-                  </a>
-                ))}
-              </div>
-            )}
-            <p className="text-[10px] text-muted-foreground mt-1">
-              {new Date(t.created_at).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-            </p>
+      <CardContent>
+        {!tickets?.length ? (
+          <div className="text-center py-6">
+            <Ticket className="w-8 h-8 text-muted-foreground/20 mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">Aucun ticket support</p>
           </div>
-        ))}
+        ) : (
+          <div className="space-y-3">
+            {tickets.map((t) => {
+              const status = TICKET_STATUS[t.status] || TICKET_STATUS.ferme;
+              const priority = PRIORITY_CONFIG[t.priority] || PRIORITY_CONFIG.normale;
+              const category = CATEGORY_LABELS[t.category] || t.category;
+              return (
+                <div
+                  key={t.id}
+                  onClick={() => navigate("/support")}
+                  className={`p-4 rounded-xl border cursor-pointer transition-all hover:shadow-md hover:scale-[1.01] ${
+                    t.status === "ouvert" ? "border-amber-300 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-800" :
+                    t.status === "en_cours" ? "border-blue-300 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-800" :
+                    "border-border bg-muted/20"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-mono font-bold text-muted-foreground bg-muted px-2 py-0.5 rounded">{t.ticket_number}</span>
+                      <Badge className={`text-[10px] border ${status.color}`}>
+                        {status.icon} {status.label}
+                      </Badge>
+                      <Badge className={`text-[10px] ${priority.color}`}>
+                        {priority.label}
+                      </Badge>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                      {new Date(t.created_at).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  </div>
+                  <p className="font-semibold text-sm mb-1">{t.subject}</p>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-[11px] text-muted-foreground">{category}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{t.message}</p>
+                  {t.attachments && t.attachments.length > 0 && (
+                    <div className="flex gap-1.5 mt-3">
+                      {t.attachments.slice(0, 5).map((url: string, i: number) => (
+                        <a key={i} href={url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                          <img src={url} alt={`PJ ${i + 1}`} className="w-14 h-14 object-cover rounded-lg border-2 border-border hover:border-primary transition-colors" />
+                        </a>
+                      ))}
+                      {t.attachments.length > 5 && (
+                        <span className="w-14 h-14 flex items-center justify-center rounded-lg bg-muted text-xs font-medium text-muted-foreground">
+                          +{t.attachments.length - 5}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

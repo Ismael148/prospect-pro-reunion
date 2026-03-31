@@ -65,6 +65,28 @@ export default function Clients() {
 
   const activeFilterCount = [filterStatus, filterPack, filterCity, filterAgent].filter(f => f !== "all").length;
 
+  // Fetch emails sent per client email
+  const { data: emailLogs } = useQuery({
+    queryKey: ["client-email-logs-summary"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("email_send_log")
+        .select("recipient_email");
+      if (error) throw error;
+      const counts = new Map<string, number>();
+      data?.forEach((log) => {
+        const email = log.recipient_email?.toLowerCase();
+        if (email) counts.set(email, (counts.get(email) || 0) + 1);
+      });
+      return counts;
+    },
+  });
+
+  const getEmailCount = (clientEmail: string | null) => {
+    if (!clientEmail || !emailLogs) return 0;
+    return emailLogs.get(clientEmail.toLowerCase()) || 0;
+  };
+
   const handleCreate = async () => {
     if (!form.company_name.trim()) { toast.error("Le nom de l'entreprise est requis"); return; }
     try {

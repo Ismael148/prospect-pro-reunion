@@ -244,7 +244,7 @@ Deno.serve(async (req) => {
     // ACTION: send_client_email (per-client actions: support, form reminders, custom)
     // ═══════════════════════════════════════════
     if (action === 'send_client_email') {
-      const { recipientEmail, recipientName, subject, htmlContent, trigger, client_id } = body;
+      const { recipientEmail, recipientName, subject, htmlContent, trigger, client_id, attachment } = body;
 
       if (!recipientEmail || !subject || !htmlContent) {
         return new Response(JSON.stringify({ error: 'Champs manquants: recipientEmail, subject, htmlContent' }), { status: 400, headers: corsHeaders });
@@ -252,12 +252,17 @@ Deno.serve(async (req) => {
 
       const textContent = htmlToText(htmlContent);
 
+      const normalizedAttachments = Array.isArray(attachment)
+        ? attachment.filter((item: any) => item && typeof item.name === 'string' && (typeof item.url === 'string' || typeof item.content === 'string'))
+        : [];
+
       const response = await sendBrevoEmail(BREVO_API_KEY, {
         sender: { name: 'AdamKom', email: 'contact@adamkom.com' },
         to: [{ email: recipientEmail, name: recipientName || recipientEmail }],
         subject,
         htmlContent,
         textContent,
+        ...(normalizedAttachments.length ? { attachment: normalizedAttachments } : {}),
         headers: { 'X-Trigger': trigger || 'manual' },
       });
 

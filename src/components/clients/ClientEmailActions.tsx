@@ -221,7 +221,8 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
   const previewHtml = previewAction
     ? wrapInBrandedTemplate(
         previewAction.bodyFn(client),
-        client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined
+        client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined,
+        branding || undefined
       )
     : "";
 

@@ -67,6 +67,8 @@ export default function Clients() {
   const handleCreate = async () => {
     if (!form.company_name.trim()) { toast.error("Le nom de l'entreprise est requis"); return; }
     try {
+      // Determine if selected commercial is external or internal
+      const isExternalCommercial = allCommercials?.external?.some(c => c.id === form.signed_by_commercial);
       await createClient.mutateAsync({
         company_name: form.company_name,
         phone: form.phone || null, email: form.email || null,
@@ -76,7 +78,8 @@ export default function Clients() {
         pack_type: form.pack_type || null, pack_amount: packAmount || null,
         payment_method: form.payment_method || null,
         signature_date: form.signature_date || null,
-        signed_by_commercial: form.signed_by_commercial || null,
+        signed_by_commercial: isExternalCommercial ? form.signed_by_commercial : null,
+        signed_by: !isExternalCommercial && form.signed_by_commercial ? form.signed_by_commercial : null,
         assigned_to: form.assigned_to || user!.id,
         created_by: user!.id,
       } as any);

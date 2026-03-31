@@ -1,0 +1,115 @@
+{
+  "name": "08 — Discord Support Reply → Notification Admin",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "discord-support-reply",
+        "responseMode": "onReceived",
+        "responseData": "allEntries"
+      },
+      "id": "webhook-discord-reply",
+      "name": "Webhook Discord Reply",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://qaxlpmxekcvbrcnqopbp.supabase.co/rest/v1/notifications",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_ANON_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.admin_ids.map(function(uid) { return { user_id: uid, title: '💬 Réponse Discord — ' + $json.ticket_number, message: 'Réponse reçue sur Discord pour le ticket \"' + $json.subject + '\" du client ' + $json.client_name + '.\\n\\n' + ($json.reply_content || ''), type: 'discord_reply', link: '/support' } })) }}"
+      },
+      "id": "insert-notifications",
+      "name": "Insert Notifications (Admins)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://qaxlpmxekcvbrcnqopbp.supabase.co/rest/v1/user_roles?role=eq.admin&select=user_id",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $env.SUPABASE_ANON_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.SUPABASE_SERVICE_ROLE_KEY }}"
+            }
+          ]
+        }
+      },
+      "id": "fetch-admin-ids",
+      "name": "Fetch Admin IDs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [475, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const admins = $('Fetch Admin IDs').first().json;\nconst webhook = $('Webhook Discord Reply').first().json.body;\nreturn [{\n  json: {\n    ...webhook,\n    admin_ids: (Array.isArray(admins) ? admins : [admins]).map(a => a.user_id)\n  }\n}];"
+      },
+      "id": "merge-data",
+      "name": "Merge Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [580, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Discord Reply": {
+      "main": [
+        [{ "node": "Fetch Admin IDs", "type": "main", "index": 0 }]
+      ]
+    },
+    "Fetch Admin IDs": {
+      "main": [
+        [{ "node": "Merge Data", "type": "main", "index": 0 }]
+      ]
+    },
+    "Merge Data": {
+      "main": [
+        [{ "node": "Insert Notifications (Admins)", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1
+}

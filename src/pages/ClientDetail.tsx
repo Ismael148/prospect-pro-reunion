@@ -56,13 +56,13 @@ function EditClientDialog({ client, onSave, salesTeam }: { client: any; onSave: 
     sector: client.sector || "",
     siret: client.siret || "",
     notes: client.notes || "",
-    nfc_quantity: (client as any).nfc_quantity || 1,
-    pack_amount: client.pack_amount || "",
+    nfc_quantity: String((client as any).nfc_quantity || 1),
+    pack_amount: client.pack_amount != null ? String(client.pack_amount) : "",
     payment_method: client.payment_method || "",
     has_gmb: client.has_gmb || false,
     site_type: (client as any).site_type || "vitrine",
     assigned_to: client.assigned_to || "",
-    signed_by_commercial: client.signed_by_commercial || "",
+    signed_by: client.signed_by || "",
   });
 
   const handleSave = async () => {

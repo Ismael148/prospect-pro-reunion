@@ -74,6 +74,8 @@ export function AppSidebar() {
 
   const roleLabel = roles.includes("admin")
     ? "Admin"
+    : roles.includes("agent_master")
+    ? "Agent Master"
     : roles.includes("webmaster")
     ? "Webmaster"
     : roles.includes("designer")

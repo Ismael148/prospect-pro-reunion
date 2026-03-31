@@ -375,60 +375,72 @@ export default function Commissions() {
             </div>
           )}
 
-          {/* Detail tables */}
-          <Tabs defaultValue="all">
-            <TabsList>
-              <TabsTrigger value="all">Toutes ({commissions?.length || 0})</TabsTrigger>
-              <TabsTrigger value="commercials">Commerciaux ({commercialCommissions.length})</TabsTrigger>
-              <TabsTrigger value="agents">Agents ({agentCommissions.length})</TabsTrigger>
-            </TabsList>
-            <TabsContent value="all">
-              <Card className="border-0 shadow-soft">
-                <CardContent className="p-0">
-                  <CommissionTable data={commissions} showRole />
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="commercials">
-              <Card className="border-0 shadow-soft">
-                <CardContent className="p-0">
-                  <CommissionTable data={commercialCommissions} />
-                </CardContent>
-              </Card>
+          {isAgentOnly ? (
+            /* Agents only see their own commissions table */
+            <Card className="border-0 shadow-soft">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Mes commissions</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <CommissionTable data={agentCommissions} />
+              </CardContent>
+            </Card>
+          ) : (
+            /* Admin & commercial: full tabs */
+            <Tabs defaultValue="all">
+              <TabsList>
+                <TabsTrigger value="all">Toutes ({commissions?.length || 0})</TabsTrigger>
+                <TabsTrigger value="commercials">Commerciaux ({commercialCommissions.length})</TabsTrigger>
+                <TabsTrigger value="agents">Agents ({agentCommissions.length})</TabsTrigger>
+              </TabsList>
+              <TabsContent value="all">
+                <Card className="border-0 shadow-soft">
+                  <CardContent className="p-0">
+                    <CommissionTable data={commissions} showRole />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              <TabsContent value="commercials">
+                <Card className="border-0 shadow-soft">
+                  <CardContent className="p-0">
+                    <CommissionTable data={commercialCommissions} />
+                  </CardContent>
+                </Card>
 
-              <Card className="border-0 shadow-soft mt-4">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">Barème mensuel — Sites Internet</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center text-sm">
-                    {[
-                      { label: "1 site", amount: "250 €" },
-                      { label: "2 sites", amount: "300 €/site" },
-                      { label: "3 sites", amount: "350 €/site" },
-                      { label: "4 sites", amount: "400 €/site" },
-                      { label: "5+ sites", amount: "400 € + 100 €" },
-                    ].map((item) => (
-                      <div key={item.label} className="p-3 rounded-lg bg-muted/30">
-                        <p className="text-xs text-muted-foreground">{item.label}</p>
-                        <p className="font-semibold mt-1">{item.amount}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-3">
-                    Carte NFC : 79,90 € fixe par pack • Agent tél. : 50 € fixe + 20 € bonus NFC par contrat signé
-                  </p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="agents">
-              <Card className="border-0 shadow-soft">
-                <CardContent className="p-0">
-                  <CommissionTable data={agentCommissions} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+                <Card className="border-0 shadow-soft mt-4">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm">Barème mensuel — Sites Internet</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center text-sm">
+                      {[
+                        { label: "1 site", amount: "250 €" },
+                        { label: "2 sites", amount: "300 €/site" },
+                        { label: "3 sites", amount: "350 €/site" },
+                        { label: "4 sites", amount: "400 €/site" },
+                        { label: "5+ sites", amount: "400 € + 100 €" },
+                      ].map((item) => (
+                        <div key={item.label} className="p-3 rounded-lg bg-muted/30">
+                          <p className="text-xs text-muted-foreground">{item.label}</p>
+                          <p className="font-semibold mt-1">{item.amount}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-3">
+                      Carte NFC : 79,90 € fixe par pack • Agent tél. : 50 € fixe + 20 € bonus NFC par contrat signé
+                    </p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              <TabsContent value="agents">
+                <Card className="border-0 shadow-soft">
+                  <CardContent className="p-0">
+                    <CommissionTable data={agentCommissions} />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          )}
         </>
       )}
     </motion.div>

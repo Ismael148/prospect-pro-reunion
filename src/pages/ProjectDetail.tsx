@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   useProject, useProjectTasks, useDeliverables,
@@ -100,19 +100,14 @@ export default function ProjectDetail() {
     } catch { toast.error("Erreur"); }
   };
 
+  const queryClient = useQueryClient();
+
   const handleTaskStatusChange = async (taskId: string, status: TaskStatus) => {
     try {
       await updateTask.mutateAsync({ id: taskId, status });
-      // Calculate new progress
-      const updatedTasks = tasks?.map((t) => t.id === taskId ? { ...t, status } : t) || [];
-      const done = updatedTasks.filter((t) => t.status === "termine").length;
-      const progress = updatedTasks.length > 0 ? Math.round((done / updatedTasks.length) * 100) : 0;
-      // Try to update project progress — may fail for non-admin/non-assigned users (RLS)
-      try {
-        await updateProject.mutateAsync({ id: id!, progress });
-      } catch {
-        // Silently ignore — progress will be recalculated by admin or project owner
-      }
+      // Progress is auto-synced by DB trigger — just refresh project data
+      queryClient.invalidateQueries({ queryKey: ["projects", id] });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
       toast.success("Tâche mise à jour");
     } catch { toast.error("Erreur lors de la mise à jour de la tâche"); }
   };

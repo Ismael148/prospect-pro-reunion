@@ -373,7 +373,7 @@ export default function NfcClients() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             className="pl-10 h-9"
-            placeholder="Rechercher par nom, ville, tél, email..."
+            placeholder="Rechercher par nom, gérant, tél, email..."
             value={searchFilter}
             onChange={(e) => setSearchFilter(e.target.value)}
           />

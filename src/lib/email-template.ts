@@ -3,7 +3,7 @@
 
 export const BRAND_COLOR = "#ff006e";
 export const BRAND_DARK = "#b8004a";
-export const LOGO_URL = "https://ai.adamkom.com/lovable-uploads/d6c24753-6c76-49a3-8a6d-fe0dd4a898be.png";
+export const LOGO_URL = "https://qaxlpmxekcvbrcnqopbp.supabase.co/storage/v1/object/public/email-assets/logo-adamkom-black.png";
 
 export interface EmailBrandingConfig {
   logo_url?: string;

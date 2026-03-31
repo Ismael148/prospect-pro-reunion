@@ -1,0 +1,1 @@
+UPDATE email_branding SET logo_url = 'https://qaxlpmxekcvbrcnqopbp.supabase.co/storage/v1/object/public/email-assets/logo-adamkom-black.png', updated_at = now();

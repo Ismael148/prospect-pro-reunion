@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import {
   Upload, CreditCard, Loader2, Search, Phone, Mail, MapPin,
-  CheckCircle2, AlertCircle, FileSpreadsheet, Users, X, ArrowRightLeft, Filter,
+  CheckCircle2, AlertCircle, FileSpreadsheet, Users, X, ArrowRightLeft, Filter, Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -19,6 +19,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 // CSV aliases for auto-mapping
 const ALIASES: Record<string, string[]> = {

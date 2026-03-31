@@ -262,24 +262,29 @@ export default function NfcClients() {
             {filteredClients.length} / {nfcClients.length} client{nfcClients.length > 1 ? "s" : ""} NFC
           </p>
         </div>
-        {isAdmin && (
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={() => fileRef.current?.click()}
-            >
-              <Upload className="w-4 h-4" /> Importer CSV
-            </Button>
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".csv"
-              className="hidden"
-              onChange={handleFile}
-            />
-          </div>
-        )}
+        <div className="flex gap-2">
+          <Button className="gap-2" onClick={() => setShowNewDialog(true)}>
+            <Plus className="w-4 h-4" /> Nouveau client NFC
+          </Button>
+          {isAdmin && (
+            <>
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={() => fileRef.current?.click()}
+              >
+                <Upload className="w-4 h-4" /> Importer CSV
+              </Button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".csv"
+                className="hidden"
+                onChange={handleFile}
+              />
+            </>
+          )}
+        </div>
       </div>
 
       {/* Stats */}

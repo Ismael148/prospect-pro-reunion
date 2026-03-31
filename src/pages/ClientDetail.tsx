@@ -33,6 +33,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import SocialMediaSection from "@/components/clients/SocialMediaSection";
 import ClientEmailActions from "@/components/clients/ClientEmailActions";
+import DomainRenewalInvoice from "@/components/clients/DomainRenewalInvoice";
 import { useClientForms, useValidateForm, ClientFormData } from "@/hooks/use-client-forms";
 
 type PipelineStatus = Database["public"]["Enums"]["pipeline_status"];
@@ -984,6 +985,17 @@ export default function ClientDetail() {
         support_token: (client as any).support_token,
         pack_type: client.pack_type,
         manager_name: client.manager_name,
+      }} />
+      <DomainRenewalInvoice client={{
+        id: client.id,
+        company_name: client.company_name,
+        email: client.email,
+        address: client.address,
+        postal_code: client.postal_code,
+        city: client.city,
+        phone: client.phone,
+        siret: client.siret,
+        payment_method: client.payment_method,
       }} />
       <SupportTicketsSection clientId={id!} />
       <ClientFormsSection clientId={id!} supportToken={(client as any).support_token} packType={client.pack_type ?? undefined} />

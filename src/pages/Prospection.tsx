@@ -666,6 +666,50 @@ export default function Prospection() {
         </Card>
       )}
 
+      {/* Search History */}
+      {isAdmin && searchHistory.length > 0 && (
+        <Card className="border border-border/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2 text-muted-foreground">
+              <History className="w-4 h-4" />
+              Historique des recherches ({searchHistory.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {searchHistory.slice(0, 20).map((h, i) => {
+                const isCurrentSearch =
+                  (searchQuery || customQuery).toLowerCase() === h.query.toLowerCase() &&
+                  searchZone.toLowerCase() === h.zone.toLowerCase();
+                return (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      setSearchQuery("");
+                      setCustomQuery(h.query);
+                      setSearchZone(h.zone);
+                      setForceSearch(false);
+                    }}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs border transition-colors",
+                      isCurrentSearch
+                        ? "bg-primary/10 border-primary/30 text-primary"
+                        : "bg-muted/50 border-border hover:bg-muted text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Search className="w-3 h-3" />
+                    {h.query} — {h.zone}
+                    <Badge variant="secondary" className="text-[9px] h-4 px-1.5 ml-1">
+                      {h.count}
+                    </Badge>
+                  </button>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Search Results Dialog - with detail view */}
       <Dialog open={showResults} onOpenChange={setShowResults}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">

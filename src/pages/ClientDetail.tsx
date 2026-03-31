@@ -533,6 +533,48 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
         client_id: clientId, user_id: user!.id, activity_type: "note", description: note,
       });
       toast.success("Note ajoutée");
+
+      // Detect #resolu tag → auto-resolve open tickets for this client
+      if (/#resolu/i.test(note)) {
+        try {
+          const { data: openTickets } = await supabase
+            .from("support_tickets")
+            .select("id, ticket_number, subject")
+            .eq("client_id", clientId)
+            .in("status", ["ouvert", "en_cours"]);
+
+          if (openTickets && openTickets.length > 0) {
+            const { data: client } = await supabase
+              .from("clients")
+              .select("company_name, email, support_token")
+              .eq("id", clientId)
+              .single();
+
+            for (const ticket of openTickets) {
+              await supabase
+                .from("support_tickets")
+                .update({ status: "resolu", resolved_at: new Date().toISOString(), resolved_by: user!.id })
+                .eq("id", ticket.id);
+
+              triggerN8nWebhook("support.resolved", {
+                ticket_id: ticket.id,
+                ticket_number: ticket.ticket_number,
+                subject: ticket.subject,
+                company_name: client?.company_name || "",
+                client_email: client?.email || "",
+                support_link: client?.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : "",
+              });
+            }
+            toast.success(`${openTickets.length} ticket(s) marqué(s) résolu(s) — email envoyé au client`);
+          } else {
+            toast.info("Aucun ticket ouvert à résoudre pour ce client");
+          }
+        } catch (e) {
+          console.warn("Auto-resolve tickets error:", e);
+          toast.error("Erreur lors de la résolution automatique des tickets");
+        }
+      }
+
       setNote("");
     } catch { toast.error("Erreur"); }
   };

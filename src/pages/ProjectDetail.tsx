@@ -100,7 +100,7 @@ export default function ProjectDetail() {
     } catch { toast.error("Erreur"); }
   };
 
-  const queryClient = (await import("@tanstack/react-query")).useQueryClient();
+  const queryClient = useQueryClient();
 
   const handleTaskStatusChange = async (taskId: string, status: TaskStatus) => {
     try {

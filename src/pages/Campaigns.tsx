@@ -15,50 +15,29 @@ import { Mail, Send, Users, CheckCircle, AlertCircle, Loader2, History } from "l
 import CampaignHistory from "@/components/campaigns/CampaignHistory";
 import EmailTemplateSaver from "@/components/EmailTemplateSaver";
 import type { SavedTemplate } from "@/hooks/use-email-templates";
+import { wrapInBrandedTemplate } from "@/lib/email-template";
 
 const EMAIL_TEMPLATES = [
   {
     id: "promo",
     label: "Offre promotionnelle",
     subject: "Offre spéciale AdamKom - Ne manquez pas !",
-    html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
-      <div style="background:#1E3A5F;padding:20px;text-align:center">
-        <h1 style="color:#fff;margin:0">ADAMKOM by JJP</h1>
-        <p style="color:#DAA520;margin:5px 0 0">Solutions digitales pour entreprises</p>
+    html: wrapInBrandedTemplate(`<h2 style="color:#ff006e;margin:0 0 20px">🎉 Offre spéciale pour vous !</h2>
+      <p>Bonjour,</p>
+      <p>[VOTRE MESSAGE ICI]</p>
+      <div style="text-align:center;margin:30px 0">
+        <a href="https://adamkom.com" style="display:inline-block;background:#ff006e;color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:bold;box-shadow:0 4px 12px rgba(255,0,110,0.3)">En savoir plus</a>
       </div>
-      <div style="padding:30px">
-        <h2 style="color:#1E3A5F">🎉 Offre spéciale pour vous !</h2>
-        <p>Bonjour,</p>
-        <p>[VOTRE MESSAGE ICI]</p>
-        <div style="text-align:center;margin:30px 0">
-          <a href="https://adamkom.com" style="background:#DAA520;color:#fff;padding:12px 30px;border-radius:5px;text-decoration:none;font-weight:bold">En savoir plus</a>
-        </div>
-        <p>Cordialement,<br>L'équipe AdamKom</p>
-      </div>
-      <div style="background:#1E3A5F;padding:15px;text-align:center">
-        <p style="color:#fff;margin:0;font-size:12px">ADAMKOM by JJP — contact@adamkom.com — 0693 802 201</p>
-      </div>
-    </div>`,
+      <p>Cordialement,<br><strong style="color:#ff006e">L'équipe AdamKom</strong></p>`),
   },
   {
     id: "news",
     label: "Newsletter",
     subject: "Les dernières actualités AdamKom",
-    html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
-      <div style="background:#1E3A5F;padding:20px;text-align:center">
-        <h1 style="color:#fff;margin:0">ADAMKOM by JJP</h1>
-        <p style="color:#DAA520;margin:5px 0 0">Newsletter</p>
-      </div>
-      <div style="padding:30px">
-        <h2 style="color:#1E3A5F">📰 Actualités du mois</h2>
-        <p>Bonjour,</p>
-        <p>[VOTRE CONTENU ICI]</p>
-        <p>Cordialement,<br>L'équipe AdamKom</p>
-      </div>
-      <div style="background:#1E3A5F;padding:15px;text-align:center">
-        <p style="color:#fff;margin:0;font-size:12px">ADAMKOM by JJP — contact@adamkom.com — 0693 802 201</p>
-      </div>
-    </div>`,
+    html: wrapInBrandedTemplate(`<h2 style="color:#ff006e;margin:0 0 20px">📰 Actualités du mois</h2>
+      <p>Bonjour,</p>
+      <p>[VOTRE CONTENU ICI]</p>
+      <p>Cordialement,<br><strong style="color:#ff006e">L'équipe AdamKom</strong></p>`),
   },
   {
     id: "custom",

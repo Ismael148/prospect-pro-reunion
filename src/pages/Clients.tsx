@@ -20,7 +20,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Plus, Search, Building2, MapPin, Loader2, Filter, X } from "lucide-react";
+import { Plus, Search, Building2, MapPin, Loader2, Filter, X, Mail } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Database } from "@/integrations/supabase/types";
 

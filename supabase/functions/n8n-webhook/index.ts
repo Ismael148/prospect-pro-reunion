@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Missing event type' }), { status: 400, headers: corsHeaders });
     }
 
-    const validEvents = ['client.signed', 'invoice.created', 'support.created', 'support.resolved', 'support.response', 'project.progress', 'prospect.rdv_planifie', 'design.sent'];
+    const validEvents = ['client.signed', 'invoice.created', 'support.created', 'support.resolved', 'project.progress', 'prospect.rdv_planifie', 'design.sent'];
     if (!validEvents.includes(event)) {
       return new Response(JSON.stringify({ error: `Unknown event: ${event}` }), { status: 400, headers: corsHeaders });
     }

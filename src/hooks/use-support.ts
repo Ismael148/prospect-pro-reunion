@@ -63,56 +63,34 @@ export function useUpdateTicket() {
     onSuccess: async (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["support-tickets"] });
       
-      try {
-        const { data: ticket } = await supabase
-          .from("support_tickets")
-          .select("ticket_number, subject, client_id, category, priority, assigned_to, status, admin_notes")
-          .eq("id", variables.id)
-          .single();
-        if (ticket) {
-          const { data: client } = await supabase
-            .from("clients")
-            .select("company_name, email, support_token")
-            .eq("id", ticket.client_id)
+      // Trigger n8n webhook when ticket is resolved — enrich with client data
+      if (variables.status === 'resolu') {
+        try {
+          // Fetch ticket + client data for the webhook
+          const { data: ticket } = await supabase
+            .from("support_tickets")
+            .select("ticket_number, subject, client_id")
+            .eq("id", variables.id)
             .single();
-
-          // Get assigned member name
-          let assignedName = '';
-          if (ticket.assigned_to) {
-            const { data: profile } = await supabase
-              .from("profiles")
-              .select("full_name")
-              .eq("user_id", ticket.assigned_to)
+          if (ticket) {
+            const { data: client } = await supabase
+              .from("clients")
+              .select("company_name, email, support_token")
+              .eq("id", ticket.client_id)
               .single();
-            assignedName = profile?.full_name || '';
+            triggerN8nWebhook('support.resolved', {
+              ticket_id: variables.id,
+              ticket_number: ticket.ticket_number,
+              subject: ticket.subject,
+              company_name: client?.company_name || '',
+              client_email: client?.email || '',
+              support_link: client?.support_token ? `https://prospect-pro-reunion.lovable.app/s/${client.support_token}` : '',
+            });
           }
-
-          const enriched = {
-            ticket_id: variables.id,
-            ticket_number: ticket.ticket_number,
-            subject: ticket.subject,
-            category: ticket.category,
-            priority: ticket.priority,
-            status: ticket.status,
-            admin_notes: ticket.admin_notes || '',
-            assigned_to_name: assignedName,
-            company_name: client?.company_name || '',
-            client_email: client?.email || '',
-            support_link: client?.support_token ? `https://prospect-pro-reunion.lovable.app/s/${client.support_token}` : '',
-          };
-
-          // Trigger resolved webhook
-          if (variables.status === 'resolu') {
-            triggerN8nWebhook('support.resolved', enriched);
-          }
-
-          // Trigger Discord notification on admin notes or assignment or priority change
-          if (variables.admin_notes || variables.assigned_to || variables.priority) {
-            triggerN8nWebhook('support.response', enriched);
-          }
+        } catch (e) {
+          console.warn('[n8n] Failed to enrich support.resolved data', e);
+          triggerN8nWebhook('support.resolved', { ticket_id: variables.id });
         }
-      } catch (e) {
-        console.warn('[n8n] Failed to enrich support webhook data', e);
       }
     },
   });

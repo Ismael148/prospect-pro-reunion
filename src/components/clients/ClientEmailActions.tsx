@@ -1,28 +1,27 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { triggerN8nWebhook } from "@/lib/n8n-webhook";
 import { PUBLISHED_URL } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
-  Mail, Send, Loader2, Ticket, CreditCard, Globe, Eye, Pencil, Sparkles,
+  Mail, Send, Loader2, Ticket, FileText, CreditCard, Globe, Eye,
 } from "lucide-react";
-import DOMPurify from "dompurify";
 
-const LOGO_URL = "https://adamkom.com/wp-content/uploads/2026/01/logo-Adamkom-by-jjp-1.png";
 const BRAND_COLOR = "#ff006e";
 
 function wrapInBrandedTemplate(bodyHtml: string, supportLink?: string) {
   return `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,0.06)">
   <div style="padding:40px 40px 32px;text-align:center;background:#ffffff">
-    <img src="${LOGO_URL}" alt="Adamkom" style="height:72px;width:auto;display:block;margin:0 auto 12px" />
+    <img src="https://ai.adamkom.com/lovable-uploads/d6c24753-6c76-49a3-8a6d-fe0dd4a898be.png" alt="Adamkom" style="height:72px;width:auto;display:block;margin:0 auto 12px" />
     <p style="margin:0;font-size:13px;color:#71717a;letter-spacing:0.5px">La performance digitale pour votre entreprise</p>
   </div>
   <div style="height:3px;background:linear-gradient(90deg,${BRAND_COLOR},#ff5c8a,${BRAND_COLOR})"></div>
@@ -51,7 +50,7 @@ interface EmailAction {
   subject: string;
   bodyFn: (client: ClientData) => string;
   trigger: string;
-  condition?: (client: ClientData) => boolean;
+  condition?: (client: ClientData, forms?: any[]) => boolean;
 }
 
 interface ClientData {
@@ -61,8 +60,6 @@ interface ClientData {
   support_token: string | null;
   pack_type: string | null;
   manager_name: string | null;
-  sector?: string | null;
-  website?: string | null;
 }
 
 function makeCta(text: string, url: string) {
@@ -112,7 +109,7 @@ ${makeCta('📋 Accéder à mon espace support', supportLink)}
   <li>Toute information spécifique à afficher</li>
 </ul>
 ${makeCta('💳 Remplir le formulaire NFC', nfcFormLink)}
-<p style="margin:0 0 20px">⏱ <strong>Durée estimée : 5 minutes.</strong></p>
+<p style="margin:0 0 20px">⏱ <strong>Durée estimée : 5 minutes.</strong> Plus vite nous recevrons vos informations, plus vite votre carte sera prête !</p>
 <p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
     },
     {
@@ -132,7 +129,7 @@ ${makeCta('💳 Remplir le formulaire NFC', nfcFormLink)}
   <li>Vos comptes réseaux sociaux</li>
 </ul>
 ${makeCta('🌐 Remplir le formulaire site', siteFormLink)}
-<p style="margin:0 0 20px">⏱ <strong>Durée estimée : 10 minutes.</strong></p>
+<p style="margin:0 0 20px">⏱ <strong>Durée estimée : 10 minutes.</strong> Ces informations sont essentielles pour commencer votre projet dans les meilleurs délais.</p>
 <p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
     },
   ];
@@ -146,76 +143,44 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
   const [sendingAction, setSendingAction] = useState<string | null>(null);
   const [previewAction, setPreviewAction] = useState<EmailAction | null>(null);
   const [customSubject, setCustomSubject] = useState("");
-  const [editableBody, setEditableBody] = useState("");
-  const [activeTab, setActiveTab] = useState<string>("preview");
-  const [generatingAI, setGeneratingAI] = useState(false);
+  const [customBody, setCustomBody] = useState("");
 
-  const supportLink = client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined;
-
-  const previewHtml = useMemo(() => {
-    if (!editableBody) return "";
-    const sanitized = DOMPurify.sanitize(editableBody, { ADD_TAGS: ["style"], ADD_ATTR: ["style"] });
-    return wrapInBrandedTemplate(sanitized, supportLink);
-  }, [editableBody, supportLink]);
+  if (!client.email) {
+    return null;
+  }
 
   const actions = getEmailActions(client).filter(a => !a.condition || a.condition(client));
 
-  if (!client.email) return null;
-
   const handlePreview = (action: EmailAction) => {
     setCustomSubject(action.subject);
-    setEditableBody(action.bodyFn(client));
-    setActiveTab("preview");
+    setCustomBody(""); // Will use default
     setPreviewAction(action);
   };
 
-  const handleGenerateAI = async () => {
-    setGeneratingAI(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("generate-client-email", {
-        body: {
-          company_name: client.company_name,
-          sector: client.sector || "",
-          pack_type: client.pack_type || "",
-          manager_name: client.manager_name || "",
-          context: previewAction?.id || "custom",
-          current_subject: customSubject,
-        },
-      });
-      if (error) throw error;
-      if (data?.subject) setCustomSubject(data.subject);
-      if (data?.body) setEditableBody(data.body);
-      setActiveTab("preview");
-      toast.success("Email généré par IA !");
-    } catch (e: any) {
-      toast.error(e.message || "Erreur IA");
-    } finally {
-      setGeneratingAI(false);
-    }
-  };
-
-  const handleSend = async () => {
-    if (!client.email || !previewAction) { toast.error("Pas d'email client"); return; }
+  const handleSend = async (action: EmailAction) => {
+    if (!client.email) { toast.error("Pas d'email client"); return; }
     
-    setSendingAction(previewAction.id);
+    setSendingAction(action.id);
     try {
-      const sanitized = DOMPurify.sanitize(editableBody, { ADD_TAGS: ["style"], ADD_ATTR: ["style"] });
-      const htmlContent = wrapInBrandedTemplate(sanitized, supportLink);
+      const supportLink = client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined;
+      const bodyHtml = action.bodyFn(client);
+      const htmlContent = wrapInBrandedTemplate(bodyHtml, supportLink);
+      const subject = customSubject || action.subject;
 
       const { error } = await supabase.functions.invoke("send-brevo-campaign", {
         body: {
           action: "send_client_email",
           recipientEmail: client.email,
           recipientName: client.company_name,
-          subject: customSubject,
+          subject,
           htmlContent,
-          trigger: previewAction.trigger,
+          trigger: action.trigger,
           client_id: client.id,
         },
       });
 
       if (error) throw error;
-      toast.success(`Email envoyé à ${client.email}`);
+      toast.success(`Email "${action.label}" envoyé à ${client.email}`);
       setPreviewAction(null);
     } catch (e: any) {
       toast.error(e.message || "Erreur lors de l'envoi");
@@ -223,6 +188,13 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
       setSendingAction(null);
     }
   };
+
+  const previewHtml = previewAction
+    ? wrapInBrandedTemplate(
+        previewAction.bodyFn(client),
+        client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined
+      )
+    : "";
 
   return (
     <>
@@ -233,49 +205,38 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {actions.map((action) => (
               <div key={action.id} className="flex flex-col gap-2 p-3 rounded-lg bg-muted/30">
                 <div className="flex items-center gap-2">
                   {action.icon}
                   <span className="text-sm font-medium">{action.label}</span>
                 </div>
-                <Button
-                  size="sm"
-                  className="w-full"
-                  onClick={() => handlePreview(action)}
-                >
-                  <Pencil className="w-3.5 h-3.5 mr-1" /> Personnaliser & Envoyer
-                </Button>
+                <div className="flex gap-2 mt-auto">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => handlePreview(action)}
+                  >
+                    <Eye className="w-3.5 h-3.5 mr-1" /> Aperçu
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => handleSend(action)}
+                    disabled={sendingAction === action.id}
+                  >
+                    {sendingAction === action.id ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+                    ) : (
+                      <Send className="w-3.5 h-3.5 mr-1" />
+                    )}
+                    Envoyer
+                  </Button>
+                </div>
               </div>
             ))}
-            {/* AI Custom email */}
-            <div className="flex flex-col gap-2 p-3 rounded-lg bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium">Email IA personnalisé</span>
-              </div>
-              <Button
-                size="sm"
-                variant="secondary"
-                className="w-full"
-                onClick={() => {
-                  setCustomSubject(`Message pour ${client.company_name}`);
-                  setEditableBody("");
-                  setActiveTab("edit");
-                  setPreviewAction({
-                    id: "ai_custom",
-                    label: "Email IA personnalisé",
-                    icon: <Sparkles className="w-4 h-4" />,
-                    subject: `Message pour ${client.company_name}`,
-                    bodyFn: () => "",
-                    trigger: "custom_ai",
-                  });
-                }}
-              >
-                <Sparkles className="w-3.5 h-3.5 mr-1" /> Générer avec l'IA
-              </Button>
-            </div>
           </div>
           <p className="text-xs text-muted-foreground mt-3">
             📧 Destinataire : <strong>{client.email}</strong>
@@ -283,76 +244,36 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
         </CardContent>
       </Card>
 
-      {/* Compose & Preview Dialog */}
+      {/* Preview Dialog */}
       <Dialog open={!!previewAction} onOpenChange={(open) => !open && setPreviewAction(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {previewAction?.icon}
-              {previewAction?.label} — Personnaliser l'email
+              {previewAction?.label}
             </DialogTitle>
           </DialogHeader>
-
           <div className="space-y-4">
-            {/* Subject */}
-            <div className="space-y-1">
-              <Label>Objet de l'email</Label>
+            <div className="space-y-2">
+              <Label>Objet</Label>
               <Input
-                value={customSubject}
+                value={customSubject || previewAction?.subject || ""}
                 onChange={(e) => setCustomSubject(e.target.value)}
               />
             </div>
-
-            {/* AI Generate Button */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleGenerateAI}
-              disabled={generatingAI}
-              className="gap-1.5 border-primary/30 text-primary hover:bg-primary/5"
-            >
-              {generatingAI ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              {generatingAI ? "Génération en cours..." : "Générer le contenu par IA"}
-            </Button>
-
-            {/* Tabs: Edit / Preview */}
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="edit" className="gap-1.5">
-                  <Pencil className="w-3.5 h-3.5" /> Modifier le contenu
-                </TabsTrigger>
-                <TabsTrigger value="preview" className="gap-1.5">
-                  <Eye className="w-3.5 h-3.5" /> Aperçu final
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="edit" className="space-y-2">
-                <p className="text-xs text-muted-foreground">
-                  Modifiez le HTML du corps de l'email. L'en-tête (logo), le footer et la section support sont ajoutés automatiquement.
-                </p>
-                <Textarea
-                  value={editableBody}
-                  onChange={(e) => setEditableBody(e.target.value)}
-                  rows={16}
-                  className="font-mono text-xs"
-                  placeholder="Contenu HTML de l'email..."
-                />
-              </TabsContent>
-
-              <TabsContent value="preview">
-                <div
-                  className="border border-border rounded-lg overflow-hidden bg-white"
-                  dangerouslySetInnerHTML={{ __html: previewHtml }}
-                />
-              </TabsContent>
-            </Tabs>
+            <div className="space-y-2">
+              <Label>Aperçu de l'email</Label>
+              <div
+                className="border border-border rounded-lg overflow-hidden bg-white"
+                dangerouslySetInnerHTML={{ __html: previewHtml }}
+              />
+            </div>
           </div>
-
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter>
             <Button variant="outline" onClick={() => setPreviewAction(null)}>Annuler</Button>
             <Button
-              onClick={handleSend}
-              disabled={!!sendingAction || !customSubject.trim() || !editableBody.trim()}
+              onClick={() => previewAction && handleSend(previewAction)}
+              disabled={!!sendingAction}
             >
               {sendingAction ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
               Envoyer à {client.email}

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -17,14 +17,15 @@ export interface Notification {
 export function useNotifications() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const queryClientRef = useRef(queryClient);
+  queryClientRef.current = queryClient;
 
-  // Realtime subscription
+  // Realtime subscription - only depends on user.id
   useEffect(() => {
-    if (!user) return;
+    if (!user?.id) return;
 
-    const channelName = `notifications-realtime-${crypto.randomUUID()}`;
     const channel = supabase
-      .channel(channelName)
+      .channel(`notifications-rt-${user.id}-${Date.now()}`)
       .on(
         "postgres_changes",
         {
@@ -34,7 +35,7 @@ export function useNotifications() {
           filter: `user_id=eq.${user.id}`,
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ["notifications"] });
+          queryClientRef.current.invalidateQueries({ queryKey: ["notifications"] });
         }
       )
       .subscribe();
@@ -42,7 +43,8 @@ export function useNotifications() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, queryClient]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   return useQuery({
     queryKey: ["notifications"],

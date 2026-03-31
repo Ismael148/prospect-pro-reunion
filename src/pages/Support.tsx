@@ -326,10 +326,32 @@ export default function Support() {
                     <p className="text-sm">{CATEGORY_LABELS[selectedTicket.category] || selectedTicket.category}</p>
                   </div>
                   <div>
-                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Priorité</p>
-                    <Badge variant={selectedTicket.priority === "urgente" ? "destructive" : "secondary"} className="text-[10px]">
-                      {selectedTicket.priority === "urgente" ? "Urgente" : "Normale"}
-                    </Badge>
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Priorité</p>
+                    {isAdmin ? (
+                      <Select
+                        value={selectedTicket.priority || "normale"}
+                        onValueChange={async (v) => {
+                          try {
+                            await updateTicket.mutateAsync({ id: selectedTicket.id, priority: v } as any);
+                            setSelectedTicket({ ...selectedTicket, priority: v });
+                            toast.success(`Priorité → ${v}`);
+                          } catch { toast.error("Erreur"); }
+                        }}
+                      >
+                        <SelectTrigger className="w-full h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="normale">🟢 Normale</SelectItem>
+                          <SelectItem value="haute">🟠 Haute</SelectItem>
+                          <SelectItem value="urgente">🔴 Urgente</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Badge variant={selectedTicket.priority === "urgente" ? "destructive" : selectedTicket.priority === "haute" ? "default" : "secondary"} className="text-[10px]">
+                        {selectedTicket.priority === "urgente" ? "🔴 Urgente" : selectedTicket.priority === "haute" ? "🟠 Haute" : "🟢 Normale"}
+                      </Badge>
+                    )}
                   </div>
                 </div>
                 <div>

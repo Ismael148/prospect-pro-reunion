@@ -50,6 +50,7 @@ function getMonthOptions() {
 export default function Commissions() {
   const { hasRole } = useAuth();
   const isAdmin = hasRole("admin");
+  const isAgentOnly = (hasRole("agent_telephonique") || hasRole("agent_master")) && !isAdmin;
   const now = new Date();
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);

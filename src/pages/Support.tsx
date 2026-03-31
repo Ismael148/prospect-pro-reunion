@@ -15,11 +15,10 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
   Loader2, Search, LifeBuoy, Clock, CheckCircle, AlertCircle, XCircle,
-  MessageSquare, ExternalLink, Copy, UserPlus,
+  MessageSquare, ExternalLink, Copy, UserPlus, Tag,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -54,9 +53,19 @@ const STATUS_ICONS: Record<string, typeof Clock> = {
   ferme: XCircle,
 };
 
+const WEBMASTER_TAGS = [
+  { label: "À vérifier par admin", value: "#a_verifier_admin", color: "bg-amber-100 text-amber-700 border-amber-200" },
+  { label: "Travail terminé", value: "#travail_termine", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+  { label: "En attente info client", value: "#attente_client", color: "bg-blue-100 text-blue-700 border-blue-200" },
+  { label: "Problème identifié", value: "#probleme_identifie", color: "bg-red-100 text-red-700 border-red-200" },
+];
+
 export default function Support() {
   const { user, hasRole } = useAuth();
   const isAdmin = hasRole("admin");
+  const isWebmaster = hasRole("webmaster") || hasRole("designer");
+  const isAgentSupport = hasRole("agent_support");
+  const canManageTickets = isAdmin; // Only admin can change status to resolu/ferme
   const { data: tickets, isLoading } = useSupportTickets();
   const { data: clients } = useClients();
   const updateTicket = useUpdateTicket();
@@ -66,7 +75,7 @@ export default function Support() {
   const [adminNotes, setAdminNotes] = useState("");
   const [teamMembers, setTeamMembers] = useState<{ user_id: string; full_name: string; role: string }[]>([]);
 
-  // Fetch team members for assignment
+  // Fetch team members for assignment (admin only)
   useEffect(() => {
     if (!isAdmin) return;
     (async () => {
@@ -78,7 +87,6 @@ export default function Support() {
         full_name: profiles?.find((p) => p.user_id === r.user_id)?.full_name || r.user_id,
         role: r.role,
       }));
-      // Deduplicate by user_id
       const unique = Array.from(new Map(members.map((m) => [m.user_id, m])).values());
       setTeamMembers(unique);
     })();
@@ -94,7 +102,6 @@ export default function Support() {
       await updateTicket.mutateAsync({ id: ticketId, assigned_to: assignedTo } as any);
       if (assignedTo) {
         const memberName = getAssigneeName(assignedTo);
-        // Create notification for assigned member
         await supabase.from("notifications").insert({
           user_id: assignedTo,
           title: "Ticket support assigné",
@@ -122,8 +129,16 @@ export default function Support() {
     return `${PUBLISHED_URL}/s/${(client as any).support_token}`;
   };
 
+  // Filter tickets: webmasters/designers only see tickets assigned to them
+  const visibleTickets = useMemo(() => {
+    if (!tickets) return [];
+    if (isAdmin || isAgentSupport) return tickets;
+    // Webmaster/designer: only assigned tickets
+    return tickets.filter((t) => t.assigned_to === user?.id);
+  }, [tickets, isAdmin, isAgentSupport, isWebmaster, user?.id]);
+
   const filtered = useMemo(() => {
-    return tickets?.filter((t) => {
+    return visibleTickets.filter((t) => {
       const matchSearch =
         t.subject.toLowerCase().includes(search.toLowerCase()) ||
         t.ticket_number.toLowerCase().includes(search.toLowerCase()) ||
@@ -131,17 +146,17 @@ export default function Support() {
       const matchStatus = filterStatus === "all" || t.status === filterStatus;
       return matchSearch && matchStatus;
     });
-  }, [tickets, search, filterStatus, clients]);
+  }, [visibleTickets, search, filterStatus, clients]);
 
   const stats = useMemo(() => {
-    if (!tickets) return { ouvert: 0, en_cours: 0, resolu: 0, ferme: 0 };
+    if (!visibleTickets.length) return { ouvert: 0, en_cours: 0, resolu: 0, ferme: 0 };
     return {
-      ouvert: tickets.filter((t) => t.status === "ouvert").length,
-      en_cours: tickets.filter((t) => t.status === "en_cours").length,
-      resolu: tickets.filter((t) => t.status === "resolu").length,
-      ferme: tickets.filter((t) => t.status === "ferme").length,
+      ouvert: visibleTickets.filter((t) => t.status === "ouvert").length,
+      en_cours: visibleTickets.filter((t) => t.status === "en_cours").length,
+      resolu: visibleTickets.filter((t) => t.status === "resolu").length,
+      ferme: visibleTickets.filter((t) => t.status === "ferme").length,
     };
-  }, [tickets]);
+  }, [visibleTickets]);
 
   const handleStatusChange = async (id: string, status: string) => {
     try {
@@ -168,9 +183,56 @@ export default function Support() {
     }
   };
 
+  const handleAddTag = async (tag: typeof WEBMASTER_TAGS[0]) => {
+    if (!selectedTicket) return;
+    const currentNotes = selectedTicket.admin_notes || "";
+    // Don't add duplicate tags
+    if (currentNotes.includes(tag.value)) {
+      toast.info("Tag déjà ajouté");
+      return;
+    }
+    const newNotes = currentNotes ? `${currentNotes}\n${tag.value}` : tag.value;
+    try {
+      await updateTicket.mutateAsync({ id: selectedTicket.id, admin_notes: newNotes });
+      setAdminNotes(newNotes);
+      setSelectedTicket({ ...selectedTicket, admin_notes: newNotes });
+      toast.success(`Tag "${tag.label}" ajouté`);
+
+      // If tag is "à vérifier par admin", notify all admins
+      if (tag.value === "#a_verifier_admin") {
+        const { data: adminRoles } = await supabase
+          .from("user_roles")
+          .select("user_id")
+          .eq("role", "admin");
+        if (adminRoles?.length) {
+          const notifications = adminRoles
+            .filter((r) => r.user_id !== user?.id)
+            .map((r) => ({
+              user_id: r.user_id,
+              title: "🏷️ Ticket à vérifier",
+              message: `Le ticket "${selectedTicket.ticket_number}" — "${selectedTicket.subject}" nécessite votre vérification.`,
+              type: "support",
+              link: "/support",
+            }));
+          if (notifications.length) {
+            await supabase.from("notifications").insert(notifications);
+          }
+        }
+      }
+    } catch {
+      toast.error("Erreur");
+    }
+  };
+
   const copyLink = (link: string) => {
     navigator.clipboard.writeText(link);
     toast.success("Lien copié !");
+  };
+
+  // Extract tags from admin_notes for display
+  const getNoteTags = (notes: string | null) => {
+    if (!notes) return [];
+    return WEBMASTER_TAGS.filter((t) => notes.includes(t.value));
   };
 
   return (
@@ -178,7 +240,10 @@ export default function Support() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Support Client</h1>
-          <p className="text-muted-foreground text-sm mt-1">{tickets?.length || 0} ticket{(tickets?.length || 0) > 1 ? "s" : ""}</p>
+          <p className="text-muted-foreground text-sm mt-1">
+            {visibleTickets.length} ticket{visibleTickets.length > 1 ? "s" : ""}
+            {!isAdmin && (isWebmaster) && " assigné(s)"}
+          </p>
         </div>
       </div>
 
@@ -204,7 +269,7 @@ export default function Support() {
         })}
       </div>
 
-      {/* Client Support Links */}
+      {/* Client Support Links — admin only */}
       {isAdmin && clients && clients.length > 0 && (
         <Card className="border-0 shadow-soft">
           <CardHeader className="pb-3">
@@ -258,13 +323,16 @@ export default function Support() {
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <LifeBuoy className="w-10 h-10 text-muted-foreground/30 mb-3" />
-            <p className="text-muted-foreground text-sm">{search || filterStatus !== "all" ? "Aucun résultat" : "Aucun ticket de support"}</p>
+            <p className="text-muted-foreground text-sm">
+              {search || filterStatus !== "all" ? "Aucun résultat" : isWebmaster ? "Aucun ticket assigné" : "Aucun ticket de support"}
+            </p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-2">
           {filtered.map((ticket, i) => {
             const Icon = STATUS_ICONS[ticket.status] || AlertCircle;
+            const tags = getNoteTags(ticket.admin_notes);
             return (
               <motion.div key={ticket.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
                 <Card
@@ -276,7 +344,7 @@ export default function Support() {
                       <Icon className={`w-4 h-4 ${STATUS_COLORS[ticket.status].split(" ")[1]}`} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-[10px] font-mono text-muted-foreground">{ticket.ticket_number}</span>
                         <Badge variant="outline" className="text-[10px]">
                           {CATEGORY_LABELS[ticket.category] || ticket.category}
@@ -287,11 +355,16 @@ export default function Support() {
                         {ticket.priority === "haute" && (
                           <Badge className="text-[10px] bg-orange-100 text-orange-700 border-orange-200">🟠 Haute</Badge>
                         )}
+                        {tags.map((tag) => (
+                          <Badge key={tag.value} className={`text-[10px] ${tag.color}`}>
+                            <Tag className="w-2.5 h-2.5 mr-0.5" />{tag.label}
+                          </Badge>
+                        ))}
                       </div>
                       <p className="font-medium text-sm truncate mt-0.5">{ticket.subject}</p>
                       <p className="text-[11px] text-muted-foreground mt-0.5">
                         {getClientName(ticket.client_id)} • {new Date(ticket.created_at).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
-                        {(ticket as any).assigned_to && ` • 👤 ${getAssigneeName((ticket as any).assigned_to)}`}
+                        {ticket.assigned_to && ` • 👤 ${getAssigneeName(ticket.assigned_to)}`}
                       </p>
                     </div>
                     <Badge variant="outline" className={`text-[10px] shrink-0 ${STATUS_COLORS[ticket.status]}`}>
@@ -365,6 +438,21 @@ export default function Support() {
                   <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Message</p>
                   <p className="text-sm whitespace-pre-wrap bg-muted/30 p-3 rounded-lg">{selectedTicket.message}</p>
                 </div>
+
+                {/* Attachments */}
+                {selectedTicket.attachments?.length > 0 && (
+                  <div>
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Pièces jointes</p>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedTicket.attachments.map((url: string, idx: number) => (
+                        <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline">
+                          Fichier {idx + 1}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Date</p>
                   <p className="text-sm">
@@ -385,6 +473,72 @@ export default function Support() {
                   </div>
                 )}
 
+                {/* Tags display */}
+                {getNoteTags(selectedTicket.admin_notes).length > 0 && (
+                  <div>
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Tags</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {getNoteTags(selectedTicket.admin_notes).map((tag) => (
+                        <Badge key={tag.value} className={`text-[10px] ${tag.color}`}>
+                          <Tag className="w-2.5 h-2.5 mr-0.5" />{tag.label}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Webmaster/Designer tag section */}
+                {(isWebmaster || isAdmin) && selectedTicket.status !== "resolu" && selectedTicket.status !== "ferme" && (
+                  <div className="border-t pt-4 space-y-3">
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                      <Tag className="h-3 w-3" /> Ajouter un tag
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {WEBMASTER_TAGS.map((tag) => {
+                        const alreadyAdded = selectedTicket.admin_notes?.includes(tag.value);
+                        return (
+                          <Button
+                            key={tag.value}
+                            variant="outline"
+                            size="sm"
+                            disabled={alreadyAdded}
+                            className={`text-xs ${alreadyAdded ? "opacity-50" : ""}`}
+                            onClick={() => handleAddTag(tag)}
+                          >
+                            <Tag className="w-3 h-3 mr-1" />
+                            {tag.label}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Webmaster notes (read-only for non-admin, with note input) */}
+                {(isWebmaster && !isAdmin) && (
+                  <div className="border-t pt-4 space-y-3">
+                    <div className="space-y-2">
+                      <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Note technique</p>
+                      <Textarea
+                        value={adminNotes}
+                        onChange={(e) => setAdminNotes(e.target.value)}
+                        placeholder="Ajoutez vos observations techniques..."
+                        rows={3}
+                      />
+                      <Button size="sm" onClick={handleSaveNotes}>
+                        <MessageSquare className="w-4 h-4 mr-1" /> Enregistrer
+                      </Button>
+                    </div>
+                    {selectedTicket.admin_notes && (
+                      <div>
+                        <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Notes existantes</p>
+                        <p className="text-sm whitespace-pre-wrap bg-muted/30 p-3 rounded-lg">{selectedTicket.admin_notes}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Admin section — full controls */}
                 {isAdmin && (
                   <>
                     <div className="border-t pt-4 space-y-3">
@@ -411,7 +565,7 @@ export default function Support() {
                         </Select>
                       </div>
 
-                      {/* Status */}
+                      {/* Status — admin only can resolve */}
                       <div className="space-y-2">
                         <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Changer le statut</p>
                         <Select value={selectedTicket.status} onValueChange={(v) => handleStatusChange(selectedTicket.id, v)}>

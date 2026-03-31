@@ -39,8 +39,8 @@ const ROLE_ACCESS: Record<string, string[]> = {
   agent_telephonique: ["/", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc"],
   agent_support: ["/", "/clients", "/support", "/projets", "/cartes-nfc"],
   commercial_terrain: ["/", "/projets", "/commissions"],
-  webmaster: ["/", "/projets", "/webmaster"],
-  designer: ["/", "/projets", "/webmaster"],
+  webmaster: ["/", "/projets", "/webmaster", "/support"],
+  designer: ["/", "/projets", "/webmaster", "/support"],
 };
 
 const allMenuItems = [

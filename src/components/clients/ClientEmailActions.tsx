@@ -113,6 +113,7 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
   const [sendingAction, setSendingAction] = useState<string | null>(null);
   const [previewAction, setPreviewAction] = useState<EmailAction | null>(null);
   const [customSubject, setCustomSubject] = useState("");
+  const { data: branding } = useEmailBranding();
 
   // AI Generation state
   const [showAiDialog, setShowAiDialog] = useState(false);

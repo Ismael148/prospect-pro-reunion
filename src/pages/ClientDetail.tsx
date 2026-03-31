@@ -694,12 +694,14 @@ function ClientFormsSection({ clientId, supportToken, packType }: { clientId: st
             {forms.map((form) => {
               const fd = form.form_data as ClientFormData;
               return (
-                <div key={form.id} className="p-3 rounded-lg bg-muted/30 space-y-2">
+                <div key={form.id} className={`p-4 rounded-xl border space-y-2 transition-all ${
+                  form.status === "soumis" ? "border-amber-300 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-800" : "border-border bg-muted/20"
+                }`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm">{FORM_TYPE_LABELS[form.form_type] || form.form_type}</span>
-                      <Badge className={`text-[10px] ${STATUS_COLORS[form.status] || ""}`}>
-                        {STATUS_LABELS[form.status] || form.status}
+                      <span className="font-semibold text-sm">{FORM_TYPE_LABELS[form.form_type]?.icon} {FORM_TYPE_LABELS[form.form_type]?.label || form.form_type}</span>
+                      <Badge className={`text-[10px] border ${STATUS_COLORS[form.status] || ""}`}>
+                        {STATUS_ICONS[form.status]} {STATUS_LABELS[form.status] || form.status}
                       </Badge>
                     </div>
                     <div className="flex items-center gap-2">

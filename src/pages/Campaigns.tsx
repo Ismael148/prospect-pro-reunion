@@ -13,6 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Mail, Send, Users, CheckCircle, AlertCircle, Loader2, History } from "lucide-react";
 import CampaignHistory from "@/components/campaigns/CampaignHistory";
+import EmailTemplateSaver from "@/components/EmailTemplateSaver";
+import type { SavedTemplate } from "@/hooks/use-email-templates";
 
 const EMAIL_TEMPLATES = [
   {

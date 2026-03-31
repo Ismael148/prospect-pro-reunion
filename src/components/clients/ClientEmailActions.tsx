@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import {
   Mail, Send, Loader2, Ticket, FileText, CreditCard, Globe, Eye, Sparkles, Wand2,
 } from "lucide-react";
+import EmailTemplateSaver from "@/components/EmailTemplateSaver";
+import type { SavedTemplate } from "@/hooks/use-email-templates";
 
 const BRAND_COLOR = "#ff006e";
 

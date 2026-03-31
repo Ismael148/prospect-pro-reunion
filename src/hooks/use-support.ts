@@ -20,14 +20,28 @@ export interface SupportTicket {
   updated_at: string;
 }
 
-export function useSupportTickets() {
+interface UseSupportTicketsOptions {
+  userId?: string;
+  limitToAssigned?: boolean;
+}
+
+export function useSupportTickets(options?: UseSupportTicketsOptions) {
+  const userId = options?.userId;
+  const limitToAssigned = options?.limitToAssigned ?? false;
+
   return useQuery({
-    queryKey: ["support-tickets"],
+    queryKey: ["support-tickets", userId ?? "all", limitToAssigned ? "assigned" : "all"],
+    enabled: !limitToAssigned || !!userId,
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("support_tickets")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .select("*");
+
+      if (limitToAssigned && userId) {
+        query = query.eq("assigned_to", userId);
+      }
+
+      const { data, error } = await query.order("created_at", { ascending: false });
       if (error) throw error;
       return data as SupportTicket[];
     },
@@ -62,11 +76,9 @@ export function useUpdateTicket() {
     },
     onSuccess: async (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["support-tickets"] });
-      
-      // Trigger n8n webhook when ticket is resolved — enrich with client data
-      if (variables.status === 'resolu') {
+
+      if (variables.status === "resolu") {
         try {
-          // Fetch ticket + client data for the webhook
           const { data: ticket } = await supabase
             .from("support_tickets")
             .select("ticket_number, subject, client_id")
@@ -78,18 +90,18 @@ export function useUpdateTicket() {
               .select("company_name, email, support_token")
               .eq("id", ticket.client_id)
               .single();
-            triggerN8nWebhook('support.resolved', {
+            triggerN8nWebhook("support.resolved", {
               ticket_id: variables.id,
               ticket_number: ticket.ticket_number,
               subject: ticket.subject,
-              company_name: client?.company_name || '',
-              client_email: client?.email || '',
-              support_link: client?.support_token ? `https://prospect-pro-reunion.lovable.app/s/${client.support_token}` : '',
+              company_name: client?.company_name || "",
+              client_email: client?.email || "",
+              support_link: client?.support_token ? `https://prospect-pro-reunion.lovable.app/s/${client.support_token}` : "",
             });
           }
         } catch (e) {
-          console.warn('[n8n] Failed to enrich support.resolved data', e);
-          triggerN8nWebhook('support.resolved', { ticket_id: variables.id });
+          console.warn("[n8n] Failed to enrich support.resolved data", e);
+          triggerN8nWebhook("support.resolved", { ticket_id: variables.id });
         }
       }
     },

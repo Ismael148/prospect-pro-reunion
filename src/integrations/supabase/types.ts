@@ -1018,6 +1018,7 @@ export type Database = {
         | "commercial_terrain"
         | "webmaster"
         | "designer"
+        | "agent_master"
       client_form_status: "en_attente" | "soumis" | "valide"
       client_form_type: "nfc" | "site"
       deliverable_status:
@@ -1203,6 +1204,7 @@ export const Constants = {
         "commercial_terrain",
         "webmaster",
         "designer",
+        "agent_master",
       ],
       client_form_status: ["en_attente", "soumis", "valide"],
       client_form_type: ["nfc", "site"],

@@ -41,11 +41,7 @@ interface ClientData {
   sector?: string | null;
 }
 
-function makeCta(text: string, url: string) {
-  return `<div style="margin:28px 0;text-align:center">
-  <a href="${url}" style="display:inline-block;background:${BRAND_COLOR};color:#ffffff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px">${text}</a>
-</div>`;
-}
+// makeCta imported from @/lib/email-template
 
 function getEmailActions(client: ClientData): EmailAction[] {
   const supportLink = client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : '';

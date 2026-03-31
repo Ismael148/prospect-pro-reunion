@@ -303,6 +303,11 @@ export default function Clients() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
+                    {getEmailCount(client.email) > 0 && (
+                      <Badge className="bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700 text-[10px] gap-1" variant="outline">
+                        <Mail className="w-3 h-3" /> {getEmailCount(client.email)}
+                      </Badge>
+                    )}
                     {client.pack_type && (<Badge variant="secondary" className="text-[10px] font-medium">{PACK_LABELS[client.pack_type]}</Badge>)}
                     <Badge className={`text-[10px] border ${PIPELINE_COLORS[client.pipeline_status]}`} variant="outline">{PIPELINE_LABELS[client.pipeline_status]}</Badge>
                   </div>

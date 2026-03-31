@@ -35,6 +35,7 @@ interface TeamMember {
 const ROLE_LABELS: Record<AppRole, string> = {
   admin: "Administrateur",
   agent_master: "Agent Master",
+  agent_support: "Agent Support",
   agent_telephonique: "Agent téléphonique",
   commercial_terrain: "Commercial terrain",
   webmaster: "Webmaster",
@@ -44,6 +45,7 @@ const ROLE_LABELS: Record<AppRole, string> = {
 const ROLE_ICONS: Record<AppRole, typeof Shield> = {
   admin: Shield,
   agent_master: Users,
+  agent_support: LifeBuoy,
   agent_telephonique: Phone,
   commercial_terrain: MapPin,
   webmaster: Monitor,
@@ -53,6 +55,7 @@ const ROLE_ICONS: Record<AppRole, typeof Shield> = {
 const ROLE_COLORS: Record<AppRole, string> = {
   admin: "bg-primary/10 text-primary border-primary/20",
   agent_master: "bg-violet-100 text-violet-700 border-violet-200 dark:bg-violet-900/30 dark:text-violet-300 dark:border-violet-700",
+  agent_support: "bg-teal-100 text-teal-700 border-teal-200 dark:bg-teal-900/30 dark:text-teal-300 dark:border-teal-700",
   agent_telephonique: "bg-accent/10 text-accent-foreground border-accent/20",
   commercial_terrain: "bg-warning/10 text-warning-foreground border-warning/20",
   webmaster: "bg-info/10 text-info border-info/20",

@@ -67,6 +67,35 @@ export default function NfcClients() {
   const [filterQty, setFilterQty] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
 
+  // New client dialog state
+  const [showNewDialog, setShowNewDialog] = useState(false);
+  const [newClient, setNewClient] = useState({ company_name: "", manager_name: "", phone: "", email: "", address: "", city: "", postal_code: "", nfc_quantity: "1" });
+  const [creating, setCreating] = useState(false);
+
+  const handleCreateNfc = async () => {
+    if (!newClient.company_name.trim()) { toast.error("Le nom de l'entreprise est requis"); return; }
+    if (!user) return;
+    setCreating(true);
+    const { error } = await supabase.from("clients").insert({
+      company_name: newClient.company_name.trim(),
+      manager_name: newClient.manager_name.trim() || null,
+      phone: newClient.phone.trim() || null,
+      email: newClient.email.trim() || null,
+      address: newClient.address.trim() || null,
+      city: newClient.city.trim() || null,
+      postal_code: newClient.postal_code.trim() || null,
+      nfc_quantity: parseInt(newClient.nfc_quantity) || 1,
+      pack_type: "star_bizness_nfc" as const,
+      pipeline_status: "contrat_signe" as const,
+      created_by: user.id,
+    });
+    setCreating(false);
+    if (error) { toast.error("Erreur : " + error.message); return; }
+    toast.success("Client NFC ajouté !");
+    setShowNewDialog(false);
+    setNewClient({ company_name: "", manager_name: "", phone: "", email: "", address: "", city: "", postal_code: "", nfc_quantity: "1" });
+    loadNfcClients();
+  };
   const loadNfcClients = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase

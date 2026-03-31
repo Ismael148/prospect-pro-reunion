@@ -65,8 +65,12 @@ export default function Support() {
   const isAdmin = hasRole("admin");
   const isWebmaster = hasRole("webmaster") || hasRole("designer");
   const isAgentSupport = hasRole("agent_support");
-  const canManageTickets = isAdmin; // Only admin can change status to resolu/ferme
-  const { data: tickets, isLoading } = useSupportTickets();
+  const canManageTickets = isAdmin;
+  const limitSupportToAssigned = !isAdmin && !isAgentSupport;
+  const { data: tickets, isLoading } = useSupportTickets({
+    userId: user?.id,
+    limitToAssigned: limitSupportToAssigned,
+  });
   const { data: clients } = useClients();
   const updateTicket = useUpdateTicket();
   const [search, setSearch] = useState("");
@@ -75,7 +79,6 @@ export default function Support() {
   const [adminNotes, setAdminNotes] = useState("");
   const [teamMembers, setTeamMembers] = useState<{ user_id: string; full_name: string; role: string }[]>([]);
 
-  // Fetch team members for assignment (admin only)
   useEffect(() => {
     if (!isAdmin) return;
     (async () => {
@@ -129,13 +132,11 @@ export default function Support() {
     return `${PUBLISHED_URL}/s/${(client as any).support_token}`;
   };
 
-  // Filter tickets: webmasters/designers only see tickets assigned to them
   const visibleTickets = useMemo(() => {
     if (!tickets) return [];
-    if (isAdmin || isAgentSupport) return tickets;
-    // Webmaster/designer: only assigned tickets
+    if (!limitSupportToAssigned) return tickets;
     return tickets.filter((t) => t.assigned_to === user?.id);
-  }, [tickets, isAdmin, isAgentSupport, isWebmaster, user?.id]);
+  }, [tickets, limitSupportToAssigned, user?.id]);
 
   const filtered = useMemo(() => {
     return visibleTickets.filter((t) => {

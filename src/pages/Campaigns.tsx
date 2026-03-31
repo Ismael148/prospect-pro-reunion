@@ -196,7 +196,7 @@ export default function Campaigns() {
                   <CardTitle className="text-base">Modèle d'email</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex gap-2 flex-wrap">
+                  <div className="flex gap-2 flex-wrap items-center">
                     {EMAIL_TEMPLATES.map((tpl) => (
                       <Button
                         key={tpl.id}
@@ -207,6 +207,18 @@ export default function Campaigns() {
                         {tpl.label}
                       </Button>
                     ))}
+                    <div className="ml-auto">
+                      <EmailTemplateSaver
+                        subject={subject}
+                        body={htmlContent}
+                        category="campaign"
+                        onLoad={(tpl: SavedTemplate) => {
+                          setSubject(tpl.subject);
+                          setHtmlContent(tpl.body);
+                          setSelectedTemplate("custom");
+                        }}
+                      />
+                    </div>
                   </div>
 
                   <div className="space-y-2">

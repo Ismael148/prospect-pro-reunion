@@ -393,8 +393,16 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
             {/* Result preview */}
             {aiResult && (
               <div className="space-y-3 pt-2 border-t">
-                <div className="space-y-2">
+              <div className="flex items-center justify-between">
                   <Label>Objet généré</Label>
+                  <EmailTemplateSaver
+                    subject={aiResult.subject}
+                    body={aiResult.htmlContent}
+                    category="ai_generated"
+                    onLoad={(tpl: SavedTemplate) => setAiResult({ subject: tpl.subject, htmlContent: tpl.body })}
+                  />
+                </div>
+                <div className="space-y-2">
                   <Input
                     value={aiResult.subject}
                     onChange={(e) => setAiResult({ ...aiResult, subject: e.target.value })}

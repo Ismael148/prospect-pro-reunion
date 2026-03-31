@@ -644,11 +644,22 @@ function ClientFormsSection({ clientId, supportToken, packType }: { clientId: st
     } catch { toast.error("Erreur"); }
   };
 
+  const submittedCount = forms?.filter((f) => f.status === "soumis").length || 0;
+
   return (
-    <Card className="border-0 shadow-md shadow-primary/5">
+    <Card className={`border-0 shadow-lg ${submittedCount > 0 ? "shadow-amber-200/50 dark:shadow-amber-900/30 ring-1 ring-amber-200 dark:ring-amber-800" : "shadow-primary/5"}`}>
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
-          <FileText className="w-5 h-5" /> Formulaires Client
+          <FileText className="w-5 h-5 text-emerald-600" />
+          Formulaires Client
+          {forms && forms.length > 0 && (
+            <Badge variant="secondary" className="ml-1">{forms.length}</Badge>
+          )}
+          {submittedCount > 0 && (
+            <Badge className="bg-amber-500 text-white text-[10px] animate-pulse ml-1">
+              {submittedCount} à valider
+            </Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">

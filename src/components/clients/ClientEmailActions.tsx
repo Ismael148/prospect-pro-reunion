@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useEmailBranding } from "@/hooks/use-email-branding";
 import { PUBLISHED_URL } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -112,6 +113,7 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
   const [sendingAction, setSendingAction] = useState<string | null>(null);
   const [previewAction, setPreviewAction] = useState<EmailAction | null>(null);
   const [customSubject, setCustomSubject] = useState("");
+  const { data: branding } = useEmailBranding();
 
   // AI Generation state
   const [showAiDialog, setShowAiDialog] = useState(false);
@@ -138,7 +140,7 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
     try {
       const supportLink = client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined;
       const bodyHtml = action.bodyFn(client);
-      const htmlContent = wrapInBrandedTemplate(bodyHtml, supportLink);
+      const htmlContent = wrapInBrandedTemplate(bodyHtml, supportLink, branding || undefined);
       const subject = customSubject || action.subject;
 
       const { error } = await supabase.functions.invoke("send-brevo-campaign", {
@@ -219,7 +221,8 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
   const previewHtml = previewAction
     ? wrapInBrandedTemplate(
         previewAction.bodyFn(client),
-        client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined
+        client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined,
+        branding || undefined
       )
     : "";
 

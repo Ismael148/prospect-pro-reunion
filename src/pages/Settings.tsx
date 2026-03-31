@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,8 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { User, Shield, Palette, Save, Loader2, Moon, Sun, Camera, FileSpreadsheet } from "lucide-react";
+import { User, Shield, Palette, Save, Loader2, Moon, Sun, Camera, FileSpreadsheet, Mail } from "lucide-react";
+import { useEmailBranding, useUpdateEmailBranding } from "@/hooks/use-email-branding";
+import { wrapInBrandedTemplate } from "@/lib/email-template";
 
 export default function Settings() {
   const { profile, user, roles, signOut } = useAuth();
@@ -28,6 +31,44 @@ export default function Settings() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
+
+  // Email branding
+  const isAdmin = roles.includes("admin");
+  const { data: emailBranding } = useEmailBranding();
+  const updateBranding = useUpdateEmailBranding();
+  const [brandingForm, setBrandingForm] = useState<Record<string, string>>({});
+  const [savingBranding, setSavingBranding] = useState(false);
+  const [showEmailPreview, setShowEmailPreview] = useState(false);
+
+  useEffect(() => {
+    if (emailBranding) {
+      setBrandingForm({
+        logo_url: emailBranding.logo_url,
+        slogan: emailBranding.slogan,
+        brand_color: emailBranding.brand_color,
+        footer_company: emailBranding.footer_company,
+        footer_tagline: emailBranding.footer_tagline,
+        footer_phone: emailBranding.footer_phone,
+        footer_copyright: emailBranding.footer_copyright,
+        support_cta_title: emailBranding.support_cta_title,
+        support_cta_text: emailBranding.support_cta_text,
+        support_cta_button: emailBranding.support_cta_button,
+      });
+    }
+  }, [emailBranding]);
+
+  const handleSaveBranding = async () => {
+    if (!emailBranding) return;
+    setSavingBranding(true);
+    try {
+      await updateBranding.mutateAsync({ id: emailBranding.id, ...brandingForm } as any);
+      toast.success("Branding email mis à jour !");
+    } catch {
+      toast.error("Erreur");
+    } finally {
+      setSavingBranding(false);
+    }
+  };
 
   const initials = fullName
     ? fullName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
@@ -269,6 +310,158 @@ export default function Settings() {
           </Button>
         </CardContent>
       </Card>
+
+      {/* Email Branding — Admin only */}
+      {isAdmin && emailBranding && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="w-5 h-5" />
+              Personnalisation des emails
+            </CardTitle>
+            <CardDescription>Modifiez l'en-tête, le pied de page et les couleurs de tous vos emails</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Header section */}
+            <div>
+              <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wider">En-tête</h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>URL du logo</Label>
+                  <Input
+                    value={brandingForm.logo_url || ""}
+                    onChange={(e) => setBrandingForm({ ...brandingForm, logo_url: e.target.value })}
+                    placeholder="https://..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Couleur principale</Label>
+                  <div className="flex gap-2">
+                    <input
+                      type="color"
+                      value={brandingForm.brand_color || "#ff006e"}
+                      onChange={(e) => setBrandingForm({ ...brandingForm, brand_color: e.target.value })}
+                      className="w-10 h-10 rounded-lg border border-border cursor-pointer"
+                    />
+                    <Input
+                      value={brandingForm.brand_color || ""}
+                      onChange={(e) => setBrandingForm({ ...brandingForm, brand_color: e.target.value })}
+                      placeholder="#ff006e"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <Label>Slogan / sous-titre</Label>
+                  <Input
+                    value={brandingForm.slogan || ""}
+                    onChange={(e) => setBrandingForm({ ...brandingForm, slogan: e.target.value })}
+                    placeholder="La performance digitale pour votre entreprise"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Footer section */}
+            <div>
+              <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wider">Pied de page</h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Nom de l'entreprise</Label>
+                  <Input
+                    value={brandingForm.footer_company || ""}
+                    onChange={(e) => setBrandingForm({ ...brandingForm, footer_company: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Tagline</Label>
+                  <Input
+                    value={brandingForm.footer_tagline || ""}
+                    onChange={(e) => setBrandingForm({ ...brandingForm, footer_tagline: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Téléphone</Label>
+                  <Input
+                    value={brandingForm.footer_phone || ""}
+                    onChange={(e) => setBrandingForm({ ...brandingForm, footer_phone: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Copyright</Label>
+                  <Input
+                    value={brandingForm.footer_copyright || ""}
+                    onChange={(e) => setBrandingForm({ ...brandingForm, footer_copyright: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Support CTA section */}
+            <div>
+              <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wider">Section Support</h3>
+              <div className="grid gap-4">
+                <div className="space-y-2">
+                  <Label>Titre du CTA support</Label>
+                  <Input
+                    value={brandingForm.support_cta_title || ""}
+                    onChange={(e) => setBrandingForm({ ...brandingForm, support_cta_title: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Texte explicatif</Label>
+                  <Textarea
+                    value={brandingForm.support_cta_text || ""}
+                    onChange={(e) => setBrandingForm({ ...brandingForm, support_cta_text: e.target.value })}
+                    rows={2}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Texte du bouton</Label>
+                  <Input
+                    value={brandingForm.support_cta_button || ""}
+                    onChange={(e) => setBrandingForm({ ...brandingForm, support_cta_button: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Preview + Save */}
+            <div className="flex items-center gap-3">
+              <Button onClick={handleSaveBranding} disabled={savingBranding}>
+                {savingBranding ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}
+                Enregistrer
+              </Button>
+              <Button variant="outline" onClick={() => setShowEmailPreview(!showEmailPreview)}>
+                {showEmailPreview ? "Masquer" : "Aperçu"} email
+              </Button>
+            </div>
+
+            {showEmailPreview && (
+              <div className="border border-border rounded-xl overflow-hidden">
+                <div
+                  className="bg-white"
+                  dangerouslySetInnerHTML={{
+                    __html: wrapInBrandedTemplate(
+                      `<p style="margin:0 0 20px">Bonjour <strong>Client Exemple</strong>,</p>
+                      <p style="margin:0 0 20px">Ceci est un aperçu de votre template email avec les paramètres actuels.</p>
+                      <p style="margin:0">Cordialement,<br><strong>L'équipe</strong></p>`,
+                      "https://example.com/support",
+                      brandingForm
+                    ),
+                  }}
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Danger zone */}
       <Card className="border-destructive/30">

@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useEmailBranding } from "@/hooks/use-email-branding";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateInvoice } from "@/hooks/use-invoices";
 import { exportInvoicePDF } from "@/lib/export-invoice-pdf";
@@ -46,6 +47,7 @@ interface ClientData {
 export default function DomainRenewalInvoice({ client }: { client: ClientData }) {
   const { user } = useAuth();
   const createInvoice = useCreateInvoice();
+  const { data: branding } = useEmailBranding();
   const [domainName, setDomainName] = useState("");
   const [amount, setAmount] = useState("");
   const [sending, setSending] = useState(false);
@@ -59,8 +61,8 @@ export default function DomainRenewalInvoice({ client }: { client: ClientData })
   const defaultBody = buildEmailBody(client.company_name, domainName.trim(), amountNum, "FAC-XXXX");
 
   const previewHtml = useMemo(() => {
-    return wrapInBrandedTemplate(emailBodyOverride || defaultBody);
-  }, [emailBodyOverride, defaultBody]);
+    return wrapInBrandedTemplate(emailBodyOverride || defaultBody, undefined, branding || undefined);
+  }, [emailBodyOverride, defaultBody, branding]);
 
   if (!client.email) return null;
 
@@ -119,7 +121,7 @@ export default function DomainRenewalInvoice({ client }: { client: ClientData })
 
       // Use the edited body with real invoice number
       const finalBody = emailBodyOverride.replace(/FAC-XXXX/g, invoice.invoice_number);
-      const htmlContent = wrapInBrandedTemplate(finalBody);
+      const htmlContent = wrapInBrandedTemplate(finalBody, undefined, branding || undefined);
 
       const { error } = await supabase.functions.invoke("send-brevo-campaign", {
         body: {

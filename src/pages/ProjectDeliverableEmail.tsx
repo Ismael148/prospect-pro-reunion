@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useProject, useDeliverables } from "@/hooks/use-projects";
 import { supabase } from "@/integrations/supabase/client";
 import { triggerN8nWebhook } from "@/lib/n8n-webhook";
+import { useEmailBranding } from "@/hooks/use-email-branding";
 import { PUBLISHED_URL } from "@/lib/constants";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -234,6 +235,7 @@ export default function ProjectDeliverableEmail() {
   const { data: deliverables, isLoading: isDeliverablesLoading } = useDeliverables(projectId || "");
   const { data: emailHistory } = useEmailHistory(deliverableId);
   const { data: savedTemplates } = useSavedTemplates();
+  const { data: emailBranding } = useEmailBranding();
   const deliverable = useMemo(
     () => deliverables?.find((item) => item.id === deliverableId),
     [deliverables, deliverableId],
@@ -330,8 +332,8 @@ export default function ProjectDeliverableEmail() {
     if (!deliverable) return "";
     const resolvedBody = replaceVariables(message);
     const sanitizedBody = DOMPurify.sanitize(resolvedBody, { ADD_TAGS: ["style"], ADD_ATTR: ["style"] });
-    return wrapInBrandedTemplate(sanitizedBody, replaceVariables(supportLink));
-  }, [deliverable, message, replaceVariables, supportLink]);
+    return wrapInBrandedTemplate(sanitizedBody, replaceVariables(supportLink), emailBranding || undefined);
+  }, [deliverable, message, replaceVariables, supportLink, emailBranding]);
 
   const resolvedSubject = useMemo(() => replaceVariables(subject), [subject, replaceVariables]);
 

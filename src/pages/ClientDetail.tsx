@@ -617,13 +617,17 @@ function ClientFormsSection({ clientId, supportToken, packType }: { clientId: st
   const validateForm = useValidateForm();
   const [viewingForm, setViewingForm] = useState<any>(null);
 
-  const FORM_TYPE_LABELS: Record<string, string> = { nfc: "Carte NFC", site: "Site Internet" };
+  const FORM_TYPE_LABELS: Record<string, { label: string; icon: string }> = {
+    nfc: { label: "Carte NFC", icon: "💳" },
+    site: { label: "Site Internet", icon: "🌐" },
+  };
   const STATUS_LABELS: Record<string, string> = { en_attente: "En attente", soumis: "Soumis", valide: "Validé" };
   const STATUS_COLORS: Record<string, string> = {
-    en_attente: "bg-muted text-muted-foreground",
-    soumis: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
-    valide: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
+    en_attente: "bg-muted text-muted-foreground border-border",
+    soumis: "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-700",
+    valide: "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-700",
   };
+  const STATUS_ICONS: Record<string, string> = { en_attente: "⏳", soumis: "📤", valide: "✅" };
 
   const nfcLink = supportToken ? `${PUBLISHED_URL}/f/${supportToken}/nfc` : null;
   const siteLink = supportToken ? `${PUBLISHED_URL}/f/${supportToken}/site` : null;

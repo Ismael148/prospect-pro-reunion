@@ -29,7 +29,7 @@ export default function Clients() {
   const { user } = useAuth();
   const { data: clients, isLoading } = useClients();
   const createClient = useCreateClient();
-  const { data: commercials } = useCommercials();
+  const { data: allCommercials } = useAllCommercials();
   const { data: agents } = useAgents();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);

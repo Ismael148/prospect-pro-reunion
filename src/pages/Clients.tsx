@@ -58,7 +58,6 @@ export default function Clients() {
     const map = new Map<string, string>();
     agents?.forEach(a => map.set(a.user_id, a.full_name || "Sans nom"));
     allCommercials?.internal?.forEach(c => map.set(c.user_id, c.full_name || "Sans nom"));
-    allCommercials?.external?.forEach(c => map.set(`ext_${c.id}`, c.full_name));
     return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
   }, [agents, allCommercials]);
 

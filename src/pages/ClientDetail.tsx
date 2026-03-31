@@ -214,21 +214,18 @@ function EditClientDialog({ client, onSave, salesTeam }: { client: any; onSave: 
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5">
-              <Label>Commercial signataire</Label>
-              <Select value={form.signed_by_commercial} onValueChange={(v) => setForm({ ...form, signed_by_commercial: v === "none" ? "" : v })}>
-                <SelectTrigger><SelectValue placeholder="— Aucun —" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">— Aucun —</SelectItem>
-                  {salesTeam?.commercials?.map((c) => (
-                    <SelectItem key={c.user_id} value={c.user_id}>{c.full_name || "Sans nom"}</SelectItem>
-                  ))}
-                  {salesTeam?.externalCommercials?.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.full_name} (externe)</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              <div className="space-y-1.5">
+                <Label>Commercial signataire</Label>
+                <Select value={form.signed_by} onValueChange={(v) => setForm({ ...form, signed_by: v === "none" ? "" : v })}>
+                  <SelectTrigger><SelectValue placeholder="— Aucun —" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— Aucun —</SelectItem>
+                    {salesTeam?.commercials?.map((c) => (
+                      <SelectItem key={c.user_id} value={c.user_id}>{c.full_name || "Sans nom"}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
           </div>
           <div className="space-y-1.5">
             <Label>Notes</Label>

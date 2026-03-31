@@ -126,6 +126,7 @@ export type Database = {
           sector: string | null
           signature_date: string | null
           signed_by: string | null
+          signed_by_commercial: string | null
           siret: string | null
           site_type: string | null
           support_token: string | null
@@ -155,6 +156,7 @@ export type Database = {
           sector?: string | null
           signature_date?: string | null
           signed_by?: string | null
+          signed_by_commercial?: string | null
           siret?: string | null
           site_type?: string | null
           support_token?: string | null
@@ -184,19 +186,29 @@ export type Database = {
           sector?: string | null
           signature_date?: string | null
           signed_by?: string | null
+          signed_by_commercial?: string | null
           siret?: string | null
           site_type?: string | null
           support_token?: string | null
           updated_at?: string
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "clients_signed_by_commercial_fkey"
+            columns: ["signed_by_commercial"]
+            isOneToOne: false
+            referencedRelation: "external_commercials"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       commissions: {
         Row: {
           base_amount: number
           bonus_amount: number
           client_id: string
+          commercial_id: string | null
           created_at: string
           id: string
           month_year: string
@@ -212,6 +224,7 @@ export type Database = {
           base_amount?: number
           bonus_amount?: number
           client_id: string
+          commercial_id?: string | null
           created_at?: string
           id?: string
           month_year: string
@@ -227,6 +240,7 @@ export type Database = {
           base_amount?: number
           bonus_amount?: number
           client_id?: string
+          commercial_id?: string | null
           created_at?: string
           id?: string
           month_year?: string
@@ -244,6 +258,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commissions_commercial_id_fkey"
+            columns: ["commercial_id"]
+            isOneToOne: false
+            referencedRelation: "external_commercials"
             referencedColumns: ["id"]
           },
         ]
@@ -449,6 +470,39 @@ export type Database = {
           month_year?: string | null
           name?: string
           start_date?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      external_commercials: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          is_active: boolean
+          notes: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          phone?: string | null
           updated_at?: string
         }
         Relationships: []

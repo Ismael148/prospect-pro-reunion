@@ -60,7 +60,12 @@ export default function Commissions() {
   const { data: clients } = useClients();
   const updateStatus = useUpdateCommissionStatus();
 
-  const getUserName = (userId: string) => {
+  const getUserName = (userId: string, commercialId?: string | null) => {
+    // Check external commercial first
+    if (commercialId) {
+      const ext = salesTeam?.externalCommercials?.find((c) => c.id === commercialId);
+      if (ext) return ext.full_name;
+    }
     const all = [...(salesTeam?.agents || []), ...(salesTeam?.commercials || [])];
     return all.find((u) => u.user_id === userId)?.full_name || "Inconnu";
   };
@@ -88,7 +93,9 @@ export default function Commissions() {
   const commercialSummary = useMemo(() => {
     const map = new Map<string, { name: string; sites: number; nfc: number; total: number; clients: { name: string; pack: string; amount: number }[] }>();
     commercialCommissions.forEach((c) => {
-      const existing = map.get(c.user_id) || { name: getUserName(c.user_id), sites: 0, nfc: 0, total: 0, clients: [] };
+      // Use commercial_id (external) or user_id (internal) as key
+      const key = (c as any).commercial_id || c.user_id;
+      const existing = map.get(key) || { name: getUserName(c.user_id, (c as any).commercial_id), sites: 0, nfc: 0, total: 0, clients: [] };
       if (c.pack_type === "star_bizness_nfc") {
         existing.nfc++;
       } else {
@@ -100,7 +107,7 @@ export default function Commissions() {
         pack: PACK_LABELS[c.pack_type as keyof typeof PACK_LABELS] || c.pack_type,
         amount: Number(c.total_amount),
       });
-      map.set(c.user_id, existing);
+      map.set(key, existing);
     });
     return Array.from(map.entries());
   }, [commercialCommissions, salesTeam, clients]);

@@ -972,6 +972,20 @@ export default function ClientDetail() {
   const createActivity = useCreateActivity();
   const { hasRole } = useAuth();
 
+  // Check if emails have been sent to this client
+  const { data: emailCount } = useQuery({
+    queryKey: ["client-email-count", id],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("email_send_log")
+        .select("*", { count: "exact", head: true })
+        .or(`recipient_email.eq.${client?.email},metadata->>client_id.eq.${id}`);
+      if (error) throw error;
+      return count || 0;
+    },
+    enabled: !!id && !!client,
+  });
+
   const handleDelete = async () => {
     try {
       await deleteClient.mutateAsync(id!);

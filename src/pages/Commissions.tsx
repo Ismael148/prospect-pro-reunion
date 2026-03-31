@@ -50,6 +50,7 @@ function getMonthOptions() {
 export default function Commissions() {
   const { hasRole } = useAuth();
   const isAdmin = hasRole("admin");
+  const isAgentOnly = (hasRole("agent_telephonique") || hasRole("agent_master")) && !isAdmin;
   const now = new Date();
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
@@ -289,14 +290,14 @@ export default function Commissions() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className={`grid grid-cols-2 ${isAgentOnly ? "lg:grid-cols-2" : "lg:grid-cols-4"} gap-4`}>
         <Card className="border-0 shadow-soft">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-primary/10"><Euro className="w-5 h-5 text-primary" /></div>
               <div>
-                <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Total mois</p>
-                <p className="text-xl font-bold">{totalAll.toFixed(2)} €</p>
+                <p className="text-[11px] text-muted-foreground uppercase tracking-wider">{isAgentOnly ? "Mes commissions" : "Total mois"}</p>
+                <p className="text-xl font-bold">{isAgentOnly ? totalAgent.toFixed(2) : totalAll.toFixed(2)} €</p>
               </div>
             </div>
           </CardContent>
@@ -306,34 +307,38 @@ export default function Commissions() {
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-success/10"><CheckCircle className="w-5 h-5 text-success" /></div>
               <div>
-                <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Payé</p>
-                <p className="text-xl font-bold">{totalPaid.toFixed(2)} €</p>
+                <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Contrats</p>
+                <p className="text-xl font-bold">{isAgentOnly ? agentCommissions.filter(c => c.pack_type !== "nfc_bonus").length : (commissions?.length || 0)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="border-0 shadow-soft">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-warning/10"><Clock className="w-5 h-5 text-warning" /></div>
-              <div>
-                <p className="text-[11px] text-muted-foreground uppercase tracking-wider">En attente</p>
-                <p className="text-xl font-bold">{totalPending.toFixed(2)} €</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-soft">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-accent/10"><Users className="w-5 h-5 text-accent-foreground" /></div>
-              <div>
-                <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Bénéficiaires</p>
-                <p className="text-xl font-bold">{new Set((commissions || []).map((c) => c.user_id)).size}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {!isAgentOnly && (
+          <>
+            <Card className="border-0 shadow-soft">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-warning/10"><Clock className="w-5 h-5 text-warning" /></div>
+                  <div>
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider">En attente</p>
+                    <p className="text-xl font-bold">{totalPending.toFixed(2)} €</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-0 shadow-soft">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-accent/10"><Users className="w-5 h-5 text-accent-foreground" /></div>
+                  <div>
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Bénéficiaires</p>
+                    <p className="text-xl font-bold">{new Set((commissions || []).map((c) => c.user_id)).size}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
       {isLoading ? (
@@ -341,9 +346,9 @@ export default function Commissions() {
       ) : (
         <>
           {/* Summary per person with expandable client list */}
-          {(commercialSummary.length > 0 || agentSummary.length > 0) && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {commercialSummary.length > 0 && (
+           {((!isAgentOnly && commercialSummary.length > 0) || agentSummary.length > 0) && (
+            <div className={`grid grid-cols-1 ${!isAgentOnly && commercialSummary.length > 0 && agentSummary.length > 0 ? "lg:grid-cols-2" : ""} gap-4`}>
+              {!isAgentOnly && commercialSummary.length > 0 && (
                 <Card className="border-0 shadow-soft">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2">
@@ -374,60 +379,72 @@ export default function Commissions() {
             </div>
           )}
 
-          {/* Detail tables */}
-          <Tabs defaultValue="all">
-            <TabsList>
-              <TabsTrigger value="all">Toutes ({commissions?.length || 0})</TabsTrigger>
-              <TabsTrigger value="commercials">Commerciaux ({commercialCommissions.length})</TabsTrigger>
-              <TabsTrigger value="agents">Agents ({agentCommissions.length})</TabsTrigger>
-            </TabsList>
-            <TabsContent value="all">
-              <Card className="border-0 shadow-soft">
-                <CardContent className="p-0">
-                  <CommissionTable data={commissions} showRole />
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="commercials">
-              <Card className="border-0 shadow-soft">
-                <CardContent className="p-0">
-                  <CommissionTable data={commercialCommissions} />
-                </CardContent>
-              </Card>
+          {isAgentOnly ? (
+            /* Agents only see their own commissions table */
+            <Card className="border-0 shadow-soft">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Mes commissions</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <CommissionTable data={agentCommissions} />
+              </CardContent>
+            </Card>
+          ) : (
+            /* Admin & commercial: full tabs */
+            <Tabs defaultValue="all">
+              <TabsList>
+                <TabsTrigger value="all">Toutes ({commissions?.length || 0})</TabsTrigger>
+                <TabsTrigger value="commercials">Commerciaux ({commercialCommissions.length})</TabsTrigger>
+                <TabsTrigger value="agents">Agents ({agentCommissions.length})</TabsTrigger>
+              </TabsList>
+              <TabsContent value="all">
+                <Card className="border-0 shadow-soft">
+                  <CardContent className="p-0">
+                    <CommissionTable data={commissions} showRole />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              <TabsContent value="commercials">
+                <Card className="border-0 shadow-soft">
+                  <CardContent className="p-0">
+                    <CommissionTable data={commercialCommissions} />
+                  </CardContent>
+                </Card>
 
-              <Card className="border-0 shadow-soft mt-4">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">Barème mensuel — Sites Internet</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center text-sm">
-                    {[
-                      { label: "1 site", amount: "250 €" },
-                      { label: "2 sites", amount: "300 €/site" },
-                      { label: "3 sites", amount: "350 €/site" },
-                      { label: "4 sites", amount: "400 €/site" },
-                      { label: "5+ sites", amount: "400 € + 100 €" },
-                    ].map((item) => (
-                      <div key={item.label} className="p-3 rounded-lg bg-muted/30">
-                        <p className="text-xs text-muted-foreground">{item.label}</p>
-                        <p className="font-semibold mt-1">{item.amount}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-3">
-                    Carte NFC : 79,90 € fixe par pack • Agent tél. : 50 € fixe + 20 € bonus NFC par contrat signé
-                  </p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="agents">
-              <Card className="border-0 shadow-soft">
-                <CardContent className="p-0">
-                  <CommissionTable data={agentCommissions} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+                <Card className="border-0 shadow-soft mt-4">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm">Barème mensuel — Sites Internet</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center text-sm">
+                      {[
+                        { label: "1 site", amount: "250 €" },
+                        { label: "2 sites", amount: "300 €/site" },
+                        { label: "3 sites", amount: "350 €/site" },
+                        { label: "4 sites", amount: "400 €/site" },
+                        { label: "5+ sites", amount: "400 € + 100 €" },
+                      ].map((item) => (
+                        <div key={item.label} className="p-3 rounded-lg bg-muted/30">
+                          <p className="text-xs text-muted-foreground">{item.label}</p>
+                          <p className="font-semibold mt-1">{item.amount}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-3">
+                      Carte NFC : 79,90 € fixe par pack • Agent tél. : 50 € fixe + 20 € bonus NFC par contrat signé
+                    </p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              <TabsContent value="agents">
+                <Card className="border-0 shadow-soft">
+                  <CardContent className="p-0">
+                    <CommissionTable data={agentCommissions} />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          )}
         </>
       )}
     </motion.div>

@@ -27,7 +27,7 @@ export default function Pipeline() {
     if (!client || client.pipeline_status === newStatus) return;
     const oldStatus = client.pipeline_status;
     try {
-      await updateClient.mutateAsync({ id: clientId, pipeline_status: newStatus });
+      await updateClient.mutateAsync({ id: clientId, pipeline_status: newStatus, _previousStatus: oldStatus });
       await createActivity.mutateAsync({
         client_id: clientId,
         user_id: user!.id,

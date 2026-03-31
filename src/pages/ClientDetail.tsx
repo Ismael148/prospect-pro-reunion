@@ -812,7 +812,7 @@ export default function ClientDetail() {
     if (!client) return;
     const oldStatus = client.pipeline_status;
     try {
-      await updateClient.mutateAsync({ id: client.id, pipeline_status: newStatus });
+      await updateClient.mutateAsync({ id: client.id, pipeline_status: newStatus, _previousStatus: oldStatus });
       await createActivity.mutateAsync({
         client_id: client.id, user_id: user!.id, activity_type: "status_change",
         description: `Statut changé de "${PIPELINE_LABELS[oldStatus]}" à "${PIPELINE_LABELS[newStatus]}"`,

@@ -90,10 +90,38 @@ export function useCreateClient() {
 export function useUpdateClient() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, _previousStatus, ...updates }: TablesUpdate<"clients"> & { id: string; _previousStatus?: string }) => {
+    mutationFn: async ({ id, _previousStatus, ...rawUpdates }: TablesUpdate<"clients"> & { id: string; _previousStatus?: string }) => {
+      const payload = Object.fromEntries(
+        Object.entries({
+          company_name: typeof rawUpdates.company_name === "string" ? rawUpdates.company_name.trim() : rawUpdates.company_name,
+          manager_name: typeof rawUpdates.manager_name === "string" ? rawUpdates.manager_name.trim() || null : rawUpdates.manager_name,
+          phone: typeof rawUpdates.phone === "string" ? rawUpdates.phone.trim() || null : rawUpdates.phone,
+          email: typeof rawUpdates.email === "string" ? rawUpdates.email.trim() || null : rawUpdates.email,
+          website: typeof rawUpdates.website === "string" ? rawUpdates.website.trim() || null : rawUpdates.website,
+          address: typeof rawUpdates.address === "string" ? rawUpdates.address.trim() || null : rawUpdates.address,
+          city: typeof rawUpdates.city === "string" ? rawUpdates.city.trim() || null : rawUpdates.city,
+          postal_code: typeof rawUpdates.postal_code === "string" ? rawUpdates.postal_code.trim() || null : rawUpdates.postal_code,
+          sector: typeof rawUpdates.sector === "string" ? rawUpdates.sector.trim() || null : rawUpdates.sector,
+          notes: typeof rawUpdates.notes === "string" ? rawUpdates.notes.trim() || null : rawUpdates.notes,
+          siret: typeof rawUpdates.siret === "string" ? rawUpdates.siret.trim() || null : rawUpdates.siret,
+          payment_method: rawUpdates.payment_method === "" ? null : rawUpdates.payment_method,
+          pack_amount: rawUpdates.pack_amount === "" || rawUpdates.pack_amount == null ? null : Number(rawUpdates.pack_amount),
+          nfc_quantity: rawUpdates.nfc_quantity == null ? undefined : Number(rawUpdates.nfc_quantity),
+          has_gmb: rawUpdates.has_gmb,
+          site_type: rawUpdates.site_type === "" ? null : rawUpdates.site_type,
+          assigned_to: rawUpdates.assigned_to === "" ? null : rawUpdates.assigned_to,
+          signed_by: rawUpdates.signed_by === "" ? null : rawUpdates.signed_by,
+          signed_by_commercial: rawUpdates.signed_by_commercial === "" ? null : rawUpdates.signed_by_commercial,
+          pipeline_status: rawUpdates.pipeline_status,
+          pack_type: rawUpdates.pack_type,
+          signature_date: rawUpdates.signature_date,
+          signed_by_commercial: null,
+        }).filter(([, value]) => value !== undefined)
+      );
+
       const { data, error } = await supabase
         .from("clients")
-        .update(updates)
+        .update(payload)
         .eq("id", id)
         .select()
         .single();
@@ -104,7 +132,6 @@ export function useUpdateClient() {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["clients", data.id] });
       
-      // Only trigger webhook when status CHANGES to contrat_signe (not already signed)
       const wasAlreadySigned = data._previousStatus === 'contrat_signe';
       if (variables.pipeline_status === 'contrat_signe' && !wasAlreadySigned) {
         triggerN8nWebhook('client.signed', {

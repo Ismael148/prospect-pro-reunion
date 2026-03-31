@@ -140,7 +140,7 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
     try {
       const supportLink = client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined;
       const bodyHtml = action.bodyFn(client);
-      const htmlContent = wrapInBrandedTemplate(bodyHtml, supportLink);
+      const htmlContent = wrapInBrandedTemplate(bodyHtml, supportLink, branding || undefined);
       const subject = customSubject || action.subject;
 
       const { error } = await supabase.functions.invoke("send-brevo-campaign", {

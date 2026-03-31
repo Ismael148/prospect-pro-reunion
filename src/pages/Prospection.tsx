@@ -230,28 +230,12 @@ export default function Prospection() {
     return Array.from(historyMap.values()).sort((a, b) => b.lastDate.localeCompare(a.lastDate));
   }, [prospects]);
 
-  const [forceSearch, setForceSearch] = useState(false);
-
   const handleSearch = async () => {
     const query = searchQuery || customQuery;
     if (!query || !searchZone) {
       toast.error("Sélectionnez un secteur et une zone");
       return;
     }
-
-    // Check if this search was already done
-    const alreadySearched = searchHistory.find(
-      (h) => h.query.toLowerCase() === query.toLowerCase() && h.zone.toLowerCase() === searchZone.toLowerCase()
-    );
-    if (alreadySearched && !forceSearch) {
-      toast.warning(
-        `Cette recherche a déjà été effectuée (${alreadySearched.count} prospect(s) importé(s) le ${format(new Date(alreadySearched.lastDate), "dd/MM/yyyy", { locale: fr })}). Cliquez à nouveau pour forcer.`,
-        { duration: 5000 }
-      );
-      setForceSearch(true);
-      return;
-    }
-    setForceSearch(false);
 
     try {
       const results = await searchProspects.mutateAsync({ query, zone: searchZone });
@@ -265,21 +249,29 @@ export default function Prospection() {
         return true;
       });
 
-      // Filtrer les prospects déjà existants en base
+      // Normaliser les noms existants + téléphones pour détecter les doublons
       const existingNames = new Set(
         (prospects || []).map((p) => p.business_name.toLowerCase().replace(/[^a-zà-ÿ0-9]/g, ""))
       );
-      const newResults = uniqueResults.filter((r) => {
-        const key = r.business_name.toLowerCase().replace(/[^a-zà-ÿ0-9]/g, "");
-        return !existingNames.has(key);
+      const existingPhones = new Set(
+        (prospects || []).filter((p) => p.phone).map((p) => p.phone!.replace(/[\s.-]/g, ""))
+      );
+
+      // Marquer chaque résultat comme doublon ou non (mais garder tous dans la liste)
+      const markedResults = uniqueResults.map((r) => {
+        const nameKey = r.business_name.toLowerCase().replace(/[^a-zà-ÿ0-9]/g, "");
+        const phoneKey = r.phone ? r.phone.replace(/[\s.-]/g, "") : null;
+        const isDuplicate = existingNames.has(nameKey) || (phoneKey && existingPhones.has(phoneKey));
+        return { ...r, _isDuplicate: !!isDuplicate };
       });
 
-      setSearchResults(newResults);
+      setSearchResults(markedResults);
       setShowResults(true);
-      const filtered = uniqueResults.length - newResults.length;
+      const newCount = markedResults.filter((r) => !r._isDuplicate).length;
+      const dupCount = markedResults.filter((r) => r._isDuplicate).length;
       toast.success(
-        `${newResults.length} nouveau(x) prospect(s) trouvé(s)` +
-        (filtered > 0 ? ` (${filtered} déjà en base ignoré(s))` : "")
+        `${newCount} nouveau(x) prospect(s) trouvé(s)` +
+        (dupCount > 0 ? ` · ${dupCount} déjà en base` : "")
       );
     } catch (error: any) {
       toast.error(error.message || "Erreur de recherche");

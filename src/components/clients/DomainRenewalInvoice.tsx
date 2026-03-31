@@ -14,6 +14,8 @@ import {
 import { toast } from "sonner";
 import { Globe, Send, Loader2, FileText, Eye, Pencil } from "lucide-react";
 import { motion } from "framer-motion";
+import EmailTemplateSaver from "@/components/EmailTemplateSaver";
+import type { SavedTemplate } from "@/hooks/use-email-templates";
 
 const BRAND_COLOR = "#ff006e";
 const LOGO_URL = "https://ai.adamkom.com/lovable-uploads/d6c24753-6c76-49a3-8a6d-fe0dd4a898be.png";
@@ -243,8 +245,17 @@ export default function DomainRenewalInvoice({ client }: { client: ClientData })
               </div>
             </div>
 
-            {/* Edit toggle */}
-            <div className="flex justify-end">
+            {/* Edit toggle + Template saver */}
+            <div className="flex items-center justify-between">
+              <EmailTemplateSaver
+                subject={subject}
+                body={emailBodyOverride}
+                category="ndd_renewal"
+                onLoad={(tpl: SavedTemplate) => {
+                  setSubject(tpl.subject);
+                  setEmailBodyOverride(tpl.body);
+                }}
+              />
               <Button
                 variant={editMode ? "default" : "outline"}
                 size="sm"

@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import {
   Mail, Send, Loader2, Ticket, FileText, CreditCard, Globe, Eye, Sparkles, Wand2,
 } from "lucide-react";
+import EmailTemplateSaver from "@/components/EmailTemplateSaver";
+import type { SavedTemplate } from "@/hooks/use-email-templates";
 
 const BRAND_COLOR = "#ff006e";
 
@@ -306,10 +308,25 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-2">
+            <div className="flex items-center justify-between">
               <Label>Objet</Label>
-              <Input value={customSubject || previewAction?.subject || ""} onChange={(e) => setCustomSubject(e.target.value)} />
+              <EmailTemplateSaver
+                subject={customSubject || previewAction?.subject || ""}
+                body={previewAction?.bodyFn(client) || ""}
+                category="client_email"
+                onLoad={(tpl: SavedTemplate) => {
+                  setCustomSubject(tpl.subject);
+                  // For loaded templates, create a custom action
+                  setPreviewAction({
+                    ...previewAction!,
+                    subject: tpl.subject,
+                    bodyFn: () => tpl.body,
+                    label: tpl.name,
+                  });
+                }}
+              />
             </div>
+            <Input value={customSubject || previewAction?.subject || ""} onChange={(e) => setCustomSubject(e.target.value)} />
             <div className="space-y-2">
               <Label>Aperçu de l'email</Label>
               <div className="border border-border rounded-lg overflow-hidden bg-white" dangerouslySetInnerHTML={{ __html: previewHtml }} />
@@ -376,8 +393,16 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
             {/* Result preview */}
             {aiResult && (
               <div className="space-y-3 pt-2 border-t">
-                <div className="space-y-2">
+              <div className="flex items-center justify-between">
                   <Label>Objet généré</Label>
+                  <EmailTemplateSaver
+                    subject={aiResult.subject}
+                    body={aiResult.htmlContent}
+                    category="ai_generated"
+                    onLoad={(tpl: SavedTemplate) => setAiResult({ subject: tpl.subject, htmlContent: tpl.body })}
+                  />
+                </div>
+                <div className="space-y-2">
                   <Input
                     value={aiResult.subject}
                     onChange={(e) => setAiResult({ ...aiResult, subject: e.target.value })}

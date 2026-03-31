@@ -115,18 +115,42 @@ export default function Projects() {
               <div className="grid gap-4 py-4">
                 <div className="space-y-2">
                   <Label>Client (contrat signé) *</Label>
-                  <Select value={form.client_id} onValueChange={(v) => setForm({ ...form, client_id: v })}>
-                    <SelectTrigger><SelectValue placeholder="Sélectionner un client" /></SelectTrigger>
-                    <SelectContent>
-                      {eligibleClients.length === 0 ? (
-                        <SelectItem value="_none" disabled>Aucun client avec contrat signé</SelectItem>
-                      ) : (
-                        eligibleClients.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
+                  <Popover open={clientPopoverOpen} onOpenChange={setClientPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" role="combobox" aria-expanded={clientPopoverOpen} className="w-full justify-between font-normal">
+                        {form.client_id
+                          ? eligibleClients.find((c) => c.id === form.client_id)?.company_name
+                          : "Rechercher un client..."}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Rechercher un client..." />
+                        <CommandList>
+                          <CommandEmpty>Aucun client trouvé</CommandEmpty>
+                          <CommandGroup>
+                            {eligibleClients.map((c) => (
+                              <CommandItem
+                                key={c.id}
+                                value={c.company_name}
+                                onSelect={() => {
+                                  setForm({ ...form, client_id: c.id });
+                                  setClientPopoverOpen(false);
+                                }}
+                              >
+                                <Check className={cn("mr-2 h-4 w-4", form.client_id === c.id ? "opacity-100" : "opacity-0")} />
+                                <div className="flex flex-col">
+                                  <span>{c.company_name}</span>
+                                  {c.city && <span className="text-xs text-muted-foreground">{c.city}</span>}
+                                </div>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div className="space-y-2">
                   <Label>Nom du projet *</Label>

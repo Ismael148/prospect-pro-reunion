@@ -986,6 +986,17 @@ export default function ClientDetail() {
         pack_type: client.pack_type,
         manager_name: client.manager_name,
       }} />
+      <DomainRenewalInvoice client={{
+        id: client.id,
+        company_name: client.company_name,
+        email: client.email,
+        address: client.address,
+        postal_code: client.postal_code,
+        city: client.city,
+        phone: client.phone,
+        siret: client.siret,
+        payment_method: client.payment_method,
+      }} />
       <SupportTicketsSection clientId={id!} />
       <ClientFormsSection clientId={id!} supportToken={(client as any).support_token} packType={client.pack_type ?? undefined} />
       {client.pack_type !== "star_bizness_nfc" && <SocialMediaSection clientId={id!} />}

@@ -706,14 +706,21 @@ export default function Prospection() {
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between gap-2">
-              <span>{searchResults.length} résultat(s)</span>
+              <span>
+                {searchResults.filter((r) => !r._isDuplicate).length} nouveau(x)
+                {searchResults.some((r) => r._isDuplicate) && (
+                  <span className="text-muted-foreground font-normal text-sm ml-1">
+                    · {searchResults.filter((r) => r._isDuplicate).length} déjà en base
+                  </span>
+                )}
+              </span>
               <div className="flex items-center gap-2">
                 <Badge variant="secondary" className="text-[10px]">
-                  {searchResults.filter((r) => !r.has_website && !r.website).length} sans site
+                  {searchResults.filter((r) => !r._isDuplicate && !r.has_website && !r.website).length} sans site
                 </Badge>
-                <Button size="sm" onClick={handleImportAll} disabled={createProspects.isPending} className="gap-2">
+                <Button size="sm" onClick={handleImportAll} disabled={createProspects.isPending || searchResults.every((r) => r._isDuplicate)} className="gap-2">
                   {createProspects.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
-                  Tout importer
+                  Importer les nouveaux
                 </Button>
               </div>
             </DialogTitle>

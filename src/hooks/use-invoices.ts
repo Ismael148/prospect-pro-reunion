@@ -62,17 +62,21 @@ export function useInvoicesByClient(clientId: string | undefined) {
 export function useCreateInvoice() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (invoice: Partial<Invoice>) => {
+    mutationFn: async (invoice: Partial<Invoice> & { _skipWebhook?: boolean }) => {
+      const { _skipWebhook, ...invoiceData } = invoice;
       const { data, error } = await supabase
         .from("invoices" as any)
-        .insert(invoice as any)
+        .insert(invoiceData as any)
         .select()
         .single();
       if (error) throw error;
-      return data as unknown as Invoice;
+      return { ...(data as unknown as Invoice), _skipWebhook };
     },
-    onSuccess: async (data: Invoice) => {
+    onSuccess: async (data: Invoice & { _skipWebhook?: boolean }) => {
       qc.invalidateQueries({ queryKey: ["invoices"] });
+
+      // Skip webhook for domain renewal invoices (they send their own email)
+      if (data._skipWebhook) return;
 
       // Fetch client info for PDF + links
       try {
@@ -129,7 +133,6 @@ export function useCreateInvoice() {
         });
       } catch (err) {
         console.warn('[invoice] Failed to send enriched webhook:', err);
-        // Fallback: send basic data
         triggerN8nWebhook('invoice.created', {
           invoice_number: data.invoice_number,
           total_amount: data.total_amount,

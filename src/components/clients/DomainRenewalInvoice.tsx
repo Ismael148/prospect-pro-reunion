@@ -91,7 +91,8 @@ export default function DomainRenewalInvoice({ client }: { client: ClientData })
         items: invoiceItems as any,
         notes: `Renouvellement du nom de domaine ${domainName.trim()}`,
         status: "envoyee",
-      });
+        _skipWebhook: true,
+      } as any);
 
       const pdfBase64 = exportInvoicePDF({
         invoice_number: invoice.invoice_number,

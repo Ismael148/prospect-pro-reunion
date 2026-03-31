@@ -200,6 +200,27 @@ export default function Team() {
     }
   };
 
+  const handleResetPassword = async (userId: string, name: string) => {
+    if (!newPassword.trim() || newPassword.length < 6) {
+      toast.error("Le mot de passe doit contenir au moins 6 caractères");
+      return;
+    }
+    setResetting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("reset-password", {
+        body: { user_id: userId, new_password: newPassword },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`Mot de passe de ${name} réinitialisé`);
+      setResetPasswordOpen(null);
+      setNewPassword("");
+    } catch (err: any) {
+      toast.error(err.message || "Erreur lors de la réinitialisation");
+    }
+    setResetting(false);
+  };
+
   const getInitials = (name: string | null) =>
     name ? name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) : "?";
 

@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useProject, useDeliverables } from "@/hooks/use-projects";
 import { supabase } from "@/integrations/supabase/client";
 import { triggerN8nWebhook } from "@/lib/n8n-webhook";
+import { useEmailBranding } from "@/hooks/use-email-branding";
 import { PUBLISHED_URL } from "@/lib/constants";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";

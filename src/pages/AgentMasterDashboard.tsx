@@ -24,16 +24,12 @@ const item = {
 };
 
 // IDs of agents supervised by agent_master
-const SUPERVISED_ROLES = ["agent_telephonique"];
+const SUPERVISED_ROLES: Array<"agent_telephonique"> = ["agent_telephonique"];
 
 export default function AgentMasterDashboard() {
   const { hasRole } = useAuth();
   const navigate = useNavigate();
-
-  // Only agent_master or admin can access
-  if (!hasRole("agent_master") && !hasRole("admin")) {
-    return <Navigate to="/" replace />;
-  }
+  const isAllowed = hasRole("agent_master") || hasRole("admin");
 
   // Get all agents (agent_telephonique)
   const { data: agents } = useQuery({

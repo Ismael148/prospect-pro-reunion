@@ -121,7 +121,7 @@ export default function DomainRenewalInvoice({ client }: { client: ClientData })
 
       // Use the edited body with real invoice number
       const finalBody = emailBodyOverride.replace(/FAC-XXXX/g, invoice.invoice_number);
-      const htmlContent = wrapInBrandedTemplate(finalBody);
+      const htmlContent = wrapInBrandedTemplate(finalBody, undefined, branding || undefined);
 
       const { error } = await supabase.functions.invoke("send-brevo-campaign", {
         body: {

@@ -211,12 +211,48 @@ export default function Prospection() {
   const [noteText, setNoteText] = useState("");
   const [editingProspect, setEditingProspect] = useState<any | null>(null);
   const [editForm, setEditForm] = useState({ business_name: "", phone: "", email: "", address: "", city: "", postal_code: "", sector: "", website: "", notes: "" });
+  // Compute search history from existing prospects
+  const searchHistory = useMemo(() => {
+    if (!prospects) return [];
+    const historyMap = new Map<string, { query: string; zone: string; count: number; lastDate: string }>();
+    for (const p of prospects) {
+      if (p.search_query && p.search_zone) {
+        const key = `${p.search_query.toLowerCase()}|${p.search_zone.toLowerCase()}`;
+        const existing = historyMap.get(key);
+        if (existing) {
+          existing.count++;
+          if (p.created_at > existing.lastDate) existing.lastDate = p.created_at;
+        } else {
+          historyMap.set(key, { query: p.search_query, zone: p.search_zone, count: 1, lastDate: p.created_at });
+        }
+      }
+    }
+    return Array.from(historyMap.values()).sort((a, b) => b.lastDate.localeCompare(a.lastDate));
+  }, [prospects]);
+
+  const [forceSearch, setForceSearch] = useState(false);
+
   const handleSearch = async () => {
     const query = searchQuery || customQuery;
     if (!query || !searchZone) {
       toast.error("Sélectionnez un secteur et une zone");
       return;
     }
+
+    // Check if this search was already done
+    const alreadySearched = searchHistory.find(
+      (h) => h.query.toLowerCase() === query.toLowerCase() && h.zone.toLowerCase() === searchZone.toLowerCase()
+    );
+    if (alreadySearched && !forceSearch) {
+      toast.warning(
+        `Cette recherche a déjà été effectuée (${alreadySearched.count} prospect(s) importé(s) le ${format(new Date(alreadySearched.lastDate), "dd/MM/yyyy", { locale: fr })}). Cliquez à nouveau pour forcer.`,
+        { duration: 5000 }
+      );
+      setForceSearch(true);
+      return;
+    }
+    setForceSearch(false);
+
     try {
       const results = await searchProspects.mutateAsync({ query, zone: searchZone });
       

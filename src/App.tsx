@@ -23,6 +23,7 @@ import Invoices from "./pages/Invoices";
 import Support from "./pages/Support";
 import SupportForm from "./pages/SupportForm";
 import WebmasterDashboard from "./pages/WebmasterDashboard";
+import AgentMasterDashboard from "./pages/AgentMasterDashboard";
 import MetaCallback from "./pages/MetaCallback";
 import ClientForm from "./pages/ClientForm";
 import ImportCSV from "./pages/ImportCSV";
@@ -78,6 +79,10 @@ const App = () => (
             <Route
               path="/webmaster"
               element={<ProtectedRoute><AppLayout><WebmasterDashboard /></AppLayout></ProtectedRoute>}
+            />
+            <Route
+              path="/agent-master"
+              element={<ProtectedRoute><AppLayout><AgentMasterDashboard /></AppLayout></ProtectedRoute>}
             />
             <Route
               path="/equipe"

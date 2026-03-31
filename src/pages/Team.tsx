@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Loader2, UserPlus, Shield, Phone, MapPin, Users, Copy, Check, Key, Monitor, Palette, Camera, Trash2 } from "lucide-react";
+import { Loader2, UserPlus, Shield, Phone, MapPin, Users, Copy, Check, Key, Monitor, Palette, Camera, Trash2, RotateCcw } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -34,6 +34,7 @@ interface TeamMember {
 
 const ROLE_LABELS: Record<AppRole, string> = {
   admin: "Administrateur",
+  agent_master: "Agent Master",
   agent_telephonique: "Agent téléphonique",
   commercial_terrain: "Commercial terrain",
   webmaster: "Webmaster",
@@ -42,6 +43,7 @@ const ROLE_LABELS: Record<AppRole, string> = {
 
 const ROLE_ICONS: Record<AppRole, typeof Shield> = {
   admin: Shield,
+  agent_master: Users,
   agent_telephonique: Phone,
   commercial_terrain: MapPin,
   webmaster: Monitor,
@@ -50,6 +52,7 @@ const ROLE_ICONS: Record<AppRole, typeof Shield> = {
 
 const ROLE_COLORS: Record<AppRole, string> = {
   admin: "bg-primary/10 text-primary border-primary/20",
+  agent_master: "bg-violet-100 text-violet-700 border-violet-200 dark:bg-violet-900/30 dark:text-violet-300 dark:border-violet-700",
   agent_telephonique: "bg-accent/10 text-accent-foreground border-accent/20",
   commercial_terrain: "bg-warning/10 text-warning-foreground border-warning/20",
   webmaster: "bg-info/10 text-info border-info/20",
@@ -76,6 +79,9 @@ export default function Team() {
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadTarget, setUploadTarget] = useState<string | null>(null);
+  const [resetPasswordOpen, setResetPasswordOpen] = useState<string | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [resetting, setResetting] = useState(false);
   const isAdmin = hasRole("admin");
 
   const fetchMembers = async () => {
@@ -194,6 +200,27 @@ export default function Team() {
     }
   };
 
+  const handleResetPassword = async (userId: string, name: string) => {
+    if (!newPassword.trim() || newPassword.length < 6) {
+      toast.error("Le mot de passe doit contenir au moins 6 caractères");
+      return;
+    }
+    setResetting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("reset-password", {
+        body: { user_id: userId, new_password: newPassword },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`Mot de passe de ${name} réinitialisé`);
+      setResetPasswordOpen(null);
+      setNewPassword("");
+    } catch (err: any) {
+      toast.error(err.message || "Erreur lors de la réinitialisation");
+    }
+    setResetting(false);
+  };
+
   const getInitials = (name: string | null) =>
     name ? name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) : "?";
 
@@ -272,6 +299,7 @@ export default function Team() {
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="admin">Administrateur</SelectItem>
+                      <SelectItem value="agent_master">Agent Master</SelectItem>
                       <SelectItem value="agent_telephonique">Agent téléphonique</SelectItem>
                       <SelectItem value="commercial_terrain">Commercial terrain</SelectItem>
                       <SelectItem value="webmaster">Webmaster</SelectItem>
@@ -379,12 +407,39 @@ export default function Team() {
                               <SelectTrigger className="w-[180px]"><SelectValue placeholder="Changer le rôle" /></SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="admin">Administrateur</SelectItem>
+                                <SelectItem value="agent_master">Agent Master</SelectItem>
                                 <SelectItem value="agent_telephonique">Agent téléphonique</SelectItem>
                                 <SelectItem value="commercial_terrain">Commercial terrain</SelectItem>
                                 <SelectItem value="webmaster">Webmaster</SelectItem>
                                 <SelectItem value="designer">Designer</SelectItem>
                               </SelectContent>
                             </Select>
+                            {/* Reset Password */}
+                            <Dialog open={resetPasswordOpen === member.user_id} onOpenChange={(open) => { if (!open) { setResetPasswordOpen(null); setNewPassword(""); } else setResetPasswordOpen(member.user_id); }}>
+                              <DialogTrigger asChild>
+                                <Button variant="ghost" size="icon" title="Réinitialiser le mot de passe" className="hover:bg-amber-100 hover:text-amber-700">
+                                  <RotateCcw className="w-4 h-4" />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle className="flex items-center gap-2"><Key className="w-5 h-5" /> Réinitialiser le mot de passe</DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-4 mt-2">
+                                  <p className="text-sm text-muted-foreground">
+                                    Nouveau mot de passe pour <span className="font-semibold text-foreground">{member.full_name}</span>
+                                  </p>
+                                  <div className="space-y-2">
+                                    <Label>Nouveau mot de passe</Label>
+                                    <Input type="text" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Min. 6 caractères" />
+                                  </div>
+                                  <Button onClick={() => handleResetPassword(member.user_id, member.full_name || "Ce membre")} disabled={resetting || newPassword.length < 6} className="w-full">
+                                    {resetting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                                    Réinitialiser
+                                  </Button>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10">

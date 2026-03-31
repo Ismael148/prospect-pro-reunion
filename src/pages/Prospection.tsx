@@ -644,7 +644,7 @@ export default function Prospection() {
                     {SECTORS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <Input placeholder="Ou secteur personnalisé..." value={customQuery} onChange={(e) => { setCustomQuery(e.target.value); setSearchQuery(""); }} className="h-9 text-sm" />
+                <Input placeholder="Ou secteur personnalisé..." value={customQuery} onChange={(e) => { setCustomQuery(e.target.value); setSearchQuery(""); setForceSearch(false); }} className="h-9 text-sm" />
               </div>
               <div className="space-y-2">
                 <Label className="text-xs">Zone</Label>

@@ -81,6 +81,10 @@ const App = () => (
               element={<ProtectedRoute><AppLayout><WebmasterDashboard /></AppLayout></ProtectedRoute>}
             />
             <Route
+              path="/agent-master"
+              element={<ProtectedRoute><AppLayout><AgentMasterDashboard /></AppLayout></ProtectedRoute>}
+            />
+            <Route
               path="/equipe"
               element={<ProtectedRoute><AppLayout><Team /></AppLayout></ProtectedRoute>}
             />

@@ -95,7 +95,8 @@ export default function Clients() {
     const s = search.toLowerCase();
     const matchSearch = !s || c.company_name.toLowerCase().includes(s) ||
       c.city?.toLowerCase().includes(s) || c.sector?.toLowerCase().includes(s) ||
-      c.phone?.toLowerCase().includes(s) || c.email?.toLowerCase().includes(s);
+      c.phone?.toLowerCase().includes(s) || c.email?.toLowerCase().includes(s) ||
+      c.manager_name?.toLowerCase().includes(s);
     const matchStatus = filterStatus === "all" || c.pipeline_status === filterStatus;
     const matchPack = filterPack === "all" || c.pack_type === filterPack;
     const matchCity = filterCity === "all" || c.city === filterCity;

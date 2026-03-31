@@ -204,8 +204,11 @@ function EditClientDialog({ client, onSave, salesTeam }: { client: any; onSave: 
                 <SelectTrigger><SelectValue placeholder="— Aucun —" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">— Aucun —</SelectItem>
+                  {salesTeam?.commercials?.map((c) => (
+                    <SelectItem key={c.user_id} value={c.user_id}>{c.full_name || "Sans nom"}</SelectItem>
+                  ))}
                   {salesTeam?.externalCommercials?.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
+                    <SelectItem key={c.id} value={c.id}>{c.full_name} (externe)</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -232,7 +235,8 @@ function ClientInfoSection({ client, salesTeam }: { client: any; salesTeam?: { a
     cb: "Carte bancaire", prelevement: "Prélèvement",
   };
 
-  const signedByName = salesTeam?.externalCommercials?.find((c: any) => c.id === (client as any).signed_by_commercial)?.full_name
+  const signedByName = salesTeam?.commercials?.find((c) => c.user_id === (client as any).signed_by_commercial)?.full_name
+    || salesTeam?.externalCommercials?.find((c: any) => c.id === (client as any).signed_by_commercial)?.full_name
     || salesTeam?.commercials.find((c) => c.user_id === client.signed_by)?.full_name;
   const assignedToName = salesTeam?.agents.find((a) => a.user_id === client.assigned_to)?.full_name
     || salesTeam?.commercials.find((c) => c.user_id === client.assigned_to)?.full_name;

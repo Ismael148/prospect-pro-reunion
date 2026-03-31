@@ -523,6 +523,60 @@ export default function NfcClients() {
           ))}
         </div>
       )}
+
+      {/* New Client Dialog */}
+      <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Nouveau client NFC</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-3 py-2">
+            <div>
+              <Label>Entreprise *</Label>
+              <Input value={newClient.company_name} onChange={e => setNewClient(p => ({ ...p, company_name: e.target.value }))} placeholder="Nom de l'entreprise" />
+            </div>
+            <div>
+              <Label>Gérant</Label>
+              <Input value={newClient.manager_name} onChange={e => setNewClient(p => ({ ...p, manager_name: e.target.value }))} placeholder="Nom du gérant" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Téléphone</Label>
+                <Input value={newClient.phone} onChange={e => setNewClient(p => ({ ...p, phone: e.target.value }))} placeholder="0692..." />
+              </div>
+              <div>
+                <Label>Email</Label>
+                <Input value={newClient.email} onChange={e => setNewClient(p => ({ ...p, email: e.target.value }))} placeholder="email@exemple.com" />
+              </div>
+            </div>
+            <div>
+              <Label>Adresse</Label>
+              <Input value={newClient.address} onChange={e => setNewClient(p => ({ ...p, address: e.target.value }))} placeholder="Adresse" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Ville</Label>
+                <Input value={newClient.city} onChange={e => setNewClient(p => ({ ...p, city: e.target.value }))} placeholder="Ville" />
+              </div>
+              <div>
+                <Label>Code postal</Label>
+                <Input value={newClient.postal_code} onChange={e => setNewClient(p => ({ ...p, postal_code: e.target.value }))} placeholder="97400" />
+              </div>
+            </div>
+            <div>
+              <Label>Nombre de cartes NFC</Label>
+              <Input type="number" min="1" value={newClient.nfc_quantity} onChange={e => setNewClient(p => ({ ...p, nfc_quantity: e.target.value }))} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNewDialog(false)}>Annuler</Button>
+            <Button onClick={handleCreateNfc} disabled={creating}>
+              {creating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
+              Créer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

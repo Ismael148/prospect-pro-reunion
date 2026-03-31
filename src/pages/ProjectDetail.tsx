@@ -103,11 +103,18 @@ export default function ProjectDetail() {
   const handleTaskStatusChange = async (taskId: string, status: TaskStatus) => {
     try {
       await updateTask.mutateAsync({ id: taskId, status });
+      // Calculate new progress
       const updatedTasks = tasks?.map((t) => t.id === taskId ? { ...t, status } : t) || [];
       const done = updatedTasks.filter((t) => t.status === "termine").length;
       const progress = updatedTasks.length > 0 ? Math.round((done / updatedTasks.length) * 100) : 0;
-      await updateProject.mutateAsync({ id: id!, progress });
-    } catch { toast.error("Erreur"); }
+      // Try to update project progress — may fail for non-admin/non-assigned users (RLS)
+      try {
+        await updateProject.mutateAsync({ id: id!, progress });
+      } catch {
+        // Silently ignore — progress will be recalculated by admin or project owner
+      }
+      toast.success("Tâche mise à jour");
+    } catch { toast.error("Erreur lors de la mise à jour de la tâche"); }
   };
 
   const handleModuleLinkUpdate = async (moduleId: string, linkUrl: string) => {

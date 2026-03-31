@@ -94,7 +94,7 @@ export function useSalesTeam() {
       const { data: roles, error: rolesError } = await supabase
         .from("user_roles")
         .select("user_id, role")
-        .in("role", ["agent_telephonique", "commercial_terrain"]);
+        .in("role", ["agent_telephonique", "agent_master", "commercial_terrain"]);
       if (rolesError) throw rolesError;
       if (!roles?.length) return { agents: [] as Commercial[], commercials: [] as Commercial[], externalCommercials: [] as ExternalCommercial[] };
 

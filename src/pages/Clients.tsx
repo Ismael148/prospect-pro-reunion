@@ -43,7 +43,7 @@ export default function Clients() {
     company_name: "", phone: "", email: "", address: "", city: "",
     postal_code: "", sector: "", website: "", notes: "",
     pack_type: "" as PackType | "", payment_method: "", signature_date: "",
-    signed_by: "", assigned_to: "",
+    signed_by_commercial: "", assigned_to: "",
   });
 
   const packAmount = form.pack_type ? PACK_PRICES[form.pack_type] || 0 : 0;
@@ -57,9 +57,10 @@ export default function Clients() {
   const teamMembers = useMemo(() => {
     const map = new Map<string, string>();
     agents?.forEach(a => map.set(a.user_id, a.full_name || "Sans nom"));
-    commercials?.forEach(c => map.set(c.user_id, c.full_name || "Sans nom"));
+    allCommercials?.internal?.forEach(c => map.set(c.user_id, c.full_name || "Sans nom"));
+    allCommercials?.external?.forEach(c => map.set(`ext_${c.id}`, c.full_name));
     return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
-  }, [agents, commercials]);
+  }, [agents, allCommercials]);
 
   const activeFilterCount = [filterStatus, filterPack, filterCity, filterAgent].filter(f => f !== "all").length;
 
@@ -75,13 +76,13 @@ export default function Clients() {
         pack_type: form.pack_type || null, pack_amount: packAmount || null,
         payment_method: form.payment_method || null,
         signature_date: form.signature_date || null,
-        signed_by: form.signed_by || null,
+        signed_by_commercial: form.signed_by_commercial || null,
         assigned_to: form.assigned_to || user!.id,
         created_by: user!.id,
       } as any);
       toast.success("Client créé");
       setOpen(false);
-      setForm({ company_name: "", phone: "", email: "", address: "", city: "", postal_code: "", sector: "", website: "", notes: "", pack_type: "", payment_method: "", signature_date: "", signed_by: "", assigned_to: "" });
+      setForm({ company_name: "", phone: "", email: "", address: "", city: "", postal_code: "", sector: "", website: "", notes: "", pack_type: "", payment_method: "", signature_date: "", signed_by_commercial: "", assigned_to: "" });
     } catch { toast.error("Erreur"); }
   };
 

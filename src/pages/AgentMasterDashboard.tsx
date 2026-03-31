@@ -96,6 +96,8 @@ export default function AgentMasterDashboard() {
     enabled: agentIds.length > 0,
   });
 
+  if (!isAllowed) return <Navigate to="/" replace />;
+
   const getAgentName = (userId: string) =>
     agents?.find((a) => a.user_id === userId)?.full_name || "Inconnu";
 

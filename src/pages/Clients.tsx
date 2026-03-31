@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useClients, useCreateClient } from "@/hooks/use-clients";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAllCommercials } from "@/hooks/use-commercials";
 import { useAgents } from "@/hooks/use-agents";
@@ -18,7 +20,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Plus, Search, Building2, MapPin, Loader2, Filter, X } from "lucide-react";
+import { Plus, Search, Building2, MapPin, Loader2, Filter, X, Mail } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -62,6 +64,28 @@ export default function Clients() {
   }, [agents, allCommercials]);
 
   const activeFilterCount = [filterStatus, filterPack, filterCity, filterAgent].filter(f => f !== "all").length;
+
+  // Fetch emails sent per client email
+  const { data: emailLogs } = useQuery({
+    queryKey: ["client-email-logs-summary"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("email_send_log")
+        .select("recipient_email");
+      if (error) throw error;
+      const counts = new Map<string, number>();
+      data?.forEach((log) => {
+        const email = log.recipient_email?.toLowerCase();
+        if (email) counts.set(email, (counts.get(email) || 0) + 1);
+      });
+      return counts;
+    },
+  });
+
+  const getEmailCount = (clientEmail: string | null) => {
+    if (!clientEmail || !emailLogs) return 0;
+    return emailLogs.get(clientEmail.toLowerCase()) || 0;
+  };
 
   const handleCreate = async () => {
     if (!form.company_name.trim()) { toast.error("Le nom de l'entreprise est requis"); return; }
@@ -279,6 +303,11 @@ export default function Clients() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
+                    {getEmailCount(client.email) > 0 && (
+                      <Badge className="bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700 text-[10px] gap-1" variant="outline">
+                        <Mail className="w-3 h-3" /> {getEmailCount(client.email)}
+                      </Badge>
+                    )}
                     {client.pack_type && (<Badge variant="secondary" className="text-[10px] font-medium">{PACK_LABELS[client.pack_type]}</Badge>)}
                     <Badge className={`text-[10px] border ${PIPELINE_COLORS[client.pipeline_status]}`} variant="outline">{PIPELINE_LABELS[client.pipeline_status]}</Badge>
                   </div>

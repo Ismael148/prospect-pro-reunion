@@ -972,6 +972,20 @@ export default function ClientDetail() {
   const createActivity = useCreateActivity();
   const { hasRole } = useAuth();
 
+  // Check if emails have been sent to this client
+  const { data: emailCount } = useQuery({
+    queryKey: ["client-email-count", id],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("email_send_log")
+        .select("*", { count: "exact", head: true })
+        .or(`recipient_email.eq.${client?.email},metadata->>client_id.eq.${id}`);
+      if (error) throw error;
+      return count || 0;
+    },
+    enabled: !!id && !!client,
+  });
+
   const handleDelete = async () => {
     try {
       await deleteClient.mutateAsync(id!);
@@ -1025,6 +1039,15 @@ export default function ClientDetail() {
             {client.city && <span className="text-muted-foreground text-sm">{client.city}</span>}
             {contactName && <span className="text-muted-foreground text-sm">• Resp: {contactName}</span>}
             {client.pack_type && <Badge variant="secondary" className="text-xs">{PACK_LABELS[client.pack_type]}</Badge>}
+            {emailCount && emailCount > 0 ? (
+              <Badge className="bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700 text-[10px] gap-1" variant="outline">
+                <Mail className="w-3 h-3" /> {emailCount} email{emailCount > 1 ? "s" : ""} envoyé{emailCount > 1 ? "s" : ""}
+              </Badge>
+            ) : (
+              <Badge className="bg-muted text-muted-foreground border-border text-[10px] gap-1" variant="outline">
+                <Mail className="w-3 h-3" /> Aucun email
+              </Badge>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">

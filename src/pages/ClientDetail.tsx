@@ -609,6 +609,9 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
                   @{m.full_name?.split(" ")[0] || "?"}
                 </Button>
               ))}
+              <Button variant="outline" size="sm" className="text-xs h-7 px-2 text-green-600 border-green-200 hover:bg-green-50" onClick={() => setNote((prev) => prev + "#resolu ")}>
+                <CheckCircle2 className="w-3 h-3 mr-1" /> #resolu
+              </Button>
             </div>
             <Button size="sm" onClick={handleAddNote} disabled={createActivity.isPending || !note.trim()}>
               {createActivity.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}

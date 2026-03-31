@@ -169,9 +169,12 @@ export default function Clients() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Commercial signataire</Label>
-                  <Select value={form.signed_by} onValueChange={(v) => setForm({ ...form, signed_by: v })}>
+                  <Select value={form.signed_by_commercial} onValueChange={(v) => setForm({ ...form, signed_by_commercial: v })}>
                     <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
-                    <SelectContent>{commercials?.map((c) => (<SelectItem key={c.user_id} value={c.user_id}>{c.full_name || "Sans nom"}</SelectItem>))}</SelectContent>
+                    <SelectContent>
+                      {allCommercials?.external?.map((c) => (<SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>))}
+                      {allCommercials?.internal?.map((c) => (<SelectItem key={c.user_id} value={c.user_id}>{c.full_name || "Sans nom"}</SelectItem>))}
+                    </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">

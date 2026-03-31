@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
-  Mail, Send, Loader2, Ticket, CreditCard, Globe, Eye, Pencil,
+  Mail, Send, Loader2, Ticket, CreditCard, Globe, Eye, Pencil, Sparkles,
 } from "lucide-react";
 import DOMPurify from "dompurify";
 
@@ -61,6 +61,8 @@ interface ClientData {
   support_token: string | null;
   pack_type: string | null;
   manager_name: string | null;
+  sector?: string | null;
+  website?: string | null;
 }
 
 function makeCta(text: string, url: string) {
@@ -110,7 +112,7 @@ ${makeCta('📋 Accéder à mon espace support', supportLink)}
   <li>Toute information spécifique à afficher</li>
 </ul>
 ${makeCta('💳 Remplir le formulaire NFC', nfcFormLink)}
-<p style="margin:0 0 20px">⏱ <strong>Durée estimée : 5 minutes.</strong> Plus vite nous recevrons vos informations, plus vite votre carte sera prête !</p>
+<p style="margin:0 0 20px">⏱ <strong>Durée estimée : 5 minutes.</strong></p>
 <p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
     },
     {
@@ -130,7 +132,7 @@ ${makeCta('💳 Remplir le formulaire NFC', nfcFormLink)}
   <li>Vos comptes réseaux sociaux</li>
 </ul>
 ${makeCta('🌐 Remplir le formulaire site', siteFormLink)}
-<p style="margin:0 0 20px">⏱ <strong>Durée estimée : 10 minutes.</strong> Ces informations sont essentielles pour commencer votre projet dans les meilleurs délais.</p>
+<p style="margin:0 0 20px">⏱ <strong>Durée estimée : 10 minutes.</strong></p>
 <p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
     },
   ];
@@ -146,6 +148,7 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
   const [customSubject, setCustomSubject] = useState("");
   const [editableBody, setEditableBody] = useState("");
   const [activeTab, setActiveTab] = useState<string>("preview");
+  const [generatingAI, setGeneratingAI] = useState(false);
 
   const supportLink = client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined;
 
@@ -164,6 +167,31 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
     setEditableBody(action.bodyFn(client));
     setActiveTab("preview");
     setPreviewAction(action);
+  };
+
+  const handleGenerateAI = async () => {
+    setGeneratingAI(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-client-email", {
+        body: {
+          company_name: client.company_name,
+          sector: client.sector || "",
+          pack_type: client.pack_type || "",
+          manager_name: client.manager_name || "",
+          context: previewAction?.id || "custom",
+          current_subject: customSubject,
+        },
+      });
+      if (error) throw error;
+      if (data?.subject) setCustomSubject(data.subject);
+      if (data?.body) setEditableBody(data.body);
+      setActiveTab("preview");
+      toast.success("Email généré par IA !");
+    } catch (e: any) {
+      toast.error(e.message || "Erreur IA");
+    } finally {
+      setGeneratingAI(false);
+    }
   };
 
   const handleSend = async () => {
@@ -205,7 +233,7 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {actions.map((action) => (
               <div key={action.id} className="flex flex-col gap-2 p-3 rounded-lg bg-muted/30">
                 <div className="flex items-center gap-2">
@@ -221,6 +249,33 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
                 </Button>
               </div>
             ))}
+            {/* AI Custom email */}
+            <div className="flex flex-col gap-2 p-3 rounded-lg bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium">Email IA personnalisé</span>
+              </div>
+              <Button
+                size="sm"
+                variant="secondary"
+                className="w-full"
+                onClick={() => {
+                  setCustomSubject(`Message pour ${client.company_name}`);
+                  setEditableBody("");
+                  setActiveTab("edit");
+                  setPreviewAction({
+                    id: "ai_custom",
+                    label: "Email IA personnalisé",
+                    icon: <Sparkles className="w-4 h-4" />,
+                    subject: `Message pour ${client.company_name}`,
+                    bodyFn: () => "",
+                    trigger: "custom_ai",
+                  });
+                }}
+              >
+                <Sparkles className="w-3.5 h-3.5 mr-1" /> Générer avec l'IA
+              </Button>
+            </div>
           </div>
           <p className="text-xs text-muted-foreground mt-3">
             📧 Destinataire : <strong>{client.email}</strong>
@@ -247,6 +302,18 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
                 onChange={(e) => setCustomSubject(e.target.value)}
               />
             </div>
+
+            {/* AI Generate Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleGenerateAI}
+              disabled={generatingAI}
+              className="gap-1.5 border-primary/30 text-primary hover:bg-primary/5"
+            >
+              {generatingAI ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+              {generatingAI ? "Génération en cours..." : "Générer le contenu par IA"}
+            </Button>
 
             {/* Tabs: Edit / Preview */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>

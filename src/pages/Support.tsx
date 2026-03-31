@@ -19,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
   Loader2, Search, LifeBuoy, Clock, CheckCircle, AlertCircle, XCircle,
-  MessageSquare, ExternalLink, Copy, UserPlus,
+  MessageSquare, ExternalLink, Copy, UserPlus, Tag, AlertTriangle,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -54,6 +54,12 @@ const STATUS_ICONS: Record<string, typeof Clock> = {
   ferme: XCircle,
 };
 
+const PRIORITY_OPTIONS = [
+  { value: "normale", label: "Normale", color: "bg-secondary text-secondary-foreground" },
+  { value: "haute", label: "Haute", color: "bg-chart-4/10 text-chart-4 border-chart-4/20" },
+  { value: "urgente", label: "Urgente", color: "bg-destructive/10 text-destructive border-destructive/20" },
+];
+
 export default function Support() {
   const { user, hasRole } = useAuth();
   const isAdmin = hasRole("admin");
@@ -62,6 +68,7 @@ export default function Support() {
   const updateTicket = useUpdateTicket();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [filterPriority, setFilterPriority] = useState("all");
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const [adminNotes, setAdminNotes] = useState("");
   const [teamMembers, setTeamMembers] = useState<{ user_id: string; full_name: string; role: string }[]>([]);
@@ -78,7 +85,6 @@ export default function Support() {
         full_name: profiles?.find((p) => p.user_id === r.user_id)?.full_name || r.user_id,
         role: r.role,
       }));
-      // Deduplicate by user_id
       const unique = Array.from(new Map(members.map((m) => [m.user_id, m])).values());
       setTeamMembers(unique);
     })();
@@ -94,7 +100,6 @@ export default function Support() {
       await updateTicket.mutateAsync({ id: ticketId, assigned_to: assignedTo } as any);
       if (assignedTo) {
         const memberName = getAssigneeName(assignedTo);
-        // Create notification for assigned member
         await supabase.from("notifications").insert({
           user_id: assignedTo,
           title: "Ticket support assigné",
@@ -110,6 +115,16 @@ export default function Support() {
       }
     } catch {
       toast.error("Erreur d'assignation");
+    }
+  };
+
+  const handlePriorityChange = async (ticketId: string, priority: string) => {
+    try {
+      await updateTicket.mutateAsync({ id: ticketId, priority } as any);
+      toast.success(`Priorité mise à jour : ${PRIORITY_OPTIONS.find(p => p.value === priority)?.label}`);
+      setSelectedTicket((prev: any) => prev ? { ...prev, priority } : null);
+    } catch {
+      toast.error("Erreur");
     }
   };
 
@@ -129,9 +144,10 @@ export default function Support() {
         t.ticket_number.toLowerCase().includes(search.toLowerCase()) ||
         getClientName(t.client_id).toLowerCase().includes(search.toLowerCase());
       const matchStatus = filterStatus === "all" || t.status === filterStatus;
-      return matchSearch && matchStatus;
+      const matchPriority = filterPriority === "all" || t.priority === filterPriority;
+      return matchSearch && matchStatus && matchPriority;
     });
-  }, [tickets, search, filterStatus, clients]);
+  }, [tickets, search, filterStatus, filterPriority, clients]);
 
   const stats = useMemo(() => {
     if (!tickets) return { ouvert: 0, en_cours: 0, resolu: 0, ferme: 0 };
@@ -171,6 +187,17 @@ export default function Support() {
   const copyLink = (link: string) => {
     navigator.clipboard.writeText(link);
     toast.success("Lien copié !");
+  };
+
+  const getPriorityBadge = (priority: string) => {
+    const opt = PRIORITY_OPTIONS.find(p => p.value === priority);
+    if (!opt || priority === "normale") return null;
+    return (
+      <Badge variant="outline" className={`text-[10px] ${opt.color}`}>
+        {priority === "urgente" && <AlertTriangle className="w-3 h-3 mr-0.5" />}
+        {opt.label}
+      </Badge>
+    );
   };
 
   return (
@@ -235,17 +262,28 @@ export default function Support() {
       )}
 
       {/* Filters */}
-      <div className="flex gap-3">
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex flex-wrap gap-3">
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input className="pl-10" placeholder="Rechercher..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
           <SelectTrigger className="w-40"><SelectValue placeholder="Statut" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous</SelectItem>
+            <SelectItem value="all">Tous les statuts</SelectItem>
             {Object.entries(STATUS_LABELS).map(([k, v]) => (
               <SelectItem key={k} value={k}>{v}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={filterPriority} onValueChange={setFilterPriority}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Priorité" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Toutes priorités</SelectItem>
+            {PRIORITY_OPTIONS.map((p) => (
+              <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -276,12 +314,13 @@ export default function Support() {
                       <Icon className={`w-4 h-4 ${STATUS_COLORS[ticket.status].split(" ")[1]}`} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-[10px] font-mono text-muted-foreground">{ticket.ticket_number}</span>
                         <Badge variant="outline" className="text-[10px]">
                           {CATEGORY_LABELS[ticket.category] || ticket.category}
                         </Badge>
-                        {ticket.priority === "urgente" && (
+                        {getPriorityBadge(ticket.priority)}
+                        {ticket.priority === "urgente" && !getPriorityBadge(ticket.priority) && (
                           <Badge variant="destructive" className="text-[10px]">Urgent</Badge>
                         )}
                       </div>
@@ -308,11 +347,12 @@ export default function Support() {
           {selectedTicket && (
             <>
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
+                <DialogTitle className="flex items-center gap-2 flex-wrap">
                   <span className="font-mono text-sm text-muted-foreground">{selectedTicket.ticket_number}</span>
                   <Badge variant="outline" className={`text-[10px] ${STATUS_COLORS[selectedTicket.status]}`}>
                     {STATUS_LABELS[selectedTicket.status]}
                   </Badge>
+                  {getPriorityBadge(selectedTicket.priority)}
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
@@ -323,13 +363,34 @@ export default function Support() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Catégorie</p>
-                    <p className="text-sm">{CATEGORY_LABELS[selectedTicket.category] || selectedTicket.category}</p>
+                    <Badge variant="outline" className="text-[10px] mt-1">
+                      <Tag className="w-3 h-3 mr-1" />
+                      {CATEGORY_LABELS[selectedTicket.category] || selectedTicket.category}
+                    </Badge>
                   </div>
                   <div>
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Priorité</p>
-                    <Badge variant={selectedTicket.priority === "urgente" ? "destructive" : "secondary"} className="text-[10px]">
-                      {selectedTicket.priority === "urgente" ? "Urgente" : "Normale"}
-                    </Badge>
+                    {isAdmin ? (
+                      <Select
+                        value={selectedTicket.priority}
+                        onValueChange={(v) => handlePriorityChange(selectedTicket.id, v)}
+                      >
+                        <SelectTrigger className="w-full h-8 mt-1 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PRIORITY_OPTIONS.map((p) => (
+                            <SelectItem key={p.value} value={p.value}>
+                              {p.value === "urgente" && "🔥 "}{p.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Badge variant={selectedTicket.priority === "urgente" ? "destructive" : "secondary"} className="text-[10px] mt-1">
+                        {selectedTicket.priority === "urgente" ? "🔥 Urgente" : selectedTicket.priority === "haute" ? "Haute" : "Normale"}
+                      </Badge>
+                    )}
                   </div>
                 </div>
                 <div>
@@ -340,6 +401,18 @@ export default function Support() {
                   <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Message</p>
                   <p className="text-sm whitespace-pre-wrap bg-muted/30 p-3 rounded-lg">{selectedTicket.message}</p>
                 </div>
+                {selectedTicket.attachments?.length > 0 && (
+                  <div>
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Pièces jointes</p>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedTicket.attachments.map((a: string, i: number) => (
+                        <a key={i} href={a} target="_blank" rel="noopener" className="text-xs text-primary underline truncate max-w-[200px]">
+                          {a.includes("http") ? `Fichier ${i + 1}` : a}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div>
                   <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Date</p>
                   <p className="text-sm">
@@ -350,7 +423,7 @@ export default function Support() {
                 </div>
 
                 {/* Assigned to */}
-                {selectedTicket.assigned_to && (
+                {selectedTicket.assigned_to && !isAdmin && (
                   <div>
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Assigné à</p>
                     <Badge variant="secondary" className="mt-1 gap-1">

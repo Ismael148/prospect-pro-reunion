@@ -5,6 +5,7 @@ type WebhookEvent =
   | "invoice.created"
   | "support.created"
   | "support.resolved"
+  | "support.response"
   | "project.progress"
   | "prospect.rdv_planifie"
   | "design.sent";

@@ -196,7 +196,7 @@ function EditClientDialog({ client, onSave }: { client: any; onSave: (updates: a
 }
 
 // ============ Client Info Section ============
-function ClientInfoSection({ client, salesTeam }: { client: any; salesTeam?: { agents: any[]; commercials: any[] } }) {
+function ClientInfoSection({ client, salesTeam }: { client: any; salesTeam?: { agents: any[]; commercials: any[]; externalCommercials?: any[] } }) {
   const PAYMENT_LABELS: Record<string, string> = {
     especes: "Espèces", virement: "Virement bancaire", cheque: "Chèque",
     cb: "Carte bancaire", prelevement: "Prélèvement",

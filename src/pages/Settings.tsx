@@ -32,6 +32,44 @@ export default function Settings() {
   const [newPassword, setNewPassword] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
 
+  // Email branding
+  const isAdmin = roles.includes("admin");
+  const { data: emailBranding } = useEmailBranding();
+  const updateBranding = useUpdateEmailBranding();
+  const [brandingForm, setBrandingForm] = useState<Record<string, string>>({});
+  const [savingBranding, setSavingBranding] = useState(false);
+  const [showEmailPreview, setShowEmailPreview] = useState(false);
+
+  useEffect(() => {
+    if (emailBranding) {
+      setBrandingForm({
+        logo_url: emailBranding.logo_url,
+        slogan: emailBranding.slogan,
+        brand_color: emailBranding.brand_color,
+        footer_company: emailBranding.footer_company,
+        footer_tagline: emailBranding.footer_tagline,
+        footer_phone: emailBranding.footer_phone,
+        footer_copyright: emailBranding.footer_copyright,
+        support_cta_title: emailBranding.support_cta_title,
+        support_cta_text: emailBranding.support_cta_text,
+        support_cta_button: emailBranding.support_cta_button,
+      });
+    }
+  }, [emailBranding]);
+
+  const handleSaveBranding = async () => {
+    if (!emailBranding) return;
+    setSavingBranding(true);
+    try {
+      await updateBranding.mutateAsync({ id: emailBranding.id, ...brandingForm } as any);
+      toast.success("Branding email mis à jour !");
+    } catch {
+      toast.error("Erreur");
+    } finally {
+      setSavingBranding(false);
+    }
+  };
+
   const initials = fullName
     ? fullName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
     : "?";

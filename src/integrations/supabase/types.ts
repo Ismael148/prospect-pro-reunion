@@ -363,6 +363,54 @@ export type Database = {
           },
         ]
       }
+      email_branding: {
+        Row: {
+          brand_color: string
+          footer_company: string
+          footer_copyright: string
+          footer_phone: string
+          footer_tagline: string
+          id: string
+          logo_url: string
+          slogan: string
+          support_cta_button: string
+          support_cta_text: string
+          support_cta_title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          brand_color?: string
+          footer_company?: string
+          footer_copyright?: string
+          footer_phone?: string
+          footer_tagline?: string
+          id?: string
+          logo_url?: string
+          slogan?: string
+          support_cta_button?: string
+          support_cta_text?: string
+          support_cta_title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          brand_color?: string
+          footer_company?: string
+          footer_copyright?: string
+          footer_phone?: string
+          footer_tagline?: string
+          id?: string
+          logo_url?: string
+          slogan?: string
+          support_cta_button?: string
+          support_cta_text?: string
+          support_cta_title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           campaign_name: string | null

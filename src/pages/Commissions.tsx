@@ -290,14 +290,14 @@ export default function Commissions() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className={`grid grid-cols-2 ${isAgentOnly ? "lg:grid-cols-2" : "lg:grid-cols-4"} gap-4`}>
         <Card className="border-0 shadow-soft">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-primary/10"><Euro className="w-5 h-5 text-primary" /></div>
               <div>
-                <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Total mois</p>
-                <p className="text-xl font-bold">{totalAll.toFixed(2)} €</p>
+                <p className="text-[11px] text-muted-foreground uppercase tracking-wider">{isAgentOnly ? "Mes commissions" : "Total mois"}</p>
+                <p className="text-xl font-bold">{isAgentOnly ? totalAgent.toFixed(2) : totalAll.toFixed(2)} €</p>
               </div>
             </div>
           </CardContent>
@@ -307,34 +307,38 @@ export default function Commissions() {
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-success/10"><CheckCircle className="w-5 h-5 text-success" /></div>
               <div>
-                <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Payé</p>
-                <p className="text-xl font-bold">{totalPaid.toFixed(2)} €</p>
+                <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Contrats</p>
+                <p className="text-xl font-bold">{isAgentOnly ? agentCommissions.filter(c => c.pack_type !== "nfc_bonus").length : (commissions?.length || 0)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="border-0 shadow-soft">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-warning/10"><Clock className="w-5 h-5 text-warning" /></div>
-              <div>
-                <p className="text-[11px] text-muted-foreground uppercase tracking-wider">En attente</p>
-                <p className="text-xl font-bold">{totalPending.toFixed(2)} €</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-0 shadow-soft">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-accent/10"><Users className="w-5 h-5 text-accent-foreground" /></div>
-              <div>
-                <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Bénéficiaires</p>
-                <p className="text-xl font-bold">{new Set((commissions || []).map((c) => c.user_id)).size}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {!isAgentOnly && (
+          <>
+            <Card className="border-0 shadow-soft">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-warning/10"><Clock className="w-5 h-5 text-warning" /></div>
+                  <div>
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider">En attente</p>
+                    <p className="text-xl font-bold">{totalPending.toFixed(2)} €</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-0 shadow-soft">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-accent/10"><Users className="w-5 h-5 text-accent-foreground" /></div>
+                  <div>
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Bénéficiaires</p>
+                    <p className="text-xl font-bold">{new Set((commissions || []).map((c) => c.user_id)).size}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
       {isLoading ? (

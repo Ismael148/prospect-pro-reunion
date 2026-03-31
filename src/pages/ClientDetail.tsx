@@ -33,6 +33,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import SocialMediaSection from "@/components/clients/SocialMediaSection";
 import ClientEmailActions from "@/components/clients/ClientEmailActions";
+import DomainRenewalInvoice from "@/components/clients/DomainRenewalInvoice";
 import { useClientForms, useValidateForm, ClientFormData } from "@/hooks/use-client-forms";
 
 type PipelineStatus = Database["public"]["Enums"]["pipeline_status"];

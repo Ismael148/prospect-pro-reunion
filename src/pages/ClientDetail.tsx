@@ -70,24 +70,25 @@ function EditClientDialog({ client, onSave, salesTeam }: { client: any; onSave: 
     try {
       // Only send writable fields with proper types — avoid sending empty strings
       const updates: Record<string, any> = {};
-      if (form.company_name) updates.company_name = form.company_name;
-      if (form.manager_name !== undefined) updates.manager_name = form.manager_name || null;
-      if (form.phone !== undefined) updates.phone = form.phone || null;
-      if (form.email !== undefined) updates.email = form.email || null;
-      if (form.website !== undefined) updates.website = form.website || null;
-      if (form.address !== undefined) updates.address = form.address || null;
-      if (form.city !== undefined) updates.city = form.city || null;
-      if (form.postal_code !== undefined) updates.postal_code = form.postal_code || null;
-      if (form.sector !== undefined) updates.sector = form.sector || null;
-      if (form.siret !== undefined) updates.siret = form.siret || null;
-      if (form.notes !== undefined) updates.notes = form.notes || null;
+      if (form.company_name) updates.company_name = form.company_name.trim();
+      if (form.manager_name !== undefined) updates.manager_name = form.manager_name.trim() || null;
+      if (form.phone !== undefined) updates.phone = form.phone.trim() || null;
+      if (form.email !== undefined) updates.email = form.email.trim() || null;
+      if (form.website !== undefined) updates.website = form.website.trim() || null;
+      if (form.address !== undefined) updates.address = form.address.trim() || null;
+      if (form.city !== undefined) updates.city = form.city.trim() || null;
+      if (form.postal_code !== undefined) updates.postal_code = form.postal_code.trim() || null;
+      if (form.sector !== undefined) updates.sector = form.sector.trim() || null;
+      if (form.siret !== undefined) updates.siret = form.siret.trim() || null;
+      if (form.notes !== undefined) updates.notes = form.notes.trim() || null;
       if (form.site_type !== undefined) updates.site_type = form.site_type || null;
       if (form.has_gmb !== undefined) updates.has_gmb = form.has_gmb;
-      if (form.payment_method !== undefined) updates.payment_method = form.payment_method || null;
+      updates.payment_method = form.payment_method || null;
       updates.pack_amount = form.pack_amount ? parseFloat(String(form.pack_amount)) : null;
-      updates.nfc_quantity = parseInt(String(form.nfc_quantity)) || 1;
+      updates.nfc_quantity = Number.parseInt(String(form.nfc_quantity), 10) || 1;
       updates.assigned_to = form.assigned_to || null;
-      updates.signed_by_commercial = form.signed_by_commercial || null;
+      updates.signed_by = form.signed_by || null;
+      updates.signed_by_commercial = null;
 
       await onSave(updates);
       setOpen(false);

@@ -90,7 +90,7 @@ export function useCreateClient() {
 export function useUpdateClient() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...updates }: TablesUpdate<"clients"> & { id: string }) => {
+    mutationFn: async ({ id, _previousStatus, ...updates }: TablesUpdate<"clients"> & { id: string; _previousStatus?: string }) => {
       const { data, error } = await supabase
         .from("clients")
         .update(updates)
@@ -98,14 +98,15 @@ export function useUpdateClient() {
         .select()
         .single();
       if (error) throw error;
-      return data;
+      return { ...data, _previousStatus };
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       queryClient.invalidateQueries({ queryKey: ["clients", data.id] });
       
-      // Trigger n8n webhook when client signs contract
-      if (variables.pipeline_status === 'contrat_signe') {
+      // Only trigger webhook when status CHANGES to contrat_signe (not already signed)
+      const wasAlreadySigned = data._previousStatus === 'contrat_signe';
+      if (variables.pipeline_status === 'contrat_signe' && !wasAlreadySigned) {
         triggerN8nWebhook('client.signed', {
           company_name: data.company_name,
           client_email: data.email,

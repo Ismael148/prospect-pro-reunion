@@ -105,17 +105,16 @@ export function useUpdateClient() {
           notes: typeof rawUpdates.notes === "string" ? rawUpdates.notes.trim() || null : rawUpdates.notes,
           siret: typeof rawUpdates.siret === "string" ? rawUpdates.siret.trim() || null : rawUpdates.siret,
           payment_method: rawUpdates.payment_method === "" ? null : rawUpdates.payment_method,
-          pack_amount: rawUpdates.pack_amount === "" || rawUpdates.pack_amount == null ? null : Number(rawUpdates.pack_amount),
+          pack_amount: rawUpdates.pack_amount == null ? null : Number(rawUpdates.pack_amount),
           nfc_quantity: rawUpdates.nfc_quantity == null ? undefined : Number(rawUpdates.nfc_quantity),
           has_gmb: rawUpdates.has_gmb,
           site_type: rawUpdates.site_type === "" ? null : rawUpdates.site_type,
           assigned_to: rawUpdates.assigned_to === "" ? null : rawUpdates.assigned_to,
           signed_by: rawUpdates.signed_by === "" ? null : rawUpdates.signed_by,
-          signed_by_commercial: rawUpdates.signed_by_commercial === "" ? null : rawUpdates.signed_by_commercial,
+          signed_by_commercial: null,
           pipeline_status: rawUpdates.pipeline_status,
           pack_type: rawUpdates.pack_type,
           signature_date: rawUpdates.signature_date,
-          signed_by_commercial: null,
         }).filter(([, value]) => value !== undefined)
       );
 

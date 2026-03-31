@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -17,15 +17,12 @@ export interface Notification {
 export function useNotifications() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const queryClientRef = useRef(queryClient);
-  queryClientRef.current = queryClient;
 
-  // Realtime subscription - only depends on user.id
   useEffect(() => {
     if (!user?.id) return;
 
     const channel = supabase
-      .channel(`notifications-rt-${user.id}-${Date.now()}`)
+      .channel(`notifications-${user.id}`)
       .on(
         "postgres_changes",
         {
@@ -35,7 +32,7 @@ export function useNotifications() {
           filter: `user_id=eq.${user.id}`,
         },
         () => {
-          queryClientRef.current.invalidateQueries({ queryKey: ["notifications"] });
+          queryClient.invalidateQueries({ queryKey: ["notifications", user.id] });
         }
       )
       .subscribe();
@@ -43,21 +40,21 @@ export function useNotifications() {
     return () => {
       supabase.removeChannel(channel);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [user?.id, queryClient]);
 
   return useQuery({
-    queryKey: ["notifications"],
+    queryKey: ["notifications", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("notifications")
         .select("*")
+        .eq("user_id", user!.id)
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
       return data as Notification[];
     },
-    enabled: !!user,
+    enabled: !!user?.id,
   });
 }
 
@@ -68,6 +65,7 @@ export function useUnreadCount() {
 
 export function useMarkAsRead() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -77,7 +75,7 @@ export function useMarkAsRead() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications", user?.id] });
     },
   });
 }
@@ -95,7 +93,7 @@ export function useMarkAllAsRead() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications", user?.id] });
     },
   });
 }

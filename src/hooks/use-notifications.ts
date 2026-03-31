@@ -18,11 +18,12 @@ export function useNotifications() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  // Realtime subscription
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user) return;
 
     const channel = supabase
-      .channel(`notifications-${user.id}`)
+      .channel("notifications-realtime")
       .on(
         "postgres_changes",
         {
@@ -32,7 +33,7 @@ export function useNotifications() {
           filter: `user_id=eq.${user.id}`,
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ["notifications", user.id] });
+          queryClient.invalidateQueries({ queryKey: ["notifications"] });
         }
       )
       .subscribe();
@@ -40,21 +41,20 @@ export function useNotifications() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, queryClient]);
+  }, [user, queryClient]);
 
   return useQuery({
-    queryKey: ["notifications", user?.id],
+    queryKey: ["notifications"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("notifications")
         .select("*")
-        .eq("user_id", user!.id)
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
       return data as Notification[];
     },
-    enabled: !!user?.id,
+    enabled: !!user,
   });
 }
 
@@ -65,7 +65,6 @@ export function useUnreadCount() {
 
 export function useMarkAsRead() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -75,7 +74,7 @@ export function useMarkAsRead() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },
   });
 }
@@ -93,7 +92,7 @@ export function useMarkAllAsRead() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },
   });
 }

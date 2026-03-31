@@ -235,7 +235,8 @@ function ClientInfoSection({ client, salesTeam }: { client: any; salesTeam?: { a
     cb: "Carte bancaire", prelevement: "Prélèvement",
   };
 
-  const signedByName = salesTeam?.externalCommercials?.find((c: any) => c.id === (client as any).signed_by_commercial)?.full_name
+  const signedByName = salesTeam?.commercials?.find((c) => c.user_id === (client as any).signed_by_commercial)?.full_name
+    || salesTeam?.externalCommercials?.find((c: any) => c.id === (client as any).signed_by_commercial)?.full_name
     || salesTeam?.commercials.find((c) => c.user_id === client.signed_by)?.full_name;
   const assignedToName = salesTeam?.agents.find((a) => a.user_id === client.assigned_to)?.full_name
     || salesTeam?.commercials.find((c) => c.user_id === client.assigned_to)?.full_name;

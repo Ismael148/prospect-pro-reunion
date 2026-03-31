@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import {
   Upload, CreditCard, Loader2, Search, Phone, Mail, MapPin,
-  CheckCircle2, AlertCircle, FileSpreadsheet, Users, X, ArrowRightLeft, Filter,
+  CheckCircle2, AlertCircle, FileSpreadsheet, Users, X, ArrowRightLeft, Filter, Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -19,6 +19,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 // CSV aliases for auto-mapping
 const ALIASES: Record<string, string[]> = {
@@ -65,6 +67,35 @@ export default function NfcClients() {
   const [filterQty, setFilterQty] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
 
+  // New client dialog state
+  const [showNewDialog, setShowNewDialog] = useState(false);
+  const [newClient, setNewClient] = useState({ company_name: "", manager_name: "", phone: "", email: "", address: "", city: "", postal_code: "", nfc_quantity: "1" });
+  const [creating, setCreating] = useState(false);
+
+  const handleCreateNfc = async () => {
+    if (!newClient.company_name.trim()) { toast.error("Le nom de l'entreprise est requis"); return; }
+    if (!user) return;
+    setCreating(true);
+    const { error } = await supabase.from("clients").insert({
+      company_name: newClient.company_name.trim(),
+      manager_name: newClient.manager_name.trim() || null,
+      phone: newClient.phone.trim() || null,
+      email: newClient.email.trim() || null,
+      address: newClient.address.trim() || null,
+      city: newClient.city.trim() || null,
+      postal_code: newClient.postal_code.trim() || null,
+      nfc_quantity: parseInt(newClient.nfc_quantity) || 1,
+      pack_type: "star_bizness_nfc" as const,
+      pipeline_status: "contrat_signe" as const,
+      created_by: user.id,
+    });
+    setCreating(false);
+    if (error) { toast.error("Erreur : " + error.message); return; }
+    toast.success("Client NFC ajouté !");
+    setShowNewDialog(false);
+    setNewClient({ company_name: "", manager_name: "", phone: "", email: "", address: "", city: "", postal_code: "", nfc_quantity: "1" });
+    loadNfcClients();
+  };
   const loadNfcClients = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -231,24 +262,29 @@ export default function NfcClients() {
             {filteredClients.length} / {nfcClients.length} client{nfcClients.length > 1 ? "s" : ""} NFC
           </p>
         </div>
-        {isAdmin && (
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={() => fileRef.current?.click()}
-            >
-              <Upload className="w-4 h-4" /> Importer CSV
-            </Button>
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".csv"
-              className="hidden"
-              onChange={handleFile}
-            />
-          </div>
-        )}
+        <div className="flex gap-2">
+          <Button className="gap-2" onClick={() => setShowNewDialog(true)}>
+            <Plus className="w-4 h-4" /> Nouveau client NFC
+          </Button>
+          {isAdmin && (
+            <>
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={() => fileRef.current?.click()}
+              >
+                <Upload className="w-4 h-4" /> Importer CSV
+              </Button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".csv"
+                className="hidden"
+                onChange={handleFile}
+              />
+            </>
+          )}
+        </div>
       </div>
 
       {/* Stats */}
@@ -487,6 +523,60 @@ export default function NfcClients() {
           ))}
         </div>
       )}
+
+      {/* New Client Dialog */}
+      <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Nouveau client NFC</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-3 py-2">
+            <div>
+              <Label>Entreprise *</Label>
+              <Input value={newClient.company_name} onChange={e => setNewClient(p => ({ ...p, company_name: e.target.value }))} placeholder="Nom de l'entreprise" />
+            </div>
+            <div>
+              <Label>Gérant</Label>
+              <Input value={newClient.manager_name} onChange={e => setNewClient(p => ({ ...p, manager_name: e.target.value }))} placeholder="Nom du gérant" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Téléphone</Label>
+                <Input value={newClient.phone} onChange={e => setNewClient(p => ({ ...p, phone: e.target.value }))} placeholder="0692..." />
+              </div>
+              <div>
+                <Label>Email</Label>
+                <Input value={newClient.email} onChange={e => setNewClient(p => ({ ...p, email: e.target.value }))} placeholder="email@exemple.com" />
+              </div>
+            </div>
+            <div>
+              <Label>Adresse</Label>
+              <Input value={newClient.address} onChange={e => setNewClient(p => ({ ...p, address: e.target.value }))} placeholder="Adresse" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Ville</Label>
+                <Input value={newClient.city} onChange={e => setNewClient(p => ({ ...p, city: e.target.value }))} placeholder="Ville" />
+              </div>
+              <div>
+                <Label>Code postal</Label>
+                <Input value={newClient.postal_code} onChange={e => setNewClient(p => ({ ...p, postal_code: e.target.value }))} placeholder="97400" />
+              </div>
+            </div>
+            <div>
+              <Label>Nombre de cartes NFC</Label>
+              <Input type="number" min="1" value={newClient.nfc_quantity} onChange={e => setNewClient(p => ({ ...p, nfc_quantity: e.target.value }))} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNewDialog(false)}>Annuler</Button>
+            <Button onClick={handleCreateNfc} disabled={creating}>
+              {creating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
+              Créer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

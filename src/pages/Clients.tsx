@@ -195,7 +195,7 @@ export default function Clients() {
       <div className="flex gap-3 items-center">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input className="pl-10" placeholder="Rechercher par nom, ville, secteur, tél..." value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input className="pl-10" placeholder="Rechercher par nom, gérant, ville, tél, email..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <Button variant={showFilters ? "default" : "outline"} size="sm" className="gap-2" onClick={() => setShowFilters(!showFilters)}>
           <Filter className="w-4 h-4" /> Filtres

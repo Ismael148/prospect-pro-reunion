@@ -383,6 +383,7 @@ export default function Team() {
                               <SelectTrigger className="w-[180px]"><SelectValue placeholder="Changer le rôle" /></SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="admin">Administrateur</SelectItem>
+                                <SelectItem value="agent_master">Agent Master</SelectItem>
                                 <SelectItem value="agent_telephonique">Agent téléphonique</SelectItem>
                                 <SelectItem value="commercial_terrain">Commercial terrain</SelectItem>
                                 <SelectItem value="webmaster">Webmaster</SelectItem>

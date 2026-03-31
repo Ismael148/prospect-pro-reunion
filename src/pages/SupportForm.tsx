@@ -139,6 +139,7 @@ export default function SupportForm() {
     }
     setSubmitting(true);
     try {
+      // Insert without ticket_number — the DB trigger generates it automatically
       const { data: ticket, error: ticketError } = await supabase
         .from("support_tickets")
         .insert([{
@@ -148,8 +149,7 @@ export default function SupportForm() {
           message: form.message,
           priority: form.priority,
           attachments: attachments.length > 0 ? attachments : null,
-          ticket_number: 'PENDING',
-        }])
+        } as any])
         .select()
         .single();
 

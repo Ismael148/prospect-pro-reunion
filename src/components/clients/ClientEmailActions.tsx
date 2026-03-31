@@ -308,9 +308,23 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-2">
+            <div className="flex items-center justify-between">
               <Label>Objet</Label>
-              <Input value={customSubject || previewAction?.subject || ""} onChange={(e) => setCustomSubject(e.target.value)} />
+              <EmailTemplateSaver
+                subject={customSubject || previewAction?.subject || ""}
+                body={previewAction?.bodyFn(client) || ""}
+                category="client_email"
+                onLoad={(tpl: SavedTemplate) => {
+                  setCustomSubject(tpl.subject);
+                  // For loaded templates, create a custom action
+                  setPreviewAction({
+                    ...previewAction!,
+                    subject: tpl.subject,
+                    bodyFn: () => tpl.body,
+                    label: tpl.name,
+                  });
+                }}
+              />
             </div>
             <div className="space-y-2">
               <Label>Aperçu de l'email</Label>

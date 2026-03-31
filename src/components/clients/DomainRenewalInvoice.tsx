@@ -61,8 +61,8 @@ export default function DomainRenewalInvoice({ client }: { client: ClientData })
   const defaultBody = buildEmailBody(client.company_name, domainName.trim(), amountNum, "FAC-XXXX");
 
   const previewHtml = useMemo(() => {
-    return wrapInBrandedTemplate(emailBodyOverride || defaultBody);
-  }, [emailBodyOverride, defaultBody]);
+    return wrapInBrandedTemplate(emailBodyOverride || defaultBody, undefined, branding || undefined);
+  }, [emailBodyOverride, defaultBody, branding]);
 
   if (!client.email) return null;
 

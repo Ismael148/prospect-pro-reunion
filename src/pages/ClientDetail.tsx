@@ -41,7 +41,7 @@ import { motion } from "framer-motion";
 type PipelineStatus = Database["public"]["Enums"]["pipeline_status"];
 type PackType = Database["public"]["Enums"]["pack_type"];
 // ============ Edit Client Dialog ============
-function EditClientDialog({ client, onSave }: { client: any; onSave: (updates: any) => Promise<void> }) {
+function EditClientDialog({ client, onSave, salesTeam }: { client: any; onSave: (updates: any) => Promise<void>; salesTeam?: { agents: any[]; commercials: any[]; externalCommercials?: any[] } }) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -61,6 +61,8 @@ function EditClientDialog({ client, onSave }: { client: any; onSave: (updates: a
     payment_method: client.payment_method || "",
     has_gmb: client.has_gmb || false,
     site_type: (client as any).site_type || "vitrine",
+    assigned_to: client.assigned_to || "",
+    signed_by_commercial: client.signed_by_commercial || "",
   });
 
   const handleSave = async () => {

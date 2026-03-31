@@ -36,6 +36,7 @@ import ClientEmailActions from "@/components/clients/ClientEmailActions";
 import DomainRenewalInvoice from "@/components/clients/DomainRenewalInvoice";
 import { useClientForms, useValidateForm, ClientFormData } from "@/hooks/use-client-forms";
 import { triggerN8nWebhook } from "@/lib/n8n-webhook";
+import { motion } from "framer-motion";
 
 type PipelineStatus = Database["public"]["Enums"]["pipeline_status"];
 type PackType = Database["public"]["Enums"]["pack_type"];
@@ -576,13 +577,52 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
         }
       }
 
+      // Detect #en_cours tag → mark open tickets as en_cours
+      if (/#en_cours/i.test(note)) {
+        try {
+          const { data: openTickets } = await supabase
+            .from("support_tickets")
+            .select("id, ticket_number")
+            .eq("client_id", clientId)
+            .eq("status", "ouvert");
+
+          if (openTickets && openTickets.length > 0) {
+            for (const ticket of openTickets) {
+              await supabase
+                .from("support_tickets")
+                .update({ status: "en_cours", assigned_to: user!.id })
+                .eq("id", ticket.id);
+            }
+            toast.success(`${openTickets.length} ticket(s) passé(s) en cours de traitement`);
+          } else {
+            toast.info("Aucun ticket ouvert à passer en cours");
+          }
+        } catch (e) {
+          console.warn("Auto en_cours tickets error:", e);
+        }
+      }
+
       setNote("");
     } catch { toast.error("Erreur"); }
   };
 
   const renderDescription = (text: string) => {
-    if (!text || !teamMembers) return text;
-    return text.replace(/@\[([^\]]+)\]/g, (_, name) => `@${name}`);
+    if (!text) return null;
+    // Parse tags and mentions into styled elements
+    const parts = text.split(/(#resolu|#en_cours|@\[[^\]]+\])/gi);
+    return parts.map((part, i) => {
+      if (/#resolu/i.test(part)) {
+        return <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold"><CheckCircle2 className="w-3 h-3" />Résolu</span>;
+      }
+      if (/#en_cours/i.test(part)) {
+        return <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold"><Clock className="w-3 h-3" />En cours</span>;
+      }
+      const mentionMatch = part.match(/@\[([^\]]+)\]/);
+      if (mentionMatch) {
+        return <span key={i} className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-primary/10 text-primary text-xs font-semibold">@{mentionMatch[1]}</span>;
+      }
+      return <span key={i}>{part}</span>;
+    });
   };
 
   const handleMention = (member: { user_id: string; full_name: string | null }) => {
@@ -597,11 +637,14 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
           <MessageSquare className="w-5 h-5" /> Notes & Commentaires
+          {noteActivities.length > 0 && (
+            <Badge variant="secondary" className="text-xs">{noteActivities.length}</Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ajouter une note... (utilisez #resolu pour fermer les tickets)" rows={3} />
+          <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ajouter une note... (#resolu #en_cours @mention)" rows={3} className="resize-none" />
           <div className="flex items-center justify-between">
             <div className="flex gap-1 flex-wrap">
               {teamMembers?.slice(0, 5).map((m) => (
@@ -609,6 +652,9 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
                   @{m.full_name?.split(" ")[0] || "?"}
                 </Button>
               ))}
+              <Button variant="outline" size="sm" className="text-xs h-7 px-2 text-blue-600 border-blue-200 hover:bg-blue-50" onClick={() => setNote((prev) => prev + "#en_cours ")}>
+                <Clock className="w-3 h-3 mr-1" /> #en_cours
+              </Button>
               <Button variant="outline" size="sm" className="text-xs h-7 px-2 text-green-600 border-green-200 hover:bg-green-50" onClick={() => setNote((prev) => prev + "#resolu ")}>
                 <CheckCircle2 className="w-3 h-3 mr-1" /> #resolu
               </Button>
@@ -619,38 +665,74 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
           </div>
         </div>
         {noteActivities.length > 0 && (
-          <div className="space-y-2 pt-2 border-t border-border">
-            {noteActivities.map((activity) => {
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="space-y-3 pt-3 border-t border-border"
+          >
+            {noteActivities.map((activity, index) => {
               const authorName = teamMembers?.find((m) => m.user_id === activity.user_id)?.full_name || "Inconnu";
+              const hasResolu = /#resolu/i.test(activity.description || "");
+              const hasEnCours = /#en_cours/i.test(activity.description || "");
               return (
-                <div key={activity.id} className="p-3 rounded-lg bg-muted/30">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-medium text-primary">{authorName}</span>
-                    <span className="text-[10px] text-muted-foreground">
+                <motion.div
+                  key={activity.id}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05, duration: 0.3 }}
+                  className={`p-4 rounded-xl border transition-all ${
+                    hasResolu
+                      ? "bg-green-50/60 border-green-200/60 dark:bg-green-950/20 dark:border-green-800/30"
+                      : hasEnCours
+                      ? "bg-blue-50/60 border-blue-200/60 dark:bg-blue-950/20 dark:border-blue-800/30"
+                      : "bg-card border-border/50 hover:border-border"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+                        <span className="text-xs font-bold text-primary">{authorName.charAt(0).toUpperCase()}</span>
+                      </div>
+                      <span className="text-sm font-semibold text-foreground">{authorName}</span>
+                    </div>
+                    <span className="text-[11px] text-muted-foreground">
                       {new Date(activity.created_at).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                     </span>
                   </div>
-                  <p className="text-sm whitespace-pre-wrap">{renderDescription(activity.description || "")}</p>
-                </div>
+                  <div className="text-sm whitespace-pre-wrap leading-relaxed text-foreground/90">
+                    {renderDescription(activity.description || "")}
+                  </div>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         )}
         {statusActivities.length > 0 && (
-          <div className="space-y-2 pt-2 border-t border-border">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="space-y-2 pt-3 border-t border-border"
+          >
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Historique</p>
-            {statusActivities.map((activity) => (
-              <div key={activity.id} className="flex items-start gap-3 text-sm">
+            {statusActivities.map((activity, index) => (
+              <motion.div
+                key={activity.id}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.03, duration: 0.25 }}
+                className="flex items-start gap-3 text-sm"
+              >
                 <div className="w-2 h-2 rounded-full bg-primary mt-1.5 shrink-0" />
                 <div>
-                  <p>{activity.description}</p>
+                  <p className="text-foreground/80">{activity.description}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {new Date(activity.created_at).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                   </p>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
       </CardContent>
     </Card>

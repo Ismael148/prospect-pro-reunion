@@ -40,6 +40,7 @@ export default function Projects() {
   const { data: clients } = useClients();
   const createProject = useCreateProject();
   const [open, setOpen] = useState(false);
+  const [clientPopoverOpen, setClientPopoverOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
 

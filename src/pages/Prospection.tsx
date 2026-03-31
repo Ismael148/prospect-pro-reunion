@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   useProspects,
@@ -33,7 +33,7 @@ import { cn } from "@/lib/utils";
 import {
   Search, MapPin, Phone, Globe, Star, Loader2, UserPlus,
   CheckCircle2, Building2, Radar, CalendarIcon, Clock,
-  Users, ArrowRight, PhoneCall, Mail, Plus, StickyNote, Pencil, ExternalLink,
+  Users, ArrowRight, PhoneCall, Mail, Plus, StickyNote, Pencil, ExternalLink, History, AlertTriangle,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Database } from "@/integrations/supabase/types";
@@ -211,12 +211,48 @@ export default function Prospection() {
   const [noteText, setNoteText] = useState("");
   const [editingProspect, setEditingProspect] = useState<any | null>(null);
   const [editForm, setEditForm] = useState({ business_name: "", phone: "", email: "", address: "", city: "", postal_code: "", sector: "", website: "", notes: "" });
+  // Compute search history from existing prospects
+  const searchHistory = useMemo(() => {
+    if (!prospects) return [];
+    const historyMap = new Map<string, { query: string; zone: string; count: number; lastDate: string }>();
+    for (const p of prospects) {
+      if (p.search_query && p.search_zone) {
+        const key = `${p.search_query.toLowerCase()}|${p.search_zone.toLowerCase()}`;
+        const existing = historyMap.get(key);
+        if (existing) {
+          existing.count++;
+          if (p.created_at > existing.lastDate) existing.lastDate = p.created_at;
+        } else {
+          historyMap.set(key, { query: p.search_query, zone: p.search_zone, count: 1, lastDate: p.created_at });
+        }
+      }
+    }
+    return Array.from(historyMap.values()).sort((a, b) => b.lastDate.localeCompare(a.lastDate));
+  }, [prospects]);
+
+  const [forceSearch, setForceSearch] = useState(false);
+
   const handleSearch = async () => {
     const query = searchQuery || customQuery;
     if (!query || !searchZone) {
       toast.error("Sélectionnez un secteur et une zone");
       return;
     }
+
+    // Check if this search was already done
+    const alreadySearched = searchHistory.find(
+      (h) => h.query.toLowerCase() === query.toLowerCase() && h.zone.toLowerCase() === searchZone.toLowerCase()
+    );
+    if (alreadySearched && !forceSearch) {
+      toast.warning(
+        `Cette recherche a déjà été effectuée (${alreadySearched.count} prospect(s) importé(s) le ${format(new Date(alreadySearched.lastDate), "dd/MM/yyyy", { locale: fr })}). Cliquez à nouveau pour forcer.`,
+        { duration: 5000 }
+      );
+      setForceSearch(true);
+      return;
+    }
+    setForceSearch(false);
+
     try {
       const results = await searchProspects.mutateAsync({ query, zone: searchZone });
       
@@ -602,17 +638,17 @@ export default function Prospection() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs">Secteur d'activité</Label>
-                <Select value={searchQuery} onValueChange={(v) => { setSearchQuery(v); setCustomQuery(""); }}>
+                <Select value={searchQuery} onValueChange={(v) => { setSearchQuery(v); setCustomQuery(""); setForceSearch(false); }}>
                   <SelectTrigger className="h-9"><SelectValue placeholder="Choisir" /></SelectTrigger>
                   <SelectContent>
                     {SECTORS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <Input placeholder="Ou secteur personnalisé..." value={customQuery} onChange={(e) => { setCustomQuery(e.target.value); setSearchQuery(""); }} className="h-9 text-sm" />
+                <Input placeholder="Ou secteur personnalisé..." value={customQuery} onChange={(e) => { setCustomQuery(e.target.value); setSearchQuery(""); setForceSearch(false); }} className="h-9 text-sm" />
               </div>
               <div className="space-y-2">
                 <Label className="text-xs">Zone</Label>
-                <Select value={searchZone} onValueChange={setSearchZone}>
+                <Select value={searchZone} onValueChange={(v) => { setSearchZone(v); setForceSearch(false); }}>
                   <SelectTrigger className="h-9"><SelectValue placeholder="Ville" /></SelectTrigger>
                   <SelectContent>
                     {REUNION_CITIES.map((city) => <SelectItem key={city} value={city}>{city}</SelectItem>)}
@@ -625,6 +661,50 @@ export default function Prospection() {
                   Rechercher
                 </Button>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Search History */}
+      {isAdmin && searchHistory.length > 0 && (
+        <Card className="border border-border/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2 text-muted-foreground">
+              <History className="w-4 h-4" />
+              Historique des recherches ({searchHistory.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {searchHistory.slice(0, 20).map((h, i) => {
+                const isCurrentSearch =
+                  (searchQuery || customQuery).toLowerCase() === h.query.toLowerCase() &&
+                  searchZone.toLowerCase() === h.zone.toLowerCase();
+                return (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      setSearchQuery("");
+                      setCustomQuery(h.query);
+                      setSearchZone(h.zone);
+                      setForceSearch(false);
+                    }}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs border transition-colors",
+                      isCurrentSearch
+                        ? "bg-primary/10 border-primary/30 text-primary"
+                        : "bg-muted/50 border-border hover:bg-muted text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Search className="w-3 h-3" />
+                    {h.query} — {h.zone}
+                    <Badge variant="secondary" className="text-[9px] h-4 px-1.5 ml-1">
+                      {h.count}
+                    </Badge>
+                  </button>
+                );
+              })}
             </div>
           </CardContent>
         </Card>

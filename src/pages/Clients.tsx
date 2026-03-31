@@ -58,7 +58,6 @@ export default function Clients() {
     const map = new Map<string, string>();
     agents?.forEach(a => map.set(a.user_id, a.full_name || "Sans nom"));
     allCommercials?.internal?.forEach(c => map.set(c.user_id, c.full_name || "Sans nom"));
-    allCommercials?.external?.forEach(c => map.set(`ext_${c.id}`, c.full_name));
     return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
   }, [agents, allCommercials]);
 
@@ -67,19 +66,22 @@ export default function Clients() {
   const handleCreate = async () => {
     if (!form.company_name.trim()) { toast.error("Le nom de l'entreprise est requis"); return; }
     try {
-      // Determine if selected commercial is external or internal
-      const isExternalCommercial = allCommercials?.external?.some(c => c.id === form.signed_by_commercial);
       await createClient.mutateAsync({
-        company_name: form.company_name,
-        phone: form.phone || null, email: form.email || null,
-        address: form.address || null, city: form.city || null,
-        postal_code: form.postal_code || null, sector: form.sector || null,
-        website: form.website || null, notes: form.notes || null,
-        pack_type: form.pack_type || null, pack_amount: packAmount || null,
+        company_name: form.company_name.trim(),
+        phone: form.phone.trim() || null,
+        email: form.email.trim() || null,
+        address: form.address.trim() || null,
+        city: form.city.trim() || null,
+        postal_code: form.postal_code.trim() || null,
+        sector: form.sector.trim() || null,
+        website: form.website.trim() || null,
+        notes: form.notes.trim() || null,
+        pack_type: form.pack_type || null,
+        pack_amount: packAmount || null,
         payment_method: form.payment_method || null,
         signature_date: form.signature_date || null,
-        signed_by_commercial: isExternalCommercial ? form.signed_by_commercial : null,
-        signed_by: !isExternalCommercial && form.signed_by_commercial ? form.signed_by_commercial : null,
+        signed_by_commercial: null,
+        signed_by: form.signed_by_commercial || null,
         assigned_to: form.assigned_to || user!.id,
         created_by: user!.id,
       } as any);
@@ -175,7 +177,6 @@ export default function Clients() {
                   <Select value={form.signed_by_commercial} onValueChange={(v) => setForm({ ...form, signed_by_commercial: v })}>
                     <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
                     <SelectContent>
-                      {allCommercials?.external?.map((c) => (<SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>))}
                       {allCommercials?.internal?.map((c) => (<SelectItem key={c.user_id} value={c.user_id}>{c.full_name || "Sans nom"}</SelectItem>))}
                     </SelectContent>
                   </Select>

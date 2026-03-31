@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useEmailBranding } from "@/hooks/use-email-branding";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateInvoice } from "@/hooks/use-invoices";
 import { exportInvoicePDF } from "@/lib/export-invoice-pdf";

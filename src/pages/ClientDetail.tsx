@@ -35,6 +35,7 @@ import SocialMediaSection from "@/components/clients/SocialMediaSection";
 import ClientEmailActions from "@/components/clients/ClientEmailActions";
 import DomainRenewalInvoice from "@/components/clients/DomainRenewalInvoice";
 import { useClientForms, useValidateForm, ClientFormData } from "@/hooks/use-client-forms";
+import { triggerN8nWebhook } from "@/lib/n8n-webhook";
 
 type PipelineStatus = Database["public"]["Enums"]["pipeline_status"];
 type PackType = Database["public"]["Enums"]["pack_type"];

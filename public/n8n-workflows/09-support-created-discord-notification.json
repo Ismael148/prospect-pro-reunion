@@ -1,0 +1,55 @@
+{
+  "name": "09 — Support Créé → Notification Discord",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "support-created-discord",
+        "responseMode": "onReceived",
+        "responseData": "allEntries"
+      },
+      "id": "webhook-support-created",
+      "name": "Webhook Support Créé",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DISCORD_WEBHOOK_URL }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ embeds: [{ title: '🆘 Nouveau Ticket Support', color: 16711680, fields: [ { name: '🏢 Client', value: $json.body.company_name || 'N/A', inline: true }, { name: '🔢 Ticket', value: $json.body.ticket_number || 'N/A', inline: true }, { name: '📋 Catégorie', value: $json.body.category || 'N/A', inline: true }, { name: '⚡ Priorité', value: $json.body.priority || 'normale', inline: true }, { name: '📝 Sujet', value: $json.body.subject || 'Sans sujet', inline: false }, { name: '💬 Message', value: ($json.body.message || '').substring(0, 500) || 'Aucun message', inline: false } ], footer: { text: 'Support Star Bizness • ' + new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }, thumbnail: { url: 'https://cdn-icons-png.flaticon.com/512/906/906794.png' } }] }) }}"
+      },
+      "id": "send-discord",
+      "name": "Envoyer Discord",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [500, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Support Créé": {
+      "main": [
+        [{ "node": "Envoyer Discord", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1
+}

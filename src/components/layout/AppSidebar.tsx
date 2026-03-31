@@ -46,7 +46,7 @@ const allMenuItems = [
   { title: "Dashboard", icon: LayoutDashboard, path: "/" },
   { title: "Agent Master", icon: Users, path: "/agent-master" },
   { title: "Clients 2.0", icon: Users, path: "/clients" },
-  { title: "Cartes NFC", icon: CreditCard, path: "/cartes-nfc" },
+  { title: "Clients 1.0", icon: CreditCard, path: "/cartes-nfc" },
   { title: "Prospection", icon: Search, path: "/prospection" },
   { title: "Pipeline", icon: FolderKanban, path: "/pipeline" },
   { title: "Projets", icon: Briefcase, path: "/projets" },

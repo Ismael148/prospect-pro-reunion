@@ -101,7 +101,7 @@ export default function Clients() {
     const matchStatus = filterStatus === "all" || c.pipeline_status === filterStatus;
     const matchPack = filterPack === "all" || c.pack_type === filterPack;
     const matchCity = filterCity === "all" || c.city === filterCity;
-    const matchAgent = filterAgent === "all" || c.assigned_to === filterAgent || (c as any).signed_by === filterAgent;
+    const matchAgent = filterAgent === "all" || c.assigned_to === filterAgent || (c as any).signed_by_commercial === filterAgent;
     return matchSearch && matchStatus && matchPack && matchCity && matchAgent;
   });
 

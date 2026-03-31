@@ -342,9 +342,9 @@ export default function Commissions() {
       ) : (
         <>
           {/* Summary per person with expandable client list */}
-          {(commercialSummary.length > 0 || agentSummary.length > 0) && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {commercialSummary.length > 0 && (
+           {((!isAgentOnly && commercialSummary.length > 0) || agentSummary.length > 0) && (
+            <div className={`grid grid-cols-1 ${!isAgentOnly && commercialSummary.length > 0 && agentSummary.length > 0 ? "lg:grid-cols-2" : ""} gap-4`}>
+              {!isAgentOnly && commercialSummary.length > 0 && (
                 <Card className="border-0 shadow-soft">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2">

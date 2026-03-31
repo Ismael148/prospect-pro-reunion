@@ -79,6 +79,9 @@ export default function Team() {
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadTarget, setUploadTarget] = useState<string | null>(null);
+  const [resetPasswordOpen, setResetPasswordOpen] = useState<string | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [resetting, setResetting] = useState(false);
   const isAdmin = hasRole("admin");
 
   const fetchMembers = async () => {

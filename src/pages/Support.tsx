@@ -282,7 +282,10 @@ export default function Support() {
                           {CATEGORY_LABELS[ticket.category] || ticket.category}
                         </Badge>
                         {ticket.priority === "urgente" && (
-                          <Badge variant="destructive" className="text-[10px]">Urgent</Badge>
+                          <Badge variant="destructive" className="text-[10px]">🔴 Urgent</Badge>
+                        )}
+                        {ticket.priority === "haute" && (
+                          <Badge className="text-[10px] bg-orange-100 text-orange-700 border-orange-200">🟠 Haute</Badge>
                         )}
                       </div>
                       <p className="font-medium text-sm truncate mt-0.5">{ticket.subject}</p>

@@ -246,8 +246,17 @@ export default function DomainRenewalInvoice({ client }: { client: ClientData })
               </div>
             </div>
 
-            {/* Edit toggle */}
-            <div className="flex justify-end">
+            {/* Edit toggle + Template saver */}
+            <div className="flex items-center justify-between">
+              <EmailTemplateSaver
+                subject={subject}
+                body={emailBodyOverride}
+                category="ndd_renewal"
+                onLoad={(tpl: SavedTemplate) => {
+                  setSubject(tpl.subject);
+                  setEmailBodyOverride(tpl.body);
+                }}
+              />
               <Button
                 variant={editMode ? "default" : "outline"}
                 size="sm"

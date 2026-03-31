@@ -177,7 +177,6 @@ export default function Clients() {
                   <Select value={form.signed_by_commercial} onValueChange={(v) => setForm({ ...form, signed_by_commercial: v })}>
                     <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
                     <SelectContent>
-                      {allCommercials?.external?.map((c) => (<SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>))}
                       {allCommercials?.internal?.map((c) => (<SelectItem key={c.user_id} value={c.user_id}>{c.full_name || "Sans nom"}</SelectItem>))}
                     </SelectContent>
                   </Select>

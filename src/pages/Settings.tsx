@@ -10,8 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { User, Shield, Palette, Save, Loader2, Moon, Sun, Camera, FileSpreadsheet } from "lucide-react";
+import { User, Shield, Palette, Save, Loader2, Moon, Sun, Camera, FileSpreadsheet, Mail } from "lucide-react";
+import { useEmailBranding, useUpdateEmailBranding } from "@/hooks/use-email-branding";
+import { wrapInBrandedTemplate } from "@/lib/email-template";
 
 export default function Settings() {
   const { profile, user, roles, signOut } = useAuth();

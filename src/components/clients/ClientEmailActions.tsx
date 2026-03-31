@@ -326,6 +326,7 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
                 }}
               />
             </div>
+            <Input value={customSubject || previewAction?.subject || ""} onChange={(e) => setCustomSubject(e.target.value)} />
             <div className="space-y-2">
               <Label>Aperçu de l'email</Label>
               <div className="border border-border rounded-lg overflow-hidden bg-white" dangerouslySetInnerHTML={{ __html: previewHtml }} />

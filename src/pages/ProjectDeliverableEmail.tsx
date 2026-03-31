@@ -235,6 +235,7 @@ export default function ProjectDeliverableEmail() {
   const { data: deliverables, isLoading: isDeliverablesLoading } = useDeliverables(projectId || "");
   const { data: emailHistory } = useEmailHistory(deliverableId);
   const { data: savedTemplates } = useSavedTemplates();
+  const { data: emailBranding } = useEmailBranding();
   const deliverable = useMemo(
     () => deliverables?.find((item) => item.id === deliverableId),
     [deliverables, deliverableId],

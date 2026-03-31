@@ -44,6 +44,7 @@ const ROLE_ACCESS: Record<string, string[]> = {
 
 const allMenuItems = [
   { title: "Dashboard", icon: LayoutDashboard, path: "/" },
+  { title: "Agent Master", icon: Users, path: "/agent-master" },
   { title: "Clients", icon: Users, path: "/clients" },
   { title: "Cartes NFC", icon: CreditCard, path: "/cartes-nfc" },
   { title: "Prospection", icon: Search, path: "/prospection" },

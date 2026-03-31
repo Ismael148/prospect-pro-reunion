@@ -33,7 +33,7 @@ import { cn } from "@/lib/utils";
 import {
   Search, MapPin, Phone, Globe, Star, Loader2, UserPlus,
   CheckCircle2, Building2, Radar, CalendarIcon, Clock,
-  Users, ArrowRight, PhoneCall, Mail, Plus, StickyNote, Pencil, ExternalLink,
+  Users, ArrowRight, PhoneCall, Mail, Plus, StickyNote, Pencil, ExternalLink, History, AlertTriangle,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Database } from "@/integrations/supabase/types";

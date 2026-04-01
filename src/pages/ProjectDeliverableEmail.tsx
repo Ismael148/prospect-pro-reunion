@@ -252,7 +252,7 @@ export default function ProjectDeliverableEmail() {
   const [message, setMessage] = useState("");
   const [selectedTemplateId, setSelectedTemplateId] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
-  const [uploadedAttachment, setUploadedAttachment] = useState<UploadedAttachment | null>(null);
+  const [uploadedAttachments, setUploadedAttachments] = useState<UploadedAttachment[]>([]);
   const [sending, setSending] = useState(false);
   const [initialized, setInitialized] = useState(false);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);

@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense, getMonthlyAmount } from "@/hooks/use-expenses";
 import { useCommissions } from "@/hooks/use-commissions";
 import { useClients } from "@/hooks/use-clients";
+import { useInvoices } from "@/hooks/use-invoices";
 import { useAuth } from "@/contexts/AuthContext";
 import { PACK_PRICES } from "@/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

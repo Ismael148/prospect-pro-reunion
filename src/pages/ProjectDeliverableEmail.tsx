@@ -524,19 +524,29 @@ export default function ProjectDeliverableEmail() {
             <div className="space-y-3 rounded-xl border border-border p-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-medium">Pièces jointes</p>
-                  <p className="text-xs text-muted-foreground">Max 15 Mo</p>
+                  <p className="text-sm font-medium">Pièces jointes ({uploadedAttachments.length})</p>
+                  <p className="text-xs text-muted-foreground">Max 15 Mo au total • {formatBytes(uploadedAttachments.reduce((s, a) => s + a.size, 0))} utilisés</p>
                 </div>
                 <Button type="button" variant="outline" asChild>
                   <label htmlFor="attachment-upload" className="cursor-pointer"><Paperclip className="mr-2 h-4 w-4" />Ajouter</label>
                 </Button>
               </div>
-              <input id="attachment-upload" type="file" className="hidden" onChange={handleAttachmentChange} />
-              {uploadedAttachment && (
-                <div className="rounded-lg bg-muted/50 p-3 text-sm">
-                  <p className="font-medium">{uploadedAttachment.name}</p>
-                  <p className="text-xs text-muted-foreground">{formatBytes(uploadedAttachment.size)}</p>
-                  <Button type="button" variant="link" className="h-auto p-0 text-xs" onClick={() => setUploadedAttachment(null)}>Retirer</Button>
+              <input id="attachment-upload" type="file" className="hidden" onChange={handleAttachmentChange} multiple />
+              {uploadedAttachments.length > 0 && (
+                <div className="space-y-2">
+                  {uploadedAttachments.map((att, idx) => (
+                    <div key={`${att.name}-${idx}`} className="flex items-center gap-3 rounded-lg bg-muted/50 p-2.5 text-sm">
+                      <Paperclip className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{att.name}</p>
+                        <p className="text-xs text-muted-foreground">{formatBytes(att.size)}</p>
+                      </div>
+                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setUploadedAttachments((prev) => prev.filter((_, i) => i !== idx))}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button type="button" variant="link" className="h-auto p-0 text-xs text-destructive" onClick={() => setUploadedAttachments([])}>Tout retirer</Button>
                 </div>
               )}
             </div>

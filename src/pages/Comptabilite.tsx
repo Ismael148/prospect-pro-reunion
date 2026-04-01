@@ -82,6 +82,7 @@ export default function Comptabilite() {
   const { data: expenses, isLoading: loadingExpenses } = useExpenses();
   const { data: commissions, isLoading: loadingCommissions } = useCommissions(selectedMonth);
   const { data: clients } = useClients();
+  const { data: invoices } = useInvoices();
   const createExpense = useCreateExpense();
   const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();

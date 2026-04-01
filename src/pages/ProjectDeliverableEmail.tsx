@@ -252,7 +252,7 @@ export default function ProjectDeliverableEmail() {
   const [message, setMessage] = useState("");
   const [selectedTemplateId, setSelectedTemplateId] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
-  const [uploadedAttachment, setUploadedAttachment] = useState<UploadedAttachment | null>(null);
+  const [uploadedAttachments, setUploadedAttachments] = useState<UploadedAttachment[]>([]);
   const [sending, setSending] = useState(false);
   const [initialized, setInitialized] = useState(false);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
@@ -340,22 +340,29 @@ export default function ProjectDeliverableEmail() {
   const handleInsertVariable = (varCode: string) => setMessage((prev) => prev + varCode);
 
   const handleAttachmentChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (file.size > 15 * 1024 * 1024) { toast.error("Le fichier ne doit pas dépasser 15 Mo"); return; }
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+    const totalCurrentSize = uploadedAttachments.reduce((sum, a) => sum + a.size, 0);
+    const newFiles = Array.from(files);
+    const totalNewSize = newFiles.reduce((sum, f) => sum + f.size, 0);
+    if (totalCurrentSize + totalNewSize > 15 * 1024 * 1024) { toast.error("La taille totale ne doit pas dépasser 15 Mo"); event.target.value = ""; return; }
     try {
-      const content = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const result = reader.result;
-          if (typeof result !== "string") { reject(new Error("Lecture impossible")); return; }
-          resolve(result.split(",")[1] || "");
-        };
-        reader.onerror = () => reject(reader.error || new Error("Lecture impossible"));
-        reader.readAsDataURL(file);
-      });
-      setUploadedAttachment({ content, name: file.name, type: file.type || "application/octet-stream", size: file.size });
-      toast.success("Pièce jointe ajoutée");
+      const newAttachments: UploadedAttachment[] = [];
+      for (const file of newFiles) {
+        const content = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = reader.result;
+            if (typeof result !== "string") { reject(new Error("Lecture impossible")); return; }
+            resolve(result.split(",")[1] || "");
+          };
+          reader.onerror = () => reject(reader.error || new Error("Lecture impossible"));
+          reader.readAsDataURL(file);
+        });
+        newAttachments.push({ content, name: file.name, type: file.type || "application/octet-stream", size: file.size });
+      }
+      setUploadedAttachments((prev) => [...prev, ...newAttachments]);
+      toast.success(`${newAttachments.length} fichier(s) ajouté(s)`);
     } catch (e: any) { toast.error(e.message || "Erreur"); }
     finally { event.target.value = ""; }
   };
@@ -366,9 +373,7 @@ export default function ProjectDeliverableEmail() {
     if (!subject.trim() || !message.trim()) { toast.error("Complétez l'objet et le message"); return; }
     setSending(true);
     try {
-      const attachments = uploadedAttachment
-        ? [{ content: uploadedAttachment.content, name: uploadedAttachment.name, type: uploadedAttachment.type }]
-        : [];
+      const attachments = uploadedAttachments.map((a) => ({ content: a.content, name: a.name, type: a.type }));
       const { error } = await supabase.functions.invoke("send-brevo-campaign", {
         body: {
           action: "send_design",
@@ -519,19 +524,29 @@ export default function ProjectDeliverableEmail() {
             <div className="space-y-3 rounded-xl border border-border p-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-medium">Pièces jointes</p>
-                  <p className="text-xs text-muted-foreground">Max 15 Mo</p>
+                  <p className="text-sm font-medium">Pièces jointes ({uploadedAttachments.length})</p>
+                  <p className="text-xs text-muted-foreground">Max 15 Mo au total • {formatBytes(uploadedAttachments.reduce((s, a) => s + a.size, 0))} utilisés</p>
                 </div>
                 <Button type="button" variant="outline" asChild>
                   <label htmlFor="attachment-upload" className="cursor-pointer"><Paperclip className="mr-2 h-4 w-4" />Ajouter</label>
                 </Button>
               </div>
-              <input id="attachment-upload" type="file" className="hidden" onChange={handleAttachmentChange} />
-              {uploadedAttachment && (
-                <div className="rounded-lg bg-muted/50 p-3 text-sm">
-                  <p className="font-medium">{uploadedAttachment.name}</p>
-                  <p className="text-xs text-muted-foreground">{formatBytes(uploadedAttachment.size)}</p>
-                  <Button type="button" variant="link" className="h-auto p-0 text-xs" onClick={() => setUploadedAttachment(null)}>Retirer</Button>
+              <input id="attachment-upload" type="file" className="hidden" onChange={handleAttachmentChange} multiple />
+              {uploadedAttachments.length > 0 && (
+                <div className="space-y-2">
+                  {uploadedAttachments.map((att, idx) => (
+                    <div key={`${att.name}-${idx}`} className="flex items-center gap-3 rounded-lg bg-muted/50 p-2.5 text-sm">
+                      <Paperclip className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{att.name}</p>
+                        <p className="text-xs text-muted-foreground">{formatBytes(att.size)}</p>
+                      </div>
+                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setUploadedAttachments((prev) => prev.filter((_, i) => i !== idx))}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button type="button" variant="link" className="h-auto p-0 text-xs text-destructive" onClick={() => setUploadedAttachments([])}>Tout retirer</Button>
                 </div>
               )}
             </div>

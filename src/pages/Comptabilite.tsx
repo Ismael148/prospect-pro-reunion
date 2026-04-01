@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense, getMonthlyAmount } from "@/hooks/use-expenses";
 import { useCommissions } from "@/hooks/use-commissions";
 import { useClients } from "@/hooks/use-clients";
+import { useInvoices } from "@/hooks/use-invoices";
 import { useAuth } from "@/contexts/AuthContext";
 import { PACK_PRICES } from "@/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -81,6 +82,7 @@ export default function Comptabilite() {
   const { data: expenses, isLoading: loadingExpenses } = useExpenses();
   const { data: commissions, isLoading: loadingCommissions } = useCommissions(selectedMonth);
   const { data: clients } = useClients();
+  const { data: invoices } = useInvoices();
   const createExpense = useCreateExpense();
   const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();
@@ -107,16 +109,16 @@ export default function Comptabilite() {
     toast.success("Taux fiscal mis à jour");
   };
 
-  // Revenue
+  // Revenue = invoices paid in selected month
   const monthlyRevenue = useMemo(() => {
-    if (!clients) return 0;
-    return clients
-      .filter((c) => {
-        if (!c.signature_date) return false;
-        return c.signature_date.substring(0, 7) === selectedMonth;
+    if (!invoices) return 0;
+    return invoices
+      .filter((inv) => {
+        if (inv.status !== "payee" || !inv.paid_date) return false;
+        return inv.paid_date.substring(0, 7) === selectedMonth;
       })
-      .reduce((sum, c) => sum + (Number(c.pack_amount) || 0), 0);
-  }, [clients, selectedMonth]);
+      .reduce((sum, inv) => sum + Number(inv.total_amount || 0), 0);
+  }, [invoices, selectedMonth]);
 
   const totalCommissions = useMemo(() => {
     return (commissions || []).reduce((s, c) => s + Number(c.total_amount), 0);

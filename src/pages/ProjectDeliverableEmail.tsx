@@ -340,22 +340,29 @@ export default function ProjectDeliverableEmail() {
   const handleInsertVariable = (varCode: string) => setMessage((prev) => prev + varCode);
 
   const handleAttachmentChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (file.size > 15 * 1024 * 1024) { toast.error("Le fichier ne doit pas dépasser 15 Mo"); return; }
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+    const totalCurrentSize = uploadedAttachments.reduce((sum, a) => sum + a.size, 0);
+    const newFiles = Array.from(files);
+    const totalNewSize = newFiles.reduce((sum, f) => sum + f.size, 0);
+    if (totalCurrentSize + totalNewSize > 15 * 1024 * 1024) { toast.error("La taille totale ne doit pas dépasser 15 Mo"); event.target.value = ""; return; }
     try {
-      const content = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const result = reader.result;
-          if (typeof result !== "string") { reject(new Error("Lecture impossible")); return; }
-          resolve(result.split(",")[1] || "");
-        };
-        reader.onerror = () => reject(reader.error || new Error("Lecture impossible"));
-        reader.readAsDataURL(file);
-      });
-      setUploadedAttachment({ content, name: file.name, type: file.type || "application/octet-stream", size: file.size });
-      toast.success("Pièce jointe ajoutée");
+      const newAttachments: UploadedAttachment[] = [];
+      for (const file of newFiles) {
+        const content = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = reader.result;
+            if (typeof result !== "string") { reject(new Error("Lecture impossible")); return; }
+            resolve(result.split(",")[1] || "");
+          };
+          reader.onerror = () => reject(reader.error || new Error("Lecture impossible"));
+          reader.readAsDataURL(file);
+        });
+        newAttachments.push({ content, name: file.name, type: file.type || "application/octet-stream", size: file.size });
+      }
+      setUploadedAttachments((prev) => [...prev, ...newAttachments]);
+      toast.success(`${newAttachments.length} fichier(s) ajouté(s)`);
     } catch (e: any) { toast.error(e.message || "Erreur"); }
     finally { event.target.value = ""; }
   };

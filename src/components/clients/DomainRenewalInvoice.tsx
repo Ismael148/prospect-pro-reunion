@@ -28,6 +28,7 @@ function buildEmailBody(companyName: string, domainName: string, amount: number,
   <p style="margin:0;font-size:22px;font-weight:800;color:${BRAND_COLOR}">${amount.toFixed(2)} €</p>
   <p style="margin:8px 0 0;font-size:13px;color:#71717a">Facture N° ${invoiceNumber}</p>
 </div>
+<p style="margin:0 0 20px">Pour effectuer le virement, nous vous joignons notre RIB en pièce jointe.</p>
 <p style="margin:0 0 20px">Merci de procéder au règlement dans les meilleurs délais.</p>
 <p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`;
 }
@@ -123,6 +124,34 @@ export default function DomainRenewalInvoice({ client }: { client: ClientData })
       const finalBody = emailBodyOverride.replace(/FAC-XXXX/g, invoice.invoice_number);
       const htmlContent = wrapInBrandedTemplate(finalBody, undefined, branding || undefined);
 
+      // Fetch RIB file as base64
+      let ribBase64: string | null = null;
+      try {
+        const ribResp = await fetch("/documents/RIB_Adamkom_by_JJP.pdf");
+        const ribBlob = await ribResp.blob();
+        ribBase64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve((reader.result as string).split(",")[1]);
+          reader.readAsDataURL(ribBlob);
+        });
+      } catch (e) {
+        console.warn("Could not load RIB file", e);
+      }
+
+      const attachments: { content: string; name: string }[] = [];
+      if (pdfBase64) {
+        attachments.push({
+          content: pdfBase64,
+          name: `Facture_${invoice.invoice_number}_${client.company_name.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`,
+        });
+      }
+      if (ribBase64) {
+        attachments.push({
+          content: ribBase64,
+          name: "RIB_Adamkom_by_JJP.pdf",
+        });
+      }
+
       const { error } = await supabase.functions.invoke("send-brevo-campaign", {
         body: {
           action: "send_client_email",
@@ -132,10 +161,7 @@ export default function DomainRenewalInvoice({ client }: { client: ClientData })
           htmlContent,
           trigger: "domain_renewal_invoice",
           client_id: client.id,
-          attachment: pdfBase64 ? [{
-            content: pdfBase64,
-            name: `Facture_${invoice.invoice_number}_${client.company_name.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`,
-          }] : undefined,
+          attachment: attachments.length > 0 ? attachments : undefined,
         },
       });
 

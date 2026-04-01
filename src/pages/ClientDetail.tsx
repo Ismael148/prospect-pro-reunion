@@ -1196,6 +1196,7 @@ export default function ClientDetail() {
         payment_method: client.payment_method,
       }} />
       <SupportTicketsSection clientId={id!} />
+      <ClientEmailHistory clientId={id!} clientEmail={client.email} />
       <ClientFormsSection clientId={id!} supportToken={(client as any).support_token} packType={client.pack_type ?? undefined} />
       {client.pack_type !== "star_bizness_nfc" && <SocialMediaSection clientId={id!} />}
       <NotesSection clientId={id!} activities={activities} />

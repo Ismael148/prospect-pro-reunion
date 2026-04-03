@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { TicketComments } from "@/components/support/TicketComments";
 import { useSupportTickets, useUpdateTicket } from "@/hooks/use-support";
 import { useClients } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";
@@ -598,6 +599,14 @@ export default function Support() {
                     <p className="text-sm whitespace-pre-wrap bg-muted/30 p-3 rounded-lg">{selectedTicket.admin_notes}</p>
                   </div>
                 )}
+
+                {/* Comments thread */}
+                <TicketComments
+                  ticketId={selectedTicket.id}
+                  ticketNumber={selectedTicket.ticket_number}
+                  ticketSubject={selectedTicket.subject}
+                  assignedTo={selectedTicket.assigned_to}
+                />
 
                 {/* Admin section — full controls */}
                 {isAdmin && (

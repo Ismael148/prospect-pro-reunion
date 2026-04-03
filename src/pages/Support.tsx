@@ -179,6 +179,48 @@ export default function Support() {
       await updateTicket.mutateAsync({ id: selectedTicket.id, admin_notes: adminNotes });
       toast.success("Notes enregistrées");
       setSelectedTicket({ ...selectedTicket, admin_notes: adminNotes });
+
+      // Notify assigned user (agent/webmaster) if current user is not the assignee
+      const notificationsToInsert: Array<{
+        user_id: string;
+        title: string;
+        message: string;
+        type: string;
+        link: string;
+      }> = [];
+
+      if (selectedTicket.assigned_to && selectedTicket.assigned_to !== user?.id) {
+        notificationsToInsert.push({
+          user_id: selectedTicket.assigned_to,
+          title: "📝 Note ajoutée sur votre ticket",
+          message: `Une note a été ajoutée sur le ticket "${selectedTicket.ticket_number}" — "${selectedTicket.subject}".`,
+          type: "support",
+          link: "/support",
+        });
+      }
+
+      // Notify all admins (except current user) so admin is aware of notes from agents
+      const { data: adminRoles } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+      if (adminRoles?.length) {
+        for (const r of adminRoles) {
+          if (r.user_id !== user?.id && r.user_id !== selectedTicket.assigned_to) {
+            notificationsToInsert.push({
+              user_id: r.user_id,
+              title: "📝 Note ajoutée sur un ticket",
+              message: `Note mise à jour sur le ticket "${selectedTicket.ticket_number}" — "${selectedTicket.subject}".`,
+              type: "support",
+              link: "/support",
+            });
+          }
+        }
+      }
+
+      if (notificationsToInsert.length) {
+        await supabase.from("notifications").insert(notificationsToInsert);
+      }
     } catch {
       toast.error("Erreur");
     }

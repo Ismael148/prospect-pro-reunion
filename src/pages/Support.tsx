@@ -600,6 +600,14 @@ export default function Support() {
                   </div>
                 )}
 
+                {/* Comments thread */}
+                <TicketComments
+                  ticketId={selectedTicket.id}
+                  ticketNumber={selectedTicket.ticket_number}
+                  ticketSubject={selectedTicket.subject}
+                  assignedTo={selectedTicket.assigned_to}
+                />
+
                 {/* Admin section — full controls */}
                 {isAdmin && (
                   <>

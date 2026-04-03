@@ -241,6 +241,17 @@ export default function Support() {
       setSelectedTicket({ ...selectedTicket, admin_notes: newNotes });
       toast.success(`Tag "${tag.label}" ajouté`);
 
+      // Notify assigned user about the new tag
+      if (selectedTicket.assigned_to && selectedTicket.assigned_to !== user?.id) {
+        await supabase.from("notifications").insert({
+          user_id: selectedTicket.assigned_to,
+          title: "🏷️ Tag ajouté sur votre ticket",
+          message: `Tag "${tag.label}" ajouté sur le ticket "${selectedTicket.ticket_number}" — "${selectedTicket.subject}".`,
+          type: "support",
+          link: "/support",
+        });
+      }
+
       // If tag is "à vérifier par admin", notify all admins
       if (tag.value === "#a_verifier_admin") {
         const { data: adminRoles } = await supabase

@@ -568,8 +568,8 @@ export default function Support() {
                   </div>
                 )}
 
-                {/* Webmaster notes (read-only for non-admin, with note input) */}
-                {(isWebmaster && !isAdmin) && (
+                {/* Notes section for assigned non-admin users (webmasters, agents, etc.) */}
+                {(!isAdmin && selectedTicket.assigned_to === user?.id) && (
                   <div className="border-t pt-4 space-y-3">
                     <div className="space-y-2">
                       <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Note technique</p>
@@ -589,6 +589,13 @@ export default function Support() {
                         <p className="text-sm whitespace-pre-wrap bg-muted/30 p-3 rounded-lg">{selectedTicket.admin_notes}</p>
                       </div>
                     )}
+                  </div>
+                )}
+                {/* Read-only notes for non-assigned non-admin users who can see the ticket */}
+                {(!isAdmin && selectedTicket.assigned_to !== user?.id && selectedTicket.admin_notes) && (
+                  <div className="border-t pt-4">
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Notes</p>
+                    <p className="text-sm whitespace-pre-wrap bg-muted/30 p-3 rounded-lg">{selectedTicket.admin_notes}</p>
                   </div>
                 )}
 

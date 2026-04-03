@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { TicketComments } from "@/components/support/TicketComments";
 import { useSupportTickets, useUpdateTicket } from "@/hooks/use-support";
 import { useClients } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";

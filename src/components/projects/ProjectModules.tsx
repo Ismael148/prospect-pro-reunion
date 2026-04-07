@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 import type { Database } from "@/integrations/supabase/types";
+import ModuleNotes from "./ModuleNotes";
 
 type ProjectTask = Tables<"project_tasks">;
 type TaskStatus = Database["public"]["Enums"]["task_status"];
@@ -28,6 +29,7 @@ export interface TeamMember {
 interface Props {
   packType: string;
   tasks: ProjectTask[];
+  projectId: string;
   startDate?: string | null;
   isAdmin?: boolean;
   teamMembers?: TeamMember[];
@@ -38,7 +40,7 @@ interface Props {
   onModuleLinkUpdate?: (moduleId: string, linkUrl: string) => Promise<void>;
 }
 
-export default function ProjectModules({ packType, tasks, startDate, isAdmin, teamMembers = [], moduleLinks = {}, onTaskStatusChange, onAddTask, onAssignModule, onModuleLinkUpdate }: Props) {
+export default function ProjectModules({ packType, tasks, projectId, startDate, isAdmin, teamMembers = [], moduleLinks = {}, onTaskStatusChange, onAddTask, onAssignModule, onModuleLinkUpdate }: Props) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [addDialogOpen, setAddDialogOpen] = useState<string | null>(null);
   const [newTaskTitle, setNewTaskTitle] = useState("");
@@ -211,6 +213,13 @@ export default function ProjectModules({ packType, tasks, startDate, isAdmin, te
                   </div>
                 </button>
                 <div className="flex items-center gap-1 mr-2">
+                  {/* Module notes */}
+                  <ModuleNotes
+                    projectId={projectId}
+                    moduleId={mod.id}
+                    moduleName={mod.name}
+                    teamMembers={teamMembers}
+                  />
                   {/* Module link button */}
                   {onModuleLinkUpdate && !isEditingLink && (
                     <Button

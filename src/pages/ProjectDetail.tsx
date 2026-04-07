@@ -105,10 +105,37 @@ export default function ProjectDetail() {
   const handleTaskStatusChange = async (taskId: string, status: TaskStatus) => {
     try {
       await updateTask.mutateAsync({ id: taskId, status });
-      // Progress is auto-synced by DB trigger — just refresh project data
       queryClient.invalidateQueries({ queryKey: ["projects", id] });
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       toast.success("Tâche mise à jour");
+
+      // Check if module is now fully completed → notify admins
+      if (status === "termine" && tasks) {
+        const task = tasks.find(t => t.id === taskId);
+        const moduleId = task?.description?.match(/\[(.*?)\]/)?.[1];
+        if (moduleId) {
+          const moduleTasks = tasks.filter(t => t.description?.match(/\[(.*?)\]/)?.[1] === moduleId);
+          const allOthersDone = moduleTasks.every(t => t.id === taskId || t.status === "termine");
+          if (allOthersDone && moduleTasks.length > 0) {
+            const modules = PACK_MODULES[project?.pack_type || ""] || [];
+            const mod = modules.find(m => m.id === moduleId);
+            const moduleName = mod?.name || moduleId;
+
+            const { data: admins } = await supabase.from("user_roles").select("user_id").eq("role", "admin");
+            for (const admin of admins || []) {
+              if (admin.user_id !== user?.id) {
+                await supabase.from("notifications").insert({
+                  user_id: admin.user_id,
+                  title: `✅ Module terminé : ${moduleName}`,
+                  message: `Toutes les tâches du module "${moduleName}" du projet "${project?.name}" sont terminées. À vérifier.`,
+                  type: "module_complete",
+                  link: `/projets/${id}`,
+                });
+              }
+            }
+          }
+        }
+      }
     } catch { toast.error("Erreur lors de la mise à jour de la tâche"); }
   };
 
@@ -406,6 +433,7 @@ export default function ProjectDetail() {
         <ProjectModules
           packType={project.pack_type}
           tasks={tasks}
+          projectId={id!}
           startDate={project.start_date}
           isAdmin={isAdmin}
           teamMembers={teamMembers || []}

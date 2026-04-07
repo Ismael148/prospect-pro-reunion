@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { PACK_MODULES } from "@/lib/constants";
 import { supabase } from "@/integrations/supabase/client";
 import {
   useProject, useProjectTasks, useDeliverables,

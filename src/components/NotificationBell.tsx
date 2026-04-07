@@ -51,6 +51,20 @@ const typeConfig: Record<string, { icon: React.ReactNode; bg: string; border: st
     label: "RDV",
     labelColor: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300",
   },
+  module_complete: {
+    icon: <CheckCircle className="w-4 h-4 text-green-600" />,
+    bg: "bg-green-50 dark:bg-green-950/40",
+    border: "border-l-green-500",
+    label: "Module terminé",
+    labelColor: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
+  },
+  module_note: {
+    icon: <MessageCircle className="w-4 h-4 text-cyan-600" />,
+    bg: "bg-cyan-50 dark:bg-cyan-950/40",
+    border: "border-l-cyan-500",
+    label: "Note module",
+    labelColor: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300",
+  },
 };
 
 const defaultConfig = {

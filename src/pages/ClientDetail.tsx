@@ -911,9 +911,29 @@ function ClientFormsSection({ clientId, supportToken, packType }: { clientId: st
                         <Eye className="w-4 h-4" />
                       </Button>
                       {form.status === "soumis" && hasRole("admin") && (
-                        <Button size="sm" variant="outline" onClick={() => handleValidate(form.id)} disabled={validateForm.isPending}>
-                          <CheckCircle2 className="w-4 h-4 mr-1" /> Valider
-                        </Button>
+                        <>
+                          <div className="relative">
+                            <Button size="sm" variant="ghost" onClick={() => setMentionOpen(mentionOpen === form.id ? null : form.id)} title="Notifier un webmaster">
+                              <UserCheck className="w-4 h-4" />
+                            </Button>
+                            {mentionOpen === form.id && webmasters && webmasters.length > 0 && (
+                              <div className="absolute right-0 top-full mt-1 z-50 bg-popover border rounded-md shadow-lg p-1 min-w-[180px]">
+                                {webmasters.map(w => (
+                                  <button
+                                    key={w.user_id}
+                                    className="w-full text-left text-xs px-3 py-2 rounded hover:bg-muted transition-colors"
+                                    onClick={() => notifyWebmaster(form.id, form.form_type, w.user_id, w.full_name || "Webmaster")}
+                                  >
+                                    @{w.full_name || w.user_id.slice(0, 8)}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <Button size="sm" variant="outline" onClick={() => handleValidate(form.id)} disabled={validateForm.isPending}>
+                            <CheckCircle2 className="w-4 h-4 mr-1" /> Valider
+                          </Button>
+                        </>
                       )}
                     </div>
                   </div>

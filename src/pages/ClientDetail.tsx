@@ -792,6 +792,32 @@ function ClientFormsSection({ clientId, supportToken, packType }: { clientId: st
   const { data: forms, isLoading } = useClientForms(clientId);
   const validateForm = useValidateForm();
   const [viewingForm, setViewingForm] = useState<any>(null);
+  const [mentionOpen, setMentionOpen] = useState<string | null>(null);
+
+  const { data: webmasters } = useQuery({
+    queryKey: ["webmaster-members"],
+    queryFn: async () => {
+      const { data: roles } = await supabase.from("user_roles").select("user_id").in("role", ["webmaster", "designer"]);
+      if (!roles?.length) return [];
+      const userIds = roles.map(r => r.user_id);
+      const { data: profiles } = await supabase.from("profiles").select("user_id, full_name").in("user_id", userIds);
+      return profiles || [];
+    },
+  });
+
+  const notifyWebmaster = async (formId: string, formType: string, webmasterUserId: string, webmasterName: string) => {
+    try {
+      await supabase.from("notifications").insert({
+        user_id: webmasterUserId,
+        title: `📋 Formulaire ${formType === "nfc" ? "Carte NFC" : "Site"} à traiter`,
+        message: `Un client a rempli le formulaire ${formType === "nfc" ? "Carte NFC" : "Site Internet"}. Consultez les informations pour démarrer le travail.`,
+        type: "form_submission",
+        link: `/clients/${clientId}`,
+      });
+      toast.success(`${webmasterName} a été notifié(e)`);
+      setMentionOpen(null);
+    } catch { toast.error("Erreur"); }
+  };
 
   const FORM_TYPE_LABELS: Record<string, { label: string; icon: string }> = {
     nfc: { label: "Carte NFC", icon: "💳" },

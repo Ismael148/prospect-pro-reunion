@@ -406,6 +406,7 @@ export default function ProjectDetail() {
         <ProjectModules
           packType={project.pack_type}
           tasks={tasks}
+          projectId={id!}
           startDate={project.start_date}
           isAdmin={isAdmin}
           teamMembers={teamMembers || []}

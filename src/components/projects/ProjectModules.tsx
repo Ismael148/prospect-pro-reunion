@@ -213,6 +213,13 @@ export default function ProjectModules({ packType, tasks, projectId, startDate, 
                   </div>
                 </button>
                 <div className="flex items-center gap-1 mr-2">
+                  {/* Module notes */}
+                  <ModuleNotes
+                    projectId={projectId}
+                    moduleId={mod.id}
+                    moduleName={mod.name}
+                    teamMembers={teamMembers}
+                  />
                   {/* Module link button */}
                   {onModuleLinkUpdate && !isEditingLink && (
                     <Button

@@ -1,4 +1,4 @@
-import { Bell, CheckCheck, UserPlus, ArrowRightLeft, LifeBuoy, FileText, CreditCard, Globe, Calendar, AlertTriangle, Info, MessageCircle, ExternalLink } from "lucide-react";
+import { Bell, CheckCheck, UserPlus, ArrowRightLeft, LifeBuoy, FileText, CreditCard, Globe, Calendar, AlertTriangle, Info, MessageCircle, ExternalLink, CheckCircle } from "lucide-react";
 import { useNotifications, useUnreadCount, useMarkAsRead, useMarkAllAsRead } from "@/hooks/use-notifications";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";

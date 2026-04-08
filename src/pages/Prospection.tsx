@@ -189,6 +189,8 @@ export default function Prospection() {
 
   const isAdmin = hasRole("admin");
   const isAgent = hasRole("agent_telephonique");
+  const isAgentMaster = hasRole("agent_master");
+  const canManage = isAdmin || isAgentMaster;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchZone, setSearchZone] = useState("");

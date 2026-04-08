@@ -70,7 +70,7 @@ export function useUpdateTicket() {
     mutationFn: async ({ id, ...updates }: Partial<SupportTicket> & { id: string }) => {
       const { error } = await supabase
         .from("support_tickets")
-        .update(updates as Record<string, unknown>)
+        .update(updates as any)
         .eq("id", id);
       if (error) throw error;
     },

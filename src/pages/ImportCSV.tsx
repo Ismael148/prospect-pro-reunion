@@ -310,7 +310,7 @@ export default function ImportCSV() {
           const { created_by, pipeline_status, status, ...updateFields } = row;
           const { error } = await supabase
             .from(tableName)
-            .update(updateFields)
+            .update(updateFields as any)
             .eq("id", existing[0].id) as any;
           if (error) {
             console.error("Update error:", error);

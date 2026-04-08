@@ -120,7 +120,7 @@ export function useUpdateClient() {
 
       const { data, error } = await supabase
         .from("clients")
-        .update(payload)
+        .update(payload as TablesUpdate<"clients">)
         .eq("id", id)
         .select()
         .single();

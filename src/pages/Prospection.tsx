@@ -562,7 +562,7 @@ export default function Prospection() {
       ? !p.assigned_to
       : p.assigned_to === filterAgent;
     // Agents only see their own prospects
-    if (isAgent && !isAdmin) {
+    if (isAgent && !canManage) {
       return matchSearch && matchStatus && p.assigned_to === user?.id;
     }
     return matchSearch && matchStatus && matchAgent;
@@ -583,11 +583,11 @@ export default function Prospection() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Prospection</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            {isAgent && !isAdmin ? "Vos prospects assignés" : "Recherche et dispatching de prospects"}
+            {isAgent && !canManage ? "Vos prospects assignés" : "Recherche et dispatching de prospects"}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {isAdmin && unassignedCount > 0 && (
+          {canManage && unassignedCount > 0 && (
             <>
               <Badge variant="secondary" className="text-xs">
                 {unassignedCount} non assigné{unassignedCount > 1 ? "s" : ""}
@@ -606,7 +606,7 @@ export default function Prospection() {
       </div>
 
       {/* Search Section - Admin only */}
-      {isAdmin && (
+      {canManage && (
         <Card className="border border-border/50 hover:border-primary/20 transition-all duration-200">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
@@ -647,7 +647,7 @@ export default function Prospection() {
       )}
 
       {/* Search History */}
-      {isAdmin && searchHistory.length > 0 && (
+      {canManage && searchHistory.length > 0 && (
         <Card className="border border-border/50">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2 text-muted-foreground">
@@ -1043,7 +1043,7 @@ export default function Prospection() {
             ))}
           </SelectContent>
         </Select>
-        {isAdmin && (
+        {canManage && (
           <Select value={filterAgent} onValueChange={setFilterAgent}>
             <SelectTrigger className="w-44 h-9"><SelectValue placeholder="Agent" /></SelectTrigger>
             <SelectContent>
@@ -1060,7 +1060,7 @@ export default function Prospection() {
       </div>
 
       {/* Agent dispatch summary - Admin only */}
-      {isAdmin && agents && agents.length > 0 && (
+      {canManage && agents && agents.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {agents.map((agent) => {
             const agentProspects = prospects?.filter((p) => p.assigned_to === agent.user_id) || [];
@@ -1208,7 +1208,7 @@ export default function Prospection() {
                   </div>
                   <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end" onClick={(e) => e.stopPropagation()}>
                     {/* Agent assignment - Admin only */}
-                    {isAdmin && (
+                    {canManage && (
                       <Select
                         value={prospect.assigned_to || "none"}
                         onValueChange={(v) => handleAssign(prospect.id, v)}

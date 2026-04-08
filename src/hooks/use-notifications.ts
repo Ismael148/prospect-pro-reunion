@@ -69,7 +69,7 @@ export function useMarkAsRead() {
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from("notifications")
-        .update({ read: true } as Record<string, unknown>)
+        .update({ read: true })
         .eq("id", id);
       if (error) throw error;
     },
@@ -86,7 +86,7 @@ export function useMarkAllAsRead() {
     mutationFn: async () => {
       const { error } = await supabase
         .from("notifications")
-        .update({ read: true } as Record<string, unknown>)
+        .update({ read: true })
         .eq("user_id", user!.id)
         .eq("read", false);
       if (error) throw error;

@@ -54,7 +54,7 @@ export function useUpdateExpense() {
     mutationFn: async ({ id, ...updates }: Partial<Expense> & { id: string }) => {
       const { error } = await supabase
         .from("expenses")
-        .update(updates as Record<string, unknown>)
+        .update(updates as any)
         .eq("id", id);
       if (error) throw error;
     },

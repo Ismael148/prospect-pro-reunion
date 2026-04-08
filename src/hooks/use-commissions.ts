@@ -38,13 +38,13 @@ export function useUpdateCommissionStatus() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const updates: Record<string, unknown> = { status };
+      const updates: { status: string; paid_at?: string } = { status };
       if (status === "paye") {
         updates.paid_at = new Date().toISOString();
       }
       const { error } = await supabase
         .from("commissions")
-        .update(updates)
+        .update(updates as any)
         .eq("id", id);
       if (error) throw error;
     },

@@ -456,21 +456,27 @@ export default function ProjectDetail() {
               variant="outline"
               size="sm"
               className="gap-2"
-              onClick={() => {
+              onClick={async () => {
                 const seoTasks = tasks!.filter(t => t.description?.includes("[seo]"));
                 const doneTasks = seoTasks.filter(t => t.status === "termine");
                 const mLinks = (project as any).module_links || {};
-                generateGmbReport({
-                  clientName: (project as any).clients?.company_name || "Client",
-                  projectName: project.name,
-                  tasksDone: doneTasks.map(t => ({
-                    title: t.title,
-                    linkUrl: mLinks["seo"] || undefined,
-                  })),
-                  tasksTotal: seoTasks.length,
-                  generatedAt: new Date().toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion", day: "2-digit", month: "long", year: "numeric" }),
-                });
-                toast.success("Rapport PDF généré !");
+                try {
+                  const { generateGmbReport } = await import("@/lib/export-gmb-report");
+                  generateGmbReport({
+                    clientName: (project as any).clients?.company_name || "Client",
+                    projectName: project.name,
+                    tasksDone: doneTasks.map(t => ({
+                      title: t.title,
+                      linkUrl: mLinks["seo"] || undefined,
+                    })),
+                    tasksTotal: seoTasks.length,
+                    generatedAt: new Date().toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion", day: "2-digit", month: "long", year: "numeric" }),
+                  });
+                  toast.success("Rapport PDF généré !");
+                } catch (e) {
+                  console.error("Erreur génération PDF:", e);
+                  toast.error("Erreur lors de la génération du rapport");
+                }
               }}
             >
               📄 Générer le rapport PDF

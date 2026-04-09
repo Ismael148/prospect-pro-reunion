@@ -1,6 +1,7 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { NotificationBell } from "@/components/NotificationBell";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -15,7 +16,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           </header>
           <div className="flex-1 p-6 overflow-auto min-w-0 bg-grid-pattern-subtle">
-            {children}
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
           </div>
         </main>
       </div>

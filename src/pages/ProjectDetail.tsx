@@ -13,7 +13,6 @@ import {
   PACK_MODULES, PACK_DEADLINE_DAYS, getPackModules,
 } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
-import { generateGmbReport } from "@/lib/export-gmb-report";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {

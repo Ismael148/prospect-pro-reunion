@@ -251,6 +251,7 @@ export default function ProjectDetail() {
   };
 
   if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
+  if (projectError) return <div className="text-center py-12"><p className="text-destructive">Erreur lors du chargement du projet</p><Button variant="outline" className="mt-4" onClick={() => navigate("/projets")}>Retour</Button></div>;
   if (!project) return <p className="text-muted-foreground">Projet introuvable</p>;
 
   const hasTasks = tasks && tasks.length > 0;

@@ -37,8 +37,8 @@ export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, hasRole } = useAuth();
-  const { data: project, isLoading } = useProject(id!);
-  const { data: tasks } = useProjectTasks(id!);
+  const { data: project, isLoading, error: projectError } = useProject(id!);
+  const { data: tasks = [] } = useProjectTasks(id!);
   const { data: deliverables } = useDeliverables(id!);
   const { data: teamMembers } = useQuery({
     queryKey: ["team-members"],
@@ -251,6 +251,7 @@ export default function ProjectDetail() {
   };
 
   if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
+  if (projectError) return <div className="text-center py-12"><p className="text-destructive">Erreur lors du chargement du projet</p><Button variant="outline" className="mt-4" onClick={() => navigate("/projets")}>Retour</Button></div>;
   if (!project) return <p className="text-muted-foreground">Projet introuvable</p>;
 
   const hasTasks = tasks && tasks.length > 0;

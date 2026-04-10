@@ -57,9 +57,8 @@ Deno.serve(async (req) => {
         global: { headers: { Authorization: authHeader } },
       });
 
-      const token = authHeader.replace("Bearer ", "");
-      const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
-      if (claimsError || !claimsData?.claims) {
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+      if (authError || !authUser) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
           headers: corsHeaders,
@@ -128,9 +127,8 @@ Deno.serve(async (req) => {
         global: { headers: { Authorization: authHeader } },
       });
 
-      const tkn = authHeader.replace("Bearer ", "");
-      const { data: cd, error: ce } = await supabase.auth.getClaims(tkn);
-      if (ce || !cd?.claims) {
+      const { data: { user: authUser2 }, error: authErr2 } = await supabase.auth.getUser();
+      if (authErr2 || !authUser2) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
           headers: corsHeaders,

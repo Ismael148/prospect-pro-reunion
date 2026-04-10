@@ -8,12 +8,6 @@ export function useMetaOAuth() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) throw new Error("Non authentifié");
 
-    const res = await supabase.functions.invoke("meta-oauth", {
-      body: { redirect_uri: REDIRECT_URI, client_id: clientId },
-      headers: { "x-action": "get_auth_url" },
-    });
-
-    // The edge function uses query param, let's call with fetch directly
     const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
     const response = await fetch(
       `https://${projectId}.supabase.co/functions/v1/meta-oauth?action=get_auth_url`,

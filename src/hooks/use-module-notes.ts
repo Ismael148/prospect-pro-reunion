@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface ModuleNote {
@@ -13,18 +13,27 @@ export interface ModuleNote {
 
 export function useModuleNotes(projectId: string) {
   const queryClient = useQueryClient();
+  const channelInstanceRef = useRef(
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : Math.random().toString(36).slice(2)
+  );
 
   useEffect(() => {
     if (!projectId) return;
+
     const channel = supabase
-      .channel(`module-notes-${projectId}`)
+      .channel(`module-notes-${projectId}-${channelInstanceRef.current}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "module_notes", filter: `project_id=eq.${projectId}` },
         () => queryClient.invalidateQueries({ queryKey: ["module-notes", projectId] })
       )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
   }, [projectId, queryClient]);
 
   return useQuery({

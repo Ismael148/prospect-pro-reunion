@@ -253,9 +253,16 @@ export default function Projects() {
                         {project.clients?.company_name}
                       </p>
                     </div>
-                    <Badge className={`text-xs border shrink-0 ${PROJECT_STATUS_COLORS[project.status as keyof typeof PROJECT_STATUS_COLORS]}`} variant="outline">
-                      {PROJECT_STATUS_LABELS[project.status as keyof typeof PROJECT_STATUS_LABELS]}
-                    </Badge>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {project.status === "en_attente" && (
+                        <Badge className="text-[10px] font-bold bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 animate-pulse shadow-lg shadow-emerald-500/30">
+                          ✨ NOUVEAU
+                        </Badge>
+                      )}
+                      <Badge className={`text-xs border ${PROJECT_STATUS_COLORS[project.status as keyof typeof PROJECT_STATUS_COLORS]}`} variant="outline">
+                        {PROJECT_STATUS_LABELS[project.status as keyof typeof PROJECT_STATUS_LABELS]}
+                      </Badge>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">

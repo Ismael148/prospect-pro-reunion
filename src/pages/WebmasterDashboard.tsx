@@ -78,9 +78,16 @@ function ProjectRow({ project, tasks, navigate }: { project: any; tasks: any[]; 
       <div className="flex-1 min-w-0 space-y-1.5">
         <div className="flex items-center justify-between gap-2">
           <p className="text-sm font-medium truncate">{project.name}</p>
-          <Badge className={`text-[11px] border shrink-0 ${PROJECT_STATUS_COLORS[project.status as keyof typeof PROJECT_STATUS_COLORS]}`} variant="outline">
-            {PROJECT_STATUS_LABELS[project.status as keyof typeof PROJECT_STATUS_LABELS]}
-          </Badge>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {project.status === "en_attente" && (
+              <Badge className="text-[10px] font-bold bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 animate-pulse shadow-lg shadow-emerald-500/30">
+                ✨ NOUVEAU
+              </Badge>
+            )}
+            <Badge className={`text-[11px] border ${PROJECT_STATUS_COLORS[project.status as keyof typeof PROJECT_STATUS_COLORS]}`} variant="outline">
+              {PROJECT_STATUS_LABELS[project.status as keyof typeof PROJECT_STATUS_LABELS]}
+            </Badge>
+          </div>
         </div>
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span>{project.clients?.company_name}</span>

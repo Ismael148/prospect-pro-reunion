@@ -65,30 +65,6 @@ export function TicketComments({ ticketId, ticketNumber, ticketSubject, assigned
     try {
       await addComment.mutateAsync({ ticket_id: ticketId, user_id: user.id, content: content.trim() });
       setContent("");
-
-      // Notify relevant people
-      const notifs: Array<{ user_id: string; title: string; message: string; type: string; link: string }> = [];
-      const authorName = profiles[user.id] || "Quelqu'un";
-      const msg = `${authorName} a commenté le ticket "${ticketNumber}" — "${ticketSubject}"`;
-
-      // Notify assigned user if not the author
-      if (assignedTo && assignedTo !== user.id) {
-        notifs.push({ user_id: assignedTo, title: "💬 Nouveau commentaire", message: msg, type: "support", link: "/support" });
-      }
-
-      // Notify admins (except author & already-notified assignee)
-      const { data: adminRoles } = await supabase.from("user_roles").select("user_id").eq("role", "admin");
-      if (adminRoles?.length) {
-        for (const r of adminRoles) {
-          if (r.user_id !== user.id && r.user_id !== assignedTo) {
-            notifs.push({ user_id: r.user_id, title: "💬 Nouveau commentaire", message: msg, type: "support", link: "/support" });
-          }
-        }
-      }
-
-      if (notifs.length) {
-        await supabase.from("notifications").insert(notifs);
-      }
     } catch {
       toast.error("Erreur lors de l'envoi du commentaire");
     }

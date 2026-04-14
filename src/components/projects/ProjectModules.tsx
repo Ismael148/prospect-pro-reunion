@@ -41,6 +41,7 @@ interface Props {
 }
 
 export default function ProjectModules({ packType, tasks, projectId, startDate, isAdmin, teamMembers = [], moduleLinks = {}, onTaskStatusChange, onAddTask, onAssignModule, onModuleLinkUpdate }: Props) {
+  const [checkingAll, setCheckingAll] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [addDialogOpen, setAddDialogOpen] = useState<string | null>(null);
   const [newTaskTitle, setNewTaskTitle] = useState("");

@@ -96,6 +96,27 @@ export default function ProjectModules({ packType, tasks, projectId, startDate, 
     }
   };
 
+  const handleCheckAllModule = async (moduleId: string, shouldCheck: boolean) => {
+    const moduleTasks = tasksByModule[moduleId] || [];
+    const targetStatus: TaskStatus = shouldCheck ? "termine" : "a_faire";
+    const tasksToUpdate = moduleTasks.filter((t) => 
+      shouldCheck ? t.status !== "termine" : t.status === "termine"
+    );
+    if (!tasksToUpdate.length) return;
+    
+    setCheckingAll(moduleId);
+    try {
+      for (const task of tasksToUpdate) {
+        await onTaskStatusChange(task.id, targetStatus);
+      }
+      toast.success(shouldCheck ? `Module complété (${tasksToUpdate.length} tâches)` : `Module réinitialisé`);
+    } catch {
+      toast.error("Erreur lors de la mise à jour");
+    } finally {
+      setCheckingAll(null);
+    }
+  };
+
   const totalDone = tasks.filter((t) => t.status === "termine").length;
   const totalProgress = tasks.length > 0 ? Math.round((totalDone / tasks.length) * 100) : 0;
 

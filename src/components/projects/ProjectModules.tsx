@@ -235,6 +235,28 @@ export default function ProjectModules({ packType, tasks, projectId, startDate, 
                   </div>
                 </button>
                 <div className="flex items-center gap-1 mr-2">
+                  {/* Check all module */}
+                  {total > 0 && (
+                    <div
+                      className="flex items-center gap-1.5 mr-1"
+                      onClick={(e) => e.stopPropagation()}
+                      title={allDone ? "Décocher tout le module" : "Valider tout le module"}
+                    >
+                      <Checkbox
+                        checked={allDone}
+                        disabled={checkingAll === mod.id}
+                        onCheckedChange={(checked) => handleCheckAllModule(mod.id, !!checked)}
+                        className={`h-5 w-5 rounded-md border-2 transition-all ${
+                          allDone 
+                            ? "border-success bg-success data-[state=checked]:bg-success data-[state=checked]:border-success" 
+                            : "border-primary/40 hover:border-primary"
+                        } ${checkingAll === mod.id ? "animate-spin" : ""}`}
+                      />
+                      {checkingAll === mod.id && (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+                      )}
+                    </div>
+                  )}
                   {/* Module notes */}
                   <ModuleNotes
                     projectId={projectId}

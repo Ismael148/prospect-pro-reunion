@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { PACK_MODULES, TASK_PRIORITY_LABELS } from "@/lib/constants";
-import { ChevronDown, ChevronRight, Clock, AlertTriangle, ExternalLink, Link2, Plus, UserCircle, Check } from "lucide-react";
+import { ChevronDown, ChevronRight, Clock, AlertTriangle, ExternalLink, Link2, Plus, UserCircle, Check, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
@@ -41,6 +41,7 @@ interface Props {
 }
 
 export default function ProjectModules({ packType, tasks, projectId, startDate, isAdmin, teamMembers = [], moduleLinks = {}, onTaskStatusChange, onAddTask, onAssignModule, onModuleLinkUpdate }: Props) {
+  const [checkingAll, setCheckingAll] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [addDialogOpen, setAddDialogOpen] = useState<string | null>(null);
   const [newTaskTitle, setNewTaskTitle] = useState("");
@@ -92,6 +93,27 @@ export default function ProjectModules({ packType, tasks, projectId, startDate, 
       setModuleLinkValue("");
     } catch {
       toast.error("Erreur");
+    }
+  };
+
+  const handleCheckAllModule = async (moduleId: string, shouldCheck: boolean) => {
+    const moduleTasks = tasksByModule[moduleId] || [];
+    const targetStatus: TaskStatus = shouldCheck ? "termine" : "a_faire";
+    const tasksToUpdate = moduleTasks.filter((t) => 
+      shouldCheck ? t.status !== "termine" : t.status === "termine"
+    );
+    if (!tasksToUpdate.length) return;
+    
+    setCheckingAll(moduleId);
+    try {
+      for (const task of tasksToUpdate) {
+        await onTaskStatusChange(task.id, targetStatus);
+      }
+      toast.success(shouldCheck ? `Module complété (${tasksToUpdate.length} tâches)` : `Module réinitialisé`);
+    } catch {
+      toast.error("Erreur lors de la mise à jour");
+    } finally {
+      setCheckingAll(null);
     }
   };
 
@@ -213,6 +235,28 @@ export default function ProjectModules({ packType, tasks, projectId, startDate, 
                   </div>
                 </button>
                 <div className="flex items-center gap-1 mr-2">
+                  {/* Check all module */}
+                  {total > 0 && (
+                    <div
+                      className="flex items-center gap-1.5 mr-1"
+                      onClick={(e) => e.stopPropagation()}
+                      title={allDone ? "Décocher tout le module" : "Valider tout le module"}
+                    >
+                      <Checkbox
+                        checked={allDone}
+                        disabled={checkingAll === mod.id}
+                        onCheckedChange={(checked) => handleCheckAllModule(mod.id, !!checked)}
+                        className={`h-5 w-5 rounded-md border-2 transition-all ${
+                          allDone 
+                            ? "border-success bg-success data-[state=checked]:bg-success data-[state=checked]:border-success" 
+                            : "border-primary/40 hover:border-primary"
+                        } ${checkingAll === mod.id ? "animate-spin" : ""}`}
+                      />
+                      {checkingAll === mod.id && (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+                      )}
+                    </div>
+                  )}
                   {/* Module notes */}
                   <ModuleNotes
                     projectId={projectId}

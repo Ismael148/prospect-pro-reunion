@@ -650,6 +650,40 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
         }
       }
 
+      // Detect #ticket tag → create a support ticket from the note
+      if (/#ticket/i.test(note)) {
+        try {
+          const { data: client } = await supabase
+            .from("clients")
+            .select("company_name, email, support_token")
+            .eq("id", clientId)
+            .single();
+
+          // Extract the note content without tags as the ticket subject/message
+          const cleanNote = note.replace(/#(ticket|resolu|en_cours)/gi, "").replace(/@\[[^\]]+\]/g, "").trim();
+          const subject = cleanNote.length > 80 ? cleanNote.substring(0, 80) + "..." : cleanNote || "Demande client";
+
+          const { data: newTicket, error: ticketError } = await supabase
+            .from("support_tickets")
+            .insert({
+              client_id: clientId,
+              subject,
+              message: cleanNote || "Ticket créé depuis les notes client",
+              category: "autre" as any,
+              priority: "normale",
+              ticket_number: "auto",
+            })
+            .select("ticket_number")
+            .single();
+
+          if (ticketError) throw ticketError;
+          toast.success(`🎫 Ticket ${newTicket?.ticket_number} créé ! Rendez-vous dans Support pour l'assigner.`);
+        } catch (e) {
+          console.warn("Auto-create ticket error:", e);
+          toast.error("Erreur lors de la création du ticket");
+        }
+      }
+
       setNote("");
     } catch { toast.error("Erreur"); }
   };

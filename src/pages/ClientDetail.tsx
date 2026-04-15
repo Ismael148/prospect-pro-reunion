@@ -25,6 +25,7 @@ import {
   ArrowLeft, Plus, User, Phone, Mail, Briefcase, Building2, Loader2, Clock,
   Globe, MapPin, CreditCard, FileText, MessageSquare, Send, FolderKanban, Hash, UserCheck,
   ClipboardCopy, CheckCircle2, Eye, Download, Pencil, CreditCard as NfcIcon, Ticket, Trash2,
+  LifeBuoy,
 } from "lucide-react";
 import { exportClientPDF } from "@/lib/export-client-pdf";
 import { useState } from "react";
@@ -649,6 +650,40 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
         }
       }
 
+      // Detect #ticket tag → create a support ticket from the note
+      if (/#ticket/i.test(note)) {
+        try {
+          const { data: client } = await supabase
+            .from("clients")
+            .select("company_name, email, support_token")
+            .eq("id", clientId)
+            .single();
+
+          // Extract the note content without tags as the ticket subject/message
+          const cleanNote = note.replace(/#(ticket|resolu|en_cours)/gi, "").replace(/@\[[^\]]+\]/g, "").trim();
+          const subject = cleanNote.length > 80 ? cleanNote.substring(0, 80) + "..." : cleanNote || "Demande client";
+
+          const { data: newTicket, error: ticketError } = await supabase
+            .from("support_tickets")
+            .insert({
+              client_id: clientId,
+              subject,
+              message: cleanNote || "Ticket créé depuis les notes client",
+              category: "autre" as any,
+              priority: "normale",
+              ticket_number: "auto",
+            })
+            .select("ticket_number")
+            .single();
+
+          if (ticketError) throw ticketError;
+          toast.success(`🎫 Ticket ${newTicket?.ticket_number} créé ! Rendez-vous dans Support pour l'assigner.`);
+        } catch (e) {
+          console.warn("Auto-create ticket error:", e);
+          toast.error("Erreur lors de la création du ticket");
+        }
+      }
+
       setNote("");
     } catch { toast.error("Erreur"); }
   };
@@ -656,13 +691,16 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
   const renderDescription = (text: string) => {
     if (!text) return null;
     // Parse tags and mentions into styled elements
-    const parts = text.split(/(#resolu|#en_cours|@\[[^\]]+\])/gi);
+    const parts = text.split(/(#resolu|#en_cours|#ticket|@\[[^\]]+\])/gi);
     return parts.map((part, i) => {
       if (/#resolu/i.test(part)) {
         return <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold"><CheckCircle2 className="w-3 h-3" />Résolu</span>;
       }
       if (/#en_cours/i.test(part)) {
         return <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold"><Clock className="w-3 h-3" />En cours</span>;
+      }
+      if (/#ticket/i.test(part)) {
+        return <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-xs font-semibold"><LifeBuoy className="w-3 h-3" />Ticket créé</span>;
       }
       const mentionMatch = part.match(/@\[([^\]]+)\]/);
       if (mentionMatch) {
@@ -691,7 +729,7 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ajouter une note... (#resolu #en_cours @mention)" rows={3} className="resize-none" />
+          <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ajouter une note... (#resolu #en_cours #ticket @mention)" rows={3} className="resize-none" />
           <div className="flex items-center justify-between">
             <div className="flex gap-1 flex-wrap">
               {teamMembers?.slice(0, 5).map((m) => (
@@ -704,6 +742,9 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
               </Button>
               <Button variant="outline" size="sm" className="text-xs h-7 px-2 text-green-600 border-green-200 hover:bg-green-50" onClick={() => setNote((prev) => prev + "#resolu ")}>
                 <CheckCircle2 className="w-3 h-3 mr-1" /> #resolu
+              </Button>
+              <Button variant="outline" size="sm" className="text-xs h-7 px-2 text-orange-600 border-orange-200 hover:bg-orange-50" onClick={() => setNote((prev) => prev + "#ticket ")}>
+                <LifeBuoy className="w-3 h-3 mr-1" /> #ticket
               </Button>
             </div>
             <Button size="sm" onClick={handleAddNote} disabled={createActivity.isPending || !note.trim()}>
@@ -721,6 +762,7 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
               const authorName = teamMembers?.find((m) => m.user_id === activity.user_id)?.full_name || "Inconnu";
               const hasResolu = /#resolu/i.test(activity.description || "");
               const hasEnCours = /#en_cours/i.test(activity.description || "");
+              const hasTicket = /#ticket/i.test(activity.description || "");
               return (
                 <motion.div
                   key={activity.id}
@@ -730,6 +772,8 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
                   className={`p-4 rounded-xl border transition-all ${
                     hasResolu
                       ? "bg-green-50/60 border-green-200/60 dark:bg-green-950/20 dark:border-green-800/30"
+                      : hasTicket
+                      ? "bg-orange-50/60 border-orange-200/60 dark:bg-orange-950/20 dark:border-orange-800/30"
                       : hasEnCours
                       ? "bg-blue-50/60 border-blue-200/60 dark:bg-blue-950/20 dark:border-blue-800/30"
                       : "bg-card border-border/50 hover:border-border"

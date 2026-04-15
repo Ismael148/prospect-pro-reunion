@@ -638,11 +638,20 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
     }
   };
 
-  const queryClient = useQuery({ queryKey: ["_noop"], enabled: false }).isLoading ? null : null;
-  const { queryClient: qc } = (() => {
-    // Access queryClient from react-query
-    return { queryClient: null };
-  })();
+  const qClient = useQueryClient();
+
+  const handleMarkNoteSeen = async (activityId: string) => {
+    try {
+      await supabase
+        .from("client_activities")
+        .update({ admin_seen: true, admin_seen_at: new Date().toISOString() } as any)
+        .eq("id", activityId);
+      toast.success("Note marquée comme vue ✓");
+      qClient.invalidateQueries({ queryKey: ["client-activities", clientId] });
+    } catch {
+      toast.error("Erreur");
+    }
+  };
 
   const handleAddNote = async () => {
     if (!note.trim()) return;

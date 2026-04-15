@@ -762,6 +762,7 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
               const authorName = teamMembers?.find((m) => m.user_id === activity.user_id)?.full_name || "Inconnu";
               const hasResolu = /#resolu/i.test(activity.description || "");
               const hasEnCours = /#en_cours/i.test(activity.description || "");
+              const hasTicket = /#ticket/i.test(activity.description || "");
               return (
                 <motion.div
                   key={activity.id}
@@ -771,6 +772,8 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
                   className={`p-4 rounded-xl border transition-all ${
                     hasResolu
                       ? "bg-green-50/60 border-green-200/60 dark:bg-green-950/20 dark:border-green-800/30"
+                      : hasTicket
+                      ? "bg-orange-50/60 border-orange-200/60 dark:bg-orange-950/20 dark:border-orange-800/30"
                       : hasEnCours
                       ? "bg-blue-50/60 border-blue-200/60 dark:bg-blue-950/20 dark:border-blue-800/30"
                       : "bg-card border-border/50 hover:border-border"

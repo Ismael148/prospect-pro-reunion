@@ -870,7 +870,23 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
                     {renderDescription(activity.description || "")}
                   </div>
                   {isAdmin && (
-                    <div className="mt-2 flex justify-end">
+                    <div className="mt-2 flex items-center justify-between">
+                      <div>
+                        {(activity as any).admin_seen ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] text-green-600 dark:text-green-400 font-medium">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Vu par l'admin
+                          </span>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs h-7 gap-1 text-muted-foreground hover:text-green-600"
+                            onClick={() => handleMarkNoteSeen(activity.id)}
+                          >
+                            <Eye className="w-3.5 h-3.5" /> Marquer comme vu
+                          </Button>
+                        )}
+                      </div>
                       <Button
                         variant="outline"
                         size="sm"

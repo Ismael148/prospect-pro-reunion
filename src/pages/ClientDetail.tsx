@@ -898,6 +898,97 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
           </motion.div>
         )}
       </CardContent>
+
+      {/* Dialog de création de ticket depuis une note */}
+      <Dialog open={ticketDialog.open} onOpenChange={(open) => setTicketDialog((prev) => ({ ...prev, open }))}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <LifeBuoy className="w-5 h-5 text-orange-500" /> Créer un ticket support
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-3 rounded-lg bg-muted/50 border text-sm">
+              <p className="text-xs font-medium text-muted-foreground mb-1">Note de {ticketDialog.authorName} :</p>
+              <p className="text-foreground/80 whitespace-pre-wrap">{ticketDialog.noteContent}</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Sujet du ticket</Label>
+              <Input
+                value={ticketForm.subject}
+                onChange={(e) => setTicketForm((prev) => ({ ...prev, subject: e.target.value }))}
+                placeholder="Sujet..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Message</Label>
+              <Textarea
+                value={ticketForm.message}
+                onChange={(e) => setTicketForm((prev) => ({ ...prev, message: e.target.value }))}
+                rows={3}
+                className="resize-none"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Catégorie</Label>
+                <Select value={ticketForm.category} onValueChange={(v) => setTicketForm((prev) => ({ ...prev, category: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(SUPPORT_CATEGORIES).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Priorité</Label>
+                <Select value={ticketForm.priority} onValueChange={(v) => setTicketForm((prev) => ({ ...prev, priority: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="normale">Normale</SelectItem>
+                    <SelectItem value="haute">Haute</SelectItem>
+                    <SelectItem value="urgente">Urgente</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Assigner à</Label>
+              <Select value={ticketForm.assigned_to} onValueChange={(v) => setTicketForm((prev) => ({ ...prev, assigned_to: v }))}>
+                <SelectTrigger><SelectValue placeholder="Non assigné" /></SelectTrigger>
+                <SelectContent>
+                  {teamWithRoles?.filter((m) =>
+                    m.roles.some((r: string) => ["admin", "webmaster", "designer", "agent_support"].includes(r))
+                  ).map((m) => (
+                    <SelectItem key={m.user_id} value={m.user_id}>
+                      {m.full_name || "Inconnu"} — {m.roles.join(", ")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setTicketDialog({ open: false, noteContent: "", authorName: "" })}>
+                Annuler
+              </Button>
+              <Button
+                onClick={handleCreateTicketFromDialog}
+                disabled={creatingTicket || !ticketForm.subject.trim()}
+                className="bg-orange-600 hover:bg-orange-700 text-white"
+              >
+                {creatingTicket ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <LifeBuoy className="w-4 h-4 mr-1" />}
+                Créer le ticket
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

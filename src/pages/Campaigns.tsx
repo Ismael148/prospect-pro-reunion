@@ -40,6 +40,21 @@ const EMAIL_TEMPLATES = [
       <p>Cordialement,<br><strong style="color:#ff006e">L'équipe AdamKom</strong></p>`),
   },
   {
+    id: "avis",
+    label: "Demande d'avis Google",
+    subject: "Votre avis compte pour nous ! ⭐",
+    html: wrapInBrandedTemplate(`<h2 style="color:#ff006e;margin:0 0 20px">⭐ Votre avis compte énormément !</h2>
+      <p>Bonjour,</p>
+      <p>Nous espérons que nos services vous apportent entière satisfaction. Votre retour est précieux et nous aide à nous améliorer continuellement.</p>
+      <p>Si notre collaboration vous a plu, nous serions ravis que vous preniez <strong>quelques secondes</strong> pour nous laisser un avis sur Google. Cela nous aide énormément ! 🙏</p>
+      <div style="text-align:center;margin:30px 0">
+        <a href="[LIEN_GOOGLE_AVIS]" style="display:inline-block;background:#ff006e;color:#fff;padding:16px 36px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:16px;box-shadow:0 4px 12px rgba(255,0,110,0.3)">⭐ Laisser un avis Google</a>
+      </div>
+      <p style="color:#888;font-size:13px;text-align:center">Cliquez sur le bouton ci-dessus, connectez-vous à votre compte Google, puis laissez-nous votre retour d'expérience.</p>
+      <p>Merci pour votre confiance et votre soutien !</p>
+      <p>Cordialement,<br><strong style="color:#ff006e">L'équipe AdamKom</strong></p>`),
+  },
+  {
     id: "custom",
     label: "Email personnalisé",
     subject: "",

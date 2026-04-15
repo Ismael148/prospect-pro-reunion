@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.brevo-webhook]
 verify_jwt = false
+
+[functions.pagespeed-report]
+verify_jwt = false

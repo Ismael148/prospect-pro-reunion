@@ -493,6 +493,7 @@ export default function ProjectDetail() {
         deliverables={deliverables}
         clientEmail={(project as any).clients?.email}
         clientName={(project as any).clients?.company_name}
+        clientWebsite={(project as any).clients?.website}
         onAdd={handleAddDeliverable}
         onStatusChange={handleDeliverableStatusChange}
         onAutoCreate={handleAutoCreateDeliverables}

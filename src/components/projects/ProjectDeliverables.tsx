@@ -13,8 +13,9 @@ import {
 import {
   DELIVERABLE_STATUS_LABELS, PACK_DELIVERABLES,
 } from "@/lib/constants";
-import { Plus, Loader2, Package, CheckCircle2, Circle, AlertTriangle, Send } from "lucide-react";
+import { Plus, Loader2, Package, CheckCircle2, Circle, AlertTriangle, Send, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -27,6 +28,7 @@ interface Props {
   deliverables: Deliverable[] | undefined;
   clientEmail?: string | null;
   clientName?: string | null;
+  clientWebsite?: string | null;
   onAdd: (d: TablesInsert<"deliverables">) => Promise<void>;
   onStatusChange: (id: string, status: DeliverableStatus) => Promise<void>;
   onAutoCreate: () => Promise<void>;
@@ -34,11 +36,12 @@ interface Props {
 }
 
 export default function ProjectDeliverables({
-  projectId, packType, deliverables, clientEmail, clientName, onAdd, onStatusChange, onAutoCreate, isCreating,
+  projectId, packType, deliverables, clientEmail, clientName, clientWebsite, onAdd, onStatusChange, onAutoCreate, isCreating,
 }: Props) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: "", description: "" });
+  const [sendingReport, setSendingReport] = useState(false);
 
   const handleAdd = async () => {
     if (!form.name.trim()) { toast.error("Nom requis"); return; }
@@ -51,11 +54,60 @@ export default function ProjectDeliverables({
     navigate(`/projets/${projectId}/livrables/${deliverable.id}/envoyer`);
   };
 
+  const handleSendPerformanceReport = async () => {
+    if (!clientEmail) {
+      toast.error("Le client n'a pas d'adresse email");
+      return;
+    }
+    if (!clientWebsite) {
+      toast.error("Le client n'a pas de site web renseigné");
+      return;
+    }
+
+    setSendingReport(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("pagespeed-report", {
+        body: {
+          url: clientWebsite,
+          clientName: clientName || "Client",
+          clientEmail,
+          projectId,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      const scores = data.scores;
+      toast.success(
+        `Rapport envoyé ! Performance: ${scores.performance}/100, SEO: ${scores.seo}/100`,
+        { duration: 5000 }
+      );
+    } catch (err: any) {
+      toast.error(err.message || "Erreur lors de l'envoi du rapport");
+    } finally {
+      setSendingReport(false);
+    }
+  };
+
   return (
     <Card className="border-0 shadow-md shadow-primary/5">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg flex items-center gap-2"><Package className="w-5 h-5" /> Livrables</CardTitle>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          {clientWebsite && clientEmail && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleSendPerformanceReport}
+              disabled={sendingReport}
+              className="gap-1.5"
+            >
+              {sendingReport ? <Loader2 className="w-4 h-4 animate-spin" /> : <BarChart3 className="w-4 h-4" />}
+              <span className="hidden sm:inline">Rapport Performance</span>
+              <span className="sm:hidden">Perf</span>
+            </Button>
+          )}
           {!deliverables?.length && PACK_DELIVERABLES[packType]?.length > 0 && (
             <Button size="sm" variant="outline" onClick={onAutoCreate} disabled={isCreating}>
               Générer depuis le pack

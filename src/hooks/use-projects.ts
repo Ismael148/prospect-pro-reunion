@@ -76,7 +76,7 @@ export function useProject(id: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
-        .select("*, clients(company_name, city, email, support_token)")
+        .select("*, clients(company_name, city, email, support_token, website)")
         .eq("id", id)
         .single();
       if (error) throw error;

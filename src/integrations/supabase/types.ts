@@ -1014,6 +1014,72 @@ export type Database = {
           },
         ]
       }
+      social_deliverables: {
+        Row: {
+          client_id: string
+          created_at: string
+          delivered_at: string | null
+          delivered_by: string | null
+          file_url: string | null
+          id: string
+          month_year: string
+          notes: string | null
+          project_id: string
+          status: string
+          type: string
+          updated_at: string
+          validated_at: string | null
+          validated_by: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          delivered_at?: string | null
+          delivered_by?: string | null
+          file_url?: string | null
+          id?: string
+          month_year: string
+          notes?: string | null
+          project_id: string
+          status?: string
+          type: string
+          updated_at?: string
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          delivered_at?: string | null
+          delivered_by?: string | null
+          file_url?: string | null
+          id?: string
+          month_year?: string
+          notes?: string | null
+          project_id?: string
+          status?: string
+          type?: string
+          updated_at?: string
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_deliverables_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_deliverables_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       social_publications: {
         Row: {
           client_id: string
@@ -1178,6 +1244,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_monthly_social_deliverables: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

@@ -23,6 +23,7 @@ import { ArrowLeft, Loader2, Building2, Calendar, Sparkles, Clock, AlertTriangle
 import type { Database } from "@/integrations/supabase/types";
 import ProjectModules from "@/components/projects/ProjectModules";
 import ProjectDeliverables from "@/components/projects/ProjectDeliverables";
+import SocialDeliverables from "@/components/projects/SocialDeliverables";
 
 type ProjectStatus = Database["public"]["Enums"]["project_status"];
 type TaskStatus = Database["public"]["Enums"]["task_status"];
@@ -484,6 +485,11 @@ export default function ProjectDetail() {
             </Button>
           </CardContent>
         </Card>
+      )}
+
+      {/* Social Deliverables - monthly RS */}
+      {isNumerik && hasTasks && (
+        <SocialDeliverables projectId={id!} clientId={project.client_id} />
       )}
 
       {/* Deliverables */}

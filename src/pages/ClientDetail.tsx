@@ -870,6 +870,14 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
                   <div className="text-sm whitespace-pre-wrap leading-relaxed text-foreground/90">
                     {renderDescription(activity.description || "")}
                   </div>
+                  {/* Admin seen status - visible to everyone */}
+                  {(activity as any).admin_seen && !isAdmin && (
+                    <div className="mt-1.5">
+                      <span className="inline-flex items-center gap-1 text-[11px] text-green-600 dark:text-green-400 font-medium">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Vu par l'admin
+                      </span>
+                    </div>
+                  )}
                   {isAdmin && (
                     <div className="mt-2 flex items-center justify-between">
                       <div>

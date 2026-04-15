@@ -25,6 +25,7 @@ import {
   ArrowLeft, Plus, User, Phone, Mail, Briefcase, Building2, Loader2, Clock,
   Globe, MapPin, CreditCard, FileText, MessageSquare, Send, FolderKanban, Hash, UserCheck,
   ClipboardCopy, CheckCircle2, Eye, Download, Pencil, CreditCard as NfcIcon, Ticket, Trash2,
+  LifeBuoy,
 } from "lucide-react";
 import { exportClientPDF } from "@/lib/export-client-pdf";
 import { useState } from "react";

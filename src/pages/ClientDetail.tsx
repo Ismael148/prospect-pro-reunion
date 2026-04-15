@@ -594,14 +594,47 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
     },
   });
 
-  const { data: teamMembers } = useQuery({
-    queryKey: ["team-profiles"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("user_id, full_name");
+  const teamMembers = teamWithRoles;
+
+  const openTicketFromNote = (noteContent: string, authorName: string) => {
+    const cleanContent = noteContent.replace(/#(ticket|resolu|en_cours)/gi, "").replace(/@\[[^\]]+\]/g, "").trim();
+    setTicketForm({
+      subject: cleanContent.length > 80 ? cleanContent.substring(0, 80) + "..." : cleanContent || "Demande client",
+      message: cleanContent || "Demande client",
+      category: "autre",
+      priority: "normale",
+      assigned_to: "",
+    });
+    setTicketDialog({ open: true, noteContent: cleanContent, authorName });
+  };
+
+  const handleCreateTicketFromDialog = async () => {
+    if (!ticketForm.subject.trim()) return;
+    setCreatingTicket(true);
+    try {
+      const { data: newTicket, error } = await supabase
+        .from("support_tickets")
+        .insert({
+          client_id: clientId,
+          subject: ticketForm.subject,
+          message: `[Note de ${ticketDialog.authorName}]\n\n${ticketForm.message}`,
+          category: ticketForm.category as any,
+          priority: ticketForm.priority,
+          assigned_to: ticketForm.assigned_to || null,
+          ticket_number: "auto",
+        })
+        .select("ticket_number")
+        .single();
       if (error) throw error;
-      return data;
-    },
-  });
+      toast.success(`🎫 Ticket ${newTicket?.ticket_number} créé avec succès !`);
+      setTicketDialog({ open: false, noteContent: "", authorName: "" });
+    } catch (e: any) {
+      console.error("Create ticket error:", e);
+      toast.error("Erreur lors de la création du ticket");
+    } finally {
+      setCreatingTicket(false);
+    }
+  };
 
   const handleAddNote = async () => {
     if (!note.trim()) return;

@@ -561,20 +561,80 @@ function SupportTicketsSection({ clientId }: { clientId: string }) {
   );
 }
 
+const SUPPORT_CATEGORIES: Record<string, string> = {
+  modification_site: "Site Internet",
+  modification_carte_nfc: "Carte NFC",
+  fiche_google: "Fiche Google",
+  reseaux_sociaux: "Réseaux sociaux",
+  bug_technique: "Bug technique",
+  question: "Question",
+  autre: "Autre",
+};
+
 // ============ Notes Section ============
 function NotesSection({ clientId, activities }: { clientId: string; activities: any[] | undefined }) {
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
+  const isAdmin = hasRole("admin");
   const createActivity = useCreateActivity();
   const [note, setNote] = useState("");
+  const [ticketDialog, setTicketDialog] = useState<{ open: boolean; noteContent: string; authorName: string }>({ open: false, noteContent: "", authorName: "" });
+  const [ticketForm, setTicketForm] = useState({ subject: "", message: "", category: "autre", priority: "normale", assigned_to: "" });
+  const [creatingTicket, setCreatingTicket] = useState(false);
 
-  const { data: teamMembers } = useQuery({
-    queryKey: ["team-profiles"],
+  const { data: teamWithRoles } = useQuery({
+    queryKey: ["team-with-roles"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("user_id, full_name");
-      if (error) throw error;
-      return data;
+      const { data: roles } = await supabase.from("user_roles").select("user_id, role");
+      const { data: profiles } = await supabase.from("profiles").select("user_id, full_name");
+      if (!roles || !profiles) return [];
+      return profiles.map((p) => ({
+        ...p,
+        roles: roles.filter((r) => r.user_id === p.user_id).map((r) => r.role),
+      }));
     },
   });
+
+  const teamMembers = teamWithRoles;
+
+  const openTicketFromNote = (noteContent: string, authorName: string) => {
+    const cleanContent = noteContent.replace(/#(ticket|resolu|en_cours)/gi, "").replace(/@\[[^\]]+\]/g, "").trim();
+    setTicketForm({
+      subject: cleanContent.length > 80 ? cleanContent.substring(0, 80) + "..." : cleanContent || "Demande client",
+      message: cleanContent || "Demande client",
+      category: "autre",
+      priority: "normale",
+      assigned_to: "",
+    });
+    setTicketDialog({ open: true, noteContent: cleanContent, authorName });
+  };
+
+  const handleCreateTicketFromDialog = async () => {
+    if (!ticketForm.subject.trim()) return;
+    setCreatingTicket(true);
+    try {
+      const { data: newTicket, error } = await supabase
+        .from("support_tickets")
+        .insert({
+          client_id: clientId,
+          subject: ticketForm.subject,
+          message: `[Note de ${ticketDialog.authorName}]\n\n${ticketForm.message}`,
+          category: ticketForm.category as any,
+          priority: ticketForm.priority,
+          assigned_to: ticketForm.assigned_to || null,
+          ticket_number: "auto",
+        })
+        .select("ticket_number")
+        .single();
+      if (error) throw error;
+      toast.success(`🎫 Ticket ${newTicket?.ticket_number} créé avec succès !`);
+      setTicketDialog({ open: false, noteContent: "", authorName: "" });
+    } catch (e: any) {
+      console.error("Create ticket error:", e);
+      toast.error("Erreur lors de la création du ticket");
+    } finally {
+      setCreatingTicket(false);
+    }
+  };
 
   const handleAddNote = async () => {
     if (!note.trim()) return;
@@ -793,6 +853,18 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
                   <div className="text-sm whitespace-pre-wrap leading-relaxed text-foreground/90">
                     {renderDescription(activity.description || "")}
                   </div>
+                  {isAdmin && (
+                    <div className="mt-2 flex justify-end">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-xs h-7 gap-1 text-orange-600 border-orange-200 hover:bg-orange-50 dark:border-orange-800 dark:hover:bg-orange-950"
+                        onClick={() => openTicketFromNote(activity.description || "", authorName)}
+                      >
+                        <LifeBuoy className="w-3 h-3" /> Créer un ticket
+                      </Button>
+                    </div>
+                  )}
                 </motion.div>
               );
             })}
@@ -826,6 +898,97 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
           </motion.div>
         )}
       </CardContent>
+
+      {/* Dialog de création de ticket depuis une note */}
+      <Dialog open={ticketDialog.open} onOpenChange={(open) => setTicketDialog((prev) => ({ ...prev, open }))}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <LifeBuoy className="w-5 h-5 text-orange-500" /> Créer un ticket support
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-3 rounded-lg bg-muted/50 border text-sm">
+              <p className="text-xs font-medium text-muted-foreground mb-1">Note de {ticketDialog.authorName} :</p>
+              <p className="text-foreground/80 whitespace-pre-wrap">{ticketDialog.noteContent}</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Sujet du ticket</Label>
+              <Input
+                value={ticketForm.subject}
+                onChange={(e) => setTicketForm((prev) => ({ ...prev, subject: e.target.value }))}
+                placeholder="Sujet..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Message</Label>
+              <Textarea
+                value={ticketForm.message}
+                onChange={(e) => setTicketForm((prev) => ({ ...prev, message: e.target.value }))}
+                rows={3}
+                className="resize-none"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Catégorie</Label>
+                <Select value={ticketForm.category} onValueChange={(v) => setTicketForm((prev) => ({ ...prev, category: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(SUPPORT_CATEGORIES).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Priorité</Label>
+                <Select value={ticketForm.priority} onValueChange={(v) => setTicketForm((prev) => ({ ...prev, priority: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="normale">Normale</SelectItem>
+                    <SelectItem value="haute">Haute</SelectItem>
+                    <SelectItem value="urgente">Urgente</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Assigner à</Label>
+              <Select value={ticketForm.assigned_to} onValueChange={(v) => setTicketForm((prev) => ({ ...prev, assigned_to: v }))}>
+                <SelectTrigger><SelectValue placeholder="Non assigné" /></SelectTrigger>
+                <SelectContent>
+                  {teamWithRoles?.filter((m) =>
+                    m.roles.some((r: string) => ["admin", "webmaster", "designer", "agent_support"].includes(r))
+                  ).map((m) => (
+                    <SelectItem key={m.user_id} value={m.user_id}>
+                      {m.full_name || "Inconnu"} — {m.roles.join(", ")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setTicketDialog({ open: false, noteContent: "", authorName: "" })}>
+                Annuler
+              </Button>
+              <Button
+                onClick={handleCreateTicketFromDialog}
+                disabled={creatingTicket || !ticketForm.subject.trim()}
+                className="bg-orange-600 hover:bg-orange-700 text-white"
+              >
+                {creatingTicket ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <LifeBuoy className="w-4 h-4 mr-1" />}
+                Créer le ticket
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

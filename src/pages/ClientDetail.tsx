@@ -638,6 +638,20 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
     }
   };
 
+  const handleMarkNoteSeen = async (activityId: string) => {
+    try {
+      await supabase
+        .from("client_activities")
+        .update({ admin_seen: true, admin_seen_at: new Date().toISOString() } as any)
+        .eq("id", activityId);
+      toast.success("Note marquée comme vue ✓");
+      // Refresh activities
+      window.dispatchEvent(new Event("refetch-activities"));
+    } catch {
+      toast.error("Erreur");
+    }
+  };
+
   const handleAddNote = async () => {
     if (!note.trim()) return;
     try {

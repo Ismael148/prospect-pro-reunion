@@ -691,13 +691,16 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
   const renderDescription = (text: string) => {
     if (!text) return null;
     // Parse tags and mentions into styled elements
-    const parts = text.split(/(#resolu|#en_cours|@\[[^\]]+\])/gi);
+    const parts = text.split(/(#resolu|#en_cours|#ticket|@\[[^\]]+\])/gi);
     return parts.map((part, i) => {
       if (/#resolu/i.test(part)) {
         return <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold"><CheckCircle2 className="w-3 h-3" />Résolu</span>;
       }
       if (/#en_cours/i.test(part)) {
         return <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold"><Clock className="w-3 h-3" />En cours</span>;
+      }
+      if (/#ticket/i.test(part)) {
+        return <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-xs font-semibold"><LifeBuoy className="w-3 h-3" />Ticket créé</span>;
       }
       const mentionMatch = part.match(/@\[([^\]]+)\]/);
       if (mentionMatch) {

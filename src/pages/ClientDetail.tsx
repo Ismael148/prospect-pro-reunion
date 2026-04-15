@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { exportClientPDF } from "@/lib/export-client-pdf";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import SocialMediaSection from "@/components/clients/SocialMediaSection";
@@ -638,6 +638,21 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
     }
   };
 
+  const qClient = useQueryClient();
+
+  const handleMarkNoteSeen = async (activityId: string) => {
+    try {
+      await supabase
+        .from("client_activities")
+        .update({ admin_seen: true, admin_seen_at: new Date().toISOString() } as any)
+        .eq("id", activityId);
+      toast.success("Note marquée comme vue ✓");
+      qClient.invalidateQueries({ queryKey: ["client-activities", clientId] });
+    } catch {
+      toast.error("Erreur");
+    }
+  };
+
   const handleAddNote = async () => {
     if (!note.trim()) return;
     try {
@@ -856,7 +871,23 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
                     {renderDescription(activity.description || "")}
                   </div>
                   {isAdmin && (
-                    <div className="mt-2 flex justify-end">
+                    <div className="mt-2 flex items-center justify-between">
+                      <div>
+                        {(activity as any).admin_seen ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] text-green-600 dark:text-green-400 font-medium">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Vu par l'admin
+                          </span>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs h-7 gap-1 text-muted-foreground hover:text-green-600"
+                            onClick={() => handleMarkNoteSeen(activity.id)}
+                          >
+                            <Eye className="w-3.5 h-3.5" /> Marquer comme vu
+                          </Button>
+                        )}
+                      </div>
                       <Button
                         variant="outline"
                         size="sm"

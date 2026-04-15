@@ -17,6 +17,8 @@ export type Database = {
       client_activities: {
         Row: {
           activity_type: string
+          admin_seen: boolean
+          admin_seen_at: string | null
           client_id: string
           created_at: string
           description: string | null
@@ -27,6 +29,8 @@ export type Database = {
         }
         Insert: {
           activity_type: string
+          admin_seen?: boolean
+          admin_seen_at?: string | null
           client_id: string
           created_at?: string
           description?: string | null
@@ -37,6 +41,8 @@ export type Database = {
         }
         Update: {
           activity_type?: string
+          admin_seen?: boolean
+          admin_seen_at?: string | null
           client_id?: string
           created_at?: string
           description?: string | null

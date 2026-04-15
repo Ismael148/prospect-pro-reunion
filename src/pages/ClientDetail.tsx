@@ -729,7 +729,7 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ajouter une note... (#resolu #en_cours @mention)" rows={3} className="resize-none" />
+          <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ajouter une note... (#resolu #en_cours #ticket @mention)" rows={3} className="resize-none" />
           <div className="flex items-center justify-between">
             <div className="flex gap-1 flex-wrap">
               {teamMembers?.slice(0, 5).map((m) => (

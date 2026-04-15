@@ -561,11 +561,38 @@ function SupportTicketsSection({ clientId }: { clientId: string }) {
   );
 }
 
+const SUPPORT_CATEGORIES: Record<string, string> = {
+  modification_site: "Site Internet",
+  modification_carte_nfc: "Carte NFC",
+  fiche_google: "Fiche Google",
+  reseaux_sociaux: "Réseaux sociaux",
+  bug_technique: "Bug technique",
+  question: "Question",
+  autre: "Autre",
+};
+
 // ============ Notes Section ============
 function NotesSection({ clientId, activities }: { clientId: string; activities: any[] | undefined }) {
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
+  const isAdmin = hasRole("admin");
   const createActivity = useCreateActivity();
   const [note, setNote] = useState("");
+  const [ticketDialog, setTicketDialog] = useState<{ open: boolean; noteContent: string; authorName: string }>({ open: false, noteContent: "", authorName: "" });
+  const [ticketForm, setTicketForm] = useState({ subject: "", message: "", category: "autre", priority: "normale", assigned_to: "" });
+  const [creatingTicket, setCreatingTicket] = useState(false);
+
+  const { data: teamWithRoles } = useQuery({
+    queryKey: ["team-with-roles"],
+    queryFn: async () => {
+      const { data: roles } = await supabase.from("user_roles").select("user_id, role");
+      const { data: profiles } = await supabase.from("profiles").select("user_id, full_name");
+      if (!roles || !profiles) return [];
+      return profiles.map((p) => ({
+        ...p,
+        roles: roles.filter((r) => r.user_id === p.user_id).map((r) => r.role),
+      }));
+    },
+  });
 
   const { data: teamMembers } = useQuery({
     queryKey: ["team-profiles"],

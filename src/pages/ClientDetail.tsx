@@ -733,7 +733,6 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
               message: cleanNote || "Ticket créé depuis les notes client",
               category: "autre" as any,
               priority: "normale",
-              ticket_number: "auto",
             })
             .select("ticket_number")
             .single();

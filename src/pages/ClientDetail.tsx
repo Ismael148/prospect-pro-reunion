@@ -853,6 +853,18 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
                   <div className="text-sm whitespace-pre-wrap leading-relaxed text-foreground/90">
                     {renderDescription(activity.description || "")}
                   </div>
+                  {isAdmin && (
+                    <div className="mt-2 flex justify-end">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-xs h-7 gap-1 text-orange-600 border-orange-200 hover:bg-orange-50 dark:border-orange-800 dark:hover:bg-orange-950"
+                        onClick={() => openTicketFromNote(activity.description || "", authorName)}
+                      >
+                        <LifeBuoy className="w-3 h-3" /> Créer un ticket
+                      </Button>
+                    </div>
+                  )}
                 </motion.div>
               );
             })}

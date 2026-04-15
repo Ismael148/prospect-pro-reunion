@@ -487,6 +487,11 @@ export default function ProjectDetail() {
         </Card>
       )}
 
+      {/* Social Deliverables - monthly RS */}
+      {isNumerik && hasTasks && (
+        <SocialDeliverables projectId={id!} clientId={project.client_id} />
+      )}
+
       {/* Deliverables */}
       <ProjectDeliverables
         projectId={id!}

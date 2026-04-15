@@ -612,17 +612,19 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
     if (!ticketForm.subject.trim()) return;
     setCreatingTicket(true);
     try {
-      const { data: newTicket, error } = await supabase
-        .from("support_tickets")
-        .insert({
+      const insertData: any = {
           client_id: clientId,
           subject: ticketForm.subject,
           message: `[Note de ${ticketDialog.authorName}]\n\n${ticketForm.message}`,
-          category: ticketForm.category as any,
+          category: ticketForm.category,
           priority: ticketForm.priority,
-          assigned_to: ticketForm.assigned_to || null,
-          ticket_number: "auto",
-        })
+        };
+      if (ticketForm.assigned_to) {
+        insertData.assigned_to = ticketForm.assigned_to;
+      }
+      const { data: newTicket, error } = await supabase
+        .from("support_tickets")
+        .insert(insertData)
         .select("ticket_number")
         .single();
       if (error) throw error;

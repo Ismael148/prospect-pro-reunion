@@ -345,7 +345,7 @@ export default function ProjectDeliverableEmail() {
     const totalCurrentSize = uploadedAttachments.reduce((sum, a) => sum + a.size, 0);
     const newFiles = Array.from(files);
     const totalNewSize = newFiles.reduce((sum, f) => sum + f.size, 0);
-    if (totalCurrentSize + totalNewSize > 15 * 1024 * 1024) { toast.error("La taille totale ne doit pas dépasser 15 Mo"); event.target.value = ""; return; }
+    if (totalCurrentSize + totalNewSize > 60 * 1024 * 1024) { toast.error("La taille totale ne doit pas dépasser 60 Mo"); event.target.value = ""; return; }
     try {
       const newAttachments: UploadedAttachment[] = [];
       for (const file of newFiles) {
@@ -525,7 +525,7 @@ export default function ProjectDeliverableEmail() {
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-medium">Pièces jointes ({uploadedAttachments.length})</p>
-                  <p className="text-xs text-muted-foreground">Max 15 Mo au total • {formatBytes(uploadedAttachments.reduce((s, a) => s + a.size, 0))} utilisés</p>
+                  <p className="text-xs text-muted-foreground">Max 60 Mo au total • {formatBytes(uploadedAttachments.reduce((s, a) => s + a.size, 0))} utilisés</p>
                 </div>
                 <Button type="button" variant="outline" asChild>
                   <label htmlFor="attachment-upload" className="cursor-pointer"><Paperclip className="mr-2 h-4 w-4" />Ajouter</label>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,8 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Camera, Video, CheckCircle2, Clock, Upload, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Camera, Video, CheckCircle2, Clock, Upload, Plus, ChevronLeft, ChevronRight, Mail, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useEmailBranding } from "@/hooks/use-email-branding";
+import { wrapInBrandedTemplate } from "@/lib/email-template";
+import { PUBLISHED_URL } from "@/lib/constants";
 import {
   useSocialDeliverables,
   useCreateSocialDeliverable,
@@ -62,6 +66,22 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
   const { data: deliverables = [], isLoading } = useSocialDeliverables(projectId);
   const createDeliverable = useCreateSocialDeliverable();
   const updateDeliverable = useUpdateSocialDeliverable();
+  const { data: branding } = useEmailBranding();
+
+  // Fetch client info for email sending
+  const { data: clientInfo } = useQuery({
+    queryKey: ["client-email-info", clientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("clients")
+        .select("company_name, email, support_token")
+        .eq("id", clientId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!clientId,
+  });
 
   // Month navigation
   const currentMonth = getCurrentMonthYear();
@@ -147,6 +167,72 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
       await updateDeliverable.mutateAsync({ id: del.id, projectId, notes } as any);
     } catch {
       toast.error("Erreur");
+    }
+  };
+
+  const [sendingEmail, setSendingEmail] = useState<string | null>(null);
+
+  const handleSendEmail = async (del: SocialDeliverable) => {
+    if (!clientInfo?.email) {
+      toast.error("Ce client n'a pas d'email configuré");
+      return;
+    }
+    if (!del.file_url) {
+      toast.error("Aucun fichier à envoyer");
+      return;
+    }
+
+    setSendingEmail(del.id);
+    try {
+      const typeLabel = TYPE_CONFIG[del.type as keyof typeof TYPE_CONFIG]?.label || del.type;
+      const supportLink = clientInfo.support_token
+        ? `${PUBLISHED_URL}/s/${clientInfo.support_token}`
+        : undefined;
+
+      const bodyHtml = `
+<p style="margin:0 0 20px">Bonjour <strong>${clientInfo.company_name}</strong>,</p>
+
+<p style="margin:0 0 20px">Votre <strong>${typeLabel}</strong> est prêt ! Vous le trouverez via le lien ci-dessous, configuré pour une diffusion optimale sur vos réseaux sociaux.</p>
+
+<div style="margin:28px 0;text-align:center">
+  <a href="${del.file_url}" style="display:inline-block;background:#ff006e;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;box-shadow:0 4px 12px rgba(255,0,110,0.3)">📥 Télécharger le livrable</a>
+</div>
+
+<p style="margin:0 0 20px">Pour toute modification ou remarque, merci de passer par notre <strong>système de ticket support</strong> via le lien ci-dessous.</p>
+
+<p style="margin:0">Cordialement,<br><strong style="color:#ff006e">L'équipe Adamkom</strong></p>`;
+
+      const fullHtml = wrapInBrandedTemplate(bodyHtml, supportLink, branding || undefined);
+
+      const subject = `${typeLabel} — ${formatMonthYear(del.month_year)} | ${clientInfo.company_name}`;
+
+      const { error } = await supabase.functions.invoke("generate-client-email", {
+        body: {
+          to: clientInfo.email,
+          subject,
+          html: fullHtml,
+          recipientName: clientInfo.company_name,
+        },
+      });
+
+      if (error) throw error;
+
+      // Log the send
+      await supabase.from("email_send_log").insert({
+        recipient_email: clientInfo.email,
+        recipient_name: clientInfo.company_name,
+        subject,
+        status: "sent",
+        template_name: "social_deliverable",
+        project_id: projectId,
+      } as any);
+
+      toast.success(`Email envoyé à ${clientInfo.email}`);
+    } catch (err: any) {
+      console.error("Send email error:", err);
+      toast.error(err?.message || "Erreur lors de l'envoi");
+    } finally {
+      setSendingEmail(null);
     }
   };
 
@@ -254,6 +340,24 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
                           }}
                         />
                       </label>
+                    )}
+
+                    {/* Send email button - visible when file is uploaded */}
+                    {del.file_url && clientInfo?.email && (del.status === "livre" || del.status === "valide") && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full gap-2 text-xs"
+                        disabled={sendingEmail === del.id}
+                        onClick={() => handleSendEmail(del)}
+                      >
+                        {sendingEmail === del.id ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Mail className="w-3.5 h-3.5" />
+                        )}
+                        {sendingEmail === del.id ? "Envoi en cours..." : "Envoyer au client"}
+                      </Button>
                     )}
 
                     {/* Notes */}

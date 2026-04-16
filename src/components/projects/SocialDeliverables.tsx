@@ -240,9 +240,9 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
 
                     {/* File upload */}
                     {del.status !== "valide" && (
-                      <label className="flex items-center gap-2 cursor-pointer text-xs text-primary hover:underline">
+                      <label className={`flex items-center gap-2 cursor-pointer text-xs text-primary hover:underline ${uploading ? "opacity-50 pointer-events-none" : ""}`}>
                         <Upload className="w-3.5 h-3.5" />
-                        {del.file_url ? "Remplacer le fichier" : "Uploader le fichier"}
+                        {uploading ? "Upload en cours..." : del.file_url ? "Remplacer le fichier" : "Uploader le fichier"}
                         <input
                           type="file"
                           className="hidden"
@@ -250,6 +250,7 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
                           onChange={(e) => {
                             const f = e.target.files?.[0];
                             if (f) handleFileUpload(del, f);
+                            e.target.value = "";
                           }}
                         />
                       </label>

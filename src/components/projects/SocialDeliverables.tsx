@@ -111,9 +111,17 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
     }
   };
 
+  const [uploading, setUploading] = useState(false);
+
   const handleFileUpload = async (del: SocialDeliverable, file: File) => {
+    if (file.size > 60 * 1024 * 1024) {
+      toast.error("Le fichier ne doit pas dépasser 60 Mo");
+      return;
+    }
+    setUploading(true);
     try {
-      const path = `social-deliverables/${del.id}/${file.name}`;
+      const ext = file.name.split(".").pop();
+      const path = `social-deliverables/${del.id}/${Date.now()}.${ext}`;
       const { error: uploadError } = await supabase.storage.from("email-assets").upload(path, file, { upsert: true });
       if (uploadError) throw uploadError;
       const { data: urlData } = supabase.storage.from("email-assets").getPublicUrl(path);
@@ -126,8 +134,11 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
         delivered_at: new Date().toISOString(),
       } as any);
       toast.success("Fichier uploadé et livrable marqué comme livré");
-    } catch {
-      toast.error("Erreur lors de l'upload");
+    } catch (err: any) {
+      console.error("Upload error:", err);
+      toast.error(err?.message || "Erreur lors de l'upload");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -229,9 +240,9 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
 
                     {/* File upload */}
                     {del.status !== "valide" && (
-                      <label className="flex items-center gap-2 cursor-pointer text-xs text-primary hover:underline">
+                      <label className={`flex items-center gap-2 cursor-pointer text-xs text-primary hover:underline ${uploading ? "opacity-50 pointer-events-none" : ""}`}>
                         <Upload className="w-3.5 h-3.5" />
-                        {del.file_url ? "Remplacer le fichier" : "Uploader le fichier"}
+                        {uploading ? "Upload en cours..." : del.file_url ? "Remplacer le fichier" : "Uploader le fichier"}
                         <input
                           type="file"
                           className="hidden"
@@ -239,6 +250,7 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
                           onChange={(e) => {
                             const f = e.target.files?.[0];
                             if (f) handleFileUpload(del, f);
+                            e.target.value = "";
                           }}
                         />
                       </label>

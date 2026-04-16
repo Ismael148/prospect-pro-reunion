@@ -563,7 +563,7 @@ export default function Prospection() {
       : p.assigned_to === filterAgent;
     // Agents only see their own prospects
     if (isAgent && !canManage) {
-      return matchSearch && matchStatus && p.assigned_to === user?.id;
+      return matchSearch && matchStatus && (p.assigned_to === user?.id || p.created_by === user?.id);
     }
     return matchSearch && matchStatus && matchAgent;
   });

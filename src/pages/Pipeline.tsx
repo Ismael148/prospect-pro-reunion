@@ -169,7 +169,7 @@ export default function Pipeline() {
                     onClick={() => navigate(`/clients/${client.id}`)}
                   >
                     <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
+                     <div className="flex items-start gap-3">
                         <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/8 text-primary shrink-0 group-hover:bg-primary/12 transition-colors">
                           <Building2 className="w-4 h-4" />
                         </div>
@@ -178,6 +178,9 @@ export default function Pipeline() {
                             <p className="font-semibold text-sm truncate">{client.company_name}</p>
                             <ChevronRight className="w-4 h-4 text-muted-foreground/40 shrink-0 group-hover:text-primary transition-colors" />
                           </div>
+                          {client.manager_name && (
+                            <p className="text-xs text-muted-foreground mt-0.5">👤 {client.manager_name}</p>
+                          )}
                           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-[11px] text-muted-foreground">
                             {client.city && (
                               <span className="inline-flex items-center gap-1">
@@ -195,6 +198,14 @@ export default function Pipeline() {
                               </span>
                             )}
                           </div>
+                          {client.sector && (
+                            <p className="text-[10px] text-muted-foreground/70 mt-1">🏷️ {client.sector}</p>
+                          )}
+                          {client.pack_type && (
+                            <Badge variant="outline" className="mt-1.5 text-[9px] h-5">
+                              {client.pack_type === "star_bizness_numerik" ? "Numerik" : client.pack_type === "star_bizness_nfc" ? "NFC" : "Autre"}
+                            </Badge>
+                          )}
                           {/* Quick status change */}
                           <div className="flex flex-wrap gap-1 mt-2.5">
                             {ACTIVE_PIPELINE.filter((s) => s !== activeTab).map((status) => (

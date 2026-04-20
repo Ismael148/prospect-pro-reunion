@@ -25,6 +25,7 @@ export type Database = {
           id: string
           new_status: Database["public"]["Enums"]["pipeline_status"] | null
           old_status: Database["public"]["Enums"]["pipeline_status"] | null
+          parent_id: string | null
           user_id: string
         }
         Insert: {
@@ -37,6 +38,7 @@ export type Database = {
           id?: string
           new_status?: Database["public"]["Enums"]["pipeline_status"] | null
           old_status?: Database["public"]["Enums"]["pipeline_status"] | null
+          parent_id?: string | null
           user_id: string
         }
         Update: {
@@ -49,6 +51,7 @@ export type Database = {
           id?: string
           new_status?: Database["public"]["Enums"]["pipeline_status"] | null
           old_status?: Database["public"]["Enums"]["pipeline_status"] | null
+          parent_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -57,6 +60,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_activities_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "client_activities"
             referencedColumns: ["id"]
           },
         ]

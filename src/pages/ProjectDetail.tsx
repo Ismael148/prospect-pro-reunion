@@ -242,10 +242,20 @@ export default function ProjectDetail() {
     if (!project) return;
     const modules = getPackModules(project.pack_type, siteType, hasGmb);
     const names = modules.map((m) => m.name);
+    // Toujours inclure le livrable Vidéo Influenceur Réseaux Sociaux
+    if (!names.includes("Vidéo Influenceur Réseaux Sociaux")) {
+      names.push("Vidéo Influenceur Réseaux Sociaux");
+    }
     if (!names.length) { toast.error("Pas de livrables prédéfinis"); return; }
     try {
       for (const name of names) {
-        await createDeliverable.mutateAsync({ project_id: id!, name });
+        await createDeliverable.mutateAsync({
+          project_id: id!,
+          name,
+          description: name === "Vidéo Influenceur Réseaux Sociaux"
+            ? "Vidéo influenceur prête à poster sur Facebook, Instagram & TikTok"
+            : null,
+        });
       }
       toast.success(`${names.length} livrables créés`);
     } catch { toast.error("Erreur"); }

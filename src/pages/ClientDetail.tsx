@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { MentionTextarea } from "@/components/MentionTextarea";
 import { Progress } from "@/components/ui/progress";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
@@ -833,7 +834,13 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ajouter une note... (#resolu #en_cours #ticket @mention)" rows={3} className="resize-none" />
+          <MentionTextarea
+            value={note}
+            onChange={setNote}
+            members={teamMembers || []}
+            placeholder="Ajouter une note... (tapez @ pour mentionner, #resolu #en_cours #ticket)"
+            rows={3}
+          />
           <div className="flex items-center justify-between">
             <div className="flex gap-1 flex-wrap">
               {teamMembers?.slice(0, 5).map((m) => (
@@ -960,12 +967,13 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
 
                     {replyingTo === activity.id ? (
                       <div className="space-y-2 pl-3 border-l-2 border-primary/30">
-                        <Textarea
+                        <MentionTextarea
                           value={replyContent}
-                          onChange={(e) => setReplyContent(e.target.value)}
-                          placeholder={`Répondre à ${authorName}... (vous pouvez @mentionner)`}
+                          onChange={setReplyContent}
+                          members={teamMembers || []}
+                          placeholder={`Répondre à ${authorName}... (tapez @ pour mentionner)`}
                           rows={2}
-                          className="resize-none text-sm"
+                          className="text-sm"
                           autoFocus
                         />
                         <div className="flex items-center justify-between gap-2">

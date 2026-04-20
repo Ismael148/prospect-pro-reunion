@@ -811,7 +811,14 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
     setNote((prev) => prev + `@[${member.full_name || "Membre"}] `);
   };
 
-  const noteActivities = activities?.filter((a) => a.activity_type === "note") || [];
+  const allNotes = activities?.filter((a) => a.activity_type === "note") || [];
+  const noteActivities = allNotes.filter((a) => !a.parent_id);
+  const repliesByParent = allNotes.reduce((acc: Record<string, any[]>, a) => {
+    if (a.parent_id) {
+      (acc[a.parent_id] = acc[a.parent_id] || []).push(a);
+    }
+    return acc;
+  }, {});
   const statusActivities = activities?.filter((a) => a.activity_type !== "note") || [];
 
   return (

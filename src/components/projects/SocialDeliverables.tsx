@@ -134,15 +134,17 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
   const [uploading, setUploading] = useState(false);
 
   const handleFileUpload = async (del: SocialDeliverable, file: File) => {
-    if (file.size > 60 * 1024 * 1024) {
-      toast.error("Le fichier ne doit pas dépasser 60 Mo");
+    if (file.size > 80 * 1024 * 1024) {
+      toast.error("Le fichier ne doit pas dépasser 80 Mo");
       return;
     }
     setUploading(true);
     try {
       const ext = file.name.split(".").pop();
       const path = `social-deliverables/${del.id}/${Date.now()}.${ext}`;
-      const { error: uploadError } = await supabase.storage.from("email-assets").upload(path, file, { upsert: true });
+      const { error: uploadError } = await supabase.storage
+        .from("email-assets")
+        .upload(path, file, { upsert: true, contentType: file.type || undefined });
       if (uploadError) throw uploadError;
       const { data: urlData } = supabase.storage.from("email-assets").getPublicUrl(path);
       await updateDeliverable.mutateAsync({

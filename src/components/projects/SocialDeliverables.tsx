@@ -74,7 +74,7 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("clients")
-        .select("company_name, email, support_token")
+        .select("company_name, email, support_token, manager_name")
         .eq("id", clientId)
         .single();
       if (error) throw error;

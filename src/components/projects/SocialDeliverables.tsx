@@ -74,7 +74,7 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("clients")
-        .select("company_name, email, support_token")
+        .select("company_name, email, support_token, manager_name")
         .eq("id", clientId)
         .single();
       if (error) throw error;
@@ -134,15 +134,17 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
   const [uploading, setUploading] = useState(false);
 
   const handleFileUpload = async (del: SocialDeliverable, file: File) => {
-    if (file.size > 60 * 1024 * 1024) {
-      toast.error("Le fichier ne doit pas dépasser 60 Mo");
+    if (file.size > 80 * 1024 * 1024) {
+      toast.error("Le fichier ne doit pas dépasser 80 Mo");
       return;
     }
     setUploading(true);
     try {
       const ext = file.name.split(".").pop();
       const path = `social-deliverables/${del.id}/${Date.now()}.${ext}`;
-      const { error: uploadError } = await supabase.storage.from("email-assets").upload(path, file, { upsert: true });
+      const { error: uploadError } = await supabase.storage
+        .from("email-assets")
+        .upload(path, file, { upsert: true, contentType: file.type || undefined });
       if (uploadError) throw uploadError;
       const { data: urlData } = supabase.storage.from("email-assets").getPublicUrl(path);
       await updateDeliverable.mutateAsync({
@@ -189,10 +191,17 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
         ? `${PUBLISHED_URL}/s/${clientInfo.support_token}`
         : undefined;
 
-      const bodyHtml = `
-<p style="margin:0 0 20px">Bonjour <strong>${clientInfo.company_name}</strong>,</p>
+      const greetingName = clientInfo.manager_name?.trim() || clientInfo.company_name;
 
-<p style="margin:0 0 20px">Votre <strong>${typeLabel}</strong> est prêt ! Vous le trouverez via le lien ci-dessous, configuré pour une diffusion optimale sur vos réseaux sociaux.</p>
+      const introLine =
+        del.type === "video_influenceur"
+          ? `Nous avons le plaisir de vous envoyer votre <strong>vidéo influenceur</strong> à poster sur vos réseaux sociaux. Elle est optimisée pour Facebook, Instagram & TikTok.`
+          : `Votre <strong>${typeLabel}</strong> est prêt ! Vous le trouverez via le lien ci-dessous, configuré pour une diffusion optimale sur vos réseaux sociaux.`;
+
+      const bodyHtml = `
+<p style="margin:0 0 20px">Bonjour <strong>${greetingName}</strong>,</p>
+
+<p style="margin:0 0 20px">${introLine}</p>
 
 <div style="margin:28px 0;text-align:center">
   <a href="${del.file_url}" style="display:inline-block;background:#ff006e;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;box-shadow:0 4px 12px rgba(255,0,110,0.3)">📥 Télécharger le livrable</a>

@@ -577,9 +577,29 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
   const isAdmin = hasRole("admin");
   const createActivity = useCreateActivity();
   const [note, setNote] = useState("");
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyContent, setReplyContent] = useState("");
   const [ticketDialog, setTicketDialog] = useState<{ open: boolean; noteContent: string; authorName: string }>({ open: false, noteContent: "", authorName: "" });
   const [ticketForm, setTicketForm] = useState({ subject: "", message: "", category: "autre", priority: "normale", assigned_to: "" });
   const [creatingTicket, setCreatingTicket] = useState(false);
+
+  const handleSendReply = async (parentId: string) => {
+    if (!replyContent.trim() || !user) return;
+    try {
+      await createActivity.mutateAsync({
+        client_id: clientId,
+        user_id: user.id,
+        activity_type: "note",
+        description: replyContent,
+        parent_id: parentId,
+      } as any);
+      toast.success("Réponse envoyée");
+      setReplyContent("");
+      setReplyingTo(null);
+    } catch {
+      toast.error("Erreur lors de l'envoi de la réponse");
+    }
+  };
 
   const { data: teamWithRoles } = useQuery({
     queryKey: ["team-with-roles"],

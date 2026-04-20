@@ -933,6 +933,76 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
                       </Button>
                     </div>
                   )}
+
+                  {/* Bouton Répondre + zone de réponse + réponses imbriquées */}
+                  <div className="mt-3 pt-3 border-t border-border/40 space-y-2">
+                    {(repliesByParent[activity.id] || []).map((reply: any) => {
+                      const replyAuthor = teamMembers?.find((m) => m.user_id === reply.user_id)?.full_name || "Inconnu";
+                      return (
+                        <div key={reply.id} className="flex gap-2 pl-3 border-l-2 border-primary/30">
+                          <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                            <span className="text-[10px] font-bold text-primary">{replyAuthor.charAt(0).toUpperCase()}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <span className="text-xs font-semibold text-foreground">{replyAuthor}</span>
+                              <span className="text-[10px] text-muted-foreground">
+                                {new Date(reply.created_at).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                              </span>
+                            </div>
+                            <div className="text-xs whitespace-pre-wrap text-foreground/85 leading-relaxed">
+                              {renderDescription(reply.description || "")}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {replyingTo === activity.id ? (
+                      <div className="space-y-2 pl-3 border-l-2 border-primary/30">
+                        <Textarea
+                          value={replyContent}
+                          onChange={(e) => setReplyContent(e.target.value)}
+                          placeholder={`Répondre à ${authorName}... (vous pouvez @mentionner)`}
+                          rows={2}
+                          className="resize-none text-sm"
+                          autoFocus
+                        />
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex flex-wrap gap-1">
+                            {teamMembers?.slice(0, 4).map((m) => (
+                              <Button
+                                key={m.user_id}
+                                variant="ghost"
+                                size="sm"
+                                className="text-[10px] h-6 px-1.5"
+                                onClick={() => setReplyContent((p) => p + `@[${m.full_name || "Membre"}] `)}
+                              >
+                                @{m.full_name?.split(" ")[0] || "?"}
+                              </Button>
+                            ))}
+                          </div>
+                          <div className="flex gap-1">
+                            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => { setReplyingTo(null); setReplyContent(""); }}>
+                              Annuler
+                            </Button>
+                            <Button size="sm" className="h-7 text-xs" onClick={() => handleSendReply(activity.id)} disabled={!replyContent.trim() || createActivity.isPending}>
+                              {createActivity.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs text-muted-foreground hover:text-primary gap-1"
+                        onClick={() => { setReplyingTo(activity.id); setReplyContent(""); }}
+                      >
+                        <MessageSquare className="w-3 h-3" /> Répondre
+                      </Button>
+                    )}
+                  </div>
                 </motion.div>
               );
             })}

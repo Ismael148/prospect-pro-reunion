@@ -91,6 +91,24 @@ ${makeCta('💳 Remplir le formulaire NFC', nfcFormLink)}
 ${makeCta('🌐 Remplir le formulaire site', siteFormLink)}
 <p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
     },
+    {
+      id: 'google_review',
+      label: 'Demande avis Google',
+      icon: <Star className="w-4 h-4" />,
+      subject: `Votre avis compte pour nous — ${client.company_name}`,
+      trigger: 'google_review',
+      bodyFn: () => {
+        const greeting = client.manager_name?.trim() ? client.manager_name : client.company_name;
+        const reviewLink = 'https://g.page/r/CR27lcN24038EBM/review';
+        return `<p style="margin:0 0 20px">Bonjour <strong>${greeting}</strong>,</p>
+<p style="margin:0 0 20px">Toute l'équipe <strong>Adamkom</strong> espère que vous êtes pleinement satisfait${client.manager_name ? '(e)' : ''} de nos services et de l'accompagnement que nous vous apportons au quotidien.</p>
+<p style="margin:0 0 20px">Votre satisfaction est notre priorité, et votre retour est extrêmement précieux pour nous. Si vous avez apprécié notre travail, nous serions très reconnaissants que vous preniez quelques instants pour <strong>nous laisser un avis sur notre fiche Google</strong>.</p>
+<p style="margin:0 0 20px">Vos retours nous aident à continuer de progresser et permettent à d'autres entrepreneurs de la Réunion de découvrir notre savoir-faire. 🙏</p>
+${makeCta('⭐ Laisser un avis Google', reviewLink)}
+<p style="margin:0 0 20px;font-size:13px;color:#71717a;text-align:center">Ou copiez ce lien dans votre navigateur :<br><a href="${reviewLink}" style="color:${BRAND_COLOR};word-break:break-all">${reviewLink}</a></p>
+<p style="margin:0">Avec toute notre gratitude,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`;
+      },
+    },
   ];
 }
 

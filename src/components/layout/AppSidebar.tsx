@@ -16,6 +16,7 @@ import {
   FileText,
   Mail,
   CreditCard,
+  Trash2,
 } from "lucide-react";
 import logo from "@/assets/logo.webp";
 import {
@@ -34,7 +35,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useMemo } from "react";
 
 const ROLE_ACCESS: Record<string, string[]> = {
-  admin: ["/", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/comptabilite", "/facturation", "/support", "/campagnes", "/equipe", "/parametres", "/cartes-nfc"],
+  admin: ["/", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/comptabilite", "/facturation", "/support", "/campagnes", "/equipe", "/parametres", "/cartes-nfc", "/corbeille"],
   agent_master: ["/", "/agent-master", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc"],
   agent_telephonique: ["/", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc"],
   agent_support: ["/", "/clients", "/support", "/projets", "/cartes-nfc"],
@@ -61,6 +62,7 @@ const allMenuItems = [
 
 const adminItems = [
   { title: "Équipe", icon: UserCircle, path: "/equipe" },
+  { title: "Corbeille", icon: Trash2, path: "/corbeille" },
   { title: "Paramètres", icon: Settings, path: "/parametres" },
 ];
 

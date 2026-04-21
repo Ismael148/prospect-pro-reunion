@@ -29,6 +29,7 @@ import ClientForm from "./pages/ClientForm";
 import ImportCSV from "./pages/ImportCSV";
 import Campaigns from "./pages/Campaigns";
 import NfcClients from "./pages/NfcClients";
+import DeletedClients from "./pages/DeletedClients";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
@@ -119,6 +120,10 @@ const App = () => (
             <Route
               path="/cartes-nfc"
               element={<ProtectedRoute><AppLayout><NfcClients /></AppLayout></ProtectedRoute>}
+            />
+            <Route
+              path="/corbeille"
+              element={<ProtectedRoute><AppLayout><DeletedClients /></AppLayout></ProtectedRoute>}
             />
             {/* Public routes */}
             <Route path="/privacy" element={<Privacy />} />

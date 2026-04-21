@@ -242,37 +242,56 @@ export default function Support() {
       setSelectedTicket({ ...selectedTicket, admin_notes: newNotes });
       toast.success(`Tag "${tag.label}" ajouté`);
 
+      // Get author name for richer notifications
+      const { data: authorProfile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      const authorName = authorProfile?.full_name || "Quelqu'un";
+      const clientName = getClientName(selectedTicket.client_id);
+
+      const notificationsToInsert: Array<{
+        user_id: string;
+        title: string;
+        message: string;
+        type: string;
+        link: string;
+      }> = [];
+
       // Notify assigned user about the new tag
       if (selectedTicket.assigned_to && selectedTicket.assigned_to !== user?.id) {
-        await supabase.from("notifications").insert({
+        notificationsToInsert.push({
           user_id: selectedTicket.assigned_to,
           title: "🏷️ Tag ajouté sur votre ticket",
-          message: `Tag "${tag.label}" ajouté sur le ticket "${selectedTicket.ticket_number}" — "${selectedTicket.subject}".`,
+          message: `${authorName} a ajouté le tag "${tag.label}" sur le ticket "${selectedTicket.ticket_number}" — ${clientName} — ${selectedTicket.subject}`,
           type: "support",
           link: "/support",
         });
       }
 
-      // If tag is "à vérifier par admin", notify all admins
-      if (tag.value === "#a_verifier_admin") {
-        const { data: adminRoles } = await supabase
-          .from("user_roles")
-          .select("user_id")
-          .eq("role", "admin");
-        if (adminRoles?.length) {
-          const notifications = adminRoles
-            .filter((r) => r.user_id !== user?.id)
-            .map((r) => ({
+      // ALWAYS notify all admins about any tag change (admin oversight)
+      const { data: adminRoles } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+      if (adminRoles?.length) {
+        const isUrgent = tag.value === "#a_verifier_admin";
+        for (const r of adminRoles) {
+          if (r.user_id !== user?.id && r.user_id !== selectedTicket.assigned_to) {
+            notificationsToInsert.push({
               user_id: r.user_id,
-              title: "🏷️ Ticket à vérifier",
-              message: `Le ticket "${selectedTicket.ticket_number}" — "${selectedTicket.subject}" nécessite votre vérification.`,
+              title: isUrgent ? "🚨 Ticket à vérifier" : "🏷️ Tag modifié sur un ticket",
+              message: `${authorName} a ajouté "${tag.label}" sur "${selectedTicket.ticket_number}" — ${clientName} — ${selectedTicket.subject}`,
               type: "support",
               link: "/support",
-            }));
-          if (notifications.length) {
-            await supabase.from("notifications").insert(notifications);
+            });
           }
         }
+      }
+
+      if (notificationsToInsert.length) {
+        await supabase.from("notifications").insert(notificationsToInsert);
       }
     } catch {
       toast.error("Erreur");

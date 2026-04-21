@@ -332,6 +332,42 @@ export type Database = {
           },
         ]
       }
+      deleted_clients_log: {
+        Row: {
+          activities_data: Json | null
+          client_data: Json
+          contacts_data: Json | null
+          deleted_at: string
+          deleted_by: string | null
+          id: string
+          original_client_id: string
+          restored_at: string | null
+          restored_by: string | null
+        }
+        Insert: {
+          activities_data?: Json | null
+          client_data: Json
+          contacts_data?: Json | null
+          deleted_at?: string
+          deleted_by?: string | null
+          id?: string
+          original_client_id: string
+          restored_at?: string | null
+          restored_by?: string | null
+        }
+        Update: {
+          activities_data?: Json | null
+          client_data?: Json
+          contacts_data?: Json | null
+          deleted_at?: string
+          deleted_by?: string | null
+          id?: string
+          original_client_id?: string
+          restored_at?: string | null
+          restored_by?: string | null
+        }
+        Relationships: []
+      }
       deliverables: {
         Row: {
           approved_at: string | null

@@ -218,10 +218,12 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
       const { error } = await supabase.functions.invoke("send-brevo-campaign", {
         body: {
           action: "send_client_email",
-          to: clientInfo.email,
+          recipientEmail: clientInfo.email,
           recipientName: clientInfo.company_name,
           subject,
           htmlContent: fullHtml,
+          trigger: "social_deliverable",
+          client_id: clientId,
         },
       });
 

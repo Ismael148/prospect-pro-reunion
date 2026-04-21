@@ -215,12 +215,13 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
 
       const subject = `${typeLabel} — ${formatMonthYear(del.month_year)} | ${clientInfo.company_name}`;
 
-      const { error } = await supabase.functions.invoke("generate-client-email", {
+      const { error } = await supabase.functions.invoke("send-brevo-campaign", {
         body: {
+          action: "send_client_email",
           to: clientInfo.email,
-          subject,
-          html: fullHtml,
           recipientName: clientInfo.company_name,
+          subject,
+          htmlContent: fullHtml,
         },
       });
 

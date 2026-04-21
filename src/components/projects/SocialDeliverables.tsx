@@ -134,8 +134,8 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
   const [uploading, setUploading] = useState(false);
 
   const handleFileUpload = async (del: SocialDeliverable, file: File) => {
-    if (file.size > 80 * 1024 * 1024) {
-      toast.error("Le fichier ne doit pas dépasser 80 Mo");
+    if (file.size > 500 * 1024 * 1024) {
+      toast.error("Le fichier ne doit pas dépasser 500 Mo");
       return;
     }
     setUploading(true);

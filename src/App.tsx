@@ -121,6 +121,10 @@ const App = () => (
               path="/cartes-nfc"
               element={<ProtectedRoute><AppLayout><NfcClients /></AppLayout></ProtectedRoute>}
             />
+            <Route
+              path="/corbeille"
+              element={<ProtectedRoute><AppLayout><DeletedClients /></AppLayout></ProtectedRoute>}
+            />
             {/* Public routes */}
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />

@@ -297,6 +297,27 @@ export default function ProjectDetail() {
             )}
           </div>
         </div>
+        {isAdmin && (
+          <Select
+            value={project.assigned_to || "none"}
+            onValueChange={async (v) => {
+              try {
+                await updateProject.mutateAsync({ id: project.id, assigned_to: v === "none" ? null : v });
+                toast.success(v === "none" ? "Assignation retirée" : "Projet assigné");
+              } catch { toast.error("Erreur"); }
+            }}
+          >
+            <SelectTrigger className="w-56"><SelectValue placeholder="Assigner à..." /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">— Non assigné —</SelectItem>
+              {(teamMembers || []).map((m: any) => (
+                <SelectItem key={m.user_id} value={m.user_id}>
+                  {m.full_name || "Sans nom"}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
         <Select value={project.status} onValueChange={handleStatusChange}>
           <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
           <SelectContent>

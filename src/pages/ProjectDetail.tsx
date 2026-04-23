@@ -317,6 +317,13 @@ export default function ProjectDetail() {
               </Badge>
             )}
           </div>
+          {hasPendingDeliveryCall && (
+            <div className="mt-2">
+              <Badge className="bg-primary/10 text-primary border-primary/30 border gap-1.5 animate-pulse">
+                📞 Appel livraison de site à faire
+              </Badge>
+            </div>
+          )}
         </div>
         {isAdmin && (
           <Select

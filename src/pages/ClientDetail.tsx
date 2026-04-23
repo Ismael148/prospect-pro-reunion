@@ -1426,6 +1426,16 @@ export default function ClientDetail() {
   const primaryContact = contacts?.find((c) => c.is_primary);
   const contactName = primaryContact ? `${primaryContact.first_name} ${primaryContact.last_name}` : null;
 
+  // Detect pending "appel livraison de site" — open if there's a livraison_site activity
+  // and no follow-up note marked as #resolu after it
+  const livraisonActivity = activities?.find((a) => a.activity_type === "livraison_site");
+  const livraisonResolved = livraisonActivity && activities?.some(
+    (a) => a.activity_type === "note"
+      && new Date(a.created_at) > new Date(livraisonActivity.created_at)
+      && /#(resolu|résolu|livraison_ok)/i.test(a.description || "")
+  );
+  const hasPendingDeliveryCall = !!livraisonActivity && !livraisonResolved;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -1439,6 +1449,11 @@ export default function ClientDetail() {
             {client.city && <span className="text-muted-foreground text-sm">{client.city}</span>}
             {contactName && <span className="text-muted-foreground text-sm">• Resp: {contactName}</span>}
             {client.pack_type && <Badge variant="secondary" className="text-xs">{PACK_LABELS[client.pack_type]}</Badge>}
+            {hasPendingDeliveryCall && (
+              <Badge className="bg-primary/10 text-primary border-primary/30 text-[10px] gap-1 animate-pulse" variant="outline">
+                📞 Appel livraison de site à faire
+              </Badge>
+            )}
             {emailCount && emailCount > 0 ? (
               <Badge className="bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700 text-[10px] gap-1" variant="outline">
                 <Mail className="w-3 h-3" /> {emailCount} email{emailCount > 1 ? "s" : ""} envoyé{emailCount > 1 ? "s" : ""}

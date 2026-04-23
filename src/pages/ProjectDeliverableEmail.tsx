@@ -404,6 +404,57 @@ export default function ProjectDeliverableEmail() {
         client_email: recipientEmail.trim(),
         deliverable_url: linkUrl.trim() || null,
       });
+
+      // ─── Site delivery: trigger agent call task ───────────────────
+      if (selectedTemplateId === "site" && client?.id) {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          const briefNote = `🌐 **APPEL LIVRAISON DE SITE À FAIRE** — ${clientName}
+
+Site livré : ${linkUrl.trim() || "(lien à vérifier)"}
+
+📋 **Brief de l'appel :**
+1. Demander l'avis du client sur son site (le premier visuel = base de travail)
+2. Demander si le design lui convient ou pas
+3. Recueillir toutes les informations / modifications / mises à jour qu'il souhaite intégrer
+4. Continuer les itérations jusqu'à 100% de satisfaction client
+5. Proposer le référencement sur **Les Entreprises 974** (annuaire de +450 entreprises réunionnaises)
+
+💡 Pour toute demande de modification : ouvrir un **ticket support** via notre système — les webmasters traitent au plus vite.
+
+#livraison_site #appel_a_faire`;
+
+          // Create activity (visible in client notes section)
+          await supabase.from("client_activities").insert({
+            client_id: client.id,
+            user_id: user!.id,
+            activity_type: "livraison_site",
+            description: briefNote,
+          });
+
+          // Notify all agents + agent_masters + admins
+          const { data: roles } = await supabase
+            .from("user_roles")
+            .select("user_id")
+            .in("role", ["agent_telephonique", "agent_master", "admin"]);
+
+          if (roles?.length) {
+            const notifications = roles.map((r) => ({
+              user_id: r.user_id,
+              title: "📞 Appel livraison site à faire",
+              message: `${clientName} — Site livré. Appeler pour recueillir l'avis client, modifications & proposer Entreprises 974.`,
+              type: "livraison_site",
+              link: `/clients/${client.id}`,
+            }));
+            await supabase.from("notifications").insert(notifications);
+          }
+
+          toast.success("Agents notifiés pour l'appel livraison de site 📞");
+        } catch (notifErr) {
+          console.error("Erreur notification livraison site:", notifErr);
+        }
+      }
+
       toast.success(`Email envoyé pour "${deliverable.name}"`);
       navigate(`/projets/${projectId}`);
     } catch (e: any) {

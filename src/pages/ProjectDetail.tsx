@@ -61,6 +61,27 @@ export default function ProjectDetail() {
     enabled: !!clientId,
   });
 
+  // Detect pending "appel livraison de site"
+  const { data: clientActivities } = useQuery({
+    queryKey: ["client-activities-livraison", clientId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("client_activities")
+        .select("activity_type, description, created_at")
+        .eq("client_id", clientId!)
+        .order("created_at", { ascending: false });
+      return data || [];
+    },
+    enabled: !!clientId,
+  });
+  const livraisonActivity = clientActivities?.find((a) => a.activity_type === "livraison_site");
+  const livraisonResolved = livraisonActivity && clientActivities?.some(
+    (a) => a.activity_type === "note"
+      && new Date(a.created_at) > new Date(livraisonActivity.created_at)
+      && /#(resolu|résolu|livraison_ok)/i.test(a.description || "")
+  );
+  const hasPendingDeliveryCall = !!livraisonActivity && !livraisonResolved;
+
   const updateProject = useUpdateProject();
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();

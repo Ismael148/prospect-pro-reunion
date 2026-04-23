@@ -436,19 +436,22 @@ Site livré : ${linkUrl.trim() || "(lien à vérifier)"}
             description: briefNote,
           });
 
-          // Notify all agents + agent_masters + admins
+          // Notify all agents + agent_masters + admins + assigned project user
           const { data: roles } = await supabase
             .from("user_roles")
             .select("user_id")
             .in("role", ["agent_telephonique", "agent_master", "admin"]);
 
-          if (roles?.length) {
-            const notifications = roles.map((r) => ({
-              user_id: r.user_id,
+          const userIds = new Set<string>((roles || []).map((r) => r.user_id));
+          if (project?.assigned_to) userIds.add(project.assigned_to);
+
+          if (userIds.size) {
+            const notifications = Array.from(userIds).map((uid) => ({
+              user_id: uid,
               title: "📞 Appel livraison site à faire",
               message: `${clientName} — Site livré. Appeler pour recueillir l'avis client, modifications & proposer Entreprises 974.`,
               type: "livraison_site",
-              link: `/clients/${client.id}`,
+              link: `/projets/${projectId}`,
             }));
             await supabase.from("notifications").insert(notifications);
           }

@@ -406,7 +406,11 @@ export default function ProjectDeliverableEmail() {
       });
 
       // ─── Site delivery: trigger agent call task ───────────────────
-      if (selectedTemplateId === "site" && client?.id) {
+      // Détection robuste : template "site" OU nom du livrable contient "site"
+      const isSiteDelivery =
+        selectedTemplateId === "site" ||
+        /site/i.test(deliverable.name || "");
+      if (isSiteDelivery && client?.id) {
         try {
           const { data: { user } } = await supabase.auth.getUser();
           const briefNote = `🌐 **APPEL LIVRAISON DE SITE À FAIRE** — ${clientName}

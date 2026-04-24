@@ -406,10 +406,12 @@ export default function ProjectDeliverableEmail() {
       });
 
       // ─── Site delivery: trigger agent call task ───────────────────
-      // Détection robuste : template "site" OU nom du livrable contient "site"
+      // Détection robuste : template "site"/"web"/"landing" OU nom du livrable contient "site"/"web"/"landing"
+      const nameLower = (deliverable.name || "").toLowerCase();
       const isSiteDelivery =
         selectedTemplateId === "site" ||
-        /site/i.test(deliverable.name || "");
+        /site|web|landing/i.test(nameLower);
+      console.log("[Livraison Site] check", { selectedTemplateId, name: deliverable.name, isSiteDelivery, clientId: client?.id });
       if (isSiteDelivery && client?.id) {
         try {
           const { data: { user } } = await supabase.auth.getUser();

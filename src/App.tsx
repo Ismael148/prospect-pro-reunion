@@ -126,6 +126,10 @@ const App = () => (
               path="/corbeille"
               element={<ProtectedRoute><AppLayout><DeletedClients /></AppLayout></ProtectedRoute>}
             />
+            <Route
+              path="/renouvellements-ndd"
+              element={<ProtectedRoute><AppLayout><DomainRenewals /></AppLayout></ProtectedRoute>}
+            />
             {/* Public routes */}
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />

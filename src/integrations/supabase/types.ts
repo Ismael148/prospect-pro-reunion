@@ -415,6 +415,128 @@ export type Database = {
           },
         ]
       }
+      domain_renewal_reminders: {
+        Row: {
+          client_id: string
+          id: string
+          message: string | null
+          recipient_email: string | null
+          reminder_type: string
+          renewal_id: string
+          sent_at: string
+          sent_by: string | null
+          status: string
+          subject: string | null
+        }
+        Insert: {
+          client_id: string
+          id?: string
+          message?: string | null
+          recipient_email?: string | null
+          reminder_type?: string
+          renewal_id: string
+          sent_at?: string
+          sent_by?: string | null
+          status?: string
+          subject?: string | null
+        }
+        Update: {
+          client_id?: string
+          id?: string
+          message?: string | null
+          recipient_email?: string | null
+          reminder_type?: string
+          renewal_id?: string
+          sent_at?: string
+          sent_by?: string | null
+          status?: string
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "domain_renewal_reminders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "domain_renewal_reminders_renewal_id_fkey"
+            columns: ["renewal_id"]
+            isOneToOne: false
+            referencedRelation: "domain_renewals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      domain_renewals: {
+        Row: {
+          amount: number
+          client_id: string
+          created_at: string
+          created_by: string
+          domain_name: string
+          id: string
+          invoice_id: string | null
+          last_reminder_at: string | null
+          next_renewal_date: string | null
+          notes: string | null
+          paid_date: string | null
+          payment_method: string | null
+          registered_date: string | null
+          reminder_count: number
+          renewal_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          client_id: string
+          created_at?: string
+          created_by: string
+          domain_name: string
+          id?: string
+          invoice_id?: string | null
+          last_reminder_at?: string | null
+          next_renewal_date?: string | null
+          notes?: string | null
+          paid_date?: string | null
+          payment_method?: string | null
+          registered_date?: string | null
+          reminder_count?: number
+          renewal_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          client_id?: string
+          created_at?: string
+          created_by?: string
+          domain_name?: string
+          id?: string
+          invoice_id?: string | null
+          last_reminder_at?: string | null
+          next_renewal_date?: string | null
+          notes?: string | null
+          paid_date?: string | null
+          payment_method?: string | null
+          registered_date?: string | null
+          reminder_count?: number
+          renewal_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "domain_renewals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_branding: {
         Row: {
           brand_color: string

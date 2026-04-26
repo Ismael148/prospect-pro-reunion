@@ -119,8 +119,8 @@ export default function DomainRenewalInvoice({ client }: { client: ClientData })
         },
       }, { returnBase64: true });
 
-      // Use the edited body with real invoice number
-      const finalBody = emailBodyOverride.replace(/FAC-XXXX/g, invoice.invoice_number);
+      // Use the edited body
+      const finalBody = emailBodyOverride;
       const htmlContent = wrapInBrandedTemplate(finalBody, undefined, branding || undefined);
 
       // Fetch RIB file as base64

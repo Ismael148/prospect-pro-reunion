@@ -16,6 +16,7 @@ import {
   FileText,
   Mail,
   CreditCard,
+  Globe,
   Trash2,
 } from "lucide-react";
 import logo from "@/assets/logo.webp";

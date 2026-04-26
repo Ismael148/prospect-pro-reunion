@@ -24,6 +24,7 @@ import type { Database } from "@/integrations/supabase/types";
 import ProjectModules from "@/components/projects/ProjectModules";
 import ProjectDeliverables from "@/components/projects/ProjectDeliverables";
 import SocialDeliverables from "@/components/projects/SocialDeliverables";
+import ProjectEmailHistory from "@/components/projects/ProjectEmailHistory";
 
 type ProjectStatus = Database["public"]["Enums"]["project_status"];
 type TaskStatus = Database["public"]["Enums"]["task_status"];
@@ -564,6 +565,9 @@ export default function ProjectDetail() {
         onAutoCreate={handleAutoCreateDeliverables}
         isCreating={createDeliverable.isPending}
       />
+
+      {/* Email delivery history for this project */}
+      <ProjectEmailHistory projectId={id!} />
     </div>
   );
 }

@@ -27,6 +27,7 @@ function buildEmailBody(companyName: string, domainName: string, amount: number)
   <p style="margin:0 0 8px;font-size:16px;font-weight:700;color:#1a1a2e">🌐 ${domainName}</p>
   <p style="margin:0;font-size:22px;font-weight:800;color:${BRAND_COLOR}">${amount.toFixed(2)} €</p>
 </div>
+<p style="margin:0 0 20px">Pour rappel, le renouvellement de votre nom de domaine assure la <strong>continuité de la visibilité de votre site en ligne</strong> et évite toute interruption d'accès pour vos visiteurs et clients.</p>
 <p style="margin:0 0 20px">Pour effectuer le virement, nous vous joignons notre RIB en pièce jointe.</p>
 <p style="margin:0 0 20px">Merci de procéder au règlement dans les meilleurs délais.</p>
 <p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`;

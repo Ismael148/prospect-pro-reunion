@@ -166,6 +166,74 @@ export default function DomainRenewalInvoice({ client }: { client: ClientData })
 
       if (error) throw error;
 
+      // Auto-create / update domain_renewals tracking entry to avoid manual entry
+      try {
+        const today = new Date();
+        const renewalDateStr = today.toISOString().slice(0, 10);
+        const nextYear = new Date(today);
+        nextYear.setFullYear(today.getFullYear() + 1);
+        const nextRenewalStr = nextYear.toISOString().slice(0, 10);
+
+        // Check if a renewal already exists for this client + domain
+        const { data: existing } = await (supabase as any)
+          .from("domain_renewals")
+          .select("id")
+          .eq("client_id", client.id)
+          .eq("domain_name", domainName.trim())
+          .maybeSingle();
+
+        let renewalId: string | null = existing?.id ?? null;
+
+        if (existing) {
+          await (supabase as any)
+            .from("domain_renewals")
+            .update({
+              amount: amountNum,
+              status: "facture_envoyee",
+              invoice_id: invoice.id,
+              renewal_date: renewalDateStr,
+              next_renewal_date: nextRenewalStr,
+              last_reminder_at: new Date().toISOString(),
+              reminder_count: ((existing as any).reminder_count ?? 0) + 1,
+            })
+            .eq("id", existing.id);
+        } else {
+          const { data: inserted } = await (supabase as any)
+            .from("domain_renewals")
+            .insert({
+              client_id: client.id,
+              created_by: user.id,
+              domain_name: domainName.trim(),
+              amount: amountNum,
+              renewal_date: renewalDateStr,
+              next_renewal_date: nextRenewalStr,
+              status: "facture_envoyee",
+              invoice_id: invoice.id,
+              last_reminder_at: new Date().toISOString(),
+              reminder_count: 1,
+            })
+            .select("id")
+            .single();
+          renewalId = inserted?.id ?? null;
+        }
+
+        // Log the reminder/email in history
+        if (renewalId) {
+          await (supabase as any).from("domain_renewal_reminders").insert({
+            renewal_id: renewalId,
+            client_id: client.id,
+            reminder_type: "facture",
+            subject,
+            message: emailBodyOverride,
+            recipient_email: client.email,
+            status: "sent",
+            sent_by: user.id,
+          });
+        }
+      } catch (trackErr) {
+        console.warn("Domain renewal tracking failed", trackErr);
+      }
+
       toast.success(`Facture de renouvellement envoyée à ${client.email}`);
       setDomainName("");
       setAmount("");

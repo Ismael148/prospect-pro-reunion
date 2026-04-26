@@ -56,6 +56,7 @@ const allMenuItems = [
   { title: "Commissions", icon: Coins, path: "/commissions" },
   { title: "Comptabilité", icon: Calculator, path: "/comptabilite" },
   { title: "Facturation", icon: FileText, path: "/facturation" },
+  { title: "Renouv. NDD", icon: Globe, path: "/renouvellements-ndd" },
   { title: "Support", icon: LifeBuoy, path: "/support" },
   { title: "Webmaster", icon: Monitor, path: "/webmaster" },
   { title: "Campagnes", icon: Mail, path: "/campagnes" },

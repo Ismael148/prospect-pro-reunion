@@ -565,6 +565,9 @@ export default function ProjectDetail() {
         onAutoCreate={handleAutoCreateDeliverables}
         isCreating={createDeliverable.isPending}
       />
+
+      {/* Email delivery history for this project */}
+      <ProjectEmailHistory projectId={id!} />
     </div>
   );
 }

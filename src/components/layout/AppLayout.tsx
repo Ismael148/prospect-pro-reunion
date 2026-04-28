@@ -2,8 +2,10 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { NotificationBell } from "@/components/NotificationBell";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { useGlobalRealtime } from "@/hooks/use-global-realtime";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
+  useGlobalRealtime();
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">

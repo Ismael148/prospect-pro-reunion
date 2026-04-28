@@ -34,13 +34,14 @@ interface Props {
   isAdmin?: boolean;
   teamMembers?: TeamMember[];
   moduleLinks?: Record<string, string>;
+  projectStatus?: string | null;
   onTaskStatusChange: (taskId: string, status: TaskStatus) => Promise<void>;
   onAddTask?: (task: TablesInsert<"project_tasks">) => Promise<void>;
   onAssignModule?: (moduleId: string, userId: string | null) => Promise<void>;
   onModuleLinkUpdate?: (moduleId: string, linkUrl: string) => Promise<void>;
 }
 
-export default function ProjectModules({ packType, tasks, projectId, startDate, isAdmin, teamMembers = [], moduleLinks = {}, onTaskStatusChange, onAddTask, onAssignModule, onModuleLinkUpdate }: Props) {
+export default function ProjectModules({ packType, tasks, projectId, startDate, isAdmin, teamMembers = [], moduleLinks = {}, projectStatus, onTaskStatusChange, onAddTask, onAssignModule, onModuleLinkUpdate }: Props) {
   const [checkingAll, setCheckingAll] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [addDialogOpen, setAddDialogOpen] = useState<string | null>(null);
@@ -161,11 +162,12 @@ export default function ProjectModules({ packType, tasks, projectId, startDate, 
         const isEditingLink = editingModuleLink === mod.id;
 
         // Calculate deadline
+        const projectDone = projectStatus === "termine" || projectStatus === "annule";
         const deadlineDate = startDate
           ? new Date(new Date(startDate).getTime() + mod.deadlineDays * 86400000)
           : null;
         const now = new Date();
-        const isOverdue = deadlineDate && now > deadlineDate && !allDone;
+        const isOverdue = !projectDone && deadlineDate && now > deadlineDate && !allDone;
         const daysLeft = deadlineDate
           ? Math.ceil((deadlineDate.getTime() - now.getTime()) / 86400000)
           : null;
@@ -203,7 +205,7 @@ export default function ProjectModules({ packType, tasks, projectId, startDate, 
                       <Progress value={progress} className="flex-1 h-1.5 max-w-[200px]" />
                       <span className="text-xs text-muted-foreground">{done}/{total}</span>
                       
-                      {deadlineDate && (
+                      {deadlineDate && !projectDone && (
                         <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md ${
                           isOverdue
                             ? "bg-destructive/15 text-destructive border border-destructive/30"
@@ -222,6 +224,11 @@ export default function ProjectModules({ packType, tasks, projectId, startDate, 
                           ) : (
                             <><Clock className="w-3 h-3" /> {daysLeft}j restants</>
                           )}
+                        </span>
+                      )}
+                      {projectDone && allDone && (
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md bg-success/15 text-success border border-success/30">
+                          ✓ Livré
                         </span>
                       )}
 

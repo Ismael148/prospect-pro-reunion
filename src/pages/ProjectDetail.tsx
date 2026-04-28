@@ -290,8 +290,9 @@ export default function ProjectDetail() {
   const hasTasks = tasks && tasks.length > 0;
   const hasModules = (PACK_MODULES[project.pack_type] || []).length > 0;
   const daysLeft = daysUntil(project.due_date);
-  const isOverdue = daysLeft !== null && daysLeft < 0;
-  const isUrgent = daysLeft !== null && daysLeft >= 0 && daysLeft <= 3;
+  const projectClosed = project.status === "termine" || project.status === "annule";
+  const isOverdue = !projectClosed && daysLeft !== null && daysLeft < 0;
+  const isUrgent = !projectClosed && daysLeft !== null && daysLeft >= 0 && daysLeft <= 3;
   const isNumerik = project.pack_type === "star_bizness_numerik";
 
   return (
@@ -418,7 +419,7 @@ export default function ProjectDetail() {
                 <span>Deadline : {new Date(project.due_date).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion" })}</span>
               </div>
             )}
-            {daysLeft !== null && (
+            {daysLeft !== null && !projectClosed && (
               <div className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
                 isOverdue 
                   ? "bg-destructive/10 text-destructive" 
@@ -433,6 +434,11 @@ export default function ProjectDetail() {
                 ) : (
                   <><Clock className="w-4 h-4" /> {daysLeft} jour{daysLeft > 1 ? "s" : ""} restant{daysLeft > 1 ? "s" : ""}</>
                 )}
+              </div>
+            )}
+            {projectClosed && (
+              <div className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium bg-success/10 text-success">
+                <Clock className="w-4 h-4" /> Projet {project.status === "termine" ? "terminé" : "annulé"}
               </div>
             )}
             {project.description && <p className="text-muted-foreground">{project.description}</p>}
@@ -503,6 +509,7 @@ export default function ProjectDetail() {
           onAssignModule={handleAssignModule}
           moduleLinks={(project as any).module_links || {}}
           onModuleLinkUpdate={handleModuleLinkUpdate}
+          projectStatus={project.status}
         />
       )}
 

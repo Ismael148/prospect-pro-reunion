@@ -21,11 +21,11 @@ export function useProjects() {
   });
 }
 
-export function useMyProjects(userId: string | undefined, isAdmin: boolean) {
+export function useMyProjects(userId: string | undefined, isAdmin: boolean, seeAll = false) {
   return useQuery({
-    queryKey: ["projects", "my", userId],
+    queryKey: ["projects", "my", userId, seeAll],
     queryFn: async () => {
-      if (isAdmin) {
+      if (isAdmin || seeAll) {
         const { data, error } = await supabase
           .from("projects")
           .select("*, clients(company_name)")

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { triggerN8nWebhook } from "@/lib/n8n-webhook";
+import { PUBLISHED_URL } from "@/lib/constants";
 
 export interface SupportTicket {
   id: string;
@@ -81,7 +82,7 @@ export function useUpdateTicket() {
         try {
           const { data: ticket } = await supabase
             .from("support_tickets")
-            .select("ticket_number, subject, client_id")
+            .select("ticket_number, subject, message, category, priority, client_id")
             .eq("id", variables.id)
             .single();
           if (ticket) {
@@ -90,18 +91,22 @@ export function useUpdateTicket() {
               .select("company_name, email, support_token")
               .eq("id", ticket.client_id)
               .single();
-            triggerN8nWebhook("support.resolved", {
+            await triggerN8nWebhook("support.resolved", {
               ticket_id: variables.id,
               ticket_number: ticket.ticket_number,
               subject: ticket.subject,
+              message: ticket.message,
+              category: ticket.category,
+              priority: ticket.priority,
               company_name: client?.company_name || "",
+              client_name: client?.company_name || "",
               client_email: client?.email || "",
-              support_link: client?.support_token ? `https://prospect-pro-reunion.lovable.app/s/${client.support_token}` : "",
+              support_link: client?.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : "",
             });
           }
         } catch (e) {
           console.warn("[n8n] Failed to enrich support.resolved data", e);
-          triggerN8nWebhook("support.resolved", { ticket_id: variables.id });
+          await triggerN8nWebhook("support.resolved", { ticket_id: variables.id });
         }
       }
     },

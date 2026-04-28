@@ -63,6 +63,21 @@ export function useModuleNotes(projectId: string) {
 }
 
 export function useModuleNoteHistory(noteId: string | null) {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!noteId) return;
+    const channel = supabase
+      .channel(`module-note-history-${noteId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "module_note_history", filter: `note_id=eq.${noteId}` },
+        () => queryClient.invalidateQueries({ queryKey: ["module-note-history", noteId] })
+      )
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [noteId, queryClient]);
+
   return useQuery({
     queryKey: ["module-note-history", noteId],
     enabled: !!noteId,

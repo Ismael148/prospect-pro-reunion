@@ -1,16 +1,19 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MessageSquare, Send, Pencil, Trash2, Check, X, History, Loader2 } from "lucide-react";
+import { MessageSquare, Send, Pencil, Trash2, Check, X, History, Loader2, FileDown, FileText } from "lucide-react";
 import { useModuleNotes, useAddModuleNote, useUpdateModuleNote, useDeleteModuleNote, useModuleNoteHistory } from "@/hooks/use-module-notes";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatDistanceToNow, format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { diffWords } from "diff";
+import jsPDF from "jspdf";
 import type { TeamMember } from "./ProjectModules";
 
 interface Props {
@@ -22,17 +25,35 @@ interface Props {
 
 type FilterMode = "all" | "me" | "team" | "admin";
 
-// Rich rendering: mentions, links, line breaks
-function RichContent({ text, adminIds }: { text: string; adminIds: Set<string> }) {
-  // Split by lines first to preserve breaks
+// Rich rendering: mentions (clickable when matching project member), links, line breaks
+function RichContent({
+  text,
+  adminIds,
+  memberByName,
+  onMentionClick,
+}: {
+  text: string;
+  adminIds: Set<string>;
+  memberByName: Map<string, TeamMember>;
+  onMentionClick: (member: TeamMember) => void;
+}) {
   const lines = text.split("\n");
   const urlRegex = /(https?:\/\/[^\s]+)/g;
-  const mentionRegex = /(@\w[\w\s]*?)(?=\s@|$|\s[^@]|[.,!?])/;
+
+  const findMember = (mention: string): TeamMember | null => {
+    const key = mention.replace(/^@/, "").trim().toLowerCase();
+    if (!key) return null;
+    // exact then prefix
+    if (memberByName.has(key)) return memberByName.get(key)!;
+    for (const [name, m] of memberByName.entries()) {
+      if (name.startsWith(key) || key.startsWith(name)) return m;
+    }
+    return null;
+  };
 
   return (
     <>
       {lines.map((line, li) => {
-        // Tokenize line: split by URLs first
         const urlParts = line.split(urlRegex);
         return (
           <div key={li} className="break-words">
@@ -50,10 +71,23 @@ function RichContent({ text, adminIds }: { text: string; adminIds: Set<string> }
                   </a>
                 );
               }
-              // Then handle mentions in remaining text
               const mentionParts = part.split(/(@\w[\w\s]*?)(?=\s@|$|\s[^@]|[.,!?])/);
               return mentionParts.map((mp, mi) => {
                 if (mp.startsWith("@")) {
+                  const member = findMember(mp);
+                  if (member) {
+                    return (
+                      <button
+                        key={`${ui}-${mi}`}
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); onMentionClick(member); }}
+                        className="inline-flex items-center bg-primary/20 hover:bg-primary/30 text-primary text-xs font-semibold px-1.5 py-0.5 rounded-md mx-0.5 cursor-pointer transition-colors"
+                        title={`Voir ${member.full_name || ""}`}
+                      >
+                        {mp}
+                      </button>
+                    );
+                  }
                   return (
                     <span
                       key={`${ui}-${mi}`}
@@ -74,7 +108,22 @@ function RichContent({ text, adminIds }: { text: string; adminIds: Set<string> }
   );
 }
 
+// Word-level diff between previous and current
+function DiffView({ previous, current }: { previous: string; current: string }) {
+  const parts = diffWords(previous || "", current || "");
+  return (
+    <div className="text-xs leading-relaxed bg-background/60 rounded p-2 break-words whitespace-pre-wrap">
+      {parts.map((p, i) => {
+        if (p.added) return <span key={i} className="bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 rounded px-0.5">{p.value}</span>;
+        if (p.removed) return <span key={i} className="bg-red-500/20 text-red-700 dark:text-red-300 line-through rounded px-0.5">{p.value}</span>;
+        return <span key={i} className="text-muted-foreground">{p.value}</span>;
+      })}
+    </div>
+  );
+}
+
 export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembers }: Props) {
+  const navigate = useNavigate();
   const { user, hasRole } = useAuth();
   const { data: allNotes } = useModuleNotes(projectId);
   const addNote = useAddModuleNote();
@@ -90,10 +139,25 @@ export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembe
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterMode>("all");
   const [historyNoteId, setHistoryNoteId] = useState<string | null>(null);
+  const [historyVisible, setHistoryVisible] = useState(5);
   const scrollRef = useRef<HTMLDivElement>(null);
   const isAdmin = hasRole("admin");
 
   const { data: history } = useModuleNoteHistory(historyNoteId);
+
+  // Member lookup map for mention click
+  const memberByName = useMemo(() => {
+    const map = new Map<string, TeamMember>();
+    teamMembers.forEach((m) => {
+      const name = (m.full_name || "").trim().toLowerCase();
+      if (name) map.set(name, m);
+    });
+    return map;
+  }, [teamMembers]);
+
+  const handleMentionClick = (member: TeamMember) => {
+    navigate(`/equipe?member=${member.user_id}`);
+  };
 
   const allModuleNotes = useMemo(() =>
     (allNotes || []).filter(n => n.module_id === moduleId),
@@ -186,6 +250,78 @@ export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembe
 
   const isUpdating = updateNote.isPending;
   const isDeleting = deleteNote.isPending;
+
+  const exportHistoryCSV = () => {
+    if (!history || history.length === 0) {
+      toast.error("Aucun historique à exporter");
+      return;
+    }
+    const escape = (v: string) => `"${(v || "").replace(/"/g, '""')}"`;
+    const rows = [
+      ["Date", "Auteur", "Action", "Contenu précédent"].map(escape).join(","),
+      ...history.map((h) => [
+        format(new Date(h.edited_at), "dd/MM/yyyy HH:mm", { locale: fr }),
+        profiles[h.edited_by] || "Utilisateur",
+        h.action === "delete" ? "Supprimée" : "Modifiée",
+        h.previous_content || "",
+      ].map(escape).join(",")),
+    ];
+    const blob = new Blob(["\uFEFF" + rows.join("\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `historique-notes-${moduleName.replace(/\s+/g, "-")}-${format(new Date(), "yyyyMMdd-HHmm")}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Export CSV téléchargé");
+  };
+
+  const exportHistoryPDF = () => {
+    if (!history || history.length === 0) {
+      toast.error("Aucun historique à exporter");
+      return;
+    }
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let y = 18;
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Historique des notes — ${moduleName}`, 14, y);
+    y += 6;
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(120);
+    doc.text(`Généré le ${format(new Date(), "dd/MM/yyyy HH:mm", { locale: fr })}`, 14, y);
+    y += 8;
+    doc.setTextColor(0);
+
+    history.forEach((h, idx) => {
+      if (y > 270) { doc.addPage(); y = 18; }
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text(
+        `${idx + 1}. ${profiles[h.edited_by] || "Utilisateur"} — ${h.action === "delete" ? "Supprimée" : "Modifiée"}`,
+        14, y
+      );
+      y += 5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(120);
+      doc.text(format(new Date(h.edited_at), "dd/MM/yyyy HH:mm", { locale: fr }), 14, y);
+      y += 5;
+      doc.setTextColor(0);
+      doc.setFontSize(9);
+      const lines = doc.splitTextToSize(h.previous_content || "(vide)", pageWidth - 28);
+      lines.forEach((line: string) => {
+        if (y > 280) { doc.addPage(); y = 18; }
+        doc.text(line, 18, y);
+        y += 4;
+      });
+      y += 4;
+    });
+    doc.save(`historique-notes-${moduleName.replace(/\s+/g, "-")}-${format(new Date(), "yyyyMMdd-HHmm")}.pdf`);
+    toast.success("Export PDF téléchargé");
+  };
 
   return (
     <Popover>
@@ -326,7 +462,7 @@ export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembe
                   </div>
                 ) : (
                   <div className="text-xs leading-relaxed space-y-0.5">
-                    <RichContent text={note.content} adminIds={adminIds} />
+                    <RichContent text={note.content} adminIds={adminIds} memberByName={memberByName} onMentionClick={handleMentionClick} />
                   </div>
                 )}
               </div>
@@ -373,11 +509,26 @@ export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembe
         </div>
 
         {/* History Dialog */}
-        <Dialog open={!!historyNoteId} onOpenChange={(o) => !o && setHistoryNoteId(null)}>
-          <DialogContent className="max-w-md">
+        <Dialog
+          open={!!historyNoteId}
+          onOpenChange={(o) => {
+            if (!o) { setHistoryNoteId(null); setHistoryVisible(5); }
+          }}
+        >
+          <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-base">
-                <History className="w-4 h-4" /> Historique de la note
+              <DialogTitle className="flex items-center justify-between gap-2 text-base">
+                <span className="flex items-center gap-2">
+                  <History className="w-4 h-4" /> Historique de la note
+                </span>
+                <div className="flex items-center gap-1 mr-6">
+                  <Button size="sm" variant="outline" className="h-7 px-2 text-xs gap-1" onClick={exportHistoryCSV} disabled={!history?.length}>
+                    <FileDown className="w-3 h-3" /> CSV
+                  </Button>
+                  <Button size="sm" variant="outline" className="h-7 px-2 text-xs gap-1" onClick={exportHistoryPDF} disabled={!history?.length}>
+                    <FileText className="w-3 h-3" /> PDF
+                  </Button>
+                </div>
               </DialogTitle>
             </DialogHeader>
             <div className="max-h-[60vh] overflow-y-auto space-y-3">
@@ -386,25 +537,47 @@ export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembe
                   Aucune modification enregistrée
                 </p>
               )}
-              {history?.map((h) => (
-                <div key={h.id} className="border border-border/50 rounded-lg p-3 bg-muted/30">
-                  <div className="flex items-center justify-between mb-1.5 text-xs">
-                    <span className="font-semibold">
-                      {profiles[h.edited_by] || "Utilisateur"}
-                      <span className="ml-2 text-[10px] uppercase text-muted-foreground">
-                        {h.action === "delete" ? "Supprimée" : "Modifiée"}
+              {history?.slice(0, historyVisible).map((h, idx, arr) => {
+                // current = previous version's content (next entry chronologically newer = arr[idx-1].previous_content)
+                // history is ordered DESC; arr[idx-1] is more recent. The "after" content for entry idx is arr[idx-1]?.previous_content
+                // OR if idx === 0: the current note content
+                const currentNote = allModuleNotes.find(n => n.id === historyNoteId);
+                const afterContent = idx === 0
+                  ? (currentNote?.content ?? "")
+                  : (arr[idx - 1]?.previous_content ?? "");
+                return (
+                  <div key={h.id} className="border border-border/50 rounded-lg p-3 bg-muted/30 space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-semibold">
+                        {profiles[h.edited_by] || "Utilisateur"}
+                        <span className="ml-2 text-[10px] uppercase text-muted-foreground">
+                          {h.action === "delete" ? "Supprimée" : "Modifiée"}
+                        </span>
                       </span>
-                    </span>
-                    <span className="text-muted-foreground text-[10px]">
-                      {format(new Date(h.edited_at), "dd/MM/yyyy HH:mm", { locale: fr })}
-                    </span>
+                      <span className="text-muted-foreground text-[10px]">
+                        {format(new Date(h.edited_at), "dd/MM/yyyy HH:mm", { locale: fr })}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-muted-foreground mb-1">Différences :</p>
+                      <DiffView previous={h.previous_content || ""} current={afterContent} />
+                    </div>
+                    <details className="text-[11px]">
+                      <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Voir le contenu précédent brut</summary>
+                      <div className="mt-1 text-xs bg-background/60 rounded p-2 whitespace-pre-wrap break-words">
+                        {h.previous_content}
+                      </div>
+                    </details>
                   </div>
-                  <p className="text-[11px] text-muted-foreground mb-1">Contenu précédent :</p>
-                  <div className="text-xs bg-background/60 rounded p-2 whitespace-pre-wrap break-words">
-                    {h.previous_content}
-                  </div>
+                );
+              })}
+              {history && history.length > historyVisible && (
+                <div className="flex justify-center pt-2">
+                  <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => setHistoryVisible(v => v + 5)}>
+                    Charger plus ({history.length - historyVisible} restantes)
+                  </Button>
                 </div>
-              ))}
+              )}
             </div>
           </DialogContent>
         </Dialog>

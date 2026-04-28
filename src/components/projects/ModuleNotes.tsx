@@ -510,11 +510,26 @@ export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembe
         </div>
 
         {/* History Dialog */}
-        <Dialog open={!!historyNoteId} onOpenChange={(o) => !o && setHistoryNoteId(null)}>
-          <DialogContent className="max-w-md">
+        <Dialog
+          open={!!historyNoteId}
+          onOpenChange={(o) => {
+            if (!o) { setHistoryNoteId(null); setHistoryVisible(5); }
+          }}
+        >
+          <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-base">
-                <History className="w-4 h-4" /> Historique de la note
+              <DialogTitle className="flex items-center justify-between gap-2 text-base">
+                <span className="flex items-center gap-2">
+                  <History className="w-4 h-4" /> Historique de la note
+                </span>
+                <div className="flex items-center gap-1 mr-6">
+                  <Button size="sm" variant="outline" className="h-7 px-2 text-xs gap-1" onClick={exportHistoryCSV} disabled={!history?.length}>
+                    <FileDown className="w-3 h-3" /> CSV
+                  </Button>
+                  <Button size="sm" variant="outline" className="h-7 px-2 text-xs gap-1" onClick={exportHistoryPDF} disabled={!history?.length}>
+                    <FileText className="w-3 h-3" /> PDF
+                  </Button>
+                </div>
               </DialogTitle>
             </DialogHeader>
             <div className="max-h-[60vh] overflow-y-auto space-y-3">
@@ -523,25 +538,47 @@ export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembe
                   Aucune modification enregistrée
                 </p>
               )}
-              {history?.map((h) => (
-                <div key={h.id} className="border border-border/50 rounded-lg p-3 bg-muted/30">
-                  <div className="flex items-center justify-between mb-1.5 text-xs">
-                    <span className="font-semibold">
-                      {profiles[h.edited_by] || "Utilisateur"}
-                      <span className="ml-2 text-[10px] uppercase text-muted-foreground">
-                        {h.action === "delete" ? "Supprimée" : "Modifiée"}
+              {history?.slice(0, historyVisible).map((h, idx, arr) => {
+                // current = previous version's content (next entry chronologically newer = arr[idx-1].previous_content)
+                // history is ordered DESC; arr[idx-1] is more recent. The "after" content for entry idx is arr[idx-1]?.previous_content
+                // OR if idx === 0: the current note content
+                const currentNote = allModuleNotes.find(n => n.id === historyNoteId);
+                const afterContent = idx === 0
+                  ? (currentNote?.content ?? "")
+                  : (arr[idx - 1]?.previous_content ?? "");
+                return (
+                  <div key={h.id} className="border border-border/50 rounded-lg p-3 bg-muted/30 space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-semibold">
+                        {profiles[h.edited_by] || "Utilisateur"}
+                        <span className="ml-2 text-[10px] uppercase text-muted-foreground">
+                          {h.action === "delete" ? "Supprimée" : "Modifiée"}
+                        </span>
                       </span>
-                    </span>
-                    <span className="text-muted-foreground text-[10px]">
-                      {format(new Date(h.edited_at), "dd/MM/yyyy HH:mm", { locale: fr })}
-                    </span>
+                      <span className="text-muted-foreground text-[10px]">
+                        {format(new Date(h.edited_at), "dd/MM/yyyy HH:mm", { locale: fr })}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-muted-foreground mb-1">Différences :</p>
+                      <DiffView previous={h.previous_content || ""} current={afterContent} />
+                    </div>
+                    <details className="text-[11px]">
+                      <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Voir le contenu précédent brut</summary>
+                      <div className="mt-1 text-xs bg-background/60 rounded p-2 whitespace-pre-wrap break-words">
+                        {h.previous_content}
+                      </div>
+                    </details>
                   </div>
-                  <p className="text-[11px] text-muted-foreground mb-1">Contenu précédent :</p>
-                  <div className="text-xs bg-background/60 rounded p-2 whitespace-pre-wrap break-words">
-                    {h.previous_content}
-                  </div>
+                );
+              })}
+              {history && history.length > historyVisible && (
+                <div className="flex justify-center pt-2">
+                  <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => setHistoryVisible(v => v + 5)}>
+                    Charger plus ({history.length - historyVisible} restantes)
+                  </Button>
                 </div>
-              ))}
+              )}
             </div>
           </DialogContent>
         </Dialog>

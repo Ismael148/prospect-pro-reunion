@@ -95,6 +95,30 @@ Deno.serve(async (req) => {
       ...data,
     };
 
+    let directEmailSent = false;
+    if (event === 'support.resolved' && payload.client_email) {
+      const BREVO_API_KEY = Deno.env.get('BREVO_API_KEY');
+      if (BREVO_API_KEY) {
+        const htmlContent = buildResolvedHtml(payload);
+        const emailResponse = await sendBrevoEmail(BREVO_API_KEY, {
+          sender: { name: 'Support AdamKom', email: 'contact@adamkom.com' },
+          to: [{ email: payload.client_email, name: payload.company_name || payload.client_name || 'Client' }],
+          subject: `Ticket ${payload.ticket_number || ''} résolu - AdamKom`,
+          htmlContent,
+          textContent: htmlToText(htmlContent),
+        });
+        const emailBody = await emailResponse.text();
+        directEmailSent = emailResponse.ok;
+        if (!emailResponse.ok) {
+          console.error(`Brevo support.resolved failed [${emailResponse.status}]: ${emailBody}`);
+        } else {
+          console.log(`Brevo support.resolved sent: ${emailBody}`);
+        }
+      } else {
+        console.warn('BREVO_API_KEY missing, direct support.resolved email skipped');
+      }
+    }
+
     console.log(`Sending ${event} to n8n: ${webhookUrl}`);
     console.log(`Payload keys: ${Object.keys(payload).join(', ')}`);
     console.log(`Payload sample: company_name=${payload.company_name}, invoice_number=${payload.invoice_number}, total_amount=${payload.total_amount}`);
@@ -118,7 +142,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ success: true, direct_email_sent: directEmailSent }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

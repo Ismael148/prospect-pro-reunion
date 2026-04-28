@@ -25,7 +25,7 @@ import {
   Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
 } from "@/components/ui/command";
 import { toast } from "sonner";
-import { Plus, Search, FolderKanban, Loader2, Building2, Calendar, Check, ChevronsUpDown } from "lucide-react";
+import { Plus, Search, FolderKanban, Loader2, Building2, Calendar, Check, ChevronsUpDown, Filter, X, SlidersHorizontal } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";

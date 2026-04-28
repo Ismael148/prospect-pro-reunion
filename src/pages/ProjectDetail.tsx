@@ -503,6 +503,7 @@ export default function ProjectDetail() {
           onAssignModule={handleAssignModule}
           moduleLinks={(project as any).module_links || {}}
           onModuleLinkUpdate={handleModuleLinkUpdate}
+          projectStatus={project.status}
         />
       )}
 

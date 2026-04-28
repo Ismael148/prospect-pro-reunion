@@ -70,3 +70,36 @@ export function useAddModuleNote() {
     },
   });
 }
+
+export function useUpdateModuleNote() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, content }: { id: string; content: string }) => {
+      const { data, error } = await supabase
+        .from("module_notes")
+        .update({ content })
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data as ModuleNote;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["module-notes", data.project_id] });
+    },
+  });
+}
+
+export function useDeleteModuleNote() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, project_id }: { id: string; project_id: string }) => {
+      const { error } = await supabase.from("module_notes").delete().eq("id", id);
+      if (error) throw error;
+      return { project_id };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["module-notes", data.project_id] });
+    },
+  });
+}

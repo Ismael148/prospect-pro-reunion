@@ -90,13 +90,96 @@ export default function Projects() {
     }
   };
 
-  const filtered = projects?.filter((p: any) => {
-    const matchSearch =
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.clients?.company_name?.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = filterStatus === "all" || p.status === filterStatus;
-    return matchSearch && matchStatus;
-  });
+  const filtered = useMemo(() => {
+    if (!projects) return [];
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 7);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+    let result = projects.filter((p: any) => {
+      // Search
+      const q = search.toLowerCase();
+      const matchSearch = !q ||
+        p.name?.toLowerCase().includes(q) ||
+        p.clients?.company_name?.toLowerCase().includes(q) ||
+        p.description?.toLowerCase().includes(q);
+
+      // Status
+      const matchStatus = filterStatus === "all" || p.status === filterStatus;
+
+      // Pack
+      const matchPack = filterPack === "all" || p.pack_type === filterPack;
+
+      // Deadline
+      let matchDeadline = true;
+      if (filterDeadline !== "all") {
+        const due = p.due_date ? new Date(p.due_date) : null;
+        const isClosed = p.status === "termine" || p.status === "annule";
+        if (filterDeadline === "overdue") {
+          matchDeadline = !!due && due < now && !isClosed;
+        } else if (filterDeadline === "week") {
+          matchDeadline = !!due && due >= now && due <= endOfWeek;
+        } else if (filterDeadline === "month") {
+          matchDeadline = !!due && due >= now && due <= endOfMonth;
+        } else if (filterDeadline === "none") {
+          matchDeadline = !due;
+        }
+      }
+
+      // Progress
+      let matchProgress = true;
+      const progress = p.progress || 0;
+      if (filterProgress === "not_started") matchProgress = progress === 0;
+      else if (filterProgress === "in_progress") matchProgress = progress > 0 && progress < 100;
+      else if (filterProgress === "almost_done") matchProgress = progress >= 75 && progress < 100;
+      else if (filterProgress === "done") matchProgress = progress === 100;
+
+      // Client type (nouveau = status en_attente / en cours = en_cours)
+      let matchClientType = true;
+      if (filterClientType === "nouveau") matchClientType = p.status === "en_attente";
+      else if (filterClientType === "en_cours") matchClientType = p.status === "en_cours";
+      else if (filterClientType === "termine") matchClientType = p.status === "termine";
+
+      // Assigned
+      let matchAssigned = true;
+      if (filterAssigned === "me") matchAssigned = p.assigned_to === user?.id;
+      else if (filterAssigned === "unassigned") matchAssigned = !p.assigned_to;
+
+      return matchSearch && matchStatus && matchPack && matchDeadline && matchProgress && matchClientType && matchAssigned;
+    });
+
+    // Sort
+    result = [...result].sort((a: any, b: any) => {
+      if (sortBy === "recent") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      if (sortBy === "oldest") return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      if (sortBy === "deadline_asc") {
+        if (!a.due_date) return 1;
+        if (!b.due_date) return -1;
+        return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+      }
+      if (sortBy === "progress_desc") return (b.progress || 0) - (a.progress || 0);
+      if (sortBy === "progress_asc") return (a.progress || 0) - (b.progress || 0);
+      if (sortBy === "name") return (a.name || "").localeCompare(b.name || "");
+      return 0;
+    });
+
+    return result;
+  }, [projects, search, filterStatus, filterPack, filterDeadline, filterProgress, filterClientType, filterAssigned, sortBy, user?.id]);
+
+  const activeFiltersCount = [filterStatus, filterPack, filterDeadline, filterProgress, filterClientType, filterAssigned].filter(f => f !== "all").length;
+
+  const resetFilters = () => {
+    setFilterStatus("all");
+    setFilterPack("all");
+    setFilterDeadline("all");
+    setFilterProgress("all");
+    setFilterClientType("all");
+    setFilterAssigned("all");
+    setSortBy("recent");
+  };
 
   return (
     <motion.div

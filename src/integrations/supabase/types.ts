@@ -1216,6 +1216,30 @@ export type Database = {
         }
         Relationships: []
       }
+      seen_marks: {
+        Row: {
+          id: string
+          item_id: string
+          item_type: string
+          seen_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          item_id: string
+          item_type: string
+          seen_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          item_id?: string
+          item_type?: string
+          seen_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       social_accounts: {
         Row: {
           access_token: string | null

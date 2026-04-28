@@ -323,6 +323,8 @@ export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembe
     doc.save(`historique-notes-${moduleName.replace(/\s+/g, "-")}-${format(new Date(), "yyyyMMdd-HHmm")}.pdf`);
     toast.success("Export PDF téléchargé");
   };
+
+  return (
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs relative">

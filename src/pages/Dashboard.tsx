@@ -55,9 +55,10 @@ function useOverdueTasks() {
       const today = new Date().toISOString().split("T")[0];
       const { data, error } = await supabase
         .from("project_tasks")
-        .select("id, title, due_date, status, project_id")
+        .select("id, title, due_date, status, project_id, projects!inner(status)")
         .lt("due_date", today)
-        .not("status", "eq", "termine");
+        .not("status", "eq", "termine")
+        .not("projects.status", "in", '("termine","annule")');
       if (error) throw error;
       return data || [];
     },

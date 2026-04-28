@@ -1012,6 +1012,164 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_access: {
+        Row: {
+          accepted_at: string | null
+          access_type: Database["public"]["Enums"]["partner_access_type"]
+          asset_id: string | null
+          asset_name: string | null
+          business_manager_id: string | null
+          client_id: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          granted_role:
+            | Database["public"]["Enums"]["partner_access_role"]
+            | null
+          id: string
+          invitation_email: string | null
+          invitation_link: string | null
+          invitation_sent_at: string | null
+          last_reminder_sent_at: string | null
+          notes: string | null
+          platform: string
+          status: Database["public"]["Enums"]["partner_access_status"]
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          access_type: Database["public"]["Enums"]["partner_access_type"]
+          asset_id?: string | null
+          asset_name?: string | null
+          business_manager_id?: string | null
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          granted_role?:
+            | Database["public"]["Enums"]["partner_access_role"]
+            | null
+          id?: string
+          invitation_email?: string | null
+          invitation_link?: string | null
+          invitation_sent_at?: string | null
+          last_reminder_sent_at?: string | null
+          notes?: string | null
+          platform: string
+          status?: Database["public"]["Enums"]["partner_access_status"]
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          access_type?: Database["public"]["Enums"]["partner_access_type"]
+          asset_id?: string | null
+          asset_name?: string | null
+          business_manager_id?: string | null
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          granted_role?:
+            | Database["public"]["Enums"]["partner_access_role"]
+            | null
+          id?: string
+          invitation_email?: string | null
+          invitation_link?: string | null
+          invitation_sent_at?: string | null
+          last_reminder_sent_at?: string | null
+          notes?: string | null
+          platform?: string
+          status?: Database["public"]["Enums"]["partner_access_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_access_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_notifications: {
+        Row: {
+          client_id: string
+          content: string
+          created_at: string
+          created_by: string | null
+          external_post_id: string | null
+          id: string
+          media_urls: string[] | null
+          notes: string | null
+          notification_type: Database["public"]["Enums"]["partner_notification_type"]
+          partner_access_id: string | null
+          platform: string
+          published_at: string | null
+          published_by: string | null
+          scheduled_for: string | null
+          status: Database["public"]["Enums"]["partner_notification_status"]
+          target_url: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          content: string
+          created_at?: string
+          created_by?: string | null
+          external_post_id?: string | null
+          id?: string
+          media_urls?: string[] | null
+          notes?: string | null
+          notification_type: Database["public"]["Enums"]["partner_notification_type"]
+          partner_access_id?: string | null
+          platform: string
+          published_at?: string | null
+          published_by?: string | null
+          scheduled_for?: string | null
+          status?: Database["public"]["Enums"]["partner_notification_status"]
+          target_url?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          external_post_id?: string | null
+          id?: string
+          media_urls?: string[] | null
+          notes?: string | null
+          notification_type?: Database["public"]["Enums"]["partner_notification_type"]
+          partner_access_id?: string | null
+          platform?: string
+          published_at?: string | null
+          published_by?: string | null
+          scheduled_for?: string | null
+          status?: Database["public"]["Enums"]["partner_notification_status"]
+          target_url?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_notifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_notifications_partner_access_id_fkey"
+            columns: ["partner_access_id"]
+            isOneToOne: false
+            referencedRelation: "partner_access"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1622,6 +1780,42 @@ export type Database = {
         | "autre"
       expense_frequency: "ponctuel" | "mensuel" | "trimestriel" | "annuel"
       pack_type: "star_bizness_numerik" | "star_bizness_nfc" | "autre"
+      partner_access_role:
+        | "admin"
+        | "editor"
+        | "advertiser"
+        | "analyst"
+        | "manager"
+        | "owner"
+      partner_access_status:
+        | "a_inviter"
+        | "invitation_envoyee"
+        | "accepte"
+        | "refuse"
+        | "expire"
+        | "revoque"
+      partner_access_type:
+        | "fb_page"
+        | "fb_business_manager"
+        | "ig_account"
+        | "ad_account"
+        | "catalog"
+        | "gmb_location"
+        | "pixel"
+      partner_notification_status:
+        | "brouillon"
+        | "planifie"
+        | "publie_manuel"
+        | "publie_api"
+        | "echec"
+      partner_notification_type:
+        | "post"
+        | "story"
+        | "reel"
+        | "gmb_post"
+        | "gmb_review_reply"
+        | "message_reply"
+        | "announcement"
       pipeline_status:
         | "nouveau"
         | "contacte"
@@ -1812,6 +2006,47 @@ export const Constants = {
       ],
       expense_frequency: ["ponctuel", "mensuel", "trimestriel", "annuel"],
       pack_type: ["star_bizness_numerik", "star_bizness_nfc", "autre"],
+      partner_access_role: [
+        "admin",
+        "editor",
+        "advertiser",
+        "analyst",
+        "manager",
+        "owner",
+      ],
+      partner_access_status: [
+        "a_inviter",
+        "invitation_envoyee",
+        "accepte",
+        "refuse",
+        "expire",
+        "revoque",
+      ],
+      partner_access_type: [
+        "fb_page",
+        "fb_business_manager",
+        "ig_account",
+        "ad_account",
+        "catalog",
+        "gmb_location",
+        "pixel",
+      ],
+      partner_notification_status: [
+        "brouillon",
+        "planifie",
+        "publie_manuel",
+        "publie_api",
+        "echec",
+      ],
+      partner_notification_type: [
+        "post",
+        "story",
+        "reel",
+        "gmb_post",
+        "gmb_review_reply",
+        "message_reply",
+        "announcement",
+      ],
       pipeline_status: [
         "nouveau",
         "contacte",

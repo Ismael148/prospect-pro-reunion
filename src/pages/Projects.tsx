@@ -297,7 +297,7 @@ export default function Projects() {
         )}
       </div>
 
-      <div className="space-y-3">
+      
       <Tabs defaultValue="projects" className="space-y-4">
         <TabsList>
           <TabsTrigger value="projects">📁 Projets</TabsTrigger>

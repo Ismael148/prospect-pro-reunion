@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useTicketComments, useAddTicketComment } from "@/hooks/use-ticket-comments";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +10,8 @@ import { Send, MessageCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
+import { useSeenMarks } from "@/hooks/use-seen-marks";
+import { SeenByButton } from "@/components/SeenByButton";
 
 interface TicketCommentsProps {
   ticketId: string;
@@ -25,6 +27,13 @@ export function TicketComments({ ticketId, ticketNumber, ticketSubject, assigned
   const addComment = useAddTicketComment();
   const [content, setContent] = useState("");
   const [profiles, setProfiles] = useState<Record<string, string>>({});
+  const commentIds = useMemo(() => comments?.map((c) => c.id) ?? [], [comments]);
+  const { data: seenMap } = useSeenMarks("ticket_comment", commentIds);
+  const profilesForSeen = useMemo(() => {
+    const out: Record<string, { full_name: string }> = {};
+    Object.entries(profiles).forEach(([uid, name]) => { out[uid] = { full_name: name }; });
+    return out;
+  }, [profiles]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Load profiles for comment authors
@@ -111,6 +120,16 @@ export function TicketComments({ ticketId, ticketNumber, ticketSubject, assigned
                     : "bg-muted/50 text-foreground rounded-tl-sm"
                 }`}>
                   {c.content}
+                </div>
+                <div className={`mt-1 ${mine ? "flex justify-end" : ""}`}>
+                  <SeenByButton
+                    itemType="ticket_comment"
+                    itemId={c.id}
+                    marks={seenMap?.[c.id] ?? []}
+                    authorId={c.user_id}
+                    profiles={profilesForSeen}
+                    compact
+                  />
                 </div>
               </div>
             </div>

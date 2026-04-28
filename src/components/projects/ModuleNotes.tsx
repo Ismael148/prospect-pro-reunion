@@ -2,12 +2,14 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { MessageSquare, Send, Pencil, Trash2, Check, X } from "lucide-react";
-import { useModuleNotes, useAddModuleNote, useUpdateModuleNote, useDeleteModuleNote } from "@/hooks/use-module-notes";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MessageSquare, Send, Pencil, Trash2, Check, X, History, Loader2 } from "lucide-react";
+import { useModuleNotes, useAddModuleNote, useUpdateModuleNote, useDeleteModuleNote, useModuleNoteHistory } from "@/hooks/use-module-notes";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 import { fr } from "date-fns/locale";
 import type { TeamMember } from "./ProjectModules";
 
@@ -16,6 +18,60 @@ interface Props {
   moduleId: string;
   moduleName: string;
   teamMembers: TeamMember[];
+}
+
+type FilterMode = "all" | "me" | "team" | "admin";
+
+// Rich rendering: mentions, links, line breaks
+function RichContent({ text, adminIds }: { text: string; adminIds: Set<string> }) {
+  // Split by lines first to preserve breaks
+  const lines = text.split("\n");
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const mentionRegex = /(@\w[\w\s]*?)(?=\s@|$|\s[^@]|[.,!?])/;
+
+  return (
+    <>
+      {lines.map((line, li) => {
+        // Tokenize line: split by URLs first
+        const urlParts = line.split(urlRegex);
+        return (
+          <div key={li} className="break-words">
+            {urlParts.map((part, ui) => {
+              if (urlRegex.test(part)) {
+                return (
+                  <a
+                    key={ui}
+                    href={part}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary underline hover:opacity-80 break-all"
+                  >
+                    {part}
+                  </a>
+                );
+              }
+              // Then handle mentions in remaining text
+              const mentionParts = part.split(/(@\w[\w\s]*?)(?=\s@|$|\s[^@]|[.,!?])/);
+              return mentionParts.map((mp, mi) => {
+                if (mp.startsWith("@")) {
+                  return (
+                    <span
+                      key={`${ui}-${mi}`}
+                      className="inline-flex items-center bg-primary/15 text-primary text-xs font-semibold px-1.5 py-0.5 rounded-md mx-0.5"
+                    >
+                      {mp}
+                    </span>
+                  );
+                }
+                return <span key={`${ui}-${mi}`}>{mp}</span>;
+              });
+            })}
+            {line === "" && <br />}
+          </div>
+        );
+      })}
+    </>
+  );
 }
 
 export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembers }: Props) {
@@ -27,19 +83,33 @@ export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembe
   const [content, setContent] = useState("");
   const [showMentions, setShowMentions] = useState(false);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
+  const [adminIds, setAdminIds] = useState<Set<string>>(new Set());
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState("");
+  const [editingOriginal, setEditingOriginal] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [filter, setFilter] = useState<FilterMode>("all");
+  const [historyNoteId, setHistoryNoteId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const isAdmin = hasRole("admin");
 
-  const notes = useMemo(() => 
+  const { data: history } = useModuleNoteHistory(historyNoteId);
+
+  const allModuleNotes = useMemo(() =>
     (allNotes || []).filter(n => n.module_id === moduleId),
     [allNotes, moduleId]
   );
 
-  // Fetch profiles for authors
+  const notes = useMemo(() => {
+    if (filter === "me") return allModuleNotes.filter(n => n.user_id === user?.id);
+    if (filter === "admin") return allModuleNotes.filter(n => adminIds.has(n.user_id));
+    if (filter === "team") return allModuleNotes.filter(n => n.user_id !== user?.id && !adminIds.has(n.user_id));
+    return allModuleNotes;
+  }, [allModuleNotes, filter, user?.id, adminIds]);
+
+  // Fetch profiles + admin ids
   useEffect(() => {
-    const userIds = [...new Set(notes.map(n => n.user_id))];
+    const userIds = [...new Set(allModuleNotes.map(n => n.user_id))];
     if (userIds.length === 0) return;
     supabase.from("profiles").select("user_id, full_name").in("user_id", userIds)
       .then(({ data }) => {
@@ -47,7 +117,11 @@ export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembe
         data?.forEach(p => { map[p.user_id] = p.full_name || "Utilisateur"; });
         setProfiles(map);
       });
-  }, [notes]);
+    supabase.from("user_roles").select("user_id").eq("role", "admin").in("user_id", userIds)
+      .then(({ data }) => {
+        setAdminIds(new Set((data || []).map(r => r.user_id)));
+      });
+  }, [allModuleNotes]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -63,10 +137,9 @@ export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembe
         content: content.trim(),
       });
 
-      // Extract @mentions and notify
       const mentionRegex = /@(\w[\w\s]*?)(?=\s@|$|\s[^@])/g;
       const mentions = [...content.matchAll(mentionRegex)].map(m => m[1].trim().toLowerCase());
-      
+
       if (mentions.length > 0) {
         for (const member of teamMembers) {
           const name = (member.full_name || "").toLowerCase();
@@ -82,7 +155,6 @@ export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembe
         }
       }
 
-      // Notify admins
       const { data: admins } = await supabase
         .from("user_roles").select("user_id").eq("role", "admin");
       for (const admin of admins || []) {
@@ -112,61 +184,80 @@ export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembe
     setShowMentions(false);
   };
 
-  const renderContent = (text: string) => {
-    return text.split(/(@\w[\w\s]*?)(?=\s@|$|\s[^@])/).map((part, i) => {
-      if (part.startsWith("@")) {
-        return (
-          <span key={i} className="inline-flex items-center bg-primary/15 text-primary text-xs font-semibold px-1.5 py-0.5 rounded-md">
-            {part}
-          </span>
-        );
-      }
-      return <span key={i}>{part}</span>;
-    });
-  };
+  const isUpdating = updateNote.isPending;
+  const isDeleting = deleteNote.isPending;
 
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs relative">
           <MessageSquare className="w-4 h-4" />
-          {notes.length > 0 && (
+          {allModuleNotes.length > 0 && (
             <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
-              {notes.length}
+              {allModuleNotes.length}
             </span>
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
-        <div className="p-3 border-b border-border/50">
-          <p className="text-sm font-semibold">Notes — {moduleName}</p>
-          <p className="text-xs text-muted-foreground">Feedback et mentions</p>
+      <PopoverContent className="w-96 p-0" align="end">
+        <div className="p-3 border-b border-border/50 flex items-start justify-between gap-2">
+          <div>
+            <p className="text-sm font-semibold">Notes — {moduleName}</p>
+            <p className="text-xs text-muted-foreground">Feedback et mentions</p>
+          </div>
+          <Select value={filter} onValueChange={(v) => setFilter(v as FilterMode)}>
+            <SelectTrigger className="h-7 w-[110px] text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="text-xs">Toutes</SelectItem>
+              <SelectItem value="me" className="text-xs">Moi</SelectItem>
+              <SelectItem value="team" className="text-xs">Équipe</SelectItem>
+              <SelectItem value="admin" className="text-xs">Admin</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <div ref={scrollRef} className="max-h-60 overflow-y-auto p-3 space-y-3">
+        <div ref={scrollRef} className="max-h-72 overflow-y-auto p-3 space-y-3">
           {notes.length === 0 && (
             <p className="text-xs text-muted-foreground text-center py-4">Aucune note</p>
           )}
           {notes.map(note => {
             const canModify = note.user_id === user?.id || isAdmin;
             const isEditing = editingId === note.id;
+            const busy = (isUpdating && isEditing) || (isDeleting && deletingId === note.id);
             return (
               <div key={note.id} className={`group rounded-lg p-2.5 text-sm ${
                 note.user_id === user?.id ? "bg-primary/10 ml-4" : "bg-muted/50 mr-4"
               }`}>
                 <div className="flex items-center justify-between mb-1 gap-2">
-                  <span className="text-xs font-semibold truncate">{profiles[note.user_id] || "..."}</span>
+                  <span className="text-xs font-semibold truncate flex items-center gap-1">
+                    {profiles[note.user_id] || "..."}
+                    {adminIds.has(note.user_id) && (
+                      <span className="text-[9px] bg-primary/20 text-primary px-1 rounded">ADMIN</span>
+                    )}
+                  </span>
                   <div className="flex items-center gap-1">
                     <span className="text-[10px] text-muted-foreground">
                       {formatDistanceToNow(new Date(note.created_at), { addSuffix: true, locale: fr })}
                     </span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Historique"
+                      onClick={() => setHistoryNoteId(note.id)}
+                    >
+                      <History className="w-3 h-3" />
+                    </Button>
                     {canModify && !isEditing && (
                       <>
                         <Button
                           size="sm"
                           variant="ghost"
                           className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => { setEditingId(note.id); setEditingContent(note.content); }}
+                          disabled={busy}
+                          onClick={() => { setEditingId(note.id); setEditingContent(note.content); setEditingOriginal(note.content); }}
                         >
                           <Pencil className="w-3 h-3" />
                         </Button>
@@ -174,15 +265,18 @@ export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembe
                           size="sm"
                           variant="ghost"
                           className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                          disabled={busy}
                           onClick={async () => {
                             if (!confirm("Supprimer cette note ?")) return;
+                            setDeletingId(note.id);
                             try {
                               await deleteNote.mutateAsync({ id: note.id, project_id: projectId });
                               toast.success("Note supprimée");
                             } catch { toast.error("Erreur"); }
+                            finally { setDeletingId(null); }
                           }}
                         >
-                          <Trash2 className="w-3 h-3" />
+                          {busy && deletingId === note.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
                         </Button>
                       </>
                     )}
@@ -195,35 +289,45 @@ export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembe
                       onChange={(e) => setEditingContent(e.target.value)}
                       className="text-xs min-h-[50px] resize-none"
                       autoFocus
+                      disabled={isUpdating}
                     />
                     <div className="flex justify-end gap-1">
                       <Button
                         size="sm"
                         variant="ghost"
                         className="h-6 px-2 text-xs"
-                        onClick={() => { setEditingId(null); setEditingContent(""); }}
+                        disabled={isUpdating}
+                        onClick={() => { setEditingId(null); setEditingContent(""); setEditingOriginal(""); }}
                       >
                         <X className="w-3 h-3 mr-1" /> Annuler
                       </Button>
                       <Button
                         size="sm"
                         className="h-6 px-2 text-xs"
-                        disabled={!editingContent.trim() || updateNote.isPending}
+                        disabled={!editingContent.trim() || isUpdating || editingContent.trim() === editingOriginal}
                         onClick={async () => {
                           try {
-                            await updateNote.mutateAsync({ id: note.id, content: editingContent.trim() });
+                            await updateNote.mutateAsync({
+                              id: note.id,
+                              content: editingContent.trim(),
+                              previousContent: editingOriginal,
+                            });
                             setEditingId(null);
                             setEditingContent("");
+                            setEditingOriginal("");
                             toast.success("Note modifiée");
                           } catch { toast.error("Erreur"); }
                         }}
                       >
-                        <Check className="w-3 h-3 mr-1" /> Enregistrer
+                        {isUpdating ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Check className="w-3 h-3 mr-1" />}
+                        Enregistrer
                       </Button>
                     </div>
                   </div>
                 ) : (
-                  <div className="text-xs leading-relaxed">{renderContent(note.content)}</div>
+                  <div className="text-xs leading-relaxed space-y-0.5">
+                    <RichContent text={note.content} adminIds={adminIds} />
+                  </div>
                 )}
               </div>
             );
@@ -235,8 +339,9 @@ export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembe
             <Textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Ajouter une note... (@nom pour mentionner)"
+              placeholder="Ajouter une note... (@nom, liens, retours à la ligne)"
               className="text-sm min-h-[60px] resize-none pr-10"
+              disabled={addNote.isPending}
               onKeyDown={(e) => {
                 if (e.key === "@") setShowMentions(true);
                 if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmit(); }
@@ -249,11 +354,11 @@ export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembe
               onClick={handleSubmit}
               disabled={!content.trim() || addNote.isPending}
             >
-              <Send className="w-3.5 h-3.5" />
+              {addNote.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
             </Button>
           </div>
           {showMentions && teamMembers.length > 0 && (
-            <div className="bg-popover border rounded-md shadow-md p-1 space-y-0.5">
+            <div className="bg-popover border rounded-md shadow-md p-1 space-y-0.5 max-h-32 overflow-y-auto">
               {teamMembers.map(m => (
                 <button
                   key={m.user_id}
@@ -266,6 +371,43 @@ export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembe
             </div>
           )}
         </div>
+
+        {/* History Dialog */}
+        <Dialog open={!!historyNoteId} onOpenChange={(o) => !o && setHistoryNoteId(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-base">
+                <History className="w-4 h-4" /> Historique de la note
+              </DialogTitle>
+            </DialogHeader>
+            <div className="max-h-[60vh] overflow-y-auto space-y-3">
+              {(!history || history.length === 0) && (
+                <p className="text-xs text-muted-foreground text-center py-6">
+                  Aucune modification enregistrée
+                </p>
+              )}
+              {history?.map((h) => (
+                <div key={h.id} className="border border-border/50 rounded-lg p-3 bg-muted/30">
+                  <div className="flex items-center justify-between mb-1.5 text-xs">
+                    <span className="font-semibold">
+                      {profiles[h.edited_by] || "Utilisateur"}
+                      <span className="ml-2 text-[10px] uppercase text-muted-foreground">
+                        {h.action === "delete" ? "Supprimée" : "Modifiée"}
+                      </span>
+                    </span>
+                    <span className="text-muted-foreground text-[10px]">
+                      {format(new Date(h.edited_at), "dd/MM/yyyy HH:mm", { locale: fr })}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mb-1">Contenu précédent :</p>
+                  <div className="text-xs bg-background/60 rounded p-2 whitespace-pre-wrap break-words">
+                    {h.previous_content}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
       </PopoverContent>
     </Popover>
   );

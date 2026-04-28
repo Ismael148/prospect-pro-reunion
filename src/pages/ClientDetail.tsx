@@ -649,18 +649,23 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
         .select("id, ticket_number")
         .single();
       if (error) throw error;
+      const { data: clientInfo } = await supabase
+        .from("clients")
+        .select("company_name, email, support_token")
+        .eq("id", clientId)
+        .single();
       await supabase.functions.invoke("support-notification", {
         body: {
           ticket_id: newTicket?.id,
           ticket_number: newTicket?.ticket_number,
-          client_name: client?.company_name || "",
-          client_email: client?.email || "",
-          company_name: client?.company_name || "",
+          client_name: clientInfo?.company_name || "",
+          client_email: clientInfo?.email || "",
+          company_name: clientInfo?.company_name || "",
           category: ticketForm.category,
           subject: ticketForm.subject,
           message: ticketForm.message,
           priority: ticketForm.priority,
-          support_link: client?.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : "",
+          support_link: clientInfo?.support_token ? `${PUBLISHED_URL}/s/${clientInfo.support_token}` : "",
         },
       });
       toast.success(`🎫 Ticket ${newTicket?.ticket_number} créé avec succès !`);

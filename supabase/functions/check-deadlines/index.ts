@@ -19,13 +19,14 @@ Deno.serve(async (req) => {
 
     const today = new Date().toISOString().split("T")[0];
 
-    // 1. Find overdue project tasks (due_date passed, not completed)
+    // 1. Find overdue project tasks (due_date passed, not completed, on active projects only)
     const { data: overdueTasks, error: tasksError } = await supabase
       .from("project_tasks")
-      .select("id, title, due_date, assigned_to, project_id, status")
+      .select("id, title, due_date, assigned_to, project_id, status, projects!inner(status)")
       .lt("due_date", today)
       .not("status", "eq", "termine")
-      .not("assigned_to", "is", null);
+      .not("assigned_to", "is", null)
+      .not("projects.status", "in", '("termine","annule")');
 
     if (tasksError) throw tasksError;
 

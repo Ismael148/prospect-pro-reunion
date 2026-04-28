@@ -21,6 +21,8 @@ import { fr } from "date-fns/locale";
 import { diffLines } from "diff";
 import jsPDF from "jspdf";
 import type { TeamMember } from "./ProjectModules";
+import { useSeenMarks } from "@/hooks/use-seen-marks";
+import { SeenByButton } from "@/components/SeenByButton";
 
 interface Props {
   projectId: string;

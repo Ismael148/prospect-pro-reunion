@@ -147,19 +147,87 @@ export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembe
           {notes.length === 0 && (
             <p className="text-xs text-muted-foreground text-center py-4">Aucune note</p>
           )}
-          {notes.map(note => (
-            <div key={note.id} className={`rounded-lg p-2.5 text-sm ${
-              note.user_id === user?.id ? "bg-primary/10 ml-4" : "bg-muted/50 mr-4"
-            }`}>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-semibold">{profiles[note.user_id] || "..."}</span>
-                <span className="text-[10px] text-muted-foreground">
-                  {formatDistanceToNow(new Date(note.created_at), { addSuffix: true, locale: fr })}
-                </span>
+          {notes.map(note => {
+            const canModify = note.user_id === user?.id || isAdmin;
+            const isEditing = editingId === note.id;
+            return (
+              <div key={note.id} className={`group rounded-lg p-2.5 text-sm ${
+                note.user_id === user?.id ? "bg-primary/10 ml-4" : "bg-muted/50 mr-4"
+              }`}>
+                <div className="flex items-center justify-between mb-1 gap-2">
+                  <span className="text-xs font-semibold truncate">{profiles[note.user_id] || "..."}</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] text-muted-foreground">
+                      {formatDistanceToNow(new Date(note.created_at), { addSuffix: true, locale: fr })}
+                    </span>
+                    {canModify && !isEditing && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => { setEditingId(note.id); setEditingContent(note.content); }}
+                        >
+                          <Pencil className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                          onClick={async () => {
+                            if (!confirm("Supprimer cette note ?")) return;
+                            try {
+                              await deleteNote.mutateAsync({ id: note.id, project_id: projectId });
+                              toast.success("Note supprimée");
+                            } catch { toast.error("Erreur"); }
+                          }}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+                {isEditing ? (
+                  <div className="space-y-1.5">
+                    <Textarea
+                      value={editingContent}
+                      onChange={(e) => setEditingContent(e.target.value)}
+                      className="text-xs min-h-[50px] resize-none"
+                      autoFocus
+                    />
+                    <div className="flex justify-end gap-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 px-2 text-xs"
+                        onClick={() => { setEditingId(null); setEditingContent(""); }}
+                      >
+                        <X className="w-3 h-3 mr-1" /> Annuler
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="h-6 px-2 text-xs"
+                        disabled={!editingContent.trim() || updateNote.isPending}
+                        onClick={async () => {
+                          try {
+                            await updateNote.mutateAsync({ id: note.id, content: editingContent.trim() });
+                            setEditingId(null);
+                            setEditingContent("");
+                            toast.success("Note modifiée");
+                          } catch { toast.error("Erreur"); }
+                        }}
+                      >
+                        <Check className="w-3 h-3 mr-1" /> Enregistrer
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-xs leading-relaxed">{renderContent(note.content)}</div>
+                )}
               </div>
-              <div className="text-xs leading-relaxed">{renderContent(note.content)}</div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="p-3 border-t border-border/50 space-y-2">

@@ -34,6 +34,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import SocialMediaSection from "@/components/clients/SocialMediaSection";
+import LogoTrackingCard from "@/components/clients/LogoTrackingCard";
 import ClientEmailActions from "@/components/clients/ClientEmailActions";
 import DomainRenewalInvoice from "@/components/clients/DomainRenewalInvoice";
 import ClientEmailHistory from "@/components/clients/ClientEmailHistory";
@@ -1559,6 +1560,7 @@ export default function ClientDetail() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <ClientInfoSection client={client} salesTeam={salesTeam} />
+          <LogoTrackingCard client={client as any} />
           <ClientProjectsSection clientId={client.id} />
         </div>
         <Card className="border-0 shadow-md shadow-primary/5 h-fit">

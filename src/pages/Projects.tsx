@@ -36,7 +36,8 @@ export default function Projects() {
   const navigate = useNavigate();
   const { user, hasRole } = useAuth();
   const isAdmin = hasRole("admin");
-  const { data: projects, isLoading } = useMyProjects(user?.id, isAdmin);
+  const isAgentSupport = hasRole("agent_support");
+  const { data: projects, isLoading } = useMyProjects(user?.id, isAdmin, isAgentSupport);
   const { data: clients } = useClients();
   const createProject = useCreateProject();
   const [open, setOpen] = useState(false);

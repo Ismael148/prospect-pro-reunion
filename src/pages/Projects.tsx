@@ -298,7 +298,18 @@ export default function Projects() {
       </div>
 
       <div className="space-y-3">
-        <div className="flex flex-wrap gap-3 items-center">
+      <Tabs defaultValue="projects" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="projects">📁 Projets</TabsTrigger>
+          <TabsTrigger value="logos">🎨 Suivi logos</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="logos">
+          <LogoDashboard />
+        </TabsContent>
+
+        <TabsContent value="projects" className="space-y-3">
+          <div className="flex flex-wrap gap-3 items-center">
           <div className="relative flex-1 min-w-[220px] max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input className="pl-10" placeholder="Rechercher nom, client, description..." value={search} onChange={(e) => setSearch(e.target.value)} />

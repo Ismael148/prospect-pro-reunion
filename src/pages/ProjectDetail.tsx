@@ -290,8 +290,9 @@ export default function ProjectDetail() {
   const hasTasks = tasks && tasks.length > 0;
   const hasModules = (PACK_MODULES[project.pack_type] || []).length > 0;
   const daysLeft = daysUntil(project.due_date);
-  const isOverdue = daysLeft !== null && daysLeft < 0;
-  const isUrgent = daysLeft !== null && daysLeft >= 0 && daysLeft <= 3;
+  const projectClosed = project.status === "termine" || project.status === "annule";
+  const isOverdue = !projectClosed && daysLeft !== null && daysLeft < 0;
+  const isUrgent = !projectClosed && daysLeft !== null && daysLeft >= 0 && daysLeft <= 3;
   const isNumerik = project.pack_type === "star_bizness_numerik";
 
   return (

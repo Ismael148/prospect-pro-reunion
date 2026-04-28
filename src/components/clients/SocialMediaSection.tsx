@@ -127,7 +127,7 @@ function AccountEditDialog({ clientId, platform, existingUrl, existingUsername, 
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <span>{cfg.icon}</span> Configurer {cfg.label}
+            <PlatformLogo platform={platform} /> Configurer {cfg.label}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
@@ -198,7 +198,7 @@ function NewPublicationDialog({ clientId, accounts }: NewPublicationDialogProps)
                 {PLATFORMS.map((p) => (
                   <SelectItem key={p} value={p}>
                     <span className="flex items-center gap-2">
-                      {PLATFORM_CONFIG[p].icon} {PLATFORM_CONFIG[p].label}
+                      <PlatformLogo platform={p} /> {PLATFORM_CONFIG[p].label}
                     </span>
                   </SelectItem>
                 ))}
@@ -329,7 +329,7 @@ export default function SocialMediaSection({ clientId }: { clientId: string }) {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm ${cfg.bg}`}>
-                        {cfg.icon}
+                        <PlatformLogo platform={platform} className="w-4 h-4" />
                       </div>
                       <span className={`font-semibold text-sm ${cfg.color}`}>{cfg.label}</span>
                       {platformAccounts.length > 0 && (
@@ -437,7 +437,7 @@ export default function SocialMediaSection({ clientId }: { clientId: string }) {
                     <div key={pub.id} className={`p-3 rounded-xl border bg-muted/10 transition-colors ${isOverdue ? "border-destructive/30" : "border-border/50"}`}>
                       <div className="flex items-start gap-3">
                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0 ${cfg?.bg}`}>
-                          {cfg?.icon}
+                          <PlatformLogo platform={pub.platform as SocialPlatform} className="w-4 h-4" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">

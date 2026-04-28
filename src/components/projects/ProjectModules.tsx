@@ -162,11 +162,12 @@ export default function ProjectModules({ packType, tasks, projectId, startDate, 
         const isEditingLink = editingModuleLink === mod.id;
 
         // Calculate deadline
+        const projectDone = projectStatus === "termine" || projectStatus === "annule";
         const deadlineDate = startDate
           ? new Date(new Date(startDate).getTime() + mod.deadlineDays * 86400000)
           : null;
         const now = new Date();
-        const isOverdue = deadlineDate && now > deadlineDate && !allDone;
+        const isOverdue = !projectDone && deadlineDate && now > deadlineDate && !allDone;
         const daysLeft = deadlineDate
           ? Math.ceil((deadlineDate.getTime() - now.getTime()) / 86400000)
           : null;

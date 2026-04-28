@@ -188,6 +188,56 @@ Deno.serve(async (req) => {
       }
     }
 
+    // 4. Logo reminders — every 2 days while not validated by client
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+
+    const { data: logoClients } = await supabase
+      .from("clients")
+      .select("id, company_name, logo_created, logo_published_gmb, logo_validated_by_client, logo_reminder_last_sent, assigned_to")
+      .eq("logo_validated_by_client", false)
+      .eq("pipeline_status", "contrat_signe");
+
+    const dueLogoClients = (logoClients || []).filter((c: any) => {
+      const last = c.logo_reminder_last_sent ? new Date(c.logo_reminder_last_sent) : null;
+      return !last || last <= twoDaysAgo;
+    });
+
+    if (dueLogoClients.length > 0) {
+      const { data: roleRows } = await supabase
+        .from("user_roles")
+        .select("user_id, role")
+        .in("role", ["admin", "agent_master"]);
+
+      const adminIds = (roleRows || []).filter((r: any) => r.role === "admin").map((r: any) => r.user_id);
+      const masterIds = (roleRows || []).filter((r: any) => r.role === "agent_master").map((r: any) => r.user_id);
+
+      for (const c of dueLogoClients) {
+        const step = c.logo_published_gmb
+          ? "à faire valider par le client"
+          : c.logo_created
+            ? "à publier sur la fiche Google"
+            : "à créer";
+        const title = "🎨 Logo en attente";
+        const msg = `Logo de "${c.company_name}" toujours ${step}. Relance automatique (J+2).`;
+        const link = `/clients/${c.id}`;
+
+        const recipients = new Set<string>();
+        if (c.assigned_to) recipients.add(c.assigned_to);
+        adminIds.forEach((id: string) => recipients.add(id));
+        masterIds.forEach((id: string) => recipients.add(id));
+
+        for (const uid of recipients) {
+          notifications.push({ user_id: uid, title, message: msg, type: "logo_reminder", link });
+        }
+
+        await supabase
+          .from("clients")
+          .update({ logo_reminder_last_sent: new Date().toISOString() })
+          .eq("id", c.id);
+      }
+    }
+
     // Insert notifications
     if (notifications.length > 0) {
       const { error: insertError } = await supabase

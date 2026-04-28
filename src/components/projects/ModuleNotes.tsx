@@ -1,16 +1,19 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MessageSquare, Send, Pencil, Trash2, Check, X, History, Loader2 } from "lucide-react";
+import { MessageSquare, Send, Pencil, Trash2, Check, X, History, Loader2, FileDown, FileText } from "lucide-react";
 import { useModuleNotes, useAddModuleNote, useUpdateModuleNote, useDeleteModuleNote, useModuleNoteHistory } from "@/hooks/use-module-notes";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatDistanceToNow, format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { diffWords } from "diff";
+import jsPDF from "jspdf";
 import type { TeamMember } from "./ProjectModules";
 
 interface Props {

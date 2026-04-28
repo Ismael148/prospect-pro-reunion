@@ -25,17 +25,35 @@ interface Props {
 
 type FilterMode = "all" | "me" | "team" | "admin";
 
-// Rich rendering: mentions, links, line breaks
-function RichContent({ text, adminIds }: { text: string; adminIds: Set<string> }) {
-  // Split by lines first to preserve breaks
+// Rich rendering: mentions (clickable when matching project member), links, line breaks
+function RichContent({
+  text,
+  adminIds,
+  memberByName,
+  onMentionClick,
+}: {
+  text: string;
+  adminIds: Set<string>;
+  memberByName: Map<string, TeamMember>;
+  onMentionClick: (member: TeamMember) => void;
+}) {
   const lines = text.split("\n");
   const urlRegex = /(https?:\/\/[^\s]+)/g;
-  const mentionRegex = /(@\w[\w\s]*?)(?=\s@|$|\s[^@]|[.,!?])/;
+
+  const findMember = (mention: string): TeamMember | null => {
+    const key = mention.replace(/^@/, "").trim().toLowerCase();
+    if (!key) return null;
+    // exact then prefix
+    if (memberByName.has(key)) return memberByName.get(key)!;
+    for (const [name, m] of memberByName.entries()) {
+      if (name.startsWith(key) || key.startsWith(name)) return m;
+    }
+    return null;
+  };
 
   return (
     <>
       {lines.map((line, li) => {
-        // Tokenize line: split by URLs first
         const urlParts = line.split(urlRegex);
         return (
           <div key={li} className="break-words">
@@ -53,10 +71,23 @@ function RichContent({ text, adminIds }: { text: string; adminIds: Set<string> }
                   </a>
                 );
               }
-              // Then handle mentions in remaining text
               const mentionParts = part.split(/(@\w[\w\s]*?)(?=\s@|$|\s[^@]|[.,!?])/);
               return mentionParts.map((mp, mi) => {
                 if (mp.startsWith("@")) {
+                  const member = findMember(mp);
+                  if (member) {
+                    return (
+                      <button
+                        key={`${ui}-${mi}`}
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); onMentionClick(member); }}
+                        className="inline-flex items-center bg-primary/20 hover:bg-primary/30 text-primary text-xs font-semibold px-1.5 py-0.5 rounded-md mx-0.5 cursor-pointer transition-colors"
+                        title={`Voir ${member.full_name || ""}`}
+                      >
+                        {mp}
+                      </button>
+                    );
+                  }
                   return (
                     <span
                       key={`${ui}-${mi}`}
@@ -74,6 +105,20 @@ function RichContent({ text, adminIds }: { text: string; adminIds: Set<string> }
         );
       })}
     </>
+  );
+}
+
+// Word-level diff between previous and current
+function DiffView({ previous, current }: { previous: string; current: string }) {
+  const parts = diffWords(previous || "", current || "");
+  return (
+    <div className="text-xs leading-relaxed bg-background/60 rounded p-2 break-words whitespace-pre-wrap">
+      {parts.map((p, i) => {
+        if (p.added) return <span key={i} className="bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 rounded px-0.5">{p.value}</span>;
+        if (p.removed) return <span key={i} className="bg-red-500/20 text-red-700 dark:text-red-300 line-through rounded px-0.5">{p.value}</span>;
+        return <span key={i} className="text-muted-foreground">{p.value}</span>;
+      })}
+    </div>
   );
 }
 

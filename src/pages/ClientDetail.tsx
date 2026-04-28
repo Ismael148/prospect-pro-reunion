@@ -646,9 +646,23 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
       const { data: newTicket, error } = await supabase
         .from("support_tickets")
         .insert(insertData)
-        .select("ticket_number")
+        .select("id, ticket_number")
         .single();
       if (error) throw error;
+      await supabase.functions.invoke("support-notification", {
+        body: {
+          ticket_id: newTicket?.id,
+          ticket_number: newTicket?.ticket_number,
+          client_name: client?.company_name || "",
+          client_email: client?.email || "",
+          company_name: client?.company_name || "",
+          category: ticketForm.category,
+          subject: ticketForm.subject,
+          message: ticketForm.message,
+          priority: ticketForm.priority,
+          support_link: client?.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : "",
+        },
+      });
       toast.success(`🎫 Ticket ${newTicket?.ticket_number} créé avec succès !`);
       setTicketDialog({ open: false, noteContent: "", authorName: "" });
     } catch (e: any) {
@@ -687,7 +701,7 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
         try {
           const { data: openTickets } = await supabase
             .from("support_tickets")
-            .select("id, ticket_number, subject")
+            .select("id, ticket_number, subject, message, category, priority")
             .eq("client_id", clientId)
             .in("status", ["ouvert", "en_cours"]);
 
@@ -704,11 +718,15 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
                 .update({ status: "resolu", resolved_at: new Date().toISOString(), resolved_by: user!.id })
                 .eq("id", ticket.id);
 
-              triggerN8nWebhook("support.resolved", {
+              await triggerN8nWebhook("support.resolved", {
                 ticket_id: ticket.id,
                 ticket_number: ticket.ticket_number,
                 subject: ticket.subject,
+                message: ticket.message,
+                category: ticket.category,
+                priority: ticket.priority,
                 company_name: client?.company_name || "",
+                client_name: client?.company_name || "",
                 client_email: client?.email || "",
                 support_link: client?.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : "",
               });

@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { triggerN8nWebhook } from "@/lib/n8n-webhook";
+import { PUBLISHED_URL } from "@/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -156,17 +158,24 @@ export default function SupportForm() {
       if (ticketError) throw ticketError;
 
       try {
+        const supportPayload = {
+          ticket_id: ticket.id,
+          ticket_number: ticket.ticket_number,
+          company_name: client.company_name,
+          client_name: client.company_name,
+          client_email: client.email,
+          category: categoryLabels[form.category] || form.category,
+          subject: form.subject,
+          message: form.message,
+          priority: form.priority,
+          support_link: `${PUBLISHED_URL}/s/${client.support_token}`,
+        };
+
         await supabase.functions.invoke("support-notification", {
-          body: {
-            ticket_id: ticket.id,
-            client_name: client.company_name,
-            client_email: client.email,
-            category: categoryLabels[form.category] || form.category,
-            subject: form.subject,
-            message: form.message,
-            ticket_number: ticket.ticket_number,
-          },
+          body: supportPayload,
         });
+
+        await triggerN8nWebhook("support.created", supportPayload);
       } catch {
         console.warn("Notification email failed");
       }

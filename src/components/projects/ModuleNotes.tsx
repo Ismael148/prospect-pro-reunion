@@ -123,6 +123,7 @@ function DiffView({ previous, current }: { previous: string; current: string }) 
 }
 
 export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembers }: Props) {
+  const navigate = useNavigate();
   const { user, hasRole } = useAuth();
   const { data: allNotes } = useModuleNotes(projectId);
   const addNote = useAddModuleNote();
@@ -138,10 +139,26 @@ export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembe
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterMode>("all");
   const [historyNoteId, setHistoryNoteId] = useState<string | null>(null);
+  const [historyVisible, setHistoryVisible] = useState(5);
+  const [exportOpen, setExportOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const isAdmin = hasRole("admin");
 
   const { data: history } = useModuleNoteHistory(historyNoteId);
+
+  // Member lookup map for mention click
+  const memberByName = useMemo(() => {
+    const map = new Map<string, TeamMember>();
+    teamMembers.forEach((m) => {
+      const name = (m.full_name || "").trim().toLowerCase();
+      if (name) map.set(name, m);
+    });
+    return map;
+  }, [teamMembers]);
+
+  const handleMentionClick = (member: TeamMember) => {
+    navigate(`/equipe?member=${member.user_id}`);
+  };
 
   const allModuleNotes = useMemo(() =>
     (allNotes || []).filter(n => n.module_id === moduleId),

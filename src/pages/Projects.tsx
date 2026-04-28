@@ -498,6 +498,8 @@ export default function Projects() {
           ))}
         </div>
       )}
+        </TabsContent>
+      </Tabs>
     </motion.div>
   );
 }

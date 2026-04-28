@@ -103,7 +103,7 @@ export default function Projects() {
           <h1 className="text-3xl font-bold tracking-tight">Projets</h1>
           <p className="text-muted-foreground mt-1">
             {projects?.length || 0} projet{(projects?.length || 0) > 1 ? "s" : ""}
-            {!isAdmin && " assigné(s)"}
+            {!isAdmin && !isAgentSupport && " assigné(s)"}
           </p>
         </div>
         {isAdmin && (

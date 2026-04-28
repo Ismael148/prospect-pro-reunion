@@ -419,7 +419,7 @@ export default function ProjectDetail() {
                 <span>Deadline : {new Date(project.due_date).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion" })}</span>
               </div>
             )}
-            {daysLeft !== null && (
+            {daysLeft !== null && !projectClosed && (
               <div className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
                 isOverdue 
                   ? "bg-destructive/10 text-destructive" 
@@ -434,6 +434,11 @@ export default function ProjectDetail() {
                 ) : (
                   <><Clock className="w-4 h-4" /> {daysLeft} jour{daysLeft > 1 ? "s" : ""} restant{daysLeft > 1 ? "s" : ""}</>
                 )}
+              </div>
+            )}
+            {projectClosed && (
+              <div className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium bg-success/10 text-success">
+                <Clock className="w-4 h-4" /> Projet {project.status === "termine" ? "terminé" : "annulé"}
               </div>
             )}
             {project.description && <p className="text-muted-foreground">{project.description}</p>}

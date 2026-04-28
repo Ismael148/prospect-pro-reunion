@@ -136,6 +136,7 @@ export type Database = {
           logo_published_gmb: boolean
           logo_published_gmb_at: string | null
           logo_reminder_last_sent: string | null
+          logo_tracking_enabled: boolean
           logo_validated_at: string | null
           logo_validated_by_client: boolean
           logo_validation_token: string | null
@@ -176,6 +177,7 @@ export type Database = {
           logo_published_gmb?: boolean
           logo_published_gmb_at?: string | null
           logo_reminder_last_sent?: string | null
+          logo_tracking_enabled?: boolean
           logo_validated_at?: string | null
           logo_validated_by_client?: boolean
           logo_validation_token?: string | null
@@ -216,6 +218,7 @@ export type Database = {
           logo_published_gmb?: boolean
           logo_published_gmb_at?: string | null
           logo_reminder_last_sent?: string | null
+          logo_tracking_enabled?: boolean
           logo_validated_at?: string | null
           logo_validated_by_client?: boolean
           logo_validation_token?: string | null

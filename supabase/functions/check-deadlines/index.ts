@@ -196,7 +196,7 @@ Deno.serve(async (req) => {
       .from("clients")
       .select("id, company_name, logo_created, logo_published_gmb, logo_validated_by_client, logo_reminder_last_sent, assigned_to")
       .eq("logo_validated_by_client", false)
-      .eq("pipeline_status", "contrat_signe");
+      .eq("logo_tracking_enabled", true);
 
     const dueLogoClients = (logoClients || []).filter((c: any) => {
       const last = c.logo_reminder_last_sent ? new Date(c.logo_reminder_last_sent) : null;

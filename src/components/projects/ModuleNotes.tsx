@@ -19,13 +19,18 @@ interface Props {
 }
 
 export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembers }: Props) {
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
   const { data: allNotes } = useModuleNotes(projectId);
   const addNote = useAddModuleNote();
+  const updateNote = useUpdateModuleNote();
+  const deleteNote = useDeleteModuleNote();
   const [content, setContent] = useState("");
   const [showMentions, setShowMentions] = useState(false);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const isAdmin = hasRole("admin");
 
   const notes = useMemo(() => 
     (allNotes || []).filter(n => n.module_id === moduleId),

@@ -18,6 +18,7 @@ import {
   CreditCard,
   Globe,
   Trash2,
+  Share2,
 } from "lucide-react";
 import logo from "@/assets/logo.webp";
 import {
@@ -36,12 +37,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useMemo } from "react";
 
 const ROLE_ACCESS: Record<string, string[]> = {
-  admin: ["/", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/comptabilite", "/facturation", "/renouvellements-ndd", "/support", "/campagnes", "/equipe", "/parametres", "/cartes-nfc", "/corbeille"],
-  agent_master: ["/", "/agent-master", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc"],
+  admin: ["/", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/comptabilite", "/facturation", "/renouvellements-ndd", "/support", "/campagnes", "/equipe", "/parametres", "/cartes-nfc", "/corbeille", "/acces-partenaire"],
+  agent_master: ["/", "/agent-master", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/acces-partenaire"],
   agent_telephonique: ["/", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc"],
   agent_support: ["/", "/clients", "/support", "/projets", "/cartes-nfc"],
   commercial_terrain: ["/", "/projets", "/commissions"],
-  webmaster: ["/", "/clients", "/projets", "/webmaster", "/support"],
+  webmaster: ["/", "/clients", "/projets", "/webmaster", "/support", "/acces-partenaire"],
   designer: ["/", "/projets", "/webmaster", "/support"],
 };
 
@@ -59,6 +60,7 @@ const allMenuItems = [
   { title: "Renouv. NDD", icon: Globe, path: "/renouvellements-ndd" },
   { title: "Support", icon: LifeBuoy, path: "/support" },
   { title: "Webmaster", icon: Monitor, path: "/webmaster" },
+  { title: "Accès Partenaire", icon: Share2, path: "/acces-partenaire" },
   { title: "Campagnes", icon: Mail, path: "/campagnes" },
 ];
 

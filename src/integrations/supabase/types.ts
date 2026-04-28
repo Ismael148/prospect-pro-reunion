@@ -794,6 +794,39 @@ export type Database = {
           },
         ]
       }
+      module_note_history: {
+        Row: {
+          action: string
+          edited_at: string
+          edited_by: string
+          id: string
+          module_id: string
+          note_id: string
+          previous_content: string
+          project_id: string
+        }
+        Insert: {
+          action?: string
+          edited_at?: string
+          edited_by: string
+          id?: string
+          module_id: string
+          note_id: string
+          previous_content: string
+          project_id: string
+        }
+        Update: {
+          action?: string
+          edited_at?: string
+          edited_by?: string
+          id?: string
+          module_id?: string
+          note_id?: string
+          previous_content?: string
+          project_id?: string
+        }
+        Relationships: []
+      }
       module_notes: {
         Row: {
           content: string

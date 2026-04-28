@@ -205,7 +205,7 @@ export default function ProjectModules({ packType, tasks, projectId, startDate, 
                       <Progress value={progress} className="flex-1 h-1.5 max-w-[200px]" />
                       <span className="text-xs text-muted-foreground">{done}/{total}</span>
                       
-                      {deadlineDate && (
+                      {deadlineDate && !projectDone && (
                         <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md ${
                           isOverdue
                             ? "bg-destructive/15 text-destructive border border-destructive/30"
@@ -224,6 +224,11 @@ export default function ProjectModules({ packType, tasks, projectId, startDate, 
                           ) : (
                             <><Clock className="w-3 h-3" /> {daysLeft}j restants</>
                           )}
+                        </span>
+                      )}
+                      {projectDone && allDone && (
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md bg-success/15 text-success border border-success/30">
+                          ✓ Livré
                         </span>
                       )}
 

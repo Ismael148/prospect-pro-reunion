@@ -21,11 +21,46 @@ import {
 } from "@/hooks/use-social";
 import { useMetaOAuth } from "@/hooks/use-meta-oauth";
 
+function PlatformLogo({ platform, className = "w-4 h-4" }: { platform: SocialPlatform; className?: string }) {
+  if (platform === "facebook") {
+    return (
+      <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+        <path fill="#1877F2" d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.414c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.971H15.83c-1.49 0-1.955.93-1.955 1.884v2.265h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073Z" />
+      </svg>
+    );
+  }
+  if (platform === "instagram") {
+    return (
+      <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+        <defs>
+          <linearGradient id="instagram-gradient" x1="3" y1="21" x2="21" y2="3" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#FEDA75" />
+            <stop offset="0.32" stopColor="#FA7E1E" />
+            <stop offset="0.58" stopColor="#D62976" />
+            <stop offset="0.82" stopColor="#962FBF" />
+            <stop offset="1" stopColor="#4F5BD5" />
+          </linearGradient>
+        </defs>
+        <rect width="24" height="24" rx="6" fill="url(#instagram-gradient)" />
+        <path fill="#fff" d="M12 7.2A4.8 4.8 0 1 0 12 16.8 4.8 4.8 0 0 0 12 7.2Zm0 7.92A3.12 3.12 0 1 1 12 8.88a3.12 3.12 0 0 1 0 6.24Zm6.12-8.1a1.14 1.14 0 1 1-2.28 0 1.14 1.14 0 0 1 2.28 0Z" />
+        <path fill="#fff" d="M12 2.4c2.607 0 2.934.012 3.96.06 1.02.048 1.716.21 2.328.45a4.7 4.7 0 0 1 1.704 1.098A4.7 4.7 0 0 1 21.09 5.712c.24.612.402 1.308.45 2.328.048 1.026.06 1.353.06 3.96s-.012 2.934-.06 3.96c-.048 1.02-.21 1.716-.45 2.328a4.7 4.7 0 0 1-1.098 1.704 4.7 4.7 0 0 1-1.704 1.098c-.612.24-1.308.402-2.328.45-1.026.048-1.353.06-3.96.06s-2.934-.012-3.96-.06c-1.02-.048-1.716-.21-2.328-.45a4.7 4.7 0 0 1-1.704-1.098 4.7 4.7 0 0 1-1.098-1.704c-.24-.612-.402-1.308-.45-2.328C2.412 14.934 2.4 14.607 2.4 12s.012-2.934.06-3.96c.048-1.02.21-1.716.45-2.328a4.7 4.7 0 0 1 1.098-1.704A4.7 4.7 0 0 1 5.712 2.91c.612-.24 1.308-.402 2.328-.45C9.066 2.412 9.393 2.4 12 2.4Zm0 1.728c-2.562 0-2.865.012-3.882.06-.942.042-1.452.198-1.794.33-.45.174-.774.384-1.11.72-.336.336-.546.66-.72 1.11-.132.342-.288.852-.33 1.794-.048 1.017-.06 1.32-.06 3.882s.012 2.865.06 3.882c.042.942.198 1.452.33 1.794.174.45.384.774.72 1.11.336.336.66.546 1.11.72.342.132.852.288 1.794.33 1.017.048 1.32.06 3.882.06s2.865-.012 3.882-.06c.942-.042 1.452-.198 1.794-.33.45-.174.774-.384 1.11-.72.336-.336.546-.66.72-1.11.132-.342.288-.852.33-1.794.048-1.017.06-1.32.06-3.882s-.012-2.865-.06-3.882c-.042-.942-.198-1.452-.33-1.794-.174-.45-.384-.774-.72-1.11-.336-.336-.66-.546-1.11-.72-.342-.132-.852-.288-1.794-.33-1.017-.048-1.32-.06-3.882-.06Z" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+      <path fill="#4285F4" d="M23.52 12.27c0-.82-.07-1.42-.22-2.05H12v3.88h6.64c-.13.96-.86 2.4-2.48 3.37l-.02.13 3.6 2.4.25.02c2.28-1.82 3.53-4.5 3.53-7.75Z" />
+      <path fill="#34A853" d="M12 23c3.27 0 6.01-.93 8.01-2.53l-3.82-3c-1.02.62-2.39 1.05-4.19 1.05-3.2 0-5.92-1.82-6.89-4.34l-.14.01-3.74 2.5-.05.12C3.16 20.49 7.24 23 12 23Z" />
+      <path fill="#FBBC05" d="M5.11 14.18A5.8 5.8 0 0 1 4.78 12c0-.75.12-1.48.32-2.18l-.01-.15-3.79-2.54-.12.05A10.3 10.3 0 0 0 0 12c0 1.74.43 3.39 1.18 4.82l3.93-2.64Z" />
+      <path fill="#EA4335" d="M12 5.48c2.28 0 3.82.85 4.7 1.56l3.43-2.88C18.02 2.47 15.27 1 12 1 7.24 1 3.16 3.51 1.18 7.18l3.92 2.64C6.08 7.3 8.8 5.48 12 5.48Z" />
+    </svg>
+  );
+}
+
 // Platform config
-const PLATFORM_CONFIG: Record<SocialPlatform, { label: string; icon: string; color: string; bg: string; placeholder: string; publishUrl: string }> = {
+const PLATFORM_CONFIG: Record<SocialPlatform, { label: string; color: string; bg: string; placeholder: string; publishUrl: string }> = {
   facebook: {
     label: "Facebook",
-    icon: "𝐟",
     color: "text-[#1877F2]",
     bg: "bg-[#1877F2]/10",
     placeholder: "https://facebook.com/votre-page",
@@ -33,7 +68,6 @@ const PLATFORM_CONFIG: Record<SocialPlatform, { label: string; icon: string; col
   },
   instagram: {
     label: "Instagram",
-    icon: "📸",
     color: "text-[#E4405F]",
     bg: "bg-[#E4405F]/10",
     placeholder: "https://instagram.com/votre-compte",
@@ -41,7 +75,6 @@ const PLATFORM_CONFIG: Record<SocialPlatform, { label: string; icon: string; col
   },
   google_my_business: {
     label: "Google My Business",
-    icon: "🔍",
     color: "text-[#4285F4]",
     bg: "bg-[#34A853]/10",
     placeholder: "https://business.google.com/...",

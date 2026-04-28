@@ -140,7 +140,7 @@ export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembe
   const [filter, setFilter] = useState<FilterMode>("all");
   const [historyNoteId, setHistoryNoteId] = useState<string | null>(null);
   const [historyVisible, setHistoryVisible] = useState(5);
-  const [exportOpen, setExportOpen] = useState(false);
+  const [historyVisible, setHistoryVisible] = useState(5);
   const scrollRef = useRef<HTMLDivElement>(null);
   const isAdmin = hasRole("admin");
 

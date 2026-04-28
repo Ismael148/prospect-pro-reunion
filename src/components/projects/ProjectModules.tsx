@@ -34,13 +34,14 @@ interface Props {
   isAdmin?: boolean;
   teamMembers?: TeamMember[];
   moduleLinks?: Record<string, string>;
+  projectStatus?: string | null;
   onTaskStatusChange: (taskId: string, status: TaskStatus) => Promise<void>;
   onAddTask?: (task: TablesInsert<"project_tasks">) => Promise<void>;
   onAssignModule?: (moduleId: string, userId: string | null) => Promise<void>;
   onModuleLinkUpdate?: (moduleId: string, linkUrl: string) => Promise<void>;
 }
 
-export default function ProjectModules({ packType, tasks, projectId, startDate, isAdmin, teamMembers = [], moduleLinks = {}, onTaskStatusChange, onAddTask, onAssignModule, onModuleLinkUpdate }: Props) {
+export default function ProjectModules({ packType, tasks, projectId, startDate, isAdmin, teamMembers = [], moduleLinks = {}, projectStatus, onTaskStatusChange, onAddTask, onAssignModule, onModuleLinkUpdate }: Props) {
   const [checkingAll, setCheckingAll] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [addDialogOpen, setAddDialogOpen] = useState<string | null>(null);

@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Palette, MapPin, CheckCircle2, Clock, Upload, Link2, ExternalLink, Copy, Trash2, Loader2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Palette, MapPin, CheckCircle2, Clock, Upload, Link2, ExternalLink, Copy, Trash2, Loader2, PowerOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -15,6 +16,7 @@ interface Props {
   client: {
     id: string;
     company_name: string;
+    logo_tracking_enabled?: boolean | null;
     logo_created?: boolean | null;
     logo_created_at?: string | null;
     logo_published_gmb?: boolean | null;
@@ -119,8 +121,45 @@ export default function LogoTrackingCard({ client }: Props) {
     toast.success("Lien de validation copié");
   };
 
+  const enabled = !!client.logo_tracking_enabled;
   const validated = !!client.logo_validated_by_client;
   const isImage = client.logo_file_url && /\.(png|jpe?g|webp|gif|svg)$/i.test(client.logo_file_url);
+
+  const toggleTracking = async (value: boolean) => {
+    setSaving("toggle");
+    try {
+      await update({ logo_tracking_enabled: value });
+      toast.success(value ? "Suivi logo activé" : "Suivi logo désactivé (étapes réinitialisées)");
+    } catch (e: any) {
+      toast.error(e.message || "Erreur");
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  // Card "off" state — just the toggle
+  if (!enabled) {
+    return (
+      <Card className="border-0 shadow-md shadow-primary/5 border-dashed">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                <PowerOff className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="font-medium text-sm">Création de logo</p>
+                <p className="text-xs text-muted-foreground">
+                  Activer pour ce client uniquement si une création de logo est prévue.
+                </p>
+              </div>
+            </div>
+            <Switch checked={false} disabled={saving === "toggle"} onCheckedChange={toggleTracking} />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const steps = [
     { key: "logo_created" as const, label: "Logo créé", checked: !!client.logo_created, date: client.logo_created_at, icon: Palette },
@@ -134,11 +173,14 @@ export default function LogoTrackingCard({ client }: Props) {
         <CardTitle className="text-lg flex items-center gap-2">
           <Palette className="w-5 h-5" /> Création de logo
         </CardTitle>
-        {validated ? (
-          <Badge className="bg-success/15 text-success border-success/30">Validé client</Badge>
-        ) : (
-          <Badge variant="outline" className="gap-1"><Clock className="w-3 h-3" /> En attente</Badge>
-        )}
+        <div className="flex items-center gap-2">
+          {validated ? (
+            <Badge className="bg-success/15 text-success border-success/30">Validé client</Badge>
+          ) : (
+            <Badge variant="outline" className="gap-1"><Clock className="w-3 h-3" /> En attente</Badge>
+          )}
+          <Switch checked={true} disabled={saving === "toggle"} onCheckedChange={toggleTracking} />
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Steps */}

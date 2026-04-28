@@ -27,7 +27,7 @@ export function useLogoClients() {
       const { data, error } = await supabase
         .from("clients")
         .select("id, company_name, ndi, assigned_to, logo_created, logo_created_at, logo_published_gmb, logo_published_gmb_at, logo_validated_by_client, logo_validated_at, logo_reminder_last_sent, logo_file_url, logo_drive_url, logo_validation_token, pipeline_status")
-        .eq("pipeline_status", "contrat_signe")
+        .eq("logo_tracking_enabled", true)
         .order("logo_reminder_last_sent", { ascending: true, nullsFirst: true });
       if (error) throw error;
       return (data || []) as unknown as LogoClient[];

@@ -213,6 +213,14 @@ export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembe
     return allModuleNotes;
   }, [allModuleNotes, filter, user?.id, adminIds]);
 
+  const noteIds = useMemo(() => notes.map((n) => n.id), [notes]);
+  const { data: seenMap } = useSeenMarks("module_note", noteIds);
+  const profilesForSeen = useMemo(() => {
+    const out: Record<string, { full_name: string }> = {};
+    Object.entries(profiles).forEach(([uid, name]) => { out[uid] = { full_name: name }; });
+    return out;
+  }, [profiles]);
+
   // Filtered + sorted history (already DESC from backend)
   const filteredHistory = useMemo(() => {
     if (!history) return [];
@@ -628,6 +636,18 @@ export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembe
                 ) : (
                   <div className="text-xs leading-relaxed space-y-0.5">
                     <RichContent text={note.content} adminIds={adminIds} memberByName={memberByName} onMentionClick={handleMentionClick} />
+                  </div>
+                )}
+                {!isEditing && (
+                  <div className="mt-1.5 pt-1.5 border-t border-border/30">
+                    <SeenByButton
+                      itemType="module_note"
+                      itemId={note.id}
+                      marks={seenMap?.[note.id] ?? []}
+                      authorId={note.user_id}
+                      profiles={profilesForSeen}
+                      compact
+                    />
                   </div>
                 )}
               </div>

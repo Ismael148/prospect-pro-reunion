@@ -37,7 +37,7 @@ export default function LogoTrackingCard({ client }: Props) {
         if (!client.logo_created) updates.logo_created = true;
         if (!client.logo_published_gmb) updates.logo_published_gmb = true;
       }
-      const { error } = await supabase.from("clients").update(updates).eq("id", client.id);
+      const { error } = await (supabase.from("clients") as any).update(updates).eq("id", client.id);
       if (error) throw error;
       qc.invalidateQueries({ queryKey: ["client", client.id] });
       toast.success("Suivi logo mis à jour");

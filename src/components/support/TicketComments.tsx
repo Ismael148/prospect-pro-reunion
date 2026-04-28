@@ -10,6 +10,8 @@ import { Send, MessageCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
+import { useSeenMarks } from "@/hooks/use-seen-marks";
+import { SeenByButton } from "@/components/SeenByButton";
 
 interface TicketCommentsProps {
   ticketId: string;

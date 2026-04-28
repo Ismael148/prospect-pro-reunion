@@ -295,20 +295,126 @@ export default function Projects() {
         )}
       </div>
 
-      <div className="flex gap-3">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input className="pl-10" placeholder="Rechercher..." value={search} onChange={(e) => setSearch(e.target.value)} />
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-3 items-center">
+          <div className="relative flex-1 min-w-[220px] max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input className="pl-10" placeholder="Rechercher nom, client, description..." value={search} onChange={(e) => setSearch(e.target.value)} />
+          </div>
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Statut" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les statuts</SelectItem>
+              {Object.entries(PROJECT_STATUS_LABELS).map(([k, v]) => (
+                <SelectItem key={k} value={k}>{v}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Trier" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="recent">Plus récents</SelectItem>
+              <SelectItem value="oldest">Plus anciens</SelectItem>
+              <SelectItem value="deadline_asc">Échéance proche</SelectItem>
+              <SelectItem value="progress_desc">Progression ↓</SelectItem>
+              <SelectItem value="progress_asc">Progression ↑</SelectItem>
+              <SelectItem value="name">Nom (A-Z)</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            variant={advancedOpen ? "default" : "outline"}
+            onClick={() => setAdvancedOpen(!advancedOpen)}
+            className="gap-2"
+          >
+            <SlidersHorizontal className="w-4 h-4" />
+            Filtres avancés
+            {activeFiltersCount > 0 && (
+              <Badge variant="secondary" className="ml-1 h-5 min-w-5 px-1.5">{activeFiltersCount}</Badge>
+            )}
+          </Button>
+          {activeFiltersCount > 0 && (
+            <Button variant="ghost" size="sm" onClick={resetFilters} className="gap-1 text-muted-foreground">
+              <X className="w-3.5 h-3.5" /> Réinitialiser
+            </Button>
+          )}
         </div>
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tous les statuts</SelectItem>
-            {Object.entries(PROJECT_STATUS_LABELS).map(([k, v]) => (
-              <SelectItem key={k} value={k}>{v}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+
+        {advancedOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="rounded-lg border border-border/50 bg-muted/30 p-4"
+          >
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs flex items-center gap-1"><Filter className="w-3 h-3" />Type de client</Label>
+                <Select value={filterClientType} onValueChange={setFilterClientType}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous</SelectItem>
+                    <SelectItem value="nouveau">✨ Nouveaux clients (en attente)</SelectItem>
+                    <SelectItem value="en_cours">🚀 Clients en cours</SelectItem>
+                    <SelectItem value="termine">✅ Clients terminés</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs flex items-center gap-1"><Filter className="w-3 h-3" />Pack</Label>
+                <Select value={filterPack} onValueChange={setFilterPack}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les packs</SelectItem>
+                    <SelectItem value="star_bizness_numerik">STAR BIZNESS NUMERIK</SelectItem>
+                    <SelectItem value="star_bizness_nfc">STAR BIZNESS NFC</SelectItem>
+                    <SelectItem value="autre">Autre</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs flex items-center gap-1"><Calendar className="w-3 h-3" />Échéance</Label>
+                <Select value={filterDeadline} onValueChange={setFilterDeadline}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Toutes</SelectItem>
+                    <SelectItem value="overdue">⚠️ En retard</SelectItem>
+                    <SelectItem value="week">Cette semaine</SelectItem>
+                    <SelectItem value="month">Ce mois-ci</SelectItem>
+                    <SelectItem value="none">Sans échéance</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs flex items-center gap-1"><Filter className="w-3 h-3" />Progression</Label>
+                <Select value={filterProgress} onValueChange={setFilterProgress}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Toutes</SelectItem>
+                    <SelectItem value="not_started">Non démarré (0%)</SelectItem>
+                    <SelectItem value="in_progress">En cours (1-99%)</SelectItem>
+                    <SelectItem value="almost_done">Presque fini (≥75%)</SelectItem>
+                    <SelectItem value="done">Terminé (100%)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs flex items-center gap-1"><Filter className="w-3 h-3" />Assignation</Label>
+                <Select value={filterAssigned} onValueChange={setFilterAssigned}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous</SelectItem>
+                    <SelectItem value="me">👤 Assignés à moi</SelectItem>
+                    <SelectItem value="unassigned">Non assignés</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        <p className="text-xs text-muted-foreground">
+          {filtered?.length || 0} résultat{(filtered?.length || 0) > 1 ? "s" : ""} affiché{(filtered?.length || 0) > 1 ? "s" : ""}
+        </p>
       </div>
 
       {isLoading ? (

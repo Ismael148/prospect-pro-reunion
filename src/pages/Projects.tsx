@@ -428,7 +428,6 @@ export default function Projects() {
         <p className="text-xs text-muted-foreground">
           {filtered?.length || 0} résultat{(filtered?.length || 0) > 1 ? "s" : ""} affiché{(filtered?.length || 0) > 1 ? "s" : ""}
         </p>
-      </div>
 
       {isLoading ? (
         <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>

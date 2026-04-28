@@ -252,7 +252,77 @@ export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembe
   const isUpdating = updateNote.isPending;
   const isDeleting = deleteNote.isPending;
 
-  return (
+  const exportHistoryCSV = () => {
+    if (!history || history.length === 0) {
+      toast.error("Aucun historique à exporter");
+      return;
+    }
+    const escape = (v: string) => `"${(v || "").replace(/"/g, '""')}"`;
+    const rows = [
+      ["Date", "Auteur", "Action", "Contenu précédent"].map(escape).join(","),
+      ...history.map((h) => [
+        format(new Date(h.edited_at), "dd/MM/yyyy HH:mm", { locale: fr }),
+        profiles[h.edited_by] || "Utilisateur",
+        h.action === "delete" ? "Supprimée" : "Modifiée",
+        h.previous_content || "",
+      ].map(escape).join(",")),
+    ];
+    const blob = new Blob(["\uFEFF" + rows.join("\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `historique-notes-${moduleName.replace(/\s+/g, "-")}-${format(new Date(), "yyyyMMdd-HHmm")}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Export CSV téléchargé");
+  };
+
+  const exportHistoryPDF = () => {
+    if (!history || history.length === 0) {
+      toast.error("Aucun historique à exporter");
+      return;
+    }
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let y = 18;
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Historique des notes — ${moduleName}`, 14, y);
+    y += 6;
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(120);
+    doc.text(`Généré le ${format(new Date(), "dd/MM/yyyy HH:mm", { locale: fr })}`, 14, y);
+    y += 8;
+    doc.setTextColor(0);
+
+    history.forEach((h, idx) => {
+      if (y > 270) { doc.addPage(); y = 18; }
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text(
+        `${idx + 1}. ${profiles[h.edited_by] || "Utilisateur"} — ${h.action === "delete" ? "Supprimée" : "Modifiée"}`,
+        14, y
+      );
+      y += 5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(120);
+      doc.text(format(new Date(h.edited_at), "dd/MM/yyyy HH:mm", { locale: fr }), 14, y);
+      y += 5;
+      doc.setTextColor(0);
+      doc.setFontSize(9);
+      const lines = doc.splitTextToSize(h.previous_content || "(vide)", pageWidth - 28);
+      lines.forEach((line: string) => {
+        if (y > 280) { doc.addPage(); y = 18; }
+        doc.text(line, 18, y);
+        y += 4;
+      });
+      y += 4;
+    });
+    doc.save(`historique-notes-${moduleName.replace(/\s+/g, "-")}-${format(new Date(), "yyyyMMdd-HHmm")}.pdf`);
+    toast.success("Export PDF téléchargé");
+  };
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs relative">

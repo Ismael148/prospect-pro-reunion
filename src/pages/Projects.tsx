@@ -44,6 +44,13 @@ export default function Projects() {
   const [clientPopoverOpen, setClientPopoverOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterPack, setFilterPack] = useState<string>("all");
+  const [filterDeadline, setFilterDeadline] = useState<string>("all");
+  const [filterProgress, setFilterProgress] = useState<string>("all");
+  const [filterClientType, setFilterClientType] = useState<string>("all");
+  const [filterAssigned, setFilterAssigned] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("recent");
+  const [advancedOpen, setAdvancedOpen] = useState(false);
 
   const [form, setForm] = useState({
     client_id: "",

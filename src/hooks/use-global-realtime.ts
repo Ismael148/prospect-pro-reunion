@@ -105,6 +105,12 @@ const TABLES: Record<string, TableConfig> = {
   social_publications: {
     lists: [["social-publications"], ["social"]],
   },
+  partner_access: {
+    lists: [["partner-access"]],
+  },
+  partner_notifications: {
+    lists: [["partner-notifications"]],
+  },
   invoices: {
     lists: [["invoices"]],
     byId: (id) => [["invoice", id]],

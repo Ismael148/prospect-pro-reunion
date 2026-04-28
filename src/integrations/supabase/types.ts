@@ -129,6 +129,13 @@ export type Database = {
           email: string | null
           has_gmb: boolean | null
           id: string
+          logo_created: boolean
+          logo_created_at: string | null
+          logo_published_gmb: boolean
+          logo_published_gmb_at: string | null
+          logo_reminder_last_sent: string | null
+          logo_validated_at: string | null
+          logo_validated_by_client: boolean
           manager_name: string | null
           ndi: string | null
           nfc_quantity: number
@@ -159,6 +166,13 @@ export type Database = {
           email?: string | null
           has_gmb?: boolean | null
           id?: string
+          logo_created?: boolean
+          logo_created_at?: string | null
+          logo_published_gmb?: boolean
+          logo_published_gmb_at?: string | null
+          logo_reminder_last_sent?: string | null
+          logo_validated_at?: string | null
+          logo_validated_by_client?: boolean
           manager_name?: string | null
           ndi?: string | null
           nfc_quantity?: number
@@ -189,6 +203,13 @@ export type Database = {
           email?: string | null
           has_gmb?: boolean | null
           id?: string
+          logo_created?: boolean
+          logo_created_at?: string | null
+          logo_published_gmb?: boolean
+          logo_published_gmb_at?: string | null
+          logo_reminder_last_sent?: string | null
+          logo_validated_at?: string | null
+          logo_validated_by_client?: boolean
           manager_name?: string | null
           ndi?: string | null
           nfc_quantity?: number

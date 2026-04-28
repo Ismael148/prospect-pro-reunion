@@ -131,11 +131,14 @@ export type Database = {
           id: string
           logo_created: boolean
           logo_created_at: string | null
+          logo_drive_url: string | null
+          logo_file_url: string | null
           logo_published_gmb: boolean
           logo_published_gmb_at: string | null
           logo_reminder_last_sent: string | null
           logo_validated_at: string | null
           logo_validated_by_client: boolean
+          logo_validation_token: string | null
           manager_name: string | null
           ndi: string | null
           nfc_quantity: number
@@ -168,11 +171,14 @@ export type Database = {
           id?: string
           logo_created?: boolean
           logo_created_at?: string | null
+          logo_drive_url?: string | null
+          logo_file_url?: string | null
           logo_published_gmb?: boolean
           logo_published_gmb_at?: string | null
           logo_reminder_last_sent?: string | null
           logo_validated_at?: string | null
           logo_validated_by_client?: boolean
+          logo_validation_token?: string | null
           manager_name?: string | null
           ndi?: string | null
           nfc_quantity?: number
@@ -205,11 +211,14 @@ export type Database = {
           id?: string
           logo_created?: boolean
           logo_created_at?: string | null
+          logo_drive_url?: string | null
+          logo_file_url?: string | null
           logo_published_gmb?: boolean
           logo_published_gmb_at?: string | null
           logo_reminder_last_sent?: string | null
           logo_validated_at?: string | null
           logo_validated_by_client?: boolean
+          logo_validation_token?: string | null
           manager_name?: string | null
           ndi?: string | null
           nfc_quantity?: number
@@ -814,6 +823,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      logo_reminder_log: {
+        Row: {
+          client_id: string
+          id: string
+          message: string | null
+          recipients: Json
+          recipients_count: number
+          sent_at: string
+          step: string
+          trigger_type: string
+          triggered_by: string | null
+        }
+        Insert: {
+          client_id: string
+          id?: string
+          message?: string | null
+          recipients?: Json
+          recipients_count?: number
+          sent_at?: string
+          step: string
+          trigger_type?: string
+          triggered_by?: string | null
+        }
+        Update: {
+          client_id?: string
+          id?: string
+          message?: string | null
+          recipients?: Json
+          recipients_count?: number
+          sent_at?: string
+          step?: string
+          trigger_type?: string
+          triggered_by?: string | null
+        }
+        Relationships: []
       }
       module_note_export_log: {
         Row: {

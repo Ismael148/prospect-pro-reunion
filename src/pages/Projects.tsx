@@ -15,6 +15,8 @@ import { Progress } from "@/components/ui/progress";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import LogoDashboard from "@/components/projects/LogoDashboard";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -295,8 +297,19 @@ export default function Projects() {
         )}
       </div>
 
-      <div className="space-y-3">
-        <div className="flex flex-wrap gap-3 items-center">
+      
+      <Tabs defaultValue="projects" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="projects">📁 Projets</TabsTrigger>
+          <TabsTrigger value="logos">🎨 Suivi logos</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="logos">
+          <LogoDashboard />
+        </TabsContent>
+
+        <TabsContent value="projects" className="space-y-3">
+          <div className="flex flex-wrap gap-3 items-center">
           <div className="relative flex-1 min-w-[220px] max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input className="pl-10" placeholder="Rechercher nom, client, description..." value={search} onChange={(e) => setSearch(e.target.value)} />
@@ -415,7 +428,6 @@ export default function Projects() {
         <p className="text-xs text-muted-foreground">
           {filtered?.length || 0} résultat{(filtered?.length || 0) > 1 ? "s" : ""} affiché{(filtered?.length || 0) > 1 ? "s" : ""}
         </p>
-      </div>
 
       {isLoading ? (
         <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
@@ -485,6 +497,8 @@ export default function Projects() {
           ))}
         </div>
       )}
+        </TabsContent>
+      </Tabs>
     </motion.div>
   );
 }

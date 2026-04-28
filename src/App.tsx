@@ -32,6 +32,7 @@ import NfcClients from "./pages/NfcClients";
 import DeletedClients from "./pages/DeletedClients";
 import DomainRenewals from "./pages/DomainRenewals";
 import Privacy from "./pages/Privacy";
+import LogoValidation from "./pages/LogoValidation";
 import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 
@@ -139,6 +140,7 @@ const App = () => (
             {/* Legacy long URLs (backward compat) */}
             <Route path="/support/:token" element={<SupportForm />} />
             <Route path="/formulaire/:token/:type" element={<ClientForm />} />
+            <Route path="/valider-logo/:clientId" element={<LogoValidation />} />
             <Route path="/meta-callback" element={
               <ProtectedRoute><MetaCallback /></ProtectedRoute>
             } />

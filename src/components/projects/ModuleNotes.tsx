@@ -391,7 +391,7 @@ export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembe
                   </div>
                 ) : (
                   <div className="text-xs leading-relaxed space-y-0.5">
-                    <RichContent text={note.content} adminIds={adminIds} />
+                    <RichContent text={note.content} adminIds={adminIds} memberByName={memberByName} onMentionClick={handleMentionClick} />
                   </div>
                 )}
               </div>

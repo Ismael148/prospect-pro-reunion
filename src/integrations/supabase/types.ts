@@ -794,6 +794,54 @@ export type Database = {
           },
         ]
       }
+      module_note_export_log: {
+        Row: {
+          created_at: string
+          exported_by: string
+          file_data: string
+          file_name: string
+          format: string
+          id: string
+          mime_type: string
+          module_id: string
+          module_name: string | null
+          note_id: string | null
+          project_id: string
+          rows_count: number
+          scope: string
+        }
+        Insert: {
+          created_at?: string
+          exported_by: string
+          file_data: string
+          file_name: string
+          format: string
+          id?: string
+          mime_type: string
+          module_id: string
+          module_name?: string | null
+          note_id?: string | null
+          project_id: string
+          rows_count?: number
+          scope?: string
+        }
+        Update: {
+          created_at?: string
+          exported_by?: string
+          file_data?: string
+          file_name?: string
+          format?: string
+          id?: string
+          mime_type?: string
+          module_id?: string
+          module_name?: string | null
+          note_id?: string | null
+          project_id?: string
+          rows_count?: number
+          scope?: string
+        }
+        Relationships: []
+      }
       module_note_history: {
         Row: {
           action: string

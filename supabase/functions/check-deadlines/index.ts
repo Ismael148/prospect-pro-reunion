@@ -218,6 +218,7 @@ Deno.serve(async (req) => {
           : c.logo_created
             ? "à publier sur la fiche Google"
             : "à créer";
+        const stepKey = c.logo_published_gmb ? "validation" : c.logo_created ? "publication" : "creation";
         const title = "🎨 Logo en attente";
         const msg = `Logo de "${c.company_name}" toujours ${step}. Relance automatique (J+2).`;
         const link = `/clients/${c.id}`;
@@ -230,6 +231,16 @@ Deno.serve(async (req) => {
         for (const uid of recipients) {
           notifications.push({ user_id: uid, title, message: msg, type: "logo_reminder", link });
         }
+
+        // Log reminder
+        await supabase.from("logo_reminder_log").insert({
+          client_id: c.id,
+          trigger_type: "auto",
+          step: stepKey,
+          message: msg,
+          recipients: Array.from(recipients),
+          recipients_count: recipients.size,
+        });
 
         await supabase
           .from("clients")

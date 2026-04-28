@@ -34,6 +34,7 @@ import DomainRenewals from "./pages/DomainRenewals";
 import Privacy from "./pages/Privacy";
 import LogoValidation from "./pages/LogoValidation";
 import Terms from "./pages/Terms";
+import DebugRealtime from "./pages/DebugRealtime";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -130,6 +131,10 @@ const App = () => (
             <Route
               path="/renouvellements-ndd"
               element={<ProtectedRoute><AppLayout><DomainRenewals /></AppLayout></ProtectedRoute>}
+            />
+            <Route
+              path="/debug-realtime"
+              element={<ProtectedRoute><AppLayout><DebugRealtime /></AppLayout></ProtectedRoute>}
             />
             {/* Public routes */}
             <Route path="/privacy" element={<Privacy />} />

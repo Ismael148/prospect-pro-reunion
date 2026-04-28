@@ -3,6 +3,7 @@ import { AppSidebar } from "./AppSidebar";
 import { NotificationBell } from "@/components/NotificationBell";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useGlobalRealtime } from "@/hooks/use-global-realtime";
+import { RealtimeBadge } from "@/components/RealtimeBadge";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   useGlobalRealtime();
@@ -13,7 +14,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <main className="flex-1 flex flex-col min-w-0">
           <header className="h-14 border-b border-border flex items-center px-5 gap-2 bg-background sticky top-0 z-30">
             <SidebarTrigger />
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-3">
+              <RealtimeBadge className="hidden md:inline-flex" />
               <NotificationBell />
             </div>
           </header>

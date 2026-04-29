@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -6,9 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
-  CreditCard, Copy, Send, ExternalLink, Eye, EyeOff, ShieldCheck, Link2, Loader2,
+  CreditCard, Copy, Send, ExternalLink, Eye, EyeOff, ShieldCheck, Link2, Loader2, Mail,
 } from "lucide-react";
 import { PUBLISHED_URL } from "@/lib/constants";
 import { PAYMENT_PROVIDERS, type PaymentProviderKey } from "@/lib/payment-providers";
@@ -107,37 +110,128 @@ export default function PaymentTutoSection({ clientId, clientNdi, clientEmail, c
     }
   };
 
-  const sendEmail = async () => {
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewLink, setPreviewLink] = useState<string>("");
+
+  const greeting = clientCompany || clientEmail || "vous";
+  const subject = clientCompany
+    ? `💳 ${clientCompany} — Configurez vos moyens de paiement en ligne`
+    : `💳 Configurez vos moyens de paiement en ligne`;
+
+  const buildEmailHtml = (link: string) => `
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${subject}</title></head>
+<body style="margin:0;padding:0;background:#f5f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Arial,sans-serif;color:#18181b;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f7;padding:32px 12px;">
+    <tr><td align="center">
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 8px 32px -12px rgba(0,0,0,0.12);">
+        <!-- Hero -->
+        <tr><td style="background:linear-gradient(135deg,#ff006e 0%,#ff5c8a 100%);padding:36px 32px;text-align:center;">
+          <div style="font-size:44px;line-height:1;margin-bottom:8px;">💳</div>
+          <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;letter-spacing:-0.3px;">Activez vos paiements en ligne</h1>
+          <p style="margin:10px 0 0;color:rgba(255,255,255,0.92);font-size:14px;">Tutoriel sécurisé — Stripe · PayPal · Alma · Mollie · +3</p>
+        </td></tr>
+
+        <!-- Body -->
+        <tr><td style="padding:36px 36px 8px;">
+          <p style="margin:0 0 18px;font-size:16px;line-height:1.6;">Bonjour <strong>${greeting}</strong>,</p>
+          <p style="margin:0 0 16px;font-size:15px;line-height:1.65;color:#3f3f46;">
+            Pour <strong style="color:#18181b">encaisser vos paiements en ligne</strong> directement sur votre site Adamkom,
+            nous avons besoin de vos clés API auprès de votre solution de paiement préférée.
+          </p>
+          <p style="margin:0 0 24px;font-size:15px;line-height:1.65;color:#3f3f46;">
+            Suivez notre <strong>tutoriel pas-à-pas</strong> : on vous guide pour
+            <strong>créer votre compte</strong>, faire <strong>les tests</strong>, puis basculer en <strong>production</strong>.
+          </p>
+        </td></tr>
+
+        <!-- CTA -->
+        <tr><td align="center" style="padding:8px 36px 28px;">
+          <table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="border-radius:12px;background:linear-gradient(135deg,#ff006e,#ff5c8a);">
+            <a href="${link}" style="display:inline-block;padding:16px 34px;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;border-radius:12px;letter-spacing:0.2px;">
+              ▶  Démarrer le tutoriel
+            </a>
+          </td></tr></table>
+          <p style="margin:14px 0 0;font-size:12px;color:#71717a;">Lien personnel valable 30 jours</p>
+        </td></tr>
+
+        <!-- Features -->
+        <tr><td style="padding:0 36px 8px;">
+          <div style="background:#fafafa;border:1px solid #ececef;border-radius:14px;padding:20px 22px;">
+            <p style="margin:0 0 12px;font-size:11px;font-weight:700;color:#ff006e;text-transform:uppercase;letter-spacing:0.8px;">✓ Ce que vous allez configurer</p>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;color:#27272a;">
+              <tr><td style="padding:6px 0;line-height:1.5;"><strong style="color:#ff006e">▸</strong>&nbsp; Stripe — cartes bancaires & Apple/Google Pay</td></tr>
+              <tr><td style="padding:6px 0;line-height:1.5;"><strong style="color:#ff006e">▸</strong>&nbsp; PayPal Pro — paiements internationaux</td></tr>
+              <tr><td style="padding:6px 0;line-height:1.5;"><strong style="color:#ff006e">▸</strong>&nbsp; Alma — paiement en 3x / 4x sans frais</td></tr>
+              <tr><td style="padding:6px 0;line-height:1.5;"><strong style="color:#ff006e">▸</strong>&nbsp; Mollie · Lyra/SystemPay · HelloAsso · Sumup</td></tr>
+            </table>
+          </div>
+        </td></tr>
+
+        <!-- Security -->
+        <tr><td style="padding:18px 36px 8px;">
+          <div style="background:#fff6fa;border:1px solid #ffd6e6;border-radius:12px;padding:14px 18px;display:flex;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+              <td style="font-size:22px;width:30px;vertical-align:top;">🔐</td>
+              <td style="font-size:13px;line-height:1.5;color:#52525b;">
+                <strong style="color:#18181b">100% sécurisé</strong> — vos clés sont chiffrées en base et accessibles uniquement par notre équipe technique. Vous gardez la propriété complète de vos comptes.
+              </td>
+            </tr></table>
+          </div>
+        </td></tr>
+
+        <!-- Help -->
+        <tr><td style="padding:24px 36px 8px;">
+          <p style="margin:0;font-size:14px;line-height:1.6;color:#3f3f46;">
+            <strong>Besoin d'aide ?</strong> Répondez simplement à cet email, notre équipe vous accompagne.
+          </p>
+        </td></tr>
+
+        <!-- Signature -->
+        <tr><td style="padding:24px 36px 36px;">
+          <p style="margin:0 0 4px;font-size:14px;color:#27272a;">Très cordialement,</p>
+          <p style="margin:0;font-size:15px;font-weight:700;color:#ff006e;">L'équipe Adamkom</p>
+        </td></tr>
+
+        <!-- Footer -->
+        <tr><td style="background:#fafafa;padding:18px 36px;border-top:1px solid #ececef;text-align:center;">
+          <p style="margin:0 0 6px;font-size:11px;color:#a1a1aa;">Si le bouton ne fonctionne pas, copiez ce lien :</p>
+          <p style="margin:0;font-size:11px;color:#ff006e;word-break:break-all;">
+            <a href="${link}" style="color:#ff006e;text-decoration:none;">${link}</a>
+          </p>
+          <p style="margin:14px 0 0;font-size:11px;color:#a1a1aa;">© Adamkom · Agence digitale · La Réunion</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
+
+  const previewHtml = useMemo(
+    () => buildEmailHtml(previewLink || `${PUBLISHED_URL}/tuto/paiements?token=APERCU`),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [previewLink, clientCompany, clientEmail]
+  );
+
+  const openPreview = async () => {
     if (!clientEmail) {
       toast.error("Aucun email client renseigné");
       return;
     }
-    setSending(true);
     try {
       const inv = activeInvite || (await ensureInvitation());
-      const link = `${PUBLISHED_URL}/tuto/paiements?token=${inv.token}`;
-      const greeting = clientCompany || "vous";
-      const subject = `Configurer vos moyens de paiement en ligne — ${clientCompany || ""}`.trim();
-      const htmlContent = `
-        <div style="font-family:Inter,Arial,sans-serif;max-width:620px;margin:0 auto;padding:24px;color:#18181b">
-          <p>Bonjour <strong>${greeting}</strong>,</p>
-          <p>Pour activer les paiements en ligne sur votre site, nous avons besoin que vous nous transmettiez vos clés API (Stripe, PayPal, Alma, …).</p>
-          <p>Nous avons préparé un <strong>tutoriel pas-à-pas sécurisé</strong> qui vous accompagne pour créer vos comptes et récupérer vos clés <strong>de TEST</strong> puis <strong>de PRODUCTION</strong>.</p>
-          <ul style="line-height:1.8">
-            <li>✅ Stripe, PayPal Pro, Alma, Mollie, Lyra/SystemPay, HelloAsso, Sumup</li>
-            <li>🔐 Vos clés sont chiffrées en base et accessibles uniquement à notre équipe technique</li>
-            <li>📚 Captures d'écran et liens directs vers chaque dashboard</li>
-          </ul>
-          <p style="text-align:center;margin:32px 0">
-            <a href="${link}" style="background:linear-gradient(135deg,#ff006e,#ff5c8a);color:#fff;padding:14px 28px;border-radius:10px;text-decoration:none;font-weight:600;display:inline-block">
-              💳 Accéder au tutoriel paiements
-            </a>
-          </p>
-          <p style="font-size:12px;color:#71717a">Lien personnel valable 30 jours : <a href="${link}" style="color:#ff006e;word-break:break-all">${link}</a></p>
-          <p>Une question ? Notre équipe reste à votre disposition.</p>
-          <p>Très cordialement,<br><strong style="color:#ff006e">L'équipe Adamkom</strong></p>
-        </div>
-      `;
+      setPreviewLink(`${PUBLISHED_URL}/tuto/paiements?token=${inv.token}`);
+      setPreviewOpen(true);
+    } catch (e: any) {
+      toast.error(e.message || "Impossible de générer le lien");
+    }
+  };
+
+  const sendEmail = async () => {
+    if (!clientEmail || !previewLink) return;
+    setSending(true);
+    try {
+      const htmlContent = buildEmailHtml(previewLink);
       const { error } = await supabase.functions.invoke("send-brevo-campaign", {
         body: {
           action: "send_client_email",
@@ -151,6 +245,7 @@ export default function PaymentTutoSection({ clientId, clientNdi, clientEmail, c
       });
       if (error) throw error;
       toast.success(`Mail tuto Paiements envoyé à ${clientEmail}`);
+      setPreviewOpen(false);
     } catch (e: any) {
       toast.error(e.message || "Erreur lors de l'envoi");
     } finally {
@@ -211,11 +306,11 @@ export default function PaymentTutoSection({ clientId, clientNdi, clientEmail, c
             <Button
               size="sm"
               className="bg-gradient-to-r from-primary to-primary/80"
-              onClick={sendEmail}
-              disabled={!clientEmail || sending}
+              onClick={openPreview}
+              disabled={!clientEmail || creatingInvite}
             >
-              {sending ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Send className="w-3.5 h-3.5 mr-1" />}
-              Envoyer le mail
+              {creatingInvite ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Mail className="w-3.5 h-3.5 mr-1" />}
+              Aperçu & Envoyer
             </Button>
           </div>
           {!clientEmail && (
@@ -311,6 +406,46 @@ export default function PaymentTutoSection({ clientId, clientNdi, clientEmail, c
           </p>
         )}
       </CardContent>
+
+      {/* Aperçu avant envoi */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col p-0">
+          <DialogHeader className="px-6 pt-6 pb-3 border-b">
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="w-4 h-4 text-primary" /> Aperçu de l'email
+            </DialogTitle>
+            <DialogDescription className="space-y-1 text-xs">
+              <div><span className="font-semibold text-foreground">À :</span> {clientEmail}</div>
+              <div><span className="font-semibold text-foreground">Objet :</span> {subject}</div>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-auto bg-muted/30 p-4">
+            <iframe
+              title="Aperçu email"
+              srcDoc={previewHtml}
+              className="w-full h-[60vh] bg-white rounded-lg border shadow-sm"
+              sandbox=""
+            />
+          </div>
+          <DialogFooter className="px-6 py-4 border-t bg-background gap-2">
+            <Button variant="outline" onClick={() => setPreviewOpen(false)} disabled={sending}>
+              Annuler
+            </Button>
+            <Button
+              onClick={sendEmail}
+              disabled={sending}
+              className="bg-gradient-to-r from-primary to-primary/80"
+            >
+              {sending ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Envoi…</>
+              ) : (
+                <><Send className="w-4 h-4 mr-2" /> Envoyer à {clientEmail}</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
+

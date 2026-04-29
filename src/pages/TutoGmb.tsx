@@ -582,24 +582,67 @@ function StepEnvoi({
   );
 }
 
-function StepMerci() {
+function StepMerci({ ndi, email, hasListing }: { ndi: string | null; email: string | null; hasListing: boolean | null }) {
   return (
-    <div className="text-center py-10 space-y-5">
-      <div className="inline-flex h-20 w-20 rounded-full bg-gradient-to-br from-[#ff006e] to-[#ff5c8a] items-center justify-center">
+    <div className="text-center py-8 space-y-5">
+      <motion.div
+        initial={{ scale: 0, rotate: -45 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ type: "spring", stiffness: 200 }}
+        className="inline-flex h-20 w-20 rounded-full bg-gradient-to-br from-[#ff006e] to-[#ff5c8a] items-center justify-center shadow-lg shadow-[#ff006e]/30"
+      >
         <PartyPopper className="h-10 w-10 text-white" />
-      </div>
+      </motion.div>
       <div>
-        <h2 className="text-3xl font-bold text-zinc-900">Merci ! 🎉</h2>
-        <p className="text-zinc-600 mt-2 max-w-md mx-auto">
-          Vos infos ont bien été envoyées à Adamkom. Notre équipe va accepter l'invitation Google sous{" "}
-          <strong>24h ouvrées</strong> et commencer à optimiser votre présence locale.
+        <h2 className="text-3xl font-bold text-zinc-900">Demande bien envoyée ! 🎉</h2>
+        <p className="text-zinc-600 mt-3 max-w-md mx-auto">
+          Vos infos Google My Business sont arrivées chez Adamkom. Notre équipe accepte
+          l'invitation Google sous <strong>24h ouvrées</strong> et vous tient informé(e) par email.
         </p>
       </div>
-      <Link to="/">
-        <Button variant="outline" className="rounded-full">
-          Retour à l'accueil
-        </Button>
-      </Link>
+
+      <div className="max-w-md mx-auto rounded-2xl border border-zinc-200 bg-white p-5 text-left space-y-2">
+        <p className="text-xs uppercase font-bold text-zinc-500 tracking-wide">Récapitulatif</p>
+        <ul className="text-sm text-zinc-700 space-y-1.5">
+          <li className="flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+            {hasListing === false ? "Création de la fiche en cours" : "Fiche existante repérée"}
+          </li>
+          <li className="flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+            Email gestionnaire transmis
+          </li>
+          {email && (
+            <li className="flex items-center gap-2">
+              <Mail className="h-4 w-4 text-zinc-400 flex-shrink-0" />
+              <span className="text-xs text-zinc-500">Confirmation à venir sur <strong className="text-zinc-700">{email}</strong></span>
+            </li>
+          )}
+          {ndi && (
+            <li className="flex items-center gap-2 pt-1 border-t border-zinc-100 mt-2">
+              <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Réf.</span>
+              <code className="text-xs bg-zinc-100 px-2 py-0.5 rounded text-zinc-700 font-mono">{ndi}</code>
+            </li>
+          )}
+        </ul>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
+        <a
+          href="https://ai.adamkom.com"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#ff006e] hover:underline px-4 py-2"
+        >
+          Découvrir Adamkom <ExternalLink className="h-3.5 w-3.5" />
+        </a>
+        <Link to="/">
+          <Button variant="outline" className="rounded-full">
+            Retour à l'accueil
+          </Button>
+        </Link>
+      </div>
+      <p className="text-xs text-zinc-500 max-w-md mx-auto pt-2">
+        💡 Pas reçu de mail ? Vérifiez vos spams ou contactez votre conseiller Adamkom.
+      </p>
     </div>
   );
 }

@@ -36,6 +36,7 @@ import type { Database } from "@/integrations/supabase/types";
 import SocialMediaSection from "@/components/clients/SocialMediaSection";
 import ChatbotConfigSection from "@/components/clients/ChatbotConfigSection";
 import LogoTrackingCard from "@/components/clients/LogoTrackingCard";
+import PaymentTutoSection from "@/components/clients/PaymentTutoSection";
 import ClientEmailActions from "@/components/clients/ClientEmailActions";
 import DomainRenewalInvoice from "@/components/clients/DomainRenewalInvoice";
 import ClientEmailHistory from "@/components/clients/ClientEmailHistory";

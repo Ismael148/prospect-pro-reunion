@@ -24,9 +24,12 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { BeginnerGuide } from "@/components/tuto/BeginnerGuide";
+import { TutoFAQ } from "@/components/tuto/TutoFAQ";
 import {
   PAYMENT_PROVIDERS,
   PROVIDER_KEYS_ORDER,
+  PAYMENT_FAQ,
   type PaymentProviderKey,
   type ProviderConfig,
 } from "@/lib/payment-providers";

@@ -224,6 +224,46 @@ function NewPublicationDialog({ clientId, accounts }: NewPublicationDialogProps)
   );
 }
 
+function TutoLinksBlock({ clientNdi }: { clientNdi?: string | null }) {
+  const fbLink = clientNdi ? `${PUBLISHED_URL}/tuto/facebook?client=${clientNdi}` : `${PUBLISHED_URL}/tuto/facebook`;
+  const gmbLink = clientNdi ? `${PUBLISHED_URL}/tuto/gmb?client=${clientNdi}` : `${PUBLISHED_URL}/tuto/gmb`;
+
+  const copy = (link: string, label: string) => {
+    navigator.clipboard.writeText(link).then(() => toast.success(`Lien tuto ${label} copié !`));
+  };
+
+  return (
+    <div className="mb-4 p-3 rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+      <div className="flex items-center gap-2 mb-2">
+        <Link2 className="w-4 h-4 text-primary" />
+        <span className="text-xs font-semibold text-primary uppercase tracking-wide">Liens tutos personnalisés</span>
+        {!clientNdi && <Badge variant="outline" className="text-[10px]">NDI manquant — lien générique</Badge>}
+      </div>
+      <p className="text-[11px] text-muted-foreground mb-3">
+        Envoyez ces liens au client pour qu'il vous transmette ses accès Facebook & Google My Business sans partager de mot de passe.
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="flex items-center gap-1.5">
+          <Button size="sm" variant="outline" className="flex-1 text-xs justify-start h-8" onClick={() => copy(fbLink, "Facebook")}>
+            <Facebook className="w-3.5 h-3.5 mr-1.5 text-[#1877F2]" /> Copier lien Facebook
+          </Button>
+          <Button size="sm" variant="ghost" className="h-8 w-8 p-0" asChild title="Ouvrir le tuto">
+            <a href={fbLink} target="_blank" rel="noopener noreferrer"><ExternalLink className="w-3.5 h-3.5" /></a>
+          </Button>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Button size="sm" variant="outline" className="flex-1 text-xs justify-start h-8" onClick={() => copy(gmbLink, "Google My Business")}>
+            <MapPin className="w-3.5 h-3.5 mr-1.5 text-[#34A853]" /> Copier lien Google
+          </Button>
+          <Button size="sm" variant="ghost" className="h-8 w-8 p-0" asChild title="Ouvrir le tuto">
+            <a href={gmbLink} target="_blank" rel="noopener noreferrer"><ExternalLink className="w-3.5 h-3.5" /></a>
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function SocialMediaSection({ clientId, clientNdi }: { clientId: string; clientNdi?: string | null }) {
   const { data: accounts, isLoading: loadingAccounts } = useSocialAccounts(clientId);
   const { data: publications, isLoading: loadingPubs } = useSocialPublications(clientId);

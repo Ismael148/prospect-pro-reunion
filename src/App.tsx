@@ -37,6 +37,8 @@ import Terms from "./pages/Terms";
 import DebugRealtime from "./pages/DebugRealtime";
 import PartnerAccess from "./pages/PartnerAccess";
 import Gmb from "./pages/Gmb";
+import TutoFacebook from "./pages/TutoFacebook";
+import FbOnboardingInbox from "./pages/FbOnboardingInbox";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

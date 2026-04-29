@@ -161,28 +161,29 @@ export function TicketComments({ ticketId, ticketNumber, ticketSubject, assigned
       </div>
 
       {/* Comment input */}
-      <div className="flex gap-2">
-        <Textarea
+      <div className="space-y-2">
+        <MentionTextarea
           value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="Écrire un commentaire..."
+          onChange={setContent}
+          members={members}
+          placeholder="Écrire un commentaire... (tapez @ pour mentionner un membre)"
           rows={2}
-          className="resize-none text-sm"
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              handleSubmit();
-            }
-          }}
+          className="text-sm"
         />
-        <Button
-          size="icon"
-          className="shrink-0 h-auto"
-          disabled={!content.trim() || addComment.isPending}
-          onClick={handleSubmit}
-        >
-          <Send className="h-4 w-4" />
-        </Button>
+        <div className="flex justify-between items-center">
+          <p className="text-[10px] text-muted-foreground">
+            Astuce : tapez <span className="font-mono bg-muted px-1 rounded">@</span> pour notifier un coéquipier
+          </p>
+          <Button
+            size="sm"
+            disabled={!content.trim() || addComment.isPending}
+            onClick={handleSubmit}
+            className="gap-1.5"
+          >
+            <Send className="h-3.5 w-3.5" />
+            Envoyer
+          </Button>
+        </div>
       </div>
     </div>
   );

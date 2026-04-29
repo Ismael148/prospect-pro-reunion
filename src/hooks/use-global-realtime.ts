@@ -143,6 +143,9 @@ const TABLES: Record<string, TableConfig> = {
   client_gmb: {
     lists: [["client-gmb"], ["clients-without-gmb"]],
   },
+  fb_onboarding_submissions: {
+    lists: [["fb-onboarding"]],
+  },
 };
 
 /* ---------------------------------------------------------------------------

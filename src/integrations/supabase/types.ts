@@ -855,6 +855,74 @@ export type Database = {
         }
         Relationships: []
       }
+      fb_onboarding_submissions: {
+        Row: {
+          business_manager_email: string
+          business_manager_id: string | null
+          client_id: string | null
+          client_ndi: string | null
+          company_name: string
+          contact_email: string
+          created_at: string
+          fb_page_name: string | null
+          fb_page_url: string | null
+          has_existing_page: boolean | null
+          id: string
+          notes: string | null
+          processed_at: string | null
+          processed_by: string | null
+          source_url: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          business_manager_email: string
+          business_manager_id?: string | null
+          client_id?: string | null
+          client_ndi?: string | null
+          company_name: string
+          contact_email: string
+          created_at?: string
+          fb_page_name?: string | null
+          fb_page_url?: string | null
+          has_existing_page?: boolean | null
+          id?: string
+          notes?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          source_url?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          business_manager_email?: string
+          business_manager_id?: string | null
+          client_id?: string | null
+          client_ndi?: string | null
+          company_name?: string
+          contact_email?: string
+          created_at?: string
+          fb_page_name?: string | null
+          fb_page_url?: string | null
+          has_existing_page?: boolean | null
+          id?: string
+          notes?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          source_url?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fb_onboarding_submissions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
           amount: number

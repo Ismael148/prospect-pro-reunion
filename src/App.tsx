@@ -37,6 +37,8 @@ import Terms from "./pages/Terms";
 import DebugRealtime from "./pages/DebugRealtime";
 import PartnerAccess from "./pages/PartnerAccess";
 import Gmb from "./pages/Gmb";
+import TutoFacebook from "./pages/TutoFacebook";
+import FbOnboardingInbox from "./pages/FbOnboardingInbox";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -146,6 +148,12 @@ const App = () => (
               path="/gmb"
               element={<ProtectedRoute><AppLayout><Gmb /></AppLayout></ProtectedRoute>}
             />
+            <Route
+              path="/onboarding-fb"
+              element={<ProtectedRoute><AppLayout><FbOnboardingInbox /></AppLayout></ProtectedRoute>}
+            />
+            {/* Public tutorial */}
+            <Route path="/tuto/facebook" element={<TutoFacebook />} />
             {/* Public routes */}
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />

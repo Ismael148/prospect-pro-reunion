@@ -720,7 +720,7 @@ export default function TutoGmb() {
           )}
         </div>
 
-        <div className="grid lg:grid-cols-[260px_1fr] gap-6">
+        <div className={`grid gap-6 ${hasListing !== null ? "lg:grid-cols-[260px_1fr]" : "grid-cols-1"}`}>
           {/* Stepper sidebar */}
           {hasListing !== null && (
             <GlassCard className="p-4 h-fit lg:sticky lg:top-6">

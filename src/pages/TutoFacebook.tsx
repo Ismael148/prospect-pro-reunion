@@ -492,7 +492,7 @@ function Step6_Form({
             id="company_name"
             value={form.company_name}
             onChange={(e) => handleChange("company_name", e.target.value)}
-            className="mt-1.5"
+            className="mt-1.5 bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-[#ff006e]"
             maxLength={120}
           />
           {errors.company_name && <p className="text-xs text-red-600 mt-1">{errors.company_name}</p>}
@@ -507,7 +507,7 @@ function Step6_Form({
             type="email"
             value={form.contact_email}
             onChange={(e) => handleChange("contact_email", e.target.value)}
-            className="mt-1.5"
+            className="mt-1.5 bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-[#ff006e]"
             maxLength={255}
           />
           {errors.contact_email && <p className="text-xs text-red-600 mt-1">{errors.contact_email}</p>}
@@ -522,7 +522,7 @@ function Step6_Form({
             type="email"
             value={form.business_manager_email}
             onChange={(e) => handleChange("business_manager_email", e.target.value)}
-            className="mt-1.5"
+            className="mt-1.5 bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-[#ff006e]"
             maxLength={255}
             placeholder="celui utilisé pour créer le BM"
           />
@@ -539,7 +539,7 @@ function Step6_Form({
             id="business_manager_id"
             value={form.business_manager_id}
             onChange={(e) => handleChange("business_manager_id", e.target.value)}
-            className="mt-1.5 font-mono"
+            className="mt-1.5 font-mono bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-[#ff006e]"
             placeholder="ex : 123456789012345"
             maxLength={50}
           />
@@ -554,7 +554,7 @@ function Step6_Form({
             id="fb_page_name"
             value={form.fb_page_name}
             onChange={(e) => handleChange("fb_page_name", e.target.value)}
-            className="mt-1.5"
+            className="mt-1.5 bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-[#ff006e]"
             maxLength={120}
           />
         </div>
@@ -567,7 +567,7 @@ function Step6_Form({
             id="fb_page_url"
             value={form.fb_page_url}
             onChange={(e) => handleChange("fb_page_url", e.target.value)}
-            className="mt-1.5"
+            className="mt-1.5 bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-[#ff006e]"
             placeholder="https://facebook.com/..."
             maxLength={300}
           />
@@ -580,7 +580,7 @@ function Step6_Form({
             id="notes"
             value={form.notes}
             onChange={(e) => handleChange("notes", e.target.value)}
-            className="mt-1.5"
+            className="mt-1.5 bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-[#ff006e]"
             rows={3}
             maxLength={1000}
             placeholder="Quelque chose à nous préciser ?"

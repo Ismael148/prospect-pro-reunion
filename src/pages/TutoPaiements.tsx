@@ -24,9 +24,12 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { BeginnerGuide } from "@/components/tuto/BeginnerGuide";
+import { TutoFAQ } from "@/components/tuto/TutoFAQ";
 import {
   PAYMENT_PROVIDERS,
   PROVIDER_KEYS_ORDER,
+  PAYMENT_FAQ,
   type PaymentProviderKey,
   type ProviderConfig,
 } from "@/lib/payment-providers";
@@ -472,6 +475,17 @@ export default function TutoPaiements() {
                 </TabsContent>
               </Tabs>
             </GlassCard>
+
+            {provider.beginnerGuide && provider.beginnerGuide.length > 0 && (
+              <GlassCard className="p-5 md:p-6">
+                <BeginnerGuide
+                  title={`Guide ultra-débutant ${provider.name}`}
+                  intro="Si vous n'avez jamais créé de compte de paiement en ligne, suivez ces étapes pas-à-pas. Pensez à préparer vos documents avant de commencer."
+                  steps={provider.beginnerGuide}
+                  accentColor={provider.color}
+                />
+              </GlassCard>
+            )}
           </div>
 
           {/* Right: Form */}
@@ -573,6 +587,10 @@ export default function TutoPaiements() {
             </GlassCard>
           </div>
         </motion.div>
+
+        <div className="mt-12">
+          <TutoFAQ items={PAYMENT_FAQ} title="❓ Questions fréquentes des clients" />
+        </div>
 
         <div className="text-center mt-10 text-xs text-muted-foreground">
           <p>

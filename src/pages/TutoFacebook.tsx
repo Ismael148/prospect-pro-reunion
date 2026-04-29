@@ -20,6 +20,8 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { TutoFAQ } from "@/components/tuto/TutoFAQ";
+import { FACEBOOK_FAQ } from "@/lib/tuto-faq";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -875,6 +877,9 @@ export default function TutoFacebook() {
                 </a>
               </p>
             )}
+            <div className="mt-12">
+              <TutoFAQ items={FACEBOOK_FAQ} title="❓ Questions fréquentes" />
+            </div>
           </main>
         </div>
       </div>

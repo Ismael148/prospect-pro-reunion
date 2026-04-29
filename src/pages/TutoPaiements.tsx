@@ -588,6 +588,10 @@ export default function TutoPaiements() {
           </div>
         </motion.div>
 
+        <div className="mt-12">
+          <TutoFAQ items={PAYMENT_FAQ} title="❓ Questions fréquentes des clients" />
+        </div>
+
         <div className="text-center mt-10 text-xs text-muted-foreground">
           <p>
             Une question ? Contactez-nous sur{" "}

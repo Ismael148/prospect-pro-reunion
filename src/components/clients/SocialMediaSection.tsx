@@ -466,7 +466,7 @@ function TutoEmailHistoryDialog({ open, onClose, kind, clientEmail }: { open: bo
   );
 }
 
-export default function SocialMediaSection({ clientId, clientNdi }: { clientId: string; clientNdi?: string | null }) {
+export default function SocialMediaSection({ clientId, clientNdi, clientEmail, clientCompany }: { clientId: string; clientNdi?: string | null; clientEmail?: string | null; clientCompany?: string }) {
   const { data: accounts, isLoading: loadingAccounts } = useSocialAccounts(clientId);
   const { data: publications, isLoading: loadingPubs } = useSocialPublications(clientId);
   const deleteAccount = useDeleteSocialAccount();
@@ -546,7 +546,7 @@ export default function SocialMediaSection({ clientId, clientNdi }: { clientId: 
       </CardHeader>
       <CardContent>
         {/* ─── LIENS TUTOS PERSONNALISÉS ─── */}
-        <TutoLinksBlock clientNdi={clientNdi} />
+        <TutoLinksBlock clientId={clientId} clientNdi={clientNdi} clientEmail={clientEmail} clientCompany={clientCompany} />
         <Tabs defaultValue="comptes">
           <TabsList className="mb-4">
             <TabsTrigger value="comptes">Comptes</TabsTrigger>

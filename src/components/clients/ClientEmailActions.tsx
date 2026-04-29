@@ -216,6 +216,39 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
         },
       });
       if (error) throw error;
+
+      // Tracker l'envoi du tuto pour le système de relance auto (5j)
+      // Une seule invitation active par (client, kind) → upsert manuel.
+      if (action.trigger === "tuto_facebook" || action.trigger === "tuto_gmb") {
+        const kind = action.trigger === "tuto_facebook" ? "facebook" : "gmb";
+        try {
+          const { data: existing } = await (supabase as any)
+            .from("onboarding_invitations")
+            .select("id")
+            .eq("kind", kind)
+            .eq("contact_email", client.email)
+            .is("completed_at", null)
+            .maybeSingle();
+          if (existing?.id) {
+            // Reset la fenêtre de relance (renvoi manuel = nouveau point de départ)
+            await (supabase as any)
+              .from("onboarding_invitations")
+              .update({ sent_at: new Date().toISOString(), reminder_count: 0, last_reminder_at: null })
+              .eq("id", existing.id);
+          } else {
+            await (supabase as any).from("onboarding_invitations").insert({
+              kind,
+              client_id: client.id,
+              client_ndi: client.ndi || null,
+              contact_email: client.email,
+              company_name: client.company_name,
+            });
+          }
+        } catch (invErr) {
+          console.warn("onboarding_invitations tracking failed", invErr);
+        }
+      }
+
       toast.success(`Email "${action.label}" envoyé à ${client.email}`);
       setPreviewAction(null);
     } catch (e: any) {

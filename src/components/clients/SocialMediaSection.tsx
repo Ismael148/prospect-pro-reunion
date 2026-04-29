@@ -229,7 +229,6 @@ function NewPublicationDialog({ clientId, accounts }: NewPublicationDialogProps)
 
 function TutoLinksBlock({ clientId, clientNdi, clientEmail, clientCompany }: { clientId: string; clientNdi?: string | null; clientEmail?: string | null; clientCompany?: string }) {
   const [resending, setResending] = useState<"facebook" | "gmb" | null>(null);
-  const [historyOpen, setHistoryOpen] = useState<"facebook" | "gmb" | null>(null);
 
   const fbLink = clientNdi ? `${PUBLISHED_URL}/tuto/facebook?client=${clientNdi}` : `${PUBLISHED_URL}/tuto/facebook`;
   const gmbLink = clientNdi ? `${PUBLISHED_URL}/tuto/gmb?client=${clientNdi}` : `${PUBLISHED_URL}/tuto/gmb`;

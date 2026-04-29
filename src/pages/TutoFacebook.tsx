@@ -820,7 +820,7 @@ export default function TutoFacebook() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    <StepThanks />
+                    <StepThanks ndi={ndi || clientPrefill?.ndi} email={clientPrefill?.email} />
                   </motion.div>
                 ) : (
                   <motion.div

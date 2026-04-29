@@ -142,7 +142,17 @@ export function TicketComments({ ticketId, ticketNumber, ticketSubject, assigned
                     ? "bg-primary text-primary-foreground rounded-tr-sm"
                     : "bg-muted/50 text-foreground rounded-tl-sm"
                 }`}>
-                  {c.content}
+                  {c.content.split(/(@\[[^\]]+\])/g).map((part, i) => {
+                    const m = part.match(/^@\[([^\]]+)\]$/);
+                    if (m) {
+                      return (
+                        <span key={i} className={`inline-flex items-center px-1.5 py-0.5 mx-0.5 rounded text-xs font-semibold ${mine ? "bg-primary-foreground/20" : "bg-primary/10 text-primary"}`}>
+                          @{m[1]}
+                        </span>
+                      );
+                    }
+                    return <span key={i}>{part}</span>;
+                  })}
                 </div>
                 <div className={`mt-1 ${mine ? "flex justify-end" : ""}`}>
                   <SeenByButton

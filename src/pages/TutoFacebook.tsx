@@ -456,7 +456,13 @@ function Step6_Form({
     setErrors({});
     submit.mutate(
       {
-        ...parsed.data,
+        company_name: parsed.data.company_name,
+        contact_email: parsed.data.contact_email,
+        business_manager_email: parsed.data.business_manager_email,
+        business_manager_id: parsed.data.business_manager_id || null,
+        fb_page_url: parsed.data.fb_page_url || null,
+        fb_page_name: parsed.data.fb_page_name || null,
+        notes: parsed.data.notes || null,
         client_id: prefill.client_id ?? null,
         client_ndi: prefill.client_ndi ?? null,
         has_existing_page: hasExistingPage,

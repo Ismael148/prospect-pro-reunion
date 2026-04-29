@@ -340,7 +340,7 @@ function TutoLinksBlock({ clientId, clientNdi, clientEmail, clientCompany }: { c
                 {resending === "facebook" ? "Envoi..." : <><Send className="w-3 h-3 mr-1" /> Renvoyer le mail</>}
               </Button>
               <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setHistoryOpen("facebook")} title="Historique d'envoi">
-                <History className="w-3.5 h-3.5" />
+                <HistoryIcon className="w-3.5 h-3.5" />
               </Button>
             </div>
           </div>
@@ -363,7 +363,7 @@ function TutoLinksBlock({ clientId, clientNdi, clientEmail, clientCompany }: { c
                 {resending === "gmb" ? "Envoi..." : <><Send className="w-3 h-3 mr-1" /> Renvoyer le mail</>}
               </Button>
               <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setHistoryOpen("gmb")} title="Historique d'envoi">
-                <History className="w-3.5 h-3.5" />
+                <HistoryIcon className="w-3.5 h-3.5" />
               </Button>
             </div>
           </div>
@@ -424,7 +424,7 @@ function TutoEmailHistoryDialog({ open, onClose, kind, clientEmail }: { open: bo
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <History className="w-5 h-5" /> Historique envoi tuto {label}
+            <HistoryIcon className="w-5 h-5" /> Historique envoi tuto {label}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-2">

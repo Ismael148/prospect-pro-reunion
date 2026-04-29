@@ -1563,6 +1563,127 @@ export type Database = {
           },
         ]
       }
+      payment_credentials: {
+        Row: {
+          client_id: string | null
+          client_ndi: string | null
+          company_name: string | null
+          contact_email: string
+          contact_name: string | null
+          created_at: string
+          credentials: Json
+          environment: Database["public"]["Enums"]["payment_env"]
+          id: string
+          notes: string | null
+          provider: Database["public"]["Enums"]["payment_provider"]
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["payment_status"]
+          submitted_at: string
+          submitted_via: string | null
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          client_ndi?: string | null
+          company_name?: string | null
+          contact_email: string
+          contact_name?: string | null
+          created_at?: string
+          credentials?: Json
+          environment?: Database["public"]["Enums"]["payment_env"]
+          id?: string
+          notes?: string | null
+          provider: Database["public"]["Enums"]["payment_provider"]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          submitted_at?: string
+          submitted_via?: string | null
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          client_ndi?: string | null
+          company_name?: string | null
+          contact_email?: string
+          contact_name?: string | null
+          created_at?: string
+          credentials?: Json
+          environment?: Database["public"]["Enums"]["payment_env"]
+          id?: string
+          notes?: string | null
+          provider?: Database["public"]["Enums"]["payment_provider"]
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          submitted_at?: string
+          submitted_via?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_credentials_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_invitations: {
+        Row: {
+          client_id: string | null
+          client_ndi: string | null
+          company_name: string | null
+          completed_at: string | null
+          contact_email: string
+          contact_name: string | null
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          id: string
+          providers: Database["public"]["Enums"]["payment_provider"][] | null
+          token: string
+        }
+        Insert: {
+          client_id?: string | null
+          client_ndi?: string | null
+          company_name?: string | null
+          completed_at?: string | null
+          contact_email: string
+          contact_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          providers?: Database["public"]["Enums"]["payment_provider"][] | null
+          token?: string
+        }
+        Update: {
+          client_id?: string | null
+          client_ndi?: string | null
+          company_name?: string | null
+          completed_at?: string | null
+          contact_email?: string
+          contact_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          providers?: Database["public"]["Enums"]["payment_provider"][] | null
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_invitations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -2222,6 +2343,16 @@ export type Database = {
         | "gmb_review_reply"
         | "message_reply"
         | "announcement"
+      payment_env: "test" | "live"
+      payment_provider:
+        | "stripe"
+        | "paypal"
+        | "alma"
+        | "mollie"
+        | "lyra"
+        | "helloasso"
+        | "sumup"
+      payment_status: "en_attente" | "recu" | "configure" | "actif" | "rejete"
       pipeline_status:
         | "nouveau"
         | "contacte"
@@ -2468,6 +2599,17 @@ export const Constants = {
         "message_reply",
         "announcement",
       ],
+      payment_env: ["test", "live"],
+      payment_provider: [
+        "stripe",
+        "paypal",
+        "alma",
+        "mollie",
+        "lyra",
+        "helloasso",
+        "sumup",
+      ],
+      payment_status: ["en_attente", "recu", "configure", "actif", "rejete"],
       pipeline_status: [
         "nouveau",
         "contacte",

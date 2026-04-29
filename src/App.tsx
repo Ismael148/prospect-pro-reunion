@@ -41,6 +41,8 @@ import TutoFacebook from "./pages/TutoFacebook";
 import TutoGmb from "./pages/TutoGmb";
 import OnboardingInbox from "./pages/FbOnboardingInbox";
 import EmailsLog from "./pages/EmailsLog";
+import PaymentCredentials from "./pages/PaymentCredentials";
+import TutoPaiements from "./pages/TutoPaiements";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -162,9 +164,14 @@ const App = () => (
               path="/emails"
               element={<ProtectedRoute><AppLayout><EmailsLog /></AppLayout></ProtectedRoute>}
             />
+            <Route
+              path="/paiements"
+              element={<ProtectedRoute><AppLayout><PaymentCredentials /></AppLayout></ProtectedRoute>}
+            />
             {/* Public tutorials */}
             <Route path="/tuto/facebook" element={<TutoFacebook />} />
             <Route path="/tuto/gmb" element={<TutoGmb />} />
+            <Route path="/tuto/paiements" element={<TutoPaiements />} />
             {/* Public routes */}
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />

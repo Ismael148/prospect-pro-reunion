@@ -27,6 +27,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { z } from "zod";
 import { useSubmitFbOnboarding, useClientByNdi } from "@/hooks/use-fb-onboarding";
+import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.webp";
 
 /* ──────────────────────────────────────────────────────────
@@ -467,7 +468,24 @@ function Step6_Form({
         client_ndi: prefill.client_ndi ?? null,
         has_existing_page: hasExistingPage,
       },
-      { onSuccess: () => onSent() }
+      {
+        onSuccess: async () => {
+          try {
+            await supabase.functions.invoke("send-onboarding-confirmation", {
+              body: {
+                kind: "facebook",
+                recipientEmail: parsed.data.contact_email,
+                recipientName: parsed.data.company_name,
+                companyName: parsed.data.company_name,
+                ndi: prefill.client_ndi ?? null,
+              },
+            });
+          } catch (err) {
+            console.error("[TutoFacebook] confirmation email failed", err);
+          }
+          onSent();
+        },
+      }
     );
   };
 
@@ -622,8 +640,7 @@ function StepThanks({ ndi, email }: { ndi?: string | null; email?: string | null
       <div>
         <h2 className="text-3xl font-bold text-zinc-900">Demande bien envoyée ! 🎉</h2>
         <p className="text-zinc-600 mt-3 max-w-md mx-auto">
-          Vos accès Facebook Business sont arrivés chez Adamkom. Notre équipe vous contacte sous{" "}
-          <strong>24h ouvrées</strong> pour finaliser le rattachement et programmer vos premières publications.
+          Vos accès Facebook Business sont arrivés chez Adamkom.
         </p>
       </div>
 
@@ -634,14 +651,10 @@ function StepThanks({ ndi, email }: { ndi?: string | null; email?: string | null
             <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
             Informations Business Manager transmises
           </li>
-          <li className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
-            Notification envoyée à votre conseiller
-          </li>
           {email && (
             <li className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-zinc-400 flex-shrink-0" />
-              <span className="text-xs text-zinc-500">Confirmation à venir sur <strong className="text-zinc-700">{email}</strong></span>
+              <span className="text-xs text-zinc-500">Confirmation envoyée sur <strong className="text-zinc-700">{email}</strong></span>
             </li>
           )}
           {ndi && (
@@ -653,12 +666,6 @@ function StepThanks({ ndi, email }: { ndi?: string | null; email?: string | null
         </ul>
       </div>
 
-      <a
-        href="https://ai.adamkom.com"
-        className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#ff006e] hover:underline"
-      >
-        Découvrir Adamkom <ExternalLink className="h-3.5 w-3.5" />
-      </a>
       <p className="text-xs text-zinc-500 max-w-md mx-auto">
         💡 Pas reçu de mail ? Vérifiez vos spams ou contactez votre conseiller.
       </p>
@@ -804,7 +811,7 @@ export default function TutoFacebook() {
               <p className="text-xs font-bold text-zinc-700 mb-1">Pas le temps ?</p>
               <p className="text-xs text-zinc-600 leading-relaxed">
                 Demandez à votre conseiller Adamkom le service{" "}
-                <strong className="text-[#ff006e]">« On le fait pour vous »</strong> (sur devis).
+                <strong className="text-[#ff006e]">« On le fait pour vous »</strong>.
               </p>
             </GlassCard>
           </aside>

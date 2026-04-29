@@ -3,7 +3,7 @@ import { useTicketComments, useAddTicketComment } from "@/hooks/use-ticket-comme
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { MentionTextarea, MentionMember } from "@/components/MentionTextarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, MessageCircle } from "lucide-react";
@@ -35,6 +35,29 @@ export function TicketComments({ ticketId, ticketNumber, ticketSubject, assigned
     return out;
   }, [profiles]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [members, setMembers] = useState<MentionMember[]>([]);
+
+  // Load members for @mentions (admins, webmasters, designers, agent_master, agent_support)
+  useEffect(() => {
+    (async () => {
+      const { data: rolesData } = await supabase
+        .from("user_roles")
+        .select("user_id, role")
+        .in("role", ["admin", "webmaster", "designer", "agent_master", "agent_support"]);
+      if (!rolesData?.length) return;
+      const userIds = [...new Set(rolesData.map((r) => r.user_id))];
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("user_id, full_name")
+        .in("user_id", userIds);
+      if (!profs) return;
+      const rolesByUser: Record<string, string[]> = {};
+      rolesData.forEach((r) => {
+        rolesByUser[r.user_id] = [...(rolesByUser[r.user_id] ?? []), r.role];
+      });
+      setMembers(profs.map((p) => ({ user_id: p.user_id, full_name: p.full_name, roles: rolesByUser[p.user_id] })));
+    })();
+  }, []);
 
   // Load profiles for comment authors
   useEffect(() => {
@@ -119,7 +142,17 @@ export function TicketComments({ ticketId, ticketNumber, ticketSubject, assigned
                     ? "bg-primary text-primary-foreground rounded-tr-sm"
                     : "bg-muted/50 text-foreground rounded-tl-sm"
                 }`}>
-                  {c.content}
+                  {c.content.split(/(@\[[^\]]+\])/g).map((part, i) => {
+                    const m = part.match(/^@\[([^\]]+)\]$/);
+                    if (m) {
+                      return (
+                        <span key={i} className={`inline-flex items-center px-1.5 py-0.5 mx-0.5 rounded text-xs font-semibold ${mine ? "bg-primary-foreground/20" : "bg-primary/10 text-primary"}`}>
+                          @{m[1]}
+                        </span>
+                      );
+                    }
+                    return <span key={i}>{part}</span>;
+                  })}
                 </div>
                 <div className={`mt-1 ${mine ? "flex justify-end" : ""}`}>
                   <SeenByButton
@@ -138,28 +171,29 @@ export function TicketComments({ ticketId, ticketNumber, ticketSubject, assigned
       </div>
 
       {/* Comment input */}
-      <div className="flex gap-2">
-        <Textarea
+      <div className="space-y-2">
+        <MentionTextarea
           value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="Écrire un commentaire..."
+          onChange={setContent}
+          members={members}
+          placeholder="Écrire un commentaire... (tapez @ pour mentionner un membre)"
           rows={2}
-          className="resize-none text-sm"
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              handleSubmit();
-            }
-          }}
+          className="text-sm"
         />
-        <Button
-          size="icon"
-          className="shrink-0 h-auto"
-          disabled={!content.trim() || addComment.isPending}
-          onClick={handleSubmit}
-        >
-          <Send className="h-4 w-4" />
-        </Button>
+        <div className="flex justify-between items-center">
+          <p className="text-[10px] text-muted-foreground">
+            Astuce : tapez <span className="font-mono bg-muted px-1 rounded">@</span> pour notifier un coéquipier
+          </p>
+          <Button
+            size="sm"
+            disabled={!content.trim() || addComment.isPending}
+            onClick={handleSubmit}
+            className="gap-1.5"
+          >
+            <Send className="h-3.5 w-3.5" />
+            Envoyer
+          </Button>
+        </div>
       </div>
     </div>
   );

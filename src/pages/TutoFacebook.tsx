@@ -667,7 +667,7 @@ export default function TutoFacebook() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 relative overflow-hidden">
+    <div className="light min-h-screen bg-zinc-50 relative overflow-hidden text-zinc-900">
       {/* Animated gradient background */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute -top-40 -right-40 h-[500px] w-[500px] rounded-full bg-[#ff006e]/15 blur-[120px]" />

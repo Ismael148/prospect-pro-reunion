@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import {
-  Plus, ExternalLink, Pencil, Trash2, CheckCircle2, Clock, Calendar, Share2, Copy, LogIn,
+  Plus, ExternalLink, Pencil, Trash2, CheckCircle2, Clock, Calendar, Share2, Copy, LogIn, Link2, MapPin, Facebook,
 } from "lucide-react";
 import {
   useSocialAccounts, useSocialPublications, useUpsertSocialAccount,
@@ -20,6 +20,7 @@ import {
   useDeleteSocialPublication, type SocialPlatform, type SocialPublication,
 } from "@/hooks/use-social";
 import { useMetaOAuth } from "@/hooks/use-meta-oauth";
+import { PUBLISHED_URL } from "@/lib/constants";
 
 function PlatformLogo({ platform, className = "w-4 h-4" }: { platform: SocialPlatform; className?: string }) {
   if (platform === "facebook") {
@@ -223,7 +224,47 @@ function NewPublicationDialog({ clientId, accounts }: NewPublicationDialogProps)
   );
 }
 
-export default function SocialMediaSection({ clientId }: { clientId: string }) {
+function TutoLinksBlock({ clientNdi }: { clientNdi?: string | null }) {
+  const fbLink = clientNdi ? `${PUBLISHED_URL}/tuto/facebook?client=${clientNdi}` : `${PUBLISHED_URL}/tuto/facebook`;
+  const gmbLink = clientNdi ? `${PUBLISHED_URL}/tuto/gmb?client=${clientNdi}` : `${PUBLISHED_URL}/tuto/gmb`;
+
+  const copy = (link: string, label: string) => {
+    navigator.clipboard.writeText(link).then(() => toast.success(`Lien tuto ${label} copié !`));
+  };
+
+  return (
+    <div className="mb-4 p-3 rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+      <div className="flex items-center gap-2 mb-2">
+        <Link2 className="w-4 h-4 text-primary" />
+        <span className="text-xs font-semibold text-primary uppercase tracking-wide">Liens tutos personnalisés</span>
+        {!clientNdi && <Badge variant="outline" className="text-[10px]">NDI manquant — lien générique</Badge>}
+      </div>
+      <p className="text-[11px] text-muted-foreground mb-3">
+        Envoyez ces liens au client pour qu'il vous transmette ses accès Facebook & Google My Business sans partager de mot de passe.
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="flex items-center gap-1.5">
+          <Button size="sm" variant="outline" className="flex-1 text-xs justify-start h-8" onClick={() => copy(fbLink, "Facebook")}>
+            <Facebook className="w-3.5 h-3.5 mr-1.5 text-[#1877F2]" /> Copier lien Facebook
+          </Button>
+          <Button size="sm" variant="ghost" className="h-8 w-8 p-0" asChild title="Ouvrir le tuto">
+            <a href={fbLink} target="_blank" rel="noopener noreferrer"><ExternalLink className="w-3.5 h-3.5" /></a>
+          </Button>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Button size="sm" variant="outline" className="flex-1 text-xs justify-start h-8" onClick={() => copy(gmbLink, "Google My Business")}>
+            <MapPin className="w-3.5 h-3.5 mr-1.5 text-[#34A853]" /> Copier lien Google
+          </Button>
+          <Button size="sm" variant="ghost" className="h-8 w-8 p-0" asChild title="Ouvrir le tuto">
+            <a href={gmbLink} target="_blank" rel="noopener noreferrer"><ExternalLink className="w-3.5 h-3.5" /></a>
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function SocialMediaSection({ clientId, clientNdi }: { clientId: string; clientNdi?: string | null }) {
   const { data: accounts, isLoading: loadingAccounts } = useSocialAccounts(clientId);
   const { data: publications, isLoading: loadingPubs } = useSocialPublications(clientId);
   const deleteAccount = useDeleteSocialAccount();
@@ -302,6 +343,8 @@ export default function SocialMediaSection({ clientId }: { clientId: string }) {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {/* ─── LIENS TUTOS PERSONNALISÉS ─── */}
+        <TutoLinksBlock clientNdi={clientNdi} />
         <Tabs defaultValue="comptes">
           <TabsList className="mb-4">
             <TabsTrigger value="comptes">Comptes</TabsTrigger>

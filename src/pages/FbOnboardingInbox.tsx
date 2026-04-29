@@ -11,6 +11,7 @@ import {
   useDeleteGmbOnboarding,
   type GmbOnboardingStatus,
 } from "@/hooks/use-gmb-onboarding";
+import { useUpsertClientGmb } from "@/hooks/use-client-gmb";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import {
   Mail, Building2, KeyRound, Link2, Facebook, MapPin, Inbox, CheckCircle2, Archive,
-  Trash2, Search, Copy, ExternalLink, Phone,
+  Trash2, Search, Copy, ExternalLink, Phone, PlusCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -184,6 +185,25 @@ function GmbInbox() {
   const { data, isLoading } = useGmbOnboardingList({ status: filter });
   const updateStatus = useUpdateGmbOnboardingStatus();
   const remove = useDeleteGmbOnboarding();
+  const upsertGmb = useUpsertClientGmb();
+
+  const handleCreateGmbListing = async (s: any) => {
+    if (!s.client_id) { toast.error("Soumission non liée à un client"); return; }
+    try {
+      await upsertGmb.mutateAsync({
+        client_id: s.client_id,
+        status: "a_creer",
+        access_level: "aucun",
+        business_name_on_google: s.gmb_business_name || s.company_name,
+        google_account_email: s.google_account_email || null,
+        notes: `Fiche à créer suite à soumission tuto GMB du ${format(new Date(s.created_at), "d MMM yyyy", { locale: fr })}.\nContact: ${s.contact_email}${s.notes ? "\n\nNote client : " + s.notes : ""}`,
+      } as any);
+      toast.success("Fiche GMB créée — visible dans le module GMB");
+    } catch (e: any) {
+      toast.error(e.message || "Erreur (fiche déjà existante ?)");
+    }
+  };
+
 
   const filtered = (data || []).filter((s) => {
     if (!search.trim()) return true;
@@ -276,6 +296,11 @@ function GmbInbox() {
                   {s.status !== "archive" && (
                     <Button size="sm" variant="outline" onClick={() => updateStatus.mutate({ id: s.id, status: "archive" })}>
                       <Archive className="h-4 w-4" /> Archiver
+                    </Button>
+                  )}
+                  {s.client_id && !s.has_existing_listing && (
+                    <Button size="sm" variant="outline" onClick={() => handleCreateGmbListing(s)} disabled={upsertGmb.isPending} className="border-amber-300 text-amber-700 hover:bg-amber-50">
+                      <PlusCircle className="h-4 w-4" /> Créer la fiche GMB
                     </Button>
                   )}
                   {s.client_id && (

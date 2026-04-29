@@ -1639,7 +1639,7 @@ export default function ClientDetail() {
       <SupportTicketsSection clientId={id!} />
       <ClientEmailHistory clientId={id!} clientEmail={client.email} />
       <ClientFormsSection clientId={id!} supportToken={(client as any).support_token} packType={client.pack_type ?? undefined} />
-      {client.pack_type !== "star_bizness_nfc" && <SocialMediaSection clientId={id!} />}
+      {client.pack_type !== "star_bizness_nfc" && <SocialMediaSection clientId={id!} clientNdi={(client as any).ndi} />}
       <NotesSection clientId={id!} activities={activities} />
     </div>
   );

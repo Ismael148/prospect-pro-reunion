@@ -868,9 +868,11 @@ export type Database = {
           fb_page_url: string | null
           has_existing_page: boolean | null
           id: string
+          last_reminder_at: string | null
           notes: string | null
           processed_at: string | null
           processed_by: string | null
+          reminder_count: number
           source_url: string | null
           status: string
           updated_at: string
@@ -887,9 +889,11 @@ export type Database = {
           fb_page_url?: string | null
           has_existing_page?: boolean | null
           id?: string
+          last_reminder_at?: string | null
           notes?: string | null
           processed_at?: string | null
           processed_by?: string | null
+          reminder_count?: number
           source_url?: string | null
           status?: string
           updated_at?: string
@@ -906,9 +910,11 @@ export type Database = {
           fb_page_url?: string | null
           has_existing_page?: boolean | null
           id?: string
+          last_reminder_at?: string | null
           notes?: string | null
           processed_at?: string | null
           processed_by?: string | null
+          reminder_count?: number
           source_url?: string | null
           status?: string
           updated_at?: string
@@ -937,10 +943,12 @@ export type Database = {
           google_account_email: string | null
           has_existing_listing: boolean | null
           id: string
+          last_reminder_at: string | null
           manager_added: boolean | null
           notes: string | null
           processed_at: string | null
           processed_by: string | null
+          reminder_count: number
           source_url: string | null
           status: string
           updated_at: string
@@ -958,10 +966,12 @@ export type Database = {
           google_account_email?: string | null
           has_existing_listing?: boolean | null
           id?: string
+          last_reminder_at?: string | null
           manager_added?: boolean | null
           notes?: string | null
           processed_at?: string | null
           processed_by?: string | null
+          reminder_count?: number
           source_url?: string | null
           status?: string
           updated_at?: string
@@ -979,10 +989,12 @@ export type Database = {
           google_account_email?: string | null
           has_existing_listing?: boolean | null
           id?: string
+          last_reminder_at?: string | null
           manager_added?: boolean | null
           notes?: string | null
           processed_at?: string | null
           processed_by?: string | null
+          reminder_count?: number
           source_url?: string | null
           status?: string
           updated_at?: string

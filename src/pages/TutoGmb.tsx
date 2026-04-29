@@ -24,7 +24,7 @@ import { useSubmitGmbOnboarding } from "@/hooks/use-gmb-onboarding";
 import { useClientByNdi } from "@/hooks/use-fb-onboarding";
 import logo from "@/assets/logo.webp";
 
-const ADAMKOM_GOOGLE_EMAIL = "contact@adamkom.com";
+const ADAMKOM_GOOGLE_EMAIL = "adamkom.co@gmail.com";
 
 type StepKey = "intro" | "create" | "find" | "manager" | "envoi" | "merci";
 

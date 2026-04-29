@@ -303,6 +303,8 @@ export default function SocialMediaSection({ clientId, clientNdi }: { clientId: 
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {/* ─── LIENS TUTOS PERSONNALISÉS ─── */}
+        <TutoLinksBlock clientNdi={clientNdi} />
         <Tabs defaultValue="comptes">
           <TabsList className="mb-4">
             <TabsTrigger value="comptes">Comptes</TabsTrigger>

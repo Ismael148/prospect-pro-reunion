@@ -1259,6 +1259,59 @@ export type Database = {
         }
         Relationships: []
       }
+      onboarding_invitations: {
+        Row: {
+          client_id: string | null
+          client_ndi: string | null
+          company_name: string
+          completed_at: string | null
+          contact_email: string
+          created_at: string
+          id: string
+          kind: string
+          last_reminder_at: string | null
+          reminder_count: number
+          sent_at: string
+          sent_by: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          client_ndi?: string | null
+          company_name: string
+          completed_at?: string | null
+          contact_email: string
+          created_at?: string
+          id?: string
+          kind: string
+          last_reminder_at?: string | null
+          reminder_count?: number
+          sent_at?: string
+          sent_by?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          client_ndi?: string | null
+          company_name?: string
+          completed_at?: string | null
+          contact_email?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          last_reminder_at?: string | null
+          reminder_count?: number
+          sent_at?: string
+          sent_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_invitations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_access: {
         Row: {
           accepted_at: string | null

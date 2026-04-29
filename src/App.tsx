@@ -40,6 +40,7 @@ import Gmb from "./pages/Gmb";
 import TutoFacebook from "./pages/TutoFacebook";
 import TutoGmb from "./pages/TutoGmb";
 import OnboardingInbox from "./pages/FbOnboardingInbox";
+import EmailsLog from "./pages/EmailsLog";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -156,6 +157,10 @@ const App = () => (
             <Route
               path="/onboarding-clients"
               element={<ProtectedRoute><AppLayout><OnboardingInbox /></AppLayout></ProtectedRoute>}
+            />
+            <Route
+              path="/emails"
+              element={<ProtectedRoute><AppLayout><EmailsLog /></AppLayout></ProtectedRoute>}
             />
             {/* Public tutorials */}
             <Route path="/tuto/facebook" element={<TutoFacebook />} />

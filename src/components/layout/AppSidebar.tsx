@@ -19,6 +19,7 @@ import {
   Globe,
   Trash2,
   Share2,
+  Inbox,
 } from "lucide-react";
 import logo from "@/assets/logo.webp";
 import {

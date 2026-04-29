@@ -335,14 +335,9 @@ function TutoLinksBlock({ clientId, clientNdi, clientEmail, clientCompany }: { c
                 <a href={fbLink} target="_blank" rel="noopener noreferrer"><ExternalLink className="w-3.5 h-3.5" /></a>
               </Button>
             </div>
-            <div className="flex items-center gap-1">
-              <Button size="sm" variant="default" className="flex-1 text-xs h-8 bg-[#1877F2] hover:bg-[#1866d4]" onClick={() => resend("facebook")} disabled={!clientEmail || resending === "facebook"}>
-                {resending === "facebook" ? "Envoi..." : <><Send className="w-3 h-3 mr-1" /> Renvoyer le mail</>}
-              </Button>
-              <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setHistoryOpen("facebook")} title="Historique d'envoi">
-                <HistoryIcon className="w-3.5 h-3.5" />
-              </Button>
-            </div>
+            <Button size="sm" variant="default" className="w-full text-xs h-8 bg-[#1877F2] hover:bg-[#1866d4]" onClick={() => resend("facebook")} disabled={!clientEmail || resending === "facebook"}>
+              {resending === "facebook" ? "Envoi..." : <><Send className="w-3 h-3 mr-1" /> Renvoyer le mail</>}
+            </Button>
           </div>
 
           {/* GMB */}
@@ -358,28 +353,18 @@ function TutoLinksBlock({ clientId, clientNdi, clientEmail, clientCompany }: { c
                 <a href={gmbLink} target="_blank" rel="noopener noreferrer"><ExternalLink className="w-3.5 h-3.5" /></a>
               </Button>
             </div>
-            <div className="flex items-center gap-1">
-              <Button size="sm" variant="default" className="flex-1 text-xs h-8 bg-[#34A853] hover:bg-[#2d9248]" onClick={() => resend("gmb")} disabled={!clientEmail || resending === "gmb"}>
-                {resending === "gmb" ? "Envoi..." : <><Send className="w-3 h-3 mr-1" /> Renvoyer le mail</>}
-              </Button>
-              <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setHistoryOpen("gmb")} title="Historique d'envoi">
-                <HistoryIcon className="w-3.5 h-3.5" />
-              </Button>
-            </div>
+            <Button size="sm" variant="default" className="w-full text-xs h-8 bg-[#34A853] hover:bg-[#2d9248]" onClick={() => resend("gmb")} disabled={!clientEmail || resending === "gmb"}>
+              {resending === "gmb" ? "Envoi..." : <><Send className="w-3 h-3 mr-1" /> Renvoyer le mail</>}
+            </Button>
           </div>
         </div>
         {!clientEmail && (
           <p className="text-[10px] text-amber-600 mt-2">⚠️ Aucun email client — l'envoi automatique est désactivé.</p>
         )}
+        <p className="text-[10px] text-muted-foreground mt-2">
+          📬 Suivi des envois centralisé dans <a href="/emails" className="text-primary underline">Notifications &gt; Emails</a>.
+        </p>
       </div>
-
-      {/* Historique drawer */}
-      <TutoEmailHistoryDialog
-        open={!!historyOpen}
-        onClose={() => setHistoryOpen(null)}
-        kind={historyOpen}
-        clientEmail={clientEmail || null}
-      />
     </>
   );
 }

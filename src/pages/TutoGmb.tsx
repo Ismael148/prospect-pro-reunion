@@ -432,6 +432,20 @@ function StepEnvoi({
         has_existing_listing: hasListing,
         notes: form.notes,
       });
+      // Send automatic confirmation email to client (no auth required)
+      try {
+        await supabase.functions.invoke("send-onboarding-confirmation", {
+          body: {
+            kind: "gmb",
+            recipientEmail: form.contact_email,
+            recipientName: form.company_name,
+            companyName: form.company_name,
+            ndi: clientNdi,
+          },
+        });
+      } catch (err) {
+        console.error("[TutoGmb] confirmation email failed", err);
+      }
       onSubmitted();
     } catch {
       /* toast handled in hook */

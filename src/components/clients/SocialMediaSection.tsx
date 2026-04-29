@@ -224,7 +224,10 @@ function NewPublicationDialog({ clientId, accounts }: NewPublicationDialogProps)
   );
 }
 
-function TutoLinksBlock({ clientNdi }: { clientNdi?: string | null }) {
+function TutoLinksBlock({ clientId, clientNdi, clientEmail, clientCompany }: { clientId: string; clientNdi?: string | null; clientEmail?: string | null; clientCompany?: string }) {
+  const [resending, setResending] = useState<"facebook" | "gmb" | null>(null);
+  const [historyOpen, setHistoryOpen] = useState<"facebook" | "gmb" | null>(null);
+
   const fbLink = clientNdi ? `${PUBLISHED_URL}/tuto/facebook?client=${clientNdi}` : `${PUBLISHED_URL}/tuto/facebook`;
   const gmbLink = clientNdi ? `${PUBLISHED_URL}/tuto/gmb?client=${clientNdi}` : `${PUBLISHED_URL}/tuto/gmb`;
 
@@ -232,35 +235,231 @@ function TutoLinksBlock({ clientNdi }: { clientNdi?: string | null }) {
     navigator.clipboard.writeText(link).then(() => toast.success(`Lien tuto ${label} copié !`));
   };
 
+  const resend = async (kind: "facebook" | "gmb") => {
+    if (!clientEmail) {
+      toast.error("Aucun email client renseigné");
+      return;
+    }
+    setResending(kind);
+    try {
+      const link = kind === "facebook" ? fbLink : gmbLink;
+      const platformLabel = kind === "facebook" ? "Facebook Business" : "Google My Business";
+      const subject = `Accès à votre ${kind === "facebook" ? "page Facebook" : "fiche Google"} — ${clientCompany || ""}`.trim();
+      const greeting = clientCompany || "vous";
+      const htmlContent = `
+        <div style="font-family:Inter,Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#18181b">
+          <p>Bonjour <strong>${greeting}</strong>,</p>
+          <p>Suite à notre échange, voici à nouveau le tutoriel <strong>${platformLabel}</strong> pour nous transmettre les accès nécessaires à la gestion de vos réseaux sociaux.</p>
+          <p>Le tutoriel est ultra-simple, il ne vous prendra que quelques minutes et vous n'avez <strong>aucun mot de passe à nous communiquer</strong>.</p>
+          <p style="text-align:center;margin:32px 0">
+            <a href="${link}" style="background:linear-gradient(135deg,#ff006e,#ff5c8a);color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block">
+              ${kind === "facebook" ? "📘" : "📍"} Suivre le tutoriel ${platformLabel}
+            </a>
+          </p>
+          <p style="font-size:13px;color:#71717a">Lien direct : <a href="${link}" style="color:#ff006e;word-break:break-all">${link}</a></p>
+          <p>Si vous avez la moindre question, notre équipe se tient à votre disposition.</p>
+          <p>Très cordialement,<br><strong style="color:#ff006e">L'équipe Adamkom</strong></p>
+        </div>
+      `;
+      const { error } = await supabase.functions.invoke("send-brevo-campaign", {
+        body: {
+          action: "send_client_email",
+          recipientEmail: clientEmail,
+          recipientName: clientCompany || clientEmail,
+          subject,
+          htmlContent,
+          trigger: kind === "facebook" ? "tuto_facebook" : "tuto_gmb",
+          client_id: clientId,
+        },
+      });
+      if (error) throw error;
+
+      // Reset reminder window
+      try {
+        const { data: existing } = await (supabase as any)
+          .from("onboarding_invitations")
+          .select("id")
+          .eq("kind", kind)
+          .eq("contact_email", clientEmail)
+          .is("completed_at", null)
+          .maybeSingle();
+        if (existing?.id) {
+          await (supabase as any)
+            .from("onboarding_invitations")
+            .update({ sent_at: new Date().toISOString(), reminder_count: 0, last_reminder_at: null })
+            .eq("id", existing.id);
+        } else {
+          await (supabase as any).from("onboarding_invitations").insert({
+            kind,
+            client_id: clientId,
+            client_ndi: clientNdi || null,
+            contact_email: clientEmail,
+            company_name: clientCompany || null,
+          });
+        }
+      } catch (e) { console.warn("invitation tracking failed", e); }
+
+      toast.success(`Mail tuto ${platformLabel} renvoyé à ${clientEmail}`);
+    } catch (e: any) {
+      toast.error(e.message || "Erreur lors de l'envoi");
+    } finally {
+      setResending(null);
+    }
+  };
+
   return (
-    <div className="mb-4 p-3 rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
-      <div className="flex items-center gap-2 mb-2">
-        <Link2 className="w-4 h-4 text-primary" />
-        <span className="text-xs font-semibold text-primary uppercase tracking-wide">Liens tutos personnalisés</span>
-        {!clientNdi && <Badge variant="outline" className="text-[10px]">NDI manquant — lien générique</Badge>}
-      </div>
-      <p className="text-[11px] text-muted-foreground mb-3">
-        Envoyez ces liens au client pour qu'il vous transmette ses accès Facebook & Google My Business sans partager de mot de passe.
-      </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        <div className="flex items-center gap-1.5">
-          <Button size="sm" variant="outline" className="flex-1 text-xs justify-start h-8" onClick={() => copy(fbLink, "Facebook")}>
-            <Facebook className="w-3.5 h-3.5 mr-1.5 text-[#1877F2]" /> Copier lien Facebook
-          </Button>
-          <Button size="sm" variant="ghost" className="h-8 w-8 p-0" asChild title="Ouvrir le tuto">
-            <a href={fbLink} target="_blank" rel="noopener noreferrer"><ExternalLink className="w-3.5 h-3.5" /></a>
-          </Button>
+    <>
+      <div className="mb-4 p-3 rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+        <div className="flex items-center gap-2 mb-2">
+          <Link2 className="w-4 h-4 text-primary" />
+          <span className="text-xs font-semibold text-primary uppercase tracking-wide">Liens tutos personnalisés</span>
+          {!clientNdi && <Badge variant="outline" className="text-[10px]">NDI manquant — lien générique</Badge>}
         </div>
-        <div className="flex items-center gap-1.5">
-          <Button size="sm" variant="outline" className="flex-1 text-xs justify-start h-8" onClick={() => copy(gmbLink, "Google My Business")}>
-            <MapPin className="w-3.5 h-3.5 mr-1.5 text-[#34A853]" /> Copier lien Google
-          </Button>
-          <Button size="sm" variant="ghost" className="h-8 w-8 p-0" asChild title="Ouvrir le tuto">
-            <a href={gmbLink} target="_blank" rel="noopener noreferrer"><ExternalLink className="w-3.5 h-3.5" /></a>
-          </Button>
+        <p className="text-[11px] text-muted-foreground mb-3">
+          Envoyez ces liens au client pour qu'il vous transmette ses accès Facebook & Google My Business sans partager de mot de passe.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* FACEBOOK */}
+          <div className="space-y-1.5 p-2 rounded-lg bg-background/60 border border-border/50">
+            <div className="flex items-center gap-1.5 text-xs font-semibold">
+              <Facebook className="w-3.5 h-3.5 text-[#1877F2]" /> Facebook
+            </div>
+            <div className="flex items-center gap-1">
+              <Button size="sm" variant="outline" className="flex-1 text-xs justify-start h-8" onClick={() => copy(fbLink, "Facebook")}>
+                <Copy className="w-3 h-3 mr-1" /> Copier lien
+              </Button>
+              <Button size="sm" variant="ghost" className="h-8 w-8 p-0" asChild title="Ouvrir le tuto">
+                <a href={fbLink} target="_blank" rel="noopener noreferrer"><ExternalLink className="w-3.5 h-3.5" /></a>
+              </Button>
+            </div>
+            <div className="flex items-center gap-1">
+              <Button size="sm" variant="default" className="flex-1 text-xs h-8 bg-[#1877F2] hover:bg-[#1866d4]" onClick={() => resend("facebook")} disabled={!clientEmail || resending === "facebook"}>
+                {resending === "facebook" ? "Envoi..." : <><Send className="w-3 h-3 mr-1" /> Renvoyer le mail</>}
+              </Button>
+              <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setHistoryOpen("facebook")} title="Historique d'envoi">
+                <History className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          </div>
+
+          {/* GMB */}
+          <div className="space-y-1.5 p-2 rounded-lg bg-background/60 border border-border/50">
+            <div className="flex items-center gap-1.5 text-xs font-semibold">
+              <MapPin className="w-3.5 h-3.5 text-[#34A853]" /> Google My Business
+            </div>
+            <div className="flex items-center gap-1">
+              <Button size="sm" variant="outline" className="flex-1 text-xs justify-start h-8" onClick={() => copy(gmbLink, "Google My Business")}>
+                <Copy className="w-3 h-3 mr-1" /> Copier lien
+              </Button>
+              <Button size="sm" variant="ghost" className="h-8 w-8 p-0" asChild title="Ouvrir le tuto">
+                <a href={gmbLink} target="_blank" rel="noopener noreferrer"><ExternalLink className="w-3.5 h-3.5" /></a>
+              </Button>
+            </div>
+            <div className="flex items-center gap-1">
+              <Button size="sm" variant="default" className="flex-1 text-xs h-8 bg-[#34A853] hover:bg-[#2d9248]" onClick={() => resend("gmb")} disabled={!clientEmail || resending === "gmb"}>
+                {resending === "gmb" ? "Envoi..." : <><Send className="w-3 h-3 mr-1" /> Renvoyer le mail</>}
+              </Button>
+              <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setHistoryOpen("gmb")} title="Historique d'envoi">
+                <History className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          </div>
         </div>
+        {!clientEmail && (
+          <p className="text-[10px] text-amber-600 mt-2">⚠️ Aucun email client — l'envoi automatique est désactivé.</p>
+        )}
       </div>
-    </div>
+
+      {/* Historique drawer */}
+      <TutoEmailHistoryDialog
+        open={!!historyOpen}
+        onClose={() => setHistoryOpen(null)}
+        kind={historyOpen}
+        clientEmail={clientEmail || null}
+      />
+    </>
+  );
+}
+
+function TutoEmailHistoryDialog({ open, onClose, kind, clientEmail }: { open: boolean; onClose: () => void; kind: "facebook" | "gmb" | null; clientEmail: string | null }) {
+  const trigger = kind === "facebook" ? "tuto_facebook" : "tuto_gmb";
+  const label = kind === "facebook" ? "Facebook" : "Google My Business";
+
+  const { data: logs, isLoading, refetch } = useQuery({
+    queryKey: ["tuto-email-log", trigger, clientEmail],
+    queryFn: async () => {
+      if (!clientEmail || !kind) return [];
+      const { data, error } = await supabase
+        .from("email_send_log")
+        .select("id, message_id, recipient_email, subject, status, error_message, created_at, template_name")
+        .eq("recipient_email", clientEmail)
+        .eq("template_name", trigger)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      // dedup by message_id (latest first already)
+      const map = new Map<string, any>();
+      for (const e of data || []) {
+        const key = e.message_id || e.id;
+        if (!map.has(key)) map.set(key, e);
+      }
+      return Array.from(map.values());
+    },
+    enabled: open && !!clientEmail && !!kind,
+  });
+
+  const statusBadge = (s: string) => {
+    if (s === "sent" || s === "delivered") return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-300">{s === "sent" ? "Envoyé" : "Délivré"}</Badge>;
+    if (s === "opened") return <Badge className="bg-green-100 text-green-700 border-green-300">Ouvert</Badge>;
+    if (s === "clicked") return <Badge className="bg-violet-100 text-violet-700 border-violet-300">Cliqué</Badge>;
+    if (s === "bounced" || s === "failed" || s === "spam" || s === "blocked") return <Badge variant="destructive">{s}</Badge>;
+    return <Badge variant="outline">{s}</Badge>;
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <History className="w-5 h-5" /> Historique envoi tuto {label}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>Destinataire : <strong>{clientEmail || "—"}</strong></span>
+            <Button size="sm" variant="ghost" onClick={() => refetch()}>Rafraîchir</Button>
+          </div>
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground py-6 text-center">Chargement...</p>
+          ) : !logs || logs.length === 0 ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">
+              Aucun envoi enregistré pour ce tuto.<br />
+              <span className="text-xs">Cliquez sur « Renvoyer le mail » pour envoyer le tuto.</span>
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {logs.map((e) => (
+                <div key={e.id} className="p-3 rounded-lg border border-border bg-muted/30">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <span className="text-sm font-medium truncate">{e.subject || "(sans objet)"}</span>
+                    {statusBadge(e.status)}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {new Date(e.created_at).toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" })}
+                  </p>
+                  {e.error_message && (
+                    <p className="text-xs text-destructive mt-1 break-words">⚠️ {e.error_message}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          <p className="text-[11px] text-muted-foreground pt-2 border-t">
+            💡 Si « Envoyé » mais non reçu : vérifier les spams du destinataire ou son adresse email.
+          </p>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

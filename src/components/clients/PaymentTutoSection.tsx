@@ -406,6 +406,46 @@ export default function PaymentTutoSection({ clientId, clientNdi, clientEmail, c
           </p>
         )}
       </CardContent>
+
+      {/* Aperçu avant envoi */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col p-0">
+          <DialogHeader className="px-6 pt-6 pb-3 border-b">
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="w-4 h-4 text-primary" /> Aperçu de l'email
+            </DialogTitle>
+            <DialogDescription className="space-y-1 text-xs">
+              <div><span className="font-semibold text-foreground">À :</span> {clientEmail}</div>
+              <div><span className="font-semibold text-foreground">Objet :</span> {subject}</div>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-auto bg-muted/30 p-4">
+            <iframe
+              title="Aperçu email"
+              srcDoc={previewHtml}
+              className="w-full h-[60vh] bg-white rounded-lg border shadow-sm"
+              sandbox=""
+            />
+          </div>
+          <DialogFooter className="px-6 py-4 border-t bg-background gap-2">
+            <Button variant="outline" onClick={() => setPreviewOpen(false)} disabled={sending}>
+              Annuler
+            </Button>
+            <Button
+              onClick={sendEmail}
+              disabled={sending}
+              className="bg-gradient-to-r from-primary to-primary/80"
+            >
+              {sending ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Envoi…</>
+              ) : (
+                <><Send className="w-4 h-4 mr-2" /> Envoyer à {clientEmail}</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
+

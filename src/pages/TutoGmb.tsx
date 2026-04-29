@@ -451,30 +451,30 @@ function StepEnvoi({
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="company_name">Nom de votre entreprise *</Label>
+            <Label htmlFor="company_name" className="text-zinc-700">Nom de votre entreprise *</Label>
             <Input
               id="company_name"
               value={form.company_name}
               onChange={(e) => setForm({ ...form, company_name: e.target.value })}
-              className="mt-1.5"
+              className="mt-1.5 bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-[#ff006e]"
             />
             {errors.company_name && <p className="text-xs text-red-600 mt-1">{errors.company_name}</p>}
           </div>
           <div>
-            <Label htmlFor="contact_email">Votre email *</Label>
+            <Label htmlFor="contact_email" className="text-zinc-700">Votre email *</Label>
             <Input
               id="contact_email"
               type="email"
               value={form.contact_email}
               onChange={(e) => setForm({ ...form, contact_email: e.target.value })}
-              className="mt-1.5"
+              className="mt-1.5 bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-[#ff006e]"
             />
             {errors.contact_email && <p className="text-xs text-red-600 mt-1">{errors.contact_email}</p>}
           </div>
         </div>
 
         <div>
-          <Label htmlFor="google_account_email">
+          <Label htmlFor="google_account_email" className="text-zinc-700">
             Email Google qui gère votre fiche * <span className="text-xs text-zinc-500">(celui où vous êtes connecté)</span>
           </Label>
           <Input
@@ -483,7 +483,7 @@ function StepEnvoi({
             placeholder="exemple@gmail.com"
             value={form.google_account_email}
             onChange={(e) => setForm({ ...form, google_account_email: e.target.value })}
-            className="mt-1.5"
+            className="mt-1.5 bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-[#ff006e]"
           />
           {errors.google_account_email && (
             <p className="text-xs text-red-600 mt-1">{errors.google_account_email}</p>
@@ -492,46 +492,46 @@ function StepEnvoi({
 
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="gmb_business_name">Nom exact sur Google Maps</Label>
+            <Label htmlFor="gmb_business_name" className="text-zinc-700">Nom exact sur Google Maps</Label>
             <Input
               id="gmb_business_name"
               placeholder="Ex : Pizzeria du Port"
               value={form.gmb_business_name}
               onChange={(e) => setForm({ ...form, gmb_business_name: e.target.value })}
-              className="mt-1.5"
+              className="mt-1.5 bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-[#ff006e]"
             />
           </div>
           <div>
-            <Label htmlFor="gmb_phone">Téléphone affiché</Label>
+            <Label htmlFor="gmb_phone" className="text-zinc-700">Téléphone affiché</Label>
             <Input
               id="gmb_phone"
               placeholder="0262 XX XX XX"
               value={form.gmb_phone}
               onChange={(e) => setForm({ ...form, gmb_phone: e.target.value })}
-              className="mt-1.5"
+              className="mt-1.5 bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-[#ff006e]"
             />
           </div>
         </div>
 
         <div>
-          <Label htmlFor="gmb_address">Adresse de l'établissement</Label>
+          <Label htmlFor="gmb_address" className="text-zinc-700">Adresse de l'établissement</Label>
           <Input
             id="gmb_address"
             placeholder="Ex : 12 rue de la Paix, 97400 Saint-Denis"
             value={form.gmb_address}
             onChange={(e) => setForm({ ...form, gmb_address: e.target.value })}
-            className="mt-1.5"
+            className="mt-1.5 bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-[#ff006e]"
           />
         </div>
 
         <div>
-          <Label htmlFor="gmb_maps_url">Lien Google Maps de votre fiche (recommandé)</Label>
+          <Label htmlFor="gmb_maps_url" className="text-zinc-700">Lien Google Maps de votre fiche (recommandé)</Label>
           <Input
             id="gmb_maps_url"
             placeholder="https://maps.google.com/..."
             value={form.gmb_maps_url}
             onChange={(e) => setForm({ ...form, gmb_maps_url: e.target.value })}
-            className="mt-1.5"
+            className="mt-1.5 bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-[#ff006e]"
           />
           {errors.gmb_maps_url && <p className="text-xs text-red-600 mt-1">{errors.gmb_maps_url}</p>}
           <p className="text-xs text-zinc-500 mt-1">
@@ -539,7 +539,7 @@ function StepEnvoi({
           </p>
         </div>
 
-        <label className="flex items-start gap-3 rounded-xl border-2 border-zinc-200 hover:border-[#ff006e] p-4 cursor-pointer transition-colors">
+        <label className="flex items-start gap-3 rounded-xl border-2 border-zinc-200 hover:border-[#ff006e] bg-white p-4 cursor-pointer transition-colors">
           <input
             type="checkbox"
             checked={form.manager_added}
@@ -558,14 +558,14 @@ function StepEnvoi({
         </label>
 
         <div>
-          <Label htmlFor="notes">Notes / commentaires (optionnel)</Label>
+          <Label htmlFor="notes" className="text-zinc-700">Notes / commentaires (optionnel)</Label>
           <Textarea
             id="notes"
             rows={3}
             placeholder="Une particularité, une question, une info utile..."
             value={form.notes}
             onChange={(e) => setForm({ ...form, notes: e.target.value })}
-            className="mt-1.5"
+            className="mt-1.5 bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-[#ff006e]"
           />
         </div>
 

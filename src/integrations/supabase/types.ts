@@ -118,6 +118,99 @@ export type Database = {
           },
         ]
       }
+      client_gmb: {
+        Row: {
+          access_level: Database["public"]["Enums"]["gmb_access_level"]
+          average_rating: number | null
+          business_name_on_google: string | null
+          checklist_account_created: boolean
+          checklist_code_received: boolean
+          checklist_description_added: boolean
+          checklist_hours_set: boolean
+          checklist_logo_added: boolean
+          checklist_photos_added: boolean
+          checklist_postal_requested: boolean
+          checklist_verified: boolean
+          client_id: string
+          code_received_at: string | null
+          created_at: string
+          created_by: string | null
+          gmb_location_id: string | null
+          gmb_url: string | null
+          google_account_email: string | null
+          id: string
+          last_post_at: string | null
+          last_review_replied_at: string | null
+          notes: string | null
+          postal_requested_at: string | null
+          status: Database["public"]["Enums"]["gmb_status"]
+          total_reviews: number | null
+          unanswered_reviews: number | null
+          updated_at: string
+          verified_at: string | null
+        }
+        Insert: {
+          access_level?: Database["public"]["Enums"]["gmb_access_level"]
+          average_rating?: number | null
+          business_name_on_google?: string | null
+          checklist_account_created?: boolean
+          checklist_code_received?: boolean
+          checklist_description_added?: boolean
+          checklist_hours_set?: boolean
+          checklist_logo_added?: boolean
+          checklist_photos_added?: boolean
+          checklist_postal_requested?: boolean
+          checklist_verified?: boolean
+          client_id: string
+          code_received_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          gmb_location_id?: string | null
+          gmb_url?: string | null
+          google_account_email?: string | null
+          id?: string
+          last_post_at?: string | null
+          last_review_replied_at?: string | null
+          notes?: string | null
+          postal_requested_at?: string | null
+          status?: Database["public"]["Enums"]["gmb_status"]
+          total_reviews?: number | null
+          unanswered_reviews?: number | null
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Update: {
+          access_level?: Database["public"]["Enums"]["gmb_access_level"]
+          average_rating?: number | null
+          business_name_on_google?: string | null
+          checklist_account_created?: boolean
+          checklist_code_received?: boolean
+          checklist_description_added?: boolean
+          checklist_hours_set?: boolean
+          checklist_logo_added?: boolean
+          checklist_photos_added?: boolean
+          checklist_postal_requested?: boolean
+          checklist_verified?: boolean
+          client_id?: string
+          code_received_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          gmb_location_id?: string | null
+          gmb_url?: string | null
+          google_account_email?: string | null
+          id?: string
+          last_post_at?: string | null
+          last_review_replied_at?: string | null
+          notes?: string | null
+          postal_requested_at?: string | null
+          status?: Database["public"]["Enums"]["gmb_status"]
+          total_reviews?: number | null
+          unanswered_reviews?: number | null
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           address: string | null
@@ -1779,6 +1872,19 @@ export type Database = {
         | "materiel"
         | "autre"
       expense_frequency: "ponctuel" | "mensuel" | "trimestriel" | "annuel"
+      gmb_access_level:
+        | "aucun"
+        | "gestionnaire"
+        | "proprietaire"
+        | "proprietaire_principal"
+      gmb_status:
+        | "a_creer"
+        | "compte_cree"
+        | "verification_postale_demandee"
+        | "code_recu"
+        | "active"
+        | "suspendue"
+        | "non_applicable"
       pack_type: "star_bizness_numerik" | "star_bizness_nfc" | "autre"
       partner_access_role:
         | "admin"
@@ -2005,6 +2111,21 @@ export const Constants = {
         "autre",
       ],
       expense_frequency: ["ponctuel", "mensuel", "trimestriel", "annuel"],
+      gmb_access_level: [
+        "aucun",
+        "gestionnaire",
+        "proprietaire",
+        "proprietaire_principal",
+      ],
+      gmb_status: [
+        "a_creer",
+        "compte_cree",
+        "verification_postale_demandee",
+        "code_recu",
+        "active",
+        "suspendue",
+        "non_applicable",
+      ],
       pack_type: ["star_bizness_numerik", "star_bizness_nfc", "autre"],
       partner_access_role: [
         "admin",

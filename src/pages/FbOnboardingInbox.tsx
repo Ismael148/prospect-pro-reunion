@@ -185,6 +185,25 @@ function GmbInbox() {
   const { data, isLoading } = useGmbOnboardingList({ status: filter });
   const updateStatus = useUpdateGmbOnboardingStatus();
   const remove = useDeleteGmbOnboarding();
+  const upsertGmb = useUpsertClientGmb();
+
+  const handleCreateGmbListing = async (s: any) => {
+    if (!s.client_id) { toast.error("Soumission non liée à un client"); return; }
+    try {
+      await upsertGmb.mutateAsync({
+        client_id: s.client_id,
+        status: "a_creer",
+        access_level: "aucun",
+        business_name_on_google: s.gmb_business_name || s.company_name,
+        google_account_email: s.google_account_email || null,
+        notes: `Fiche à créer suite à soumission tuto GMB du ${format(new Date(s.created_at), "d MMM yyyy", { locale: fr })}.\nContact: ${s.contact_email}${s.notes ? "\n\nNote client : " + s.notes : ""}`,
+      } as any);
+      toast.success("Fiche GMB créée — visible dans le module GMB");
+    } catch (e: any) {
+      toast.error(e.message || "Erreur (fiche déjà existante ?)");
+    }
+  };
+
 
   const filtered = (data || []).filter((s) => {
     if (!search.trim()) return true;

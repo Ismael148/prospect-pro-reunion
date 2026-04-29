@@ -875,6 +875,9 @@ export default function TutoFacebook() {
                 </a>
               </p>
             )}
+            <div className="mt-12">
+              <TutoFAQ items={FACEBOOK_FAQ} title="❓ Questions fréquentes" />
+            </div>
           </main>
         </div>
       </div>

@@ -146,6 +146,9 @@ const TABLES: Record<string, TableConfig> = {
   fb_onboarding_submissions: {
     lists: [["fb-onboarding"]],
   },
+  gmb_onboarding_submissions: {
+    lists: [["gmb-onboarding"]],
+  },
 };
 
 /* ---------------------------------------------------------------------------

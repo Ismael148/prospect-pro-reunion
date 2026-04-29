@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import {
-  Mail, Send, Loader2, Ticket, FileText, CreditCard, Globe, Eye, Sparkles, Wand2, Star,
+  Mail, Send, Loader2, Ticket, FileText, CreditCard, Globe, Eye, Sparkles, Wand2, Star, Facebook, MapPin,
 } from "lucide-react";
 import EmailTemplateSaver from "@/components/EmailTemplateSaver";
 import type { SavedTemplate } from "@/hooks/use-email-templates";
@@ -40,6 +40,7 @@ interface ClientData {
   pack_type: string | null;
   manager_name: string | null;
   sector?: string | null;
+  ndi?: string | null;
 }
 
 // makeCta imported from @/lib/email-template
@@ -107,6 +108,48 @@ ${makeCta('🌐 Remplir le formulaire site', siteFormLink)}
 ${makeCta('⭐ Laisser un avis Google', reviewLink)}
 <p style="margin:0 0 20px;font-size:13px;color:#71717a;text-align:center">Ou copiez ce lien dans votre navigateur :<br><a href="${reviewLink}" style="color:${BRAND_COLOR};word-break:break-all">${reviewLink}</a></p>
 <p style="margin:0">Avec toute notre gratitude,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`;
+      },
+    },
+    {
+      id: 'tuto_facebook',
+      label: 'Tuto Facebook (BM + Page)',
+      icon: <Facebook className="w-4 h-4" />,
+      subject: `Accès à votre page Facebook — ${client.company_name}`,
+      trigger: 'tuto_facebook',
+      bodyFn: () => {
+        const greeting = client.manager_name?.trim() || client.company_name;
+        const tutoLink = client.ndi
+          ? `${PUBLISHED_URL}/tuto/facebook?client=${client.ndi}`
+          : `${PUBLISHED_URL}/tuto/facebook`;
+        return `<p style="margin:0 0 20px">Bonjour <strong>${greeting}</strong>,</p>
+<p style="margin:0 0 20px">Pour pouvoir gérer efficacement vos <strong>réseaux sociaux Facebook & Instagram</strong>, nous avons besoin de quelques accès techniques que vous seul(e) pouvez nous fournir.</p>
+<p style="margin:0 0 20px">Rassurez-vous : <strong>nous ne vous demandons aucun mot de passe</strong>. Tout passe par le <em>Business Manager Facebook</em>, l'outil officiel qui permet de déléguer la gestion d'une page à une agence — en gardant 100% du contrôle de votre côté.</p>
+<p style="margin:0 0 20px">Pour vous simplifier la vie, nous avons préparé un <strong>tutoriel ultra-simple</strong> (5 à 10 minutes) qui vous guide pas à pas, avec des captures d'écran et des explications claires. Il fonctionne aussi si vous n'avez pas encore de page Facebook : on vous montre comment la créer.</p>
+${makeCta('📘 Suivre le tutoriel Facebook', tutoLink)}
+<p style="margin:0 0 20px;font-size:13px;color:#71717a">À la fin du tutoriel, un petit formulaire vous permet de nous transmettre les informations clés (ID du Business Manager, email associé). Nous prenons ensuite le relais sous 24h ouvrées.</p>
+<p style="margin:0 0 20px">Si vous avez la moindre question pendant le processus, n'hésitez pas à nous écrire.</p>
+<p style="margin:0">Très cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`;
+      },
+    },
+    {
+      id: 'tuto_gmb',
+      label: 'Tuto Google My Business',
+      icon: <MapPin className="w-4 h-4" />,
+      subject: `Accès à votre fiche Google — ${client.company_name}`,
+      trigger: 'tuto_gmb',
+      bodyFn: () => {
+        const greeting = client.manager_name?.trim() || client.company_name;
+        const tutoLink = client.ndi
+          ? `${PUBLISHED_URL}/tuto/gmb?client=${client.ndi}`
+          : `${PUBLISHED_URL}/tuto/gmb`;
+        return `<p style="margin:0 0 20px">Bonjour <strong>${greeting}</strong>,</p>
+<p style="margin:0 0 20px">Pour optimiser votre <strong>visibilité locale sur Google</strong> (Google Maps + Recherche Google), nous avons besoin d'un accès <strong>Gestionnaire</strong> sur votre fiche Google My Business.</p>
+<p style="margin:0 0 20px">C'est l'accès le plus respectueux qui existe : <strong>vous restez Propriétaire</strong>, vous gardez vos identifiants Google secrets, et vous pouvez retirer notre accès à tout moment d'un simple clic.</p>
+<p style="margin:0 0 20px">Pour vous accompagner, nous avons préparé un <strong>tutoriel pas-à-pas</strong> (2 minutes si vous avez déjà une fiche, 8 minutes si nous devons en créer une). Il vous explique exactement quoi faire, avec des visuels et l'email Adamkom à ajouter.</p>
+${makeCta('📍 Suivre le tutoriel Google', tutoLink)}
+<p style="margin:0 0 20px;font-size:13px;color:#71717a">À la fin, un court formulaire confirme que tout est en place et nous transmet les infos pour qu'on puisse accepter l'invitation rapidement (sous 24h ouvrées).</p>
+<p style="margin:0 0 20px">Notre équipe se tient à votre disposition si vous rencontrez le moindre obstacle pendant la procédure.</p>
+<p style="margin:0">Très cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`;
       },
     },
   ];

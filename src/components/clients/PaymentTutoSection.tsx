@@ -306,11 +306,11 @@ export default function PaymentTutoSection({ clientId, clientNdi, clientEmail, c
             <Button
               size="sm"
               className="bg-gradient-to-r from-primary to-primary/80"
-              onClick={sendEmail}
-              disabled={!clientEmail || sending}
+              onClick={openPreview}
+              disabled={!clientEmail || creatingInvite}
             >
-              {sending ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Send className="w-3.5 h-3.5 mr-1" />}
-              Envoyer le mail
+              {creatingInvite ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Mail className="w-3.5 h-3.5 mr-1" />}
+              Aperçu & Envoyer
             </Button>
           </div>
           {!clientEmail && (

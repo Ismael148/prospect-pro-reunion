@@ -298,6 +298,11 @@ function GmbInbox() {
                       <Archive className="h-4 w-4" /> Archiver
                     </Button>
                   )}
+                  {s.client_id && !s.has_existing_listing && (
+                    <Button size="sm" variant="outline" onClick={() => handleCreateGmbListing(s)} disabled={upsertGmb.isPending} className="border-amber-300 text-amber-700 hover:bg-amber-50">
+                      <PlusCircle className="h-4 w-4" /> Créer la fiche GMB
+                    </Button>
+                  )}
                   {s.client_id && (
                     <Button size="sm" variant="outline" asChild>
                       <a href={`/clients/${s.client_id}`}><ExternalLink className="h-4 w-4" /> Voir la fiche</a>

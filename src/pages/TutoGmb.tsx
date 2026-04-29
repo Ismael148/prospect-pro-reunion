@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { z } from "zod";
 import { useSubmitGmbOnboarding } from "@/hooks/use-gmb-onboarding";
 import { useClientByNdi } from "@/hooks/use-fb-onboarding";
+import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.webp";
 
 const ADAMKOM_GOOGLE_EMAIL = "adamkom.co@gmail.com";

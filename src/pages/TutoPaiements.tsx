@@ -475,6 +475,17 @@ export default function TutoPaiements() {
                 </TabsContent>
               </Tabs>
             </GlassCard>
+
+            {provider.beginnerGuide && provider.beginnerGuide.length > 0 && (
+              <GlassCard className="p-5 md:p-6">
+                <BeginnerGuide
+                  title={`Guide ultra-débutant ${provider.name}`}
+                  intro="Si vous n'avez jamais créé de compte de paiement en ligne, suivez ces étapes pas-à-pas. Pensez à préparer vos documents avant de commencer."
+                  steps={provider.beginnerGuide}
+                  accentColor={provider.color}
+                />
+              </GlassCard>
+            )}
           </div>
 
           {/* Right: Form */}

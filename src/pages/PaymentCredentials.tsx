@@ -78,7 +78,7 @@ function CredentialDetail({ cred, onUpdate }: { cred: Credential; onUpdate: () =
     setStatus(newStatus);
     const { error } = await supabase
       .from("payment_credentials")
-      .update({ status: newStatus, reviewed_at: new Date().toISOString() })
+      .update({ status: newStatus as any, reviewed_at: new Date().toISOString() })
       .eq("id", cred.id);
     if (error) {
       toast({ variant: "destructive", title: "Erreur", description: error.message });

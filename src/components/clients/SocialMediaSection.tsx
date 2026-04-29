@@ -224,7 +224,7 @@ function NewPublicationDialog({ clientId, accounts }: NewPublicationDialogProps)
   );
 }
 
-export default function SocialMediaSection({ clientId }: { clientId: string }) {
+export default function SocialMediaSection({ clientId, clientNdi }: { clientId: string; clientNdi?: string | null }) {
   const { data: accounts, isLoading: loadingAccounts } = useSocialAccounts(clientId);
   const { data: publications, isLoading: loadingPubs } = useSocialPublications(clientId);
   const deleteAccount = useDeleteSocialAccount();

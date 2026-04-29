@@ -1,5 +1,7 @@
 // Edge function: onboarding-reminder
-// Envoie un email de relance auto via Brevo aux clients dont la soumission FB/GMB est restée "recu" depuis > 5 jours
+// Envoie un email de relance auto via Brevo aux clients à qui on a envoyé le tuto FB/GMB
+// MAIS qui n'ont JAMAIS rempli le formulaire (pas de soumission existante).
+// Dès qu'un client soumet le formulaire, plus aucune relance n'est envoyée.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -10,23 +12,25 @@ const corsHeaders = {
 
 const PUBLISHED_URL = "https://ai.adamkom.com";
 const REMINDER_DELAY_DAYS = 5;
-const MAX_REMINDERS = 2; // 2 relances max
+const MAX_REMINDERS = 2;
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-interface Submission {
+interface Invitation {
   id: string;
+  kind: "facebook" | "gmb";
+  client_id: string | null;
   client_ndi: string | null;
-  company_name: string;
   contact_email: string;
-  status: string;
-  created_at: string;
+  company_name: string;
+  sent_at: string;
   reminder_count: number;
   last_reminder_at: string | null;
+  completed_at: string | null;
 }
 
-function buildEmailHtml(kind: "facebook" | "gmb", company: string, link: string): { subject: string; html: string } {
+function buildEmailHtml(kind: "facebook" | "gmb", company: string, link: string) {
   const isFb = kind === "facebook";
   const platform = isFb ? "Facebook & Instagram" : "Google My Business";
   const cta = isFb ? "📘 Reprendre le tutoriel Facebook" : "📍 Reprendre le tutoriel Google";
@@ -48,7 +52,7 @@ function buildEmailHtml(kind: "facebook" | "gmb", company: string, link: string)
     <div style="text-align:center;margin:28px 0">
       <a href="${link}" style="display:inline-block;background:#ff006e;color:#fff;text-decoration:none;padding:14px 28px;border-radius:10px;font-weight:600">${cta}</a>
     </div>
-    <p style="margin:0 0 14px;font-size:13px;color:#71717a">Si vous avez la moindre difficulté, répondez simplement à cet email — un membre de l'équipe vous accompagnera personnellement.</p>
+    <p style="margin:0 0 14px;font-size:13px;color:#71717a">Si vous avez déjà rempli le formulaire, merci d'ignorer ce message. Pour toute question, répondez simplement à cet email.</p>
     <p style="margin:0">Très cordialement,<br><strong style="color:#ff006e">L'équipe Adamkom</strong></p>
   </div>
   <div style="padding:14px;text-align:center;font-size:11px;color:#a1a1aa;background:#fafafa">
@@ -81,59 +85,59 @@ Deno.serve(async (req) => {
   try {
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
     const cutoff = new Date(Date.now() - REMINDER_DELAY_DAYS * 24 * 3600 * 1000).toISOString();
-    const results: any = { fb: { sent: 0, errors: 0 }, gmb: { sent: 0, errors: 0 } };
+    const results = { sent: 0, skipped_already_submitted: 0, errors: 0 };
 
-    // ─── FACEBOOK ────────────────────────────────────────────
-    const { data: fbSubs } = await supabase
-      .from("fb_onboarding_submissions")
-      .select("id,client_ndi,company_name,contact_email,status,created_at,reminder_count,last_reminder_at")
-      .eq("status", "recu")
+    // 1. Charger les invitations actives (non complétées, < MAX relances, anciennes de > 5j)
+    const { data: invitations, error } = await supabase
+      .from("onboarding_invitations")
+      .select("*")
+      .is("completed_at", null)
       .lt("reminder_count", MAX_REMINDERS);
 
-    for (const s of (fbSubs || []) as Submission[]) {
-      const ref = s.last_reminder_at ?? s.created_at;
+    if (error) throw error;
+
+    for (const inv of (invitations || []) as Invitation[]) {
+      const ref = inv.last_reminder_at ?? inv.sent_at;
       if (new Date(ref).toISOString() > cutoff) continue;
-      try {
-        const link = s.client_ndi
-          ? `${PUBLISHED_URL}/tuto/facebook?client=${s.client_ndi}`
-          : `${PUBLISHED_URL}/tuto/facebook`;
-        const { subject, html } = buildEmailHtml("facebook", s.company_name, link);
-        await sendBrevoEmail(s.contact_email, s.company_name, subject, html);
-        await supabase
-          .from("fb_onboarding_submissions")
-          .update({ reminder_count: s.reminder_count + 1, last_reminder_at: new Date().toISOString() })
-          .eq("id", s.id);
-        results.fb.sent++;
-      } catch (e) {
-        console.error("FB reminder error", s.id, e);
-        results.fb.errors++;
+
+      // 2. SÉCURITÉ : vérifier qu'aucune soumission n'existe pour ce client
+      const table = inv.kind === "facebook" ? "fb_onboarding_submissions" : "gmb_onboarding_submissions";
+      let query = supabase.from(table).select("id", { count: "exact", head: true });
+      if (inv.client_ndi) {
+        query = query.eq("client_ndi", inv.client_ndi);
+      } else {
+        query = query.eq("contact_email", inv.contact_email);
       }
-    }
+      const { count } = await query;
 
-    // ─── GMB ─────────────────────────────────────────────────
-    const { data: gmbSubs } = await supabase
-      .from("gmb_onboarding_submissions")
-      .select("id,client_ndi,company_name,contact_email,status,created_at,reminder_count,last_reminder_at")
-      .eq("status", "recu")
-      .lt("reminder_count", MAX_REMINDERS);
-
-    for (const s of (gmbSubs || []) as Submission[]) {
-      const ref = s.last_reminder_at ?? s.created_at;
-      if (new Date(ref).toISOString() > cutoff) continue;
-      try {
-        const link = s.client_ndi
-          ? `${PUBLISHED_URL}/tuto/gmb?client=${s.client_ndi}`
-          : `${PUBLISHED_URL}/tuto/gmb`;
-        const { subject, html } = buildEmailHtml("gmb", s.company_name, link);
-        await sendBrevoEmail(s.contact_email, s.company_name, subject, html);
+      if ((count ?? 0) > 0) {
+        // Le client a déjà rempli → marquer comme complété, AUCUNE relance
         await supabase
-          .from("gmb_onboarding_submissions")
-          .update({ reminder_count: s.reminder_count + 1, last_reminder_at: new Date().toISOString() })
-          .eq("id", s.id);
-        results.gmb.sent++;
+          .from("onboarding_invitations")
+          .update({ completed_at: new Date().toISOString() })
+          .eq("id", inv.id);
+        results.skipped_already_submitted++;
+        continue;
+      }
+
+      // 3. Envoyer la relance
+      try {
+        const link = inv.client_ndi
+          ? `${PUBLISHED_URL}/tuto/${inv.kind}?client=${inv.client_ndi}`
+          : `${PUBLISHED_URL}/tuto/${inv.kind}`;
+        const { subject, html } = buildEmailHtml(inv.kind, inv.company_name, link);
+        await sendBrevoEmail(inv.contact_email, inv.company_name, subject, html);
+        await supabase
+          .from("onboarding_invitations")
+          .update({
+            reminder_count: inv.reminder_count + 1,
+            last_reminder_at: new Date().toISOString(),
+          })
+          .eq("id", inv.id);
+        results.sent++;
       } catch (e) {
-        console.error("GMB reminder error", s.id, e);
-        results.gmb.errors++;
+        console.error("Reminder error", inv.id, e);
+        results.errors++;
       }
     }
 

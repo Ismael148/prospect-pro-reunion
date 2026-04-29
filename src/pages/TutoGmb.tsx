@@ -596,8 +596,7 @@ function StepMerci({ ndi, email, hasListing }: { ndi: string | null; email: stri
       <div>
         <h2 className="text-3xl font-bold text-zinc-900">Demande bien envoyée ! 🎉</h2>
         <p className="text-zinc-600 mt-3 max-w-md mx-auto">
-          Vos infos Google My Business sont arrivées chez Adamkom. Notre équipe accepte
-          l'invitation Google sous <strong>24h ouvrées</strong> et vous tient informé(e) par email.
+          Vos infos Google My Business sont arrivées chez Adamkom.
         </p>
       </div>
 
@@ -615,7 +614,7 @@ function StepMerci({ ndi, email, hasListing }: { ndi: string | null; email: stri
           {email && (
             <li className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-zinc-400 flex-shrink-0" />
-              <span className="text-xs text-zinc-500">Confirmation à venir sur <strong className="text-zinc-700">{email}</strong></span>
+              <span className="text-xs text-zinc-500">Confirmation envoyée sur <strong className="text-zinc-700">{email}</strong></span>
             </li>
           )}
           {ndi && (
@@ -627,13 +626,7 @@ function StepMerci({ ndi, email, hasListing }: { ndi: string | null; email: stri
         </ul>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
-        <a
-          href="https://ai.adamkom.com"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#ff006e] hover:underline px-4 py-2"
-        >
-          Découvrir Adamkom <ExternalLink className="h-3.5 w-3.5" />
-        </a>
+      <div className="flex justify-center pt-2">
         <Link to="/">
           <Button variant="outline" className="rounded-full">
             Retour à l'accueil

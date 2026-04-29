@@ -27,6 +27,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { z } from "zod";
 import { useSubmitFbOnboarding, useClientByNdi } from "@/hooks/use-fb-onboarding";
+import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.webp";
 
 /* ──────────────────────────────────────────────────────────

@@ -20,6 +20,8 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { TutoFAQ } from "@/components/tuto/TutoFAQ";
+import { FACEBOOK_FAQ } from "@/lib/tuto-faq";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";

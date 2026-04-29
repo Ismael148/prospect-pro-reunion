@@ -140,6 +140,9 @@ const TABLES: Record<string, TableConfig> = {
     lists: [],
     byId: (_id, row) => (row?.client_id ? [["contacts", row.client_id], ["client", row.client_id]] : []),
   },
+  client_gmb: {
+    lists: [["client-gmb"], ["clients-without-gmb"]],
+  },
 };
 
 /* ---------------------------------------------------------------------------

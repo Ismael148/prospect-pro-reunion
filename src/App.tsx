@@ -36,6 +36,7 @@ import LogoValidation from "./pages/LogoValidation";
 import Terms from "./pages/Terms";
 import DebugRealtime from "./pages/DebugRealtime";
 import PartnerAccess from "./pages/PartnerAccess";
+import Gmb from "./pages/Gmb";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -140,6 +141,10 @@ const App = () => (
             <Route
               path="/acces-partenaire"
               element={<ProtectedRoute><AppLayout><PartnerAccess /></AppLayout></ProtectedRoute>}
+            />
+            <Route
+              path="/gmb"
+              element={<ProtectedRoute><AppLayout><Gmb /></AppLayout></ProtectedRoute>}
             />
             {/* Public routes */}
             <Route path="/privacy" element={<Privacy />} />

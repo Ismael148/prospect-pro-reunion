@@ -14,6 +14,99 @@ export type Database = {
   }
   public: {
     Tables: {
+      chatbot_configs: {
+        Row: {
+          ai_model: string
+          business_info: string | null
+          client_id: string
+          created_at: string
+          created_by: string | null
+          enabled: boolean
+          escalation_keywords: string[] | null
+          fallback_message: string
+          id: string
+          max_messages_per_conversation: number
+          platforms: string[]
+          system_prompt: string
+          updated_at: string
+        }
+        Insert: {
+          ai_model?: string
+          business_info?: string | null
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          escalation_keywords?: string[] | null
+          fallback_message?: string
+          id?: string
+          max_messages_per_conversation?: number
+          platforms?: string[]
+          system_prompt?: string
+          updated_at?: string
+        }
+        Update: {
+          ai_model?: string
+          business_info?: string | null
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          escalation_keywords?: string[] | null
+          fallback_message?: string
+          id?: string
+          max_messages_per_conversation?: number
+          platforms?: string[]
+          system_prompt?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      chatbot_conversations: {
+        Row: {
+          ai_response: string | null
+          client_id: string
+          created_at: string
+          error_message: string | null
+          id: string
+          incoming_message: string
+          metadata: Json | null
+          platform: string
+          sender_id: string
+          sender_name: string | null
+          status: string
+          tokens_used: number | null
+        }
+        Insert: {
+          ai_response?: string | null
+          client_id: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          incoming_message: string
+          metadata?: Json | null
+          platform: string
+          sender_id: string
+          sender_name?: string | null
+          status?: string
+          tokens_used?: number | null
+        }
+        Update: {
+          ai_response?: string | null
+          client_id?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          incoming_message?: string
+          metadata?: Json | null
+          platform?: string
+          sender_id?: string
+          sender_name?: string | null
+          status?: string
+          tokens_used?: number | null
+        }
+        Relationships: []
+      }
       client_activities: {
         Row: {
           activity_type: string

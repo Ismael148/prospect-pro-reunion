@@ -608,7 +608,7 @@ function Step6_Form({
   );
 }
 
-function StepThanks() {
+function StepThanks({ ndi, email }: { ndi?: string | null; email?: string | null }) {
   return (
     <div className="text-center py-8 space-y-5">
       <motion.div
@@ -619,17 +619,49 @@ function StepThanks() {
       >
         <PartyPopper className="h-10 w-10 text-white" />
       </motion.div>
-      <h2 className="text-3xl font-bold text-zinc-900">Merci, c'est envoyé !</h2>
-      <p className="text-zinc-600 max-w-md mx-auto">
-        Notre équipe vous contacte sous <strong>24h</strong> pour finaliser la mise en route et programmer vos
-        premières publications.
-      </p>
+      <div>
+        <h2 className="text-3xl font-bold text-zinc-900">Demande bien envoyée ! 🎉</h2>
+        <p className="text-zinc-600 mt-3 max-w-md mx-auto">
+          Vos accès Facebook Business sont arrivés chez Adamkom. Notre équipe vous contacte sous{" "}
+          <strong>24h ouvrées</strong> pour finaliser le rattachement et programmer vos premières publications.
+        </p>
+      </div>
+
+      <div className="max-w-md mx-auto rounded-2xl border border-zinc-200 bg-white p-5 text-left space-y-2">
+        <p className="text-xs uppercase font-bold text-zinc-500 tracking-wide">Récapitulatif</p>
+        <ul className="text-sm text-zinc-700 space-y-1.5">
+          <li className="flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+            Informations Business Manager transmises
+          </li>
+          <li className="flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+            Notification envoyée à votre conseiller
+          </li>
+          {email && (
+            <li className="flex items-center gap-2">
+              <Mail className="h-4 w-4 text-zinc-400 flex-shrink-0" />
+              <span className="text-xs text-zinc-500">Confirmation à venir sur <strong className="text-zinc-700">{email}</strong></span>
+            </li>
+          )}
+          {ndi && (
+            <li className="flex items-center gap-2 pt-1 border-t border-zinc-100 mt-2">
+              <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Réf.</span>
+              <code className="text-xs bg-zinc-100 px-2 py-0.5 rounded text-zinc-700 font-mono">{ndi}</code>
+            </li>
+          )}
+        </ul>
+      </div>
+
       <a
         href="https://ai.adamkom.com"
         className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#ff006e] hover:underline"
       >
         Découvrir Adamkom <ExternalLink className="h-3.5 w-3.5" />
       </a>
+      <p className="text-xs text-zinc-500 max-w-md mx-auto">
+        💡 Pas reçu de mail ? Vérifiez vos spams ou contactez votre conseiller.
+      </p>
     </div>
   );
 }
@@ -667,7 +699,7 @@ export default function TutoFacebook() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 relative overflow-hidden">
+    <div className="light min-h-screen bg-zinc-50 relative overflow-hidden text-zinc-900">
       {/* Animated gradient background */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute -top-40 -right-40 h-[500px] w-[500px] rounded-full bg-[#ff006e]/15 blur-[120px]" />
@@ -788,7 +820,7 @@ export default function TutoFacebook() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                   >
-                    <StepThanks />
+                    <StepThanks ndi={ndi || clientPrefill?.ndi} email={clientPrefill?.email} />
                   </motion.div>
                 ) : (
                   <motion.div

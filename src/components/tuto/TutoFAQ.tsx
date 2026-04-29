@@ -26,10 +26,9 @@ export function TutoFAQ({ title = "Questions fréquentes", items, className = ""
             <AccordionTrigger className="text-left text-sm font-semibold hover:no-underline py-4">
               {it.q}
             </AccordionTrigger>
-            <AccordionContent
-              className="text-sm text-muted-foreground leading-relaxed pb-4"
-              dangerouslySetInnerHTML={{ __html: it.a }}
-            />
+            <AccordionContent className="text-sm text-muted-foreground leading-relaxed pb-4">
+              <div dangerouslySetInnerHTML={{ __html: it.a }} />
+            </AccordionContent>
           </AccordionItem>
         ))}
       </Accordion>

@@ -37,12 +37,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useMemo } from "react";
 
 const ROLE_ACCESS: Record<string, string[]> = {
-  admin: ["/", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/comptabilite", "/facturation", "/renouvellements-ndd", "/support", "/campagnes", "/equipe", "/parametres", "/cartes-nfc", "/corbeille", "/acces-partenaire"],
-  agent_master: ["/", "/agent-master", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/acces-partenaire"],
+  admin: ["/", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/comptabilite", "/facturation", "/renouvellements-ndd", "/support", "/campagnes", "/equipe", "/parametres", "/cartes-nfc", "/corbeille", "/acces-partenaire", "/gmb"],
+  agent_master: ["/", "/agent-master", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/acces-partenaire", "/gmb"],
   agent_telephonique: ["/", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc"],
   agent_support: ["/", "/clients", "/support", "/projets", "/cartes-nfc"],
   commercial_terrain: ["/", "/projets", "/commissions"],
-  webmaster: ["/", "/clients", "/projets", "/webmaster", "/support", "/acces-partenaire"],
+  webmaster: ["/", "/clients", "/projets", "/webmaster", "/support", "/acces-partenaire", "/gmb"],
   designer: ["/", "/projets", "/webmaster", "/support"],
 };
 
@@ -61,6 +61,7 @@ const allMenuItems = [
   { title: "Support", icon: LifeBuoy, path: "/support" },
   { title: "Webmaster", icon: Monitor, path: "/webmaster" },
   { title: "Accès Partenaire", icon: Share2, path: "/acces-partenaire" },
+  { title: "Gestion GMB", icon: Globe, path: "/gmb" },
   { title: "Campagnes", icon: Mail, path: "/campagnes" },
 ];
 

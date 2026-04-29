@@ -706,7 +706,8 @@ export default function TutoFacebook() {
               Préparez votre <br className="sm:hidden" />
               <span className="bg-gradient-to-r from-[#ff006e] to-[#ff5c8a] bg-clip-text text-transparent">
                 Facebook Business
-              </span>{" "}
+              </span>
+              <br />
               en 10 min
             </h1>
             <p className="mt-4 text-lg text-zinc-600 max-w-2xl mx-auto">

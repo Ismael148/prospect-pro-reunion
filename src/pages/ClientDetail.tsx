@@ -36,6 +36,7 @@ import type { Database } from "@/integrations/supabase/types";
 import SocialMediaSection from "@/components/clients/SocialMediaSection";
 import ChatbotConfigSection from "@/components/clients/ChatbotConfigSection";
 import LogoTrackingCard from "@/components/clients/LogoTrackingCard";
+import PaymentTutoSection from "@/components/clients/PaymentTutoSection";
 import ClientEmailActions from "@/components/clients/ClientEmailActions";
 import DomainRenewalInvoice from "@/components/clients/DomainRenewalInvoice";
 import ClientEmailHistory from "@/components/clients/ClientEmailHistory";
@@ -1642,6 +1643,7 @@ export default function ClientDetail() {
       <ClientFormsSection clientId={id!} supportToken={(client as any).support_token} packType={client.pack_type ?? undefined} />
       {client.pack_type !== "star_bizness_nfc" && <SocialMediaSection clientId={id!} clientNdi={(client as any).ndi} clientEmail={(client as any).email} clientCompany={(client as any).company_name} />}
       {client.pack_type !== "star_bizness_nfc" && <ChatbotConfigSection clientId={id!} clientCompany={(client as any).company_name} />}
+      {client.pack_type !== "star_bizness_nfc" && <PaymentTutoSection clientId={id!} clientNdi={(client as any).ndi} clientEmail={(client as any).email} clientCompany={(client as any).company_name} />}
       <NotesSection clientId={id!} activities={activities} />
     </div>
   );

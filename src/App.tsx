@@ -148,6 +148,12 @@ const App = () => (
               path="/gmb"
               element={<ProtectedRoute><AppLayout><Gmb /></AppLayout></ProtectedRoute>}
             />
+            <Route
+              path="/onboarding-fb"
+              element={<ProtectedRoute><AppLayout><FbOnboardingInbox /></AppLayout></ProtectedRoute>}
+            />
+            {/* Public tutorial */}
+            <Route path="/tuto/facebook" element={<TutoFacebook />} />
             {/* Public routes */}
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />

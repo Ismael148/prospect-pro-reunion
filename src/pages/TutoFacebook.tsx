@@ -811,7 +811,7 @@ export default function TutoFacebook() {
               <p className="text-xs font-bold text-zinc-700 mb-1">Pas le temps ?</p>
               <p className="text-xs text-zinc-600 leading-relaxed">
                 Demandez à votre conseiller Adamkom le service{" "}
-                <strong className="text-[#ff006e]">« On le fait pour vous »</strong> (sur devis).
+                <strong className="text-[#ff006e]">« On le fait pour vous »</strong>.
               </p>
             </GlassCard>
           </aside>

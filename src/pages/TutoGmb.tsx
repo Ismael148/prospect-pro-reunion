@@ -634,10 +634,10 @@ export default function TutoGmb() {
 
   if (done) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-orange-50 py-8 px-4">
+      <div className="light min-h-screen bg-gradient-to-br from-pink-50 via-white to-orange-50 py-8 px-4 text-zinc-900">
         <div className="max-w-3xl mx-auto">
-          <GlassCard className="p-8">
-            <StepMerci />
+          <GlassCard className="p-6 md:p-8">
+            <StepMerci ndi={ndi} email={clientData?.email || null} hasListing={hasListing} />
           </GlassCard>
         </div>
       </div>

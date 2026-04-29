@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import EditorialCalendar from "@/components/clients/EditorialCalendar";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import {
   Plus, ExternalLink, Pencil, Trash2, CheckCircle2, Clock, Calendar, Share2, Copy, LogIn, Link2, MapPin, Facebook,
+  Send, History as HistoryIcon,
 } from "lucide-react";
 import {
   useSocialAccounts, useSocialPublications, useUpsertSocialAccount,

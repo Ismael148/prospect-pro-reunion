@@ -11,6 +11,7 @@ import {
   useDeleteGmbOnboarding,
   type GmbOnboardingStatus,
 } from "@/hooks/use-gmb-onboarding";
+import { useUpsertClientGmb } from "@/hooks/use-client-gmb";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import {
   Mail, Building2, KeyRound, Link2, Facebook, MapPin, Inbox, CheckCircle2, Archive,
-  Trash2, Search, Copy, ExternalLink, Phone,
+  Trash2, Search, Copy, ExternalLink, Phone, PlusCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";

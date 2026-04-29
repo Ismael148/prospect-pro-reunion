@@ -1,28 +1,4 @@
 project_id = "qaxlpmxekcvbrcnqopbp"
 
-[functions.search-prospects]
-verify_jwt = false
-
-[functions.invite-user]
-verify_jwt = false
-
-[functions.delete-user]
-verify_jwt = false
-
-[functions.meta-oauth]
-verify_jwt = false
-
-[functions.support-notification]
-verify_jwt = false
-
-[functions.check-deadlines]
-verify_jwt = false
-
-[functions.send-brevo-campaign]
-verify_jwt = false
-
-[functions.brevo-webhook]
-verify_jwt = false
-
-[functions.pagespeed-report]
+[functions.onboarding-reminder]
 verify_jwt = false

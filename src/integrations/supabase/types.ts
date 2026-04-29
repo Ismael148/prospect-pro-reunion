@@ -923,6 +923,80 @@ export type Database = {
           },
         ]
       }
+      gmb_onboarding_submissions: {
+        Row: {
+          client_id: string | null
+          client_ndi: string | null
+          company_name: string
+          contact_email: string
+          created_at: string
+          gmb_address: string | null
+          gmb_business_name: string | null
+          gmb_maps_url: string | null
+          gmb_phone: string | null
+          google_account_email: string | null
+          has_existing_listing: boolean | null
+          id: string
+          manager_added: boolean | null
+          notes: string | null
+          processed_at: string | null
+          processed_by: string | null
+          source_url: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          client_ndi?: string | null
+          company_name: string
+          contact_email: string
+          created_at?: string
+          gmb_address?: string | null
+          gmb_business_name?: string | null
+          gmb_maps_url?: string | null
+          gmb_phone?: string | null
+          google_account_email?: string | null
+          has_existing_listing?: boolean | null
+          id?: string
+          manager_added?: boolean | null
+          notes?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          source_url?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          client_ndi?: string | null
+          company_name?: string
+          contact_email?: string
+          created_at?: string
+          gmb_address?: string | null
+          gmb_business_name?: string | null
+          gmb_maps_url?: string | null
+          gmb_phone?: string | null
+          google_account_email?: string | null
+          has_existing_listing?: boolean | null
+          id?: string
+          manager_added?: boolean | null
+          notes?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          source_url?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gmb_onboarding_submissions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
           amount: number

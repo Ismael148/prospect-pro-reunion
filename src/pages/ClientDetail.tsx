@@ -1622,6 +1622,8 @@ export default function ClientDetail() {
         support_token: (client as any).support_token,
         pack_type: client.pack_type,
         manager_name: client.manager_name,
+        sector: client.sector,
+        ndi: client.ndi,
       }} />
       <DomainRenewalInvoice client={{
         id: client.id,

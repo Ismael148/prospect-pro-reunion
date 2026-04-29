@@ -63,7 +63,7 @@ const allMenuItems = [
   { title: "Webmaster", icon: Monitor, path: "/webmaster" },
   { title: "Accès Partenaire", icon: Share2, path: "/acces-partenaire" },
   { title: "Gestion GMB", icon: Globe, path: "/gmb" },
-  { title: "Onboarding FB", icon: Inbox, path: "/onboarding-fb" },
+  { title: "Onboarding clients", icon: Inbox, path: "/onboarding-fb" },
   { title: "Campagnes", icon: Mail, path: "/campagnes" },
 ];
 

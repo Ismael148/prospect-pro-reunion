@@ -690,7 +690,7 @@ export default function TutoGmb() {
   const currentIndex = steps.findIndex((s) => s.key === step);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-orange-50">
+    <div className="light min-h-screen bg-gradient-to-br from-pink-50 via-white to-orange-50 text-zinc-900">
       {/* Decorative blobs */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-[#ff006e]/10 blur-3xl" />

@@ -35,6 +35,29 @@ export function TicketComments({ ticketId, ticketNumber, ticketSubject, assigned
     return out;
   }, [profiles]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [members, setMembers] = useState<MentionMember[]>([]);
+
+  // Load members for @mentions (admins, webmasters, designers, agent_master, agent_support)
+  useEffect(() => {
+    (async () => {
+      const { data: rolesData } = await supabase
+        .from("user_roles")
+        .select("user_id, role")
+        .in("role", ["admin", "webmaster", "designer", "agent_master", "agent_support"]);
+      if (!rolesData?.length) return;
+      const userIds = [...new Set(rolesData.map((r) => r.user_id))];
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("user_id, full_name")
+        .in("user_id", userIds);
+      if (!profs) return;
+      const rolesByUser: Record<string, string[]> = {};
+      rolesData.forEach((r) => {
+        rolesByUser[r.user_id] = [...(rolesByUser[r.user_id] ?? []), r.role];
+      });
+      setMembers(profs.map((p) => ({ user_id: p.user_id, full_name: p.full_name, roles: rolesByUser[p.user_id] })));
+    })();
+  }, []);
 
   // Load profiles for comment authors
   useEffect(() => {

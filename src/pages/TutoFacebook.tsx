@@ -468,7 +468,24 @@ function Step6_Form({
         client_ndi: prefill.client_ndi ?? null,
         has_existing_page: hasExistingPage,
       },
-      { onSuccess: () => onSent() }
+      {
+        onSuccess: async () => {
+          try {
+            await supabase.functions.invoke("send-onboarding-confirmation", {
+              body: {
+                kind: "facebook",
+                recipientEmail: parsed.data.contact_email,
+                recipientName: parsed.data.company_name,
+                companyName: parsed.data.company_name,
+                ndi: prefill.client_ndi ?? null,
+              },
+            });
+          } catch (err) {
+            console.error("[TutoFacebook] confirmation email failed", err);
+          }
+          onSent();
+        },
+      }
     );
   };
 

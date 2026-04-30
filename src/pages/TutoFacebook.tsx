@@ -855,7 +855,7 @@ export default function TutoFacebook() {
               {/* Nav buttons (hide on intro & thanks & form-handled steps) */}
               {!done && current.key !== "intro" && current.key !== "envoi" && (
                 <div className="mt-8 pt-6 border-t border-zinc-200 flex justify-between">
-                  <Button variant="outline" onClick={goPrev} disabled={stepIdx === 0}>
+                  <Button variant="outline" onClick={goPrev} disabled={stepIdx === 0} className="bg-white border-zinc-300 text-zinc-900 hover:bg-zinc-100 hover:text-zinc-900">
                     <ArrowLeft className="h-4 w-4" /> Retour
                   </Button>
                   <Button

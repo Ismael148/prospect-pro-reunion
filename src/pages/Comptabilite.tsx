@@ -1,10 +1,12 @@
 import { useState, useMemo } from "react";
 import { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense, getMonthlyAmount } from "@/hooks/use-expenses";
+import { useSalaryAdvances } from "@/hooks/use-salary-advances";
 import { useCommissions } from "@/hooks/use-commissions";
 import { useClients } from "@/hooks/use-clients";
 import { useInvoices } from "@/hooks/use-invoices";
 import { useAuth } from "@/contexts/AuthContext";
 import { PACK_PRICES } from "@/lib/constants";
+import { SalaryTeamSection } from "@/components/comptabilite/SalaryTeamSection";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -83,6 +85,7 @@ export default function Comptabilite() {
   const { data: commissions, isLoading: loadingCommissions } = useCommissions(selectedMonth);
   const { data: clients } = useClients();
   const { data: invoices } = useInvoices();
+  const { data: salaryAdvances } = useSalaryAdvances();
   const createExpense = useCreateExpense();
   const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();
@@ -126,12 +129,21 @@ export default function Comptabilite() {
 
   const monthlyExpenses = useMemo(() => {
     if (!expenses) return [];
+    // Exclude group parents (no real amount, just containers)
     return expenses
+      .filter((e) => !e.is_group)
       .map((e) => ({ ...e, monthAmount: getMonthlyAmount(e, selectedMonth) }))
       .filter((e) => e.monthAmount > 0);
   }, [expenses, selectedMonth]);
 
-  const totalExpenses = monthlyExpenses.reduce((s, e) => s + e.monthAmount, 0);
+  // Pending advances reduce the salary cost
+  const pendingAdvancesTotal = useMemo(() => {
+    return (salaryAdvances || [])
+      .filter((a) => a.status === "en_cours")
+      .reduce((s, a) => s + Number(a.amount), 0);
+  }, [salaryAdvances]);
+
+  const totalExpenses = monthlyExpenses.reduce((s, e) => s + e.monthAmount, 0) - pendingAdvancesTotal;
 
   // Fiscal charge based on revenue percentage
   const fiscalCharge = monthlyRevenue * (fiscalPercent / 100);
@@ -141,8 +153,12 @@ export default function Comptabilite() {
     monthlyExpenses.forEach((e) => {
       map.set(e.category, (map.get(e.category) || 0) + e.monthAmount);
     });
+    // Subtract pending advances from "salaire" category for display
+    if (pendingAdvancesTotal > 0 && map.has("salaire")) {
+      map.set("salaire", Math.max(0, (map.get("salaire") || 0) - pendingAdvancesTotal));
+    }
     return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
-  }, [monthlyExpenses]);
+  }, [monthlyExpenses, pendingAdvancesTotal]);
 
   // Net profit includes fiscal charge
   const netProfit = monthlyRevenue - totalCommissions - totalExpenses - fiscalCharge;

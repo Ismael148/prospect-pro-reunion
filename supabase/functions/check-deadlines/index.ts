@@ -33,8 +33,9 @@ Deno.serve(async (req) => {
     // 2. Find projects approaching or past the 15-day deadline
     const { data: projects, error: projError } = await supabase
       .from("projects")
-      .select("id, name, created_at, due_date, assigned_to, status, client_id")
-      .not("status", "in", '("termine","annule")');
+      .select("id, name, created_at, due_date, assigned_to, status, client_id, progress")
+      .not("status", "in", '("termine","annule")')
+      .lt("progress", 90);
 
     if (projError) throw projError;
 

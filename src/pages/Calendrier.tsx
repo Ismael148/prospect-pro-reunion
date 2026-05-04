@@ -260,6 +260,7 @@ export default function Calendrier() {
     try {
       const { error } = await supabase.functions.invoke("send-brevo-campaign", {
         body: {
+          action: "send_client_email",
           recipientEmail: client.email,
           recipientName: client.manager_name || client.company_name,
           htmlContent: html,

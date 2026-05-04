@@ -30,7 +30,8 @@ const fmt = (d: string) =>
   new Date(d).toLocaleString("fr-FR", { timeZone: "Indian/Reunion", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
 export default function ClientRemindersSection({ clientId }: { clientId: string }) {
-  const { user, role } = useAuth();
+  const { user, hasRole } = useAuth();
+  const role = hasRole("admin") ? "admin" : hasRole("agent_master") ? "agent_master" : hasRole("agent_support") ? "agent_support" : "other";
   const qc = useQueryClient();
   const { data: agents = [] } = useAgents();
   const canCreate = role === "admin" || role === "agent_master" || role === "agent_support";

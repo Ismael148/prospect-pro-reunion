@@ -93,14 +93,15 @@ export default function ClientRemindersSection({ clientId }: { clientId: string 
     mutationFn: async () => {
       if (!user) throw new Error("Non authentifié");
       if (!form.title.trim()) throw new Error("Titre requis");
-      if (!form.remind_at) throw new Error("Date de rappel requise");
+      const remindAt = computeRemindAt();
+      if (!remindAt) throw new Error("Date de rappel requise");
       const { error } = await supabase.from("client_reminders").insert({
         client_id: clientId,
         created_by: user.id,
         title: form.title.trim(),
         description: form.description.trim() || null,
         tags: form.tags,
-        remind_at: new Date(form.remind_at).toISOString(),
+        remind_at: remindAt,
         assigned_to: form.assigned_to || user.id,
       });
       if (error) throw error;

@@ -306,7 +306,7 @@ export default function WebmasterDashboard() {
   const getActiveForList = (list: any[]) => list.filter((p: any) => p.status === "en_cours" || p.status === "en_revision");
   const getOverdue = (list: any[]) => list.filter((p: any) => {
     const d = daysUntil(p.due_date);
-    return d !== null && d < 0 && p.status !== "termine" && p.status !== "annule";
+    return d !== null && d < 0 && p.status !== "termine" && p.status !== "annule" && (p.progress || 0) < 90;
   });
 
   const weeklyData = useMemo(() => {

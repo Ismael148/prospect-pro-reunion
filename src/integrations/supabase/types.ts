@@ -304,6 +304,60 @@ export type Database = {
         }
         Relationships: []
       }
+      client_reminders: {
+        Row: {
+          assigned_to: string | null
+          client_id: string
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          notified: boolean
+          notified_at: string | null
+          remind_at: string
+          status: string
+          tags: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          client_id: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          notified?: boolean
+          notified_at?: string | null
+          remind_at: string
+          status?: string
+          tags?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          client_id?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          notified?: boolean
+          notified_at?: string | null
+          remind_at?: string
+          status?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           address: string | null
@@ -2258,6 +2312,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      fire_due_client_reminders: { Args: never; Returns: undefined }
       generate_monthly_social_deliverables: { Args: never; Returns: undefined }
       has_role: {
         Args: {

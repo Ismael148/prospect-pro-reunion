@@ -1015,12 +1015,16 @@ export type Database = {
           created_at: string
           created_by: string
           description: string | null
+          employee_name: string | null
+          employee_role: string | null
           end_date: string | null
           frequency: Database["public"]["Enums"]["expense_frequency"]
           id: string
           is_active: boolean
+          is_group: boolean
           month_year: string | null
           name: string
+          parent_id: string | null
           start_date: string | null
           updated_at: string
         }
@@ -1030,12 +1034,16 @@ export type Database = {
           created_at?: string
           created_by: string
           description?: string | null
+          employee_name?: string | null
+          employee_role?: string | null
           end_date?: string | null
           frequency?: Database["public"]["Enums"]["expense_frequency"]
           id?: string
           is_active?: boolean
+          is_group?: boolean
           month_year?: string | null
           name: string
+          parent_id?: string | null
           start_date?: string | null
           updated_at?: string
         }
@@ -1045,16 +1053,28 @@ export type Database = {
           created_at?: string
           created_by?: string
           description?: string | null
+          employee_name?: string | null
+          employee_role?: string | null
           end_date?: string | null
           frequency?: Database["public"]["Enums"]["expense_frequency"]
           id?: string
           is_active?: boolean
+          is_group?: boolean
           month_year?: string | null
           name?: string
+          parent_id?: string | null
           start_date?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "expenses_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       external_commercials: {
         Row: {
@@ -2061,6 +2081,59 @@ export type Database = {
             columns: ["converted_client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      salary_advances: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string
+          employee_name: string
+          expense_id: string
+          id: string
+          notes: string | null
+          reason: string | null
+          reimbursed_at: string | null
+          request_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          created_by: string
+          employee_name: string
+          expense_id: string
+          id?: string
+          notes?: string | null
+          reason?: string | null
+          reimbursed_at?: string | null
+          request_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string
+          employee_name?: string
+          expense_id?: string
+          id?: string
+          notes?: string | null
+          reason?: string | null
+          reimbursed_at?: string | null
+          request_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salary_advances_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
             referencedColumns: ["id"]
           },
         ]

@@ -56,6 +56,9 @@ export default function ClientRemindersSection({ clientId }: { clientId: string 
   }, [agents]);
 
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<"quick" | "custom">("quick");
+  const [quickValue, setQuickValue] = useState<number>(30);
+  const [quickUnit, setQuickUnit] = useState<"minutes" | "hours" | "days">("minutes");
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -64,7 +67,27 @@ export default function ClientRemindersSection({ clientId }: { clientId: string 
     assigned_to: "",
   });
 
-  const reset = () => setForm({ title: "", description: "", tags: [], remind_at: "", assigned_to: "" });
+  const QUICK_PRESETS = [
+    { label: "Dans 15 min", value: 15, unit: "minutes" as const },
+    { label: "Dans 1 h", value: 1, unit: "hours" as const },
+    { label: "Dans 3 h", value: 3, unit: "hours" as const },
+    { label: "Demain", value: 1, unit: "days" as const },
+    { label: "Dans 3 jours", value: 3, unit: "days" as const },
+    { label: "Dans 1 semaine", value: 7, unit: "days" as const },
+  ];
+
+  const computeRemindAt = (): string => {
+    if (mode === "custom" && form.remind_at) return new Date(form.remind_at).toISOString();
+    const ms = quickValue * (quickUnit === "minutes" ? 60_000 : quickUnit === "hours" ? 3_600_000 : 86_400_000);
+    return new Date(Date.now() + ms).toISOString();
+  };
+
+  const reset = () => {
+    setForm({ title: "", description: "", tags: [], remind_at: "", assigned_to: "" });
+    setMode("quick");
+    setQuickValue(30);
+    setQuickUnit("minutes");
+  };
 
   const createReminder = useMutation({
     mutationFn: async () => {

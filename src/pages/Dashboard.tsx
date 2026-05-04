@@ -27,7 +27,7 @@ function useOverdueProjects() {
   today.setHours(0, 0, 0, 0);
 
   return (projects || [])
-    .filter((p: any) => !["termine", "annule"].includes(p.status))
+    .filter((p: any) => !["termine", "annule"].includes(p.status) && (p.progress || 0) < 90)
     .map((p: any) => {
       const createdAt = new Date(p.created_at);
       const maxDeadline = new Date(createdAt);

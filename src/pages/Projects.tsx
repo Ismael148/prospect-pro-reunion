@@ -121,7 +121,7 @@ export default function Projects() {
         const due = p.due_date ? new Date(p.due_date) : null;
         const isClosed = p.status === "termine" || p.status === "annule";
         if (filterDeadline === "overdue") {
-          matchDeadline = !!due && due < now && !isClosed;
+          matchDeadline = !!due && due < now && !isClosed && (p.progress || 0) < 90;
         } else if (filterDeadline === "week") {
           matchDeadline = !!due && due >= now && due <= endOfWeek;
         } else if (filterDeadline === "month") {

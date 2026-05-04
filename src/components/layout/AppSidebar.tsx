@@ -20,6 +20,7 @@ import {
   Trash2,
   Share2,
   Inbox,
+  CalendarDays,
 } from "lucide-react";
 import logo from "@/assets/logo.webp";
 import {
@@ -38,13 +39,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useMemo } from "react";
 
 const ROLE_ACCESS: Record<string, string[]> = {
-  admin: ["/", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/comptabilite", "/facturation", "/renouvellements-ndd", "/support", "/campagnes", "/emails", "/paiements", "/equipe", "/parametres", "/cartes-nfc", "/corbeille", "/acces-partenaire", "/gmb", "/onboarding-fb"],
-  agent_master: ["/", "/agent-master", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/acces-partenaire", "/gmb", "/onboarding-fb"],
-  agent_telephonique: ["/", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/onboarding-fb"],
-  agent_support: ["/", "/clients", "/support", "/projets", "/cartes-nfc", "/onboarding-fb"],
-  commercial_terrain: ["/", "/projets", "/commissions"],
-  webmaster: ["/", "/clients", "/projets", "/webmaster", "/support", "/acces-partenaire", "/gmb"],
-  designer: ["/", "/projets", "/webmaster", "/support"],
+  admin: ["/", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/comptabilite", "/facturation", "/renouvellements-ndd", "/support", "/campagnes", "/emails", "/paiements", "/equipe", "/parametres", "/cartes-nfc", "/corbeille", "/acces-partenaire", "/gmb", "/onboarding-fb", "/calendrier"],
+  agent_master: ["/", "/agent-master", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/acces-partenaire", "/gmb", "/onboarding-fb", "/calendrier"],
+  agent_telephonique: ["/", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/onboarding-fb", "/calendrier"],
+  agent_support: ["/", "/clients", "/support", "/projets", "/cartes-nfc", "/onboarding-fb", "/calendrier"],
+  commercial_terrain: ["/", "/projets", "/commissions", "/calendrier"],
+  webmaster: ["/", "/clients", "/projets", "/webmaster", "/support", "/acces-partenaire", "/gmb", "/calendrier"],
+  designer: ["/", "/projets", "/webmaster", "/support", "/calendrier"],
 };
 
 const allMenuItems = [
@@ -55,6 +56,7 @@ const allMenuItems = [
   { title: "Prospection", icon: Search, path: "/prospection" },
   { title: "Pipeline", icon: FolderKanban, path: "/pipeline" },
   { title: "Projets", icon: Briefcase, path: "/projets" },
+  { title: "Calendrier", icon: CalendarDays, path: "/calendrier" },
   { title: "Commissions", icon: Coins, path: "/commissions" },
   { title: "Comptabilité", icon: Calculator, path: "/comptabilite" },
   { title: "Facturation", icon: FileText, path: "/facturation" },

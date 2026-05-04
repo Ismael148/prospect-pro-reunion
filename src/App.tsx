@@ -43,6 +43,7 @@ import OnboardingInbox from "./pages/FbOnboardingInbox";
 import EmailsLog from "./pages/EmailsLog";
 import PaymentCredentials from "./pages/PaymentCredentials";
 import TutoPaiements from "./pages/TutoPaiements";
+import Calendrier from "./pages/Calendrier";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -167,6 +168,10 @@ const App = () => (
             <Route
               path="/paiements"
               element={<ProtectedRoute><AppLayout><PaymentCredentials /></AppLayout></ProtectedRoute>}
+            />
+            <Route
+              path="/calendrier"
+              element={<ProtectedRoute><AppLayout><Calendrier /></AppLayout></ProtectedRoute>}
             />
             {/* Public tutorials */}
             <Route path="/tuto/facebook" element={<TutoFacebook />} />

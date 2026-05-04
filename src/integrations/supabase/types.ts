@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      calendar_events: {
+        Row: {
+          all_day: boolean
+          client_id: string | null
+          color: string
+          created_at: string
+          created_by: string
+          description: string | null
+          email_sent_at: string | null
+          email_sent_to_client: boolean
+          end_at: string
+          event_type: string
+          id: string
+          location: string | null
+          meet_link: string | null
+          participants: string[]
+          start_at: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          all_day?: boolean
+          client_id?: string | null
+          color?: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          email_sent_at?: string | null
+          email_sent_to_client?: boolean
+          end_at: string
+          event_type?: string
+          id?: string
+          location?: string | null
+          meet_link?: string | null
+          participants?: string[]
+          start_at: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          all_day?: boolean
+          client_id?: string | null
+          color?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          email_sent_at?: string | null
+          email_sent_to_client?: boolean
+          end_at?: string
+          event_type?: string
+          id?: string
+          location?: string | null
+          meet_link?: string | null
+          participants?: string[]
+          start_at?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chatbot_configs: {
         Row: {
           ai_model: string

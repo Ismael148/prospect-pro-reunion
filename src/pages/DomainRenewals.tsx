@@ -169,12 +169,12 @@ export default function DomainRenewals() {
       const res = await supabase.functions.invoke("send-brevo-campaign", {
         body: {
           action: "send_client_email",
-          recipient: { email: client.email, name: client.manager_name || client.company_name },
+          recipientEmail: client.email,
+          recipientName: client.manager_name || client.company_name,
           subject,
-          message,
-          branding,
+          htmlContent: message,
+          trigger: "domain_renewal_reminder",
           client_id: client.id,
-          template_name: "domain_renewal_reminder",
         },
         headers: { Authorization: `Bearer ${session?.access_token}` },
       });

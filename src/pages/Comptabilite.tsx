@@ -391,6 +391,9 @@ export default function Comptabilite() {
             </CardContent>
           </Card>
 
+          {/* Salary Team Modules */}
+          <SalaryTeamSection selectedMonth={selectedMonth} />
+
           {/* Expenses Management */}
           <Tabs defaultValue="active">
             <div className="flex items-center justify-between mb-2">
@@ -468,7 +471,7 @@ export default function Comptabilite() {
               <Card className="border-0 shadow-soft">
                 <CardContent className="p-0">
                   <ExpenseTable
-                    expenses={expenses?.filter((e) => e.is_active) || []}
+                    expenses={expenses?.filter((e) => e.is_active && !e.is_group && !e.parent_id) || []}
                     selectedMonth={selectedMonth}
                     isAdmin={isAdmin}
                     onToggle={handleToggleActive}
@@ -482,7 +485,7 @@ export default function Comptabilite() {
               <Card className="border-0 shadow-soft">
                 <CardContent className="p-0">
                   <ExpenseTable
-                    expenses={expenses || []}
+                    expenses={expenses?.filter((e) => !e.is_group && !e.parent_id) || []}
                     selectedMonth={selectedMonth}
                     isAdmin={isAdmin}
                     onToggle={handleToggleActive}

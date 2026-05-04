@@ -14,6 +14,10 @@ export interface Expense {
   is_active: boolean;
   created_by: string;
   created_at: string;
+  parent_id?: string | null;
+  is_group?: boolean;
+  employee_name?: string | null;
+  employee_role?: string | null;
 }
 
 export function useExpenses() {

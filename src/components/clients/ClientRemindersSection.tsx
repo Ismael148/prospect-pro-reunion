@@ -56,6 +56,9 @@ export default function ClientRemindersSection({ clientId }: { clientId: string 
   }, [agents]);
 
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<"quick" | "custom">("quick");
+  const [quickValue, setQuickValue] = useState<number>(30);
+  const [quickUnit, setQuickUnit] = useState<"minutes" | "hours" | "days">("minutes");
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -64,20 +67,41 @@ export default function ClientRemindersSection({ clientId }: { clientId: string 
     assigned_to: "",
   });
 
-  const reset = () => setForm({ title: "", description: "", tags: [], remind_at: "", assigned_to: "" });
+  const QUICK_PRESETS = [
+    { label: "Dans 15 min", value: 15, unit: "minutes" as const },
+    { label: "Dans 1 h", value: 1, unit: "hours" as const },
+    { label: "Dans 3 h", value: 3, unit: "hours" as const },
+    { label: "Demain", value: 1, unit: "days" as const },
+    { label: "Dans 3 jours", value: 3, unit: "days" as const },
+    { label: "Dans 1 semaine", value: 7, unit: "days" as const },
+  ];
+
+  const computeRemindAt = (): string => {
+    if (mode === "custom" && form.remind_at) return new Date(form.remind_at).toISOString();
+    const ms = quickValue * (quickUnit === "minutes" ? 60_000 : quickUnit === "hours" ? 3_600_000 : 86_400_000);
+    return new Date(Date.now() + ms).toISOString();
+  };
+
+  const reset = () => {
+    setForm({ title: "", description: "", tags: [], remind_at: "", assigned_to: "" });
+    setMode("quick");
+    setQuickValue(30);
+    setQuickUnit("minutes");
+  };
 
   const createReminder = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("Non authentifié");
       if (!form.title.trim()) throw new Error("Titre requis");
-      if (!form.remind_at) throw new Error("Date de rappel requise");
+      const remindAt = computeRemindAt();
+      if (!remindAt) throw new Error("Date de rappel requise");
       const { error } = await supabase.from("client_reminders").insert({
         client_id: clientId,
         created_by: user.id,
         title: form.title.trim(),
         description: form.description.trim() || null,
         tags: form.tags,
-        remind_at: new Date(form.remind_at).toISOString(),
+        remind_at: remindAt,
         assigned_to: form.assigned_to || user.id,
       });
       if (error) throw error;
@@ -167,23 +191,60 @@ export default function ClientRemindersSection({ clientId }: { clientId: string 
                     })}
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label>Date & heure du rappel *</Label>
+                <div className="space-y-2">
+                  <Label>Quand notifier ? *</Label>
+                  <div className="flex gap-2 text-xs">
+                    <button type="button" onClick={() => setMode("quick")} className={`px-3 py-1 rounded-full border transition-all ${mode === "quick" ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-muted"}`}>Délai rapide</button>
+                    <button type="button" onClick={() => setMode("custom")} className={`px-3 py-1 rounded-full border transition-all ${mode === "custom" ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-muted"}`}>Date précise</button>
+                  </div>
+                  {mode === "quick" ? (
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap gap-1.5">
+                        {QUICK_PRESETS.map((p) => {
+                          const active = quickValue === p.value && quickUnit === p.unit;
+                          return (
+                            <button
+                              type="button"
+                              key={p.label}
+                              onClick={() => { setQuickValue(p.value); setQuickUnit(p.unit); }}
+                              className={`text-xs px-2 py-1 rounded-full border transition-all ${active ? "bg-primary/15 text-primary border-primary/40 ring-2 ring-primary/30" : "bg-background hover:bg-muted"}`}
+                            >
+                              {p.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="flex gap-2 items-center">
+                        <span className="text-xs text-muted-foreground">Ou personnalisé : dans</span>
+                        <Input type="number" min={1} value={quickValue} onChange={(e) => setQuickValue(Math.max(1, parseInt(e.target.value) || 1))} className="w-20 h-8" />
+                        <Select value={quickUnit} onValueChange={(v: any) => setQuickUnit(v)}>
+                          <SelectTrigger className="w-28 h-8"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="minutes">minutes</SelectItem>
+                            <SelectItem value="hours">heures</SelectItem>
+                            <SelectItem value="days">jours</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">
+                        🔔 Notification le {new Date(Date.now() + quickValue * (quickUnit === "minutes" ? 60000 : quickUnit === "hours" ? 3600000 : 86400000)).toLocaleString("fr-FR", { timeZone: "Indian/Reunion", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                      </p>
+                    </div>
+                  ) : (
                     <Input type="datetime-local" value={form.remind_at} onChange={(e) => setForm({ ...form, remind_at: e.target.value })} />
-                  </div>
-                  <div>
-                    <Label>Assigner à</Label>
-                    <Select value={form.assigned_to || "self"} onValueChange={(v) => setForm({ ...form, assigned_to: v === "self" ? "" : v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="self">Moi-même</SelectItem>
-                        {agents.map((a: any) => (
-                          <SelectItem key={a.user_id} value={a.user_id}>{a.full_name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  )}
+                </div>
+                <div>
+                  <Label>Assigner à</Label>
+                  <Select value={form.assigned_to || "self"} onValueChange={(v) => setForm({ ...form, assigned_to: v === "self" ? "" : v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="self">Moi-même</SelectItem>
+                      {agents.map((a: any) => (
+                        <SelectItem key={a.user_id} value={a.user_id}>{a.full_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <DialogFooter>

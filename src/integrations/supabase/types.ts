@@ -390,6 +390,14 @@ export type Database = {
           phone: string | null
           pipeline_status: Database["public"]["Enums"]["pipeline_status"]
           postal_code: string | null
+          relance_facebook_at: string | null
+          relance_facebook_by: string | null
+          relance_facebook_needed: boolean
+          relance_facebook_note: string | null
+          relance_gmb_at: string | null
+          relance_gmb_by: string | null
+          relance_gmb_needed: boolean
+          relance_gmb_note: string | null
           sector: string | null
           signature_date: string | null
           signed_by: string | null
@@ -431,6 +439,14 @@ export type Database = {
           phone?: string | null
           pipeline_status?: Database["public"]["Enums"]["pipeline_status"]
           postal_code?: string | null
+          relance_facebook_at?: string | null
+          relance_facebook_by?: string | null
+          relance_facebook_needed?: boolean
+          relance_facebook_note?: string | null
+          relance_gmb_at?: string | null
+          relance_gmb_by?: string | null
+          relance_gmb_needed?: boolean
+          relance_gmb_note?: string | null
           sector?: string | null
           signature_date?: string | null
           signed_by?: string | null
@@ -472,6 +488,14 @@ export type Database = {
           phone?: string | null
           pipeline_status?: Database["public"]["Enums"]["pipeline_status"]
           postal_code?: string | null
+          relance_facebook_at?: string | null
+          relance_facebook_by?: string | null
+          relance_facebook_needed?: boolean
+          relance_facebook_note?: string | null
+          relance_gmb_at?: string | null
+          relance_gmb_by?: string | null
+          relance_gmb_needed?: boolean
+          relance_gmb_note?: string | null
           sector?: string | null
           signature_date?: string | null
           signed_by?: string | null

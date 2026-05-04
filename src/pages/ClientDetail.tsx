@@ -41,6 +41,7 @@ import ClientEmailActions from "@/components/clients/ClientEmailActions";
 import DomainRenewalInvoice from "@/components/clients/DomainRenewalInvoice";
 import ClientEmailHistory from "@/components/clients/ClientEmailHistory";
 import ClientRemindersSection from "@/components/clients/ClientRemindersSection";
+import RelanceFlagsSection from "@/components/clients/RelanceFlagsSection";
 import { useClientForms, useValidateForm, ClientFormData } from "@/hooks/use-client-forms";
 import { triggerN8nWebhook } from "@/lib/n8n-webhook";
 import { motion } from "framer-motion";
@@ -1563,6 +1564,7 @@ export default function ClientDetail() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <ClientInfoSection client={client} salesTeam={salesTeam} />
+          <RelanceFlagsSection clientId={client.id} client={client} />
           <ClientRemindersSection clientId={client.id} />
           <LogoTrackingCard client={client as any} />
           <ClientProjectsSection clientId={client.id} />

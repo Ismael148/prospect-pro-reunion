@@ -38,6 +38,7 @@ import DebugRealtime from "./pages/DebugRealtime";
 import PartnerAccess from "./pages/PartnerAccess";
 import Gmb from "./pages/Gmb";
 import TutoFacebook from "./pages/TutoFacebook";
+import TutoInstagram from "./pages/TutoInstagram";
 import TutoGmb from "./pages/TutoGmb";
 import OnboardingInbox from "./pages/FbOnboardingInbox";
 import EmailsLog from "./pages/EmailsLog";

@@ -1804,7 +1804,10 @@ export type Database = {
           created_by: string | null
           expires_at: string
           id: string
+          last_reminder_at: string | null
+          last_sent_at: string | null
           providers: Database["public"]["Enums"]["payment_provider"][] | null
+          reminder_count: number
           token: string
         }
         Insert: {
@@ -1818,7 +1821,10 @@ export type Database = {
           created_by?: string | null
           expires_at?: string
           id?: string
+          last_reminder_at?: string | null
+          last_sent_at?: string | null
           providers?: Database["public"]["Enums"]["payment_provider"][] | null
+          reminder_count?: number
           token?: string
         }
         Update: {
@@ -1832,7 +1838,10 @@ export type Database = {
           created_by?: string | null
           expires_at?: string
           id?: string
+          last_reminder_at?: string | null
+          last_sent_at?: string | null
           providers?: Database["public"]["Enums"]["payment_provider"][] | null
+          reminder_count?: number
           token?: string
         }
         Relationships: [

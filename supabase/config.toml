@@ -2,3 +2,6 @@ project_id = "qaxlpmxekcvbrcnqopbp"
 
 [functions.chatbot-webhook]
 verify_jwt = false
+
+[functions.payment-reminder]
+verify_jwt = false

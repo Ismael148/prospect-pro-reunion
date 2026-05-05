@@ -244,6 +244,14 @@ export default function PaymentTutoSection({ clientId, clientNdi, clientEmail, c
         },
       });
       if (error) throw error;
+      // Marque le départ pour que les relances J+3/J+7/J+14 partent depuis cet envoi
+      if (activeInvite?.id) {
+        await (supabase as any)
+          .from("payment_invitations")
+          .update({ last_sent_at: new Date().toISOString() })
+          .eq("id", activeInvite.id);
+        queryClient.invalidateQueries({ queryKey: ["payment-invitations", clientId] });
+      }
       toast.success(`Mail tuto Paiements envoyé à ${clientEmail}`);
       setPreviewOpen(false);
     } catch (e: any) {

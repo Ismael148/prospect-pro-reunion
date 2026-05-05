@@ -38,6 +38,7 @@ import DebugRealtime from "./pages/DebugRealtime";
 import PartnerAccess from "./pages/PartnerAccess";
 import Gmb from "./pages/Gmb";
 import TutoFacebook from "./pages/TutoFacebook";
+import TutoInstagram from "./pages/TutoInstagram";
 import TutoGmb from "./pages/TutoGmb";
 import OnboardingInbox from "./pages/FbOnboardingInbox";
 import EmailsLog from "./pages/EmailsLog";
@@ -176,6 +177,7 @@ const App = () => (
             {/* Public tutorials */}
             <Route path="/tuto/facebook" element={<TutoFacebook />} />
             <Route path="/tuto/gmb" element={<TutoGmb />} />
+            <Route path="/tuto/instagram" element={<TutoInstagram />} />
             <Route path="/tuto/paiements" element={<TutoPaiements />} />
             {/* Public routes */}
             <Route path="/privacy" element={<Privacy />} />

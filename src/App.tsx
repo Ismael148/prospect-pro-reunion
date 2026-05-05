@@ -177,6 +177,7 @@ const App = () => (
             {/* Public tutorials */}
             <Route path="/tuto/facebook" element={<TutoFacebook />} />
             <Route path="/tuto/gmb" element={<TutoGmb />} />
+            <Route path="/tuto/instagram" element={<TutoInstagram />} />
             <Route path="/tuto/paiements" element={<TutoPaiements />} />
             {/* Public routes */}
             <Route path="/privacy" element={<Privacy />} />

@@ -324,6 +324,19 @@ export default function PaymentTutoSection({ clientId, clientNdi, clientEmail, c
           {!clientEmail && (
             <p className="text-[11px] text-destructive mt-2">⚠️ Renseignez l'email du client pour pouvoir lui envoyer le tuto.</p>
           )}
+          {activeInvite && (
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+              <Badge variant="outline" className="text-[10px]">
+                🔔 Relances auto J+3 / J+7 / J+14
+              </Badge>
+              <span>
+                {(activeInvite.reminder_count || 0)}/3 envoyée{(activeInvite.reminder_count || 0) > 1 ? "s" : ""}
+                {activeInvite.last_reminder_at && (
+                  <> — dernière le {new Date(activeInvite.last_reminder_at).toLocaleDateString("fr-FR")}</>
+                )}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Liste des clés reçues — admin only */}

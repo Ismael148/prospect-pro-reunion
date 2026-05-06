@@ -137,7 +137,7 @@ export default function PaymentTutoSection({ clientId, clientNdi, clientEmail, c
         <tr><td style="padding:36px 36px 8px;">
           <p style="margin:0 0 18px;font-size:16px;line-height:1.6;">Bonjour <strong>${greeting}</strong>,</p>
           <p style="margin:0 0 16px;font-size:15px;line-height:1.65;color:#3f3f46;">
-            Pour <strong style="color:#18181b">encaisser vos paiements en ligne</strong> directement sur votre site Adamkom,
+            Pour <strong style="color:#18181b">encaisser vos paiements en ligne</strong> directement sur votre site,
             nous avons besoin de vos clés API auprès de votre solution de paiement préférée.
           </p>
           <p style="margin:0 0 24px;font-size:15px;line-height:1.65;color:#3f3f46;">

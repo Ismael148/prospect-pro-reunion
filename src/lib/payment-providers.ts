@@ -317,7 +317,7 @@ export const PAYMENT_PROVIDERS: Record<PaymentProviderKey, ProviderConfig> = {
     name: "Mollie",
     tagline: "Multi-méthodes européennes (CB, iDEAL, Bancontact, SOFORT)",
     color: "#000000",
-    logoUrl: SI("mollie", "000000"),
+    logoUrl: "/logos/mollie.svg",
     logoFallback: "🌷",
     description:
       "Mollie est l'alternative européenne à Stripe. Excellent support, méthodes locales (iDEAL Pays-Bas, Bancontact Belgique, SOFORT Allemagne).",
@@ -380,7 +380,7 @@ export const PAYMENT_PROVIDERS: Record<PaymentProviderKey, ProviderConfig> = {
     name: "Lyra / SystemPay",
     tagline: "Le partenaire des banques françaises (BRED, Crédit Agricole)",
     color: "#0070BA",
-    logoUrl: "https://lyra.com/wp-content/uploads/2021/02/lyra-logo.svg",
+    logoUrl: "/logos/lyra.png",
     logoFallback: "🔷",
     description:
       "Lyra (ex-PayZen / SystemPay) est utilisé par les banques françaises. Idéal à La Réunion : BRED, Crédit Agricole, Banque Populaire, Crédit Mutuel.",
@@ -454,7 +454,7 @@ export const PAYMENT_PROVIDERS: Record<PaymentProviderKey, ProviderConfig> = {
     name: "HelloAsso",
     tagline: "100% gratuit pour les associations 1901",
     color: "#0066FF",
-    logoUrl: "https://www.helloasso.com/static-assets/img/logos/logo-helloasso.svg",
+    logoUrl: "/logos/helloasso.png",
     logoFallback: "💙",
     description:
       "HelloAsso est gratuit pour les associations (financement par pourboires des donateurs). Solution leader pour collectes, adhésions, billetterie.",
@@ -520,7 +520,7 @@ export const PAYMENT_PROVIDERS: Record<PaymentProviderKey, ProviderConfig> = {
     name: "Sumup",
     tagline: "TPE physique + lien de paiement",
     color: "#3399FF",
-    logoUrl: SI("sumup", "3399FF"),
+    logoUrl: "/logos/sumup.png",
     logoFallback: "🟦",
     description:
       "Sumup est connu pour ses TPE mobiles. Propose aussi des liens de paiement et une API pour e-commerce. Sans abonnement.",

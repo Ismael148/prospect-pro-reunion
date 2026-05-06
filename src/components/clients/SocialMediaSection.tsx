@@ -238,25 +238,30 @@ function TutoLinksBlock({ clientId, clientNdi, clientEmail, clientCompany }: { c
     navigator.clipboard.writeText(link).then(() => toast.success(`Lien tuto ${label} copié !`));
   };
 
-  const resend = async (kind: "facebook" | "gmb") => {
+  const resend = async (kind: "facebook" | "gmb" | "instagram") => {
     if (!clientEmail) {
       toast.error("Aucun email client renseigné");
       return;
     }
     setResending(kind);
     try {
-      const link = kind === "facebook" ? fbLink : gmbLink;
-      const platformLabel = kind === "facebook" ? "Facebook Business" : "Google My Business";
-      const subject = `Accès à votre ${kind === "facebook" ? "page Facebook" : "fiche Google"} — ${clientCompany || ""}`.trim();
+      const link = kind === "facebook" ? fbLink : kind === "gmb" ? gmbLink : igLink;
+      const platformLabel = kind === "facebook" ? "Facebook Business" : kind === "gmb" ? "Google My Business" : "Instagram + Facebook";
+      const emoji = kind === "facebook" ? "📘" : kind === "gmb" ? "📍" : "📸";
+      const subjectLabel = kind === "facebook" ? "page Facebook" : kind === "gmb" ? "fiche Google" : "compte Instagram (+ liaison Facebook)";
+      const subject = `Accès à votre ${subjectLabel} — ${clientCompany || ""}`.trim();
       const greeting = clientCompany || "vous";
+      const intro = kind === "instagram"
+        ? `Voici le tutoriel <strong>Instagram</strong> : nous vous guidons pour <strong>créer votre compte Instagram</strong> (si besoin), le passer en <strong>compte Entreprise</strong>, puis le <strong>relier à votre page Facebook</strong> via le Centre de comptes Meta.`
+        : `Suite à notre échange, voici à nouveau le tutoriel <strong>${platformLabel}</strong> pour nous transmettre les accès nécessaires à la gestion de vos réseaux sociaux.`;
       const htmlContent = `
         <div style="font-family:Inter,Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#18181b">
           <p>Bonjour <strong>${greeting}</strong>,</p>
-          <p>Suite à notre échange, voici à nouveau le tutoriel <strong>${platformLabel}</strong> pour nous transmettre les accès nécessaires à la gestion de vos réseaux sociaux.</p>
+          <p>${intro}</p>
           <p>Le tutoriel est ultra-simple, il ne vous prendra que quelques minutes et vous n'avez <strong>aucun mot de passe à nous communiquer</strong>.</p>
           <p style="text-align:center;margin:32px 0">
             <a href="${link}" style="background:linear-gradient(135deg,#ff006e,#ff5c8a);color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block">
-              ${kind === "facebook" ? "📘" : "📍"} Suivre le tutoriel ${platformLabel}
+              ${emoji} Suivre le tutoriel ${platformLabel}
             </a>
           </p>
           <p style="font-size:13px;color:#71717a">Lien direct : <a href="${link}" style="color:#ff006e;word-break:break-all">${link}</a></p>
@@ -271,7 +276,7 @@ function TutoLinksBlock({ clientId, clientNdi, clientEmail, clientCompany }: { c
           recipientName: clientCompany || clientEmail,
           subject,
           htmlContent,
-          trigger: kind === "facebook" ? "tuto_facebook" : "tuto_gmb",
+          trigger: kind === "facebook" ? "tuto_facebook" : kind === "gmb" ? "tuto_gmb" : "tuto_instagram",
           client_id: clientId,
         },
       });

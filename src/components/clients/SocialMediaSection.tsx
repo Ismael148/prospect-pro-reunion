@@ -324,9 +324,9 @@ function TutoLinksBlock({ clientId, clientNdi, clientEmail, clientCompany }: { c
           {!clientNdi && <Badge variant="outline" className="text-[10px]">NDI manquant — lien générique</Badge>}
         </div>
         <p className="text-[11px] text-muted-foreground mb-3">
-          Envoyez ces liens au client pour qu'il vous transmette ses accès Facebook & Google My Business sans partager de mot de passe.
+          Envoyez ces liens au client pour qu'il vous transmette ses accès Facebook, Instagram & Google My Business sans partager de mot de passe.
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {/* FACEBOOK */}
           <div className="space-y-1.5 p-2 rounded-lg bg-background/60 border border-border/50">
             <div className="flex items-center gap-1.5 text-xs font-semibold">
@@ -342,6 +342,24 @@ function TutoLinksBlock({ clientId, clientNdi, clientEmail, clientCompany }: { c
             </div>
             <Button size="sm" variant="default" className="w-full text-xs h-8 bg-[#1877F2] hover:bg-[#1866d4]" onClick={() => resend("facebook")} disabled={!clientEmail || resending === "facebook"}>
               {resending === "facebook" ? "Envoi..." : <><Send className="w-3 h-3 mr-1" /> Renvoyer le mail</>}
+            </Button>
+          </div>
+
+          {/* INSTAGRAM */}
+          <div className="space-y-1.5 p-2 rounded-lg bg-background/60 border border-border/50">
+            <div className="flex items-center gap-1.5 text-xs font-semibold">
+              <Instagram className="w-3.5 h-3.5 text-[#E1306C]" /> Instagram + Facebook
+            </div>
+            <div className="flex items-center gap-1">
+              <Button size="sm" variant="outline" className="flex-1 text-xs justify-start h-8" onClick={() => copy(igLink, "Instagram")}>
+                <Copy className="w-3 h-3 mr-1" /> Copier lien
+              </Button>
+              <Button size="sm" variant="ghost" className="h-8 w-8 p-0" asChild title="Ouvrir le tuto">
+                <a href={igLink} target="_blank" rel="noopener noreferrer"><ExternalLink className="w-3.5 h-3.5" /></a>
+              </Button>
+            </div>
+            <Button size="sm" variant="default" className="w-full text-xs h-8 bg-gradient-to-r from-[#FA7E1E] via-[#D62976] to-[#962FBF] hover:opacity-90" onClick={() => resend("instagram")} disabled={!clientEmail || resending === "instagram"}>
+              {resending === "instagram" ? "Envoi..." : <><Send className="w-3 h-3 mr-1" /> Renvoyer le mail</>}
             </Button>
           </div>
 

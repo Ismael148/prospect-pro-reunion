@@ -306,7 +306,20 @@ export default function TutoPaiements() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-black">
+    <div
+      className="min-h-screen bg-white text-black"
+      style={{
+        ['--background' as any]: '0 0% 100%',
+        ['--foreground' as any]: '0 0% 7%',
+        ['--card' as any]: '0 0% 100%',
+        ['--card-foreground' as any]: '0 0% 7%',
+        ['--muted' as any]: '0 0% 96%',
+        ['--muted-foreground' as any]: '0 0% 30%',
+        ['--border' as any]: '0 0% 88%',
+        ['--input' as any]: '0 0% 88%',
+        colorScheme: 'light',
+      }}
+    >
       {/* Header */}
       <header className="border-b border-neutral-200 bg-white sticky top-0 z-30">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">

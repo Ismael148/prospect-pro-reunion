@@ -45,7 +45,7 @@ const submissionSchema = z.object({
 function GlassCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
     <div
-      className={`rounded-2xl border border-border/40 bg-background/70 backdrop-blur-xl shadow-[0_10px_40px_-15px_rgba(255,0,110,0.15)] ${className}`}
+      className={`rounded-2xl border border-neutral-200 bg-white text-black shadow-[0_10px_40px_-15px_rgba(0,0,0,0.08)] ${className}`}
     >
       {children}
     </div>
@@ -306,9 +306,22 @@ export default function TutoPaiements() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <div
+      className="min-h-screen bg-white text-black"
+      style={{
+        ['--background' as any]: '0 0% 100%',
+        ['--foreground' as any]: '0 0% 7%',
+        ['--card' as any]: '0 0% 100%',
+        ['--card-foreground' as any]: '0 0% 7%',
+        ['--muted' as any]: '0 0% 96%',
+        ['--muted-foreground' as any]: '0 0% 30%',
+        ['--border' as any]: '0 0% 88%',
+        ['--input' as any]: '0 0% 88%',
+        colorScheme: 'light',
+      }}
+    >
       {/* Header */}
-      <header className="border-b border-border/40 bg-background/70 backdrop-blur-xl sticky top-0 z-30">
+      <header className="border-b border-neutral-200 bg-white sticky top-0 z-30">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <img src={logo} alt="Adamkom" className="h-8" />

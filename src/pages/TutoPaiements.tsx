@@ -45,7 +45,7 @@ const submissionSchema = z.object({
 function GlassCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
     <div
-      className={`rounded-2xl border border-border/40 bg-background/70 backdrop-blur-xl shadow-[0_10px_40px_-15px_rgba(255,0,110,0.15)] ${className}`}
+      className={`rounded-2xl border border-neutral-200 bg-white text-black shadow-[0_10px_40px_-15px_rgba(0,0,0,0.08)] ${className}`}
     >
       {children}
     </div>

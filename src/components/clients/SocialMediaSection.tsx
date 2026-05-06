@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import {
-  Plus, ExternalLink, Pencil, Trash2, CheckCircle2, Clock, Calendar, Share2, Copy, LogIn, Link2, MapPin, Facebook,
+  Plus, ExternalLink, Pencil, Trash2, CheckCircle2, Clock, Calendar, Share2, Copy, LogIn, Link2, MapPin, Facebook, Instagram,
   Send, History as HistoryIcon,
 } from "lucide-react";
 import {

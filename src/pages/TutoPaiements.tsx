@@ -306,9 +306,9 @@ export default function TutoPaiements() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="min-h-screen bg-white text-black">
       {/* Header */}
-      <header className="border-b border-border/40 bg-background/70 backdrop-blur-xl sticky top-0 z-30">
+      <header className="border-b border-neutral-200 bg-white sticky top-0 z-30">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <img src={logo} alt="Adamkom" className="h-8" />

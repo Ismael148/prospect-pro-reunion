@@ -55,13 +55,12 @@ export function useSubmitFbOnboarding() {
         notes: input.notes?.trim() || null,
         source_url: input.source_url || (typeof window !== "undefined" ? window.location.href : null),
       };
-      const { data, error } = await (supabase as any)
+      // No .select() — anon has INSERT but no SELECT policy
+      const { error } = await (supabase as any)
         .from("fb_onboarding_submissions")
-        .insert(payload)
-        .select()
-        .single();
+        .insert(payload);
       if (error) throw error;
-      return data as FbOnboardingSubmission;
+      return payload as unknown as FbOnboardingSubmission;
     },
     onSuccess: () => toast.success("Merci ! Vos infos ont bien été envoyées à Adamkom."),
     onError: (e: any) => toast.error(e.message || "Erreur lors de l'envoi"),

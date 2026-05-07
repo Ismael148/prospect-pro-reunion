@@ -285,6 +285,8 @@ export default function WebmasterDashboard() {
         inProgressTasks: memberTasks.filter((t) => t.status === "en_cours").length,
         overdueTasks: memberTasks.filter((t) => {
           if (t.status === "termine") return false;
+          const proj: any = projects.find((p: any) => p.id === t.project_id);
+          if (!proj || ["termine", "annule"].includes(proj.status) || (proj.progress || 0) >= 90) return false;
           const d = t.due_date ? Math.ceil((new Date(t.due_date).getTime() - now.getTime()) / 86400000) : null;
           return d !== null && d < 0;
         }).length,

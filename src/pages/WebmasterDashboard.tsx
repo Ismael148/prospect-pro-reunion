@@ -261,7 +261,7 @@ export default function WebmasterDashboard() {
 
       const memberProjects = projects
         .filter((p: any) => memberProjectIds.has(p.id))
-        .filter((p: any) => p.status !== "annule")
+        .filter((p: any) => p.status !== "annule" && p.status !== "termine" && (p.progress || 0) < 90)
         .map((p: any) => {
           const pTasks = allTasks.filter((t) => t.project_id === p.id);
           const done = pTasks.filter((t) => t.status === "termine").length;

@@ -65,19 +65,20 @@ const TABLES: Record<string, TableConfig> = {
     byId: (id) => [["client", id]],
   },
   projects: {
-    lists: [["projects"], ["logo-clients"]],
+    lists: [["projects"], ["logo-clients"], ["overdue-tasks-dashboard"], ["all_project_tasks_full"]],
     byId: (id, row) => {
-      const k: string[][] = [["project", id]];
+      const k: string[][] = [["project", id], ["projects", id]];
       if (row?.client_id) k.push(["client", row.client_id]);
       return k;
     },
   },
   project_tasks: {
-    lists: [],
+    lists: [["overdue-tasks-dashboard"], ["all_project_tasks_full"]],
     byId: (_id, row) => {
       const k: string[][] = [];
       if (row?.project_id) {
         k.push(["project-tasks", row.project_id]);
+        k.push(["project_tasks", row.project_id]);
         k.push(["project", row.project_id]);
       }
       return k;

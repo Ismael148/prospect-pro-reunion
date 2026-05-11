@@ -13,6 +13,7 @@ import {
   Send, Share2, Trash2, XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ClientCombobox } from "@/components/ClientCombobox";
 import {
   usePartnerAccessList, useUpsertPartnerAccess, useDeletePartnerAccess,
   usePartnerNotifications, useUpsertPartnerNotification, useDeletePartnerNotification,

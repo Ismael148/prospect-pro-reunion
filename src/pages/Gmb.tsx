@@ -145,23 +145,18 @@ export default function Gmb() {
             </DialogHeader>
             <div className="space-y-3">
               <Label>Client</Label>
-              <Select value={pickedClientId} onValueChange={setPickedClientId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un client…" />
-                </SelectTrigger>
-                <SelectContent>
-                  {candidates.length === 0 && (
-                    <div className="p-3 text-sm text-muted-foreground">
-                      Tous les clients ont déjà un suivi GMB.
-                    </div>
-                  )}
-                  {candidates.map((c: any) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.company_name} {c.city ? `· ${c.city}` : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {candidates.length === 0 ? (
+                <div className="rounded-md border p-3 text-sm text-muted-foreground">
+                  Tous les clients ont déjà un suivi GMB.
+                </div>
+              ) : (
+                <ClientCombobox
+                  options={candidates as any}
+                  value={pickedClientId}
+                  onChange={setPickedClientId}
+                  placeholder="Rechercher / sélectionner un client…"
+                />
+              )}
               <p className="text-sm text-muted-foreground">
                 Le statut initial sera <Badge variant="outline">À créer</Badge>. Tu pourras ensuite
                 ouvrir Google Business Manager pré-rempli en 1 clic.

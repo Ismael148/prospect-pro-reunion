@@ -503,14 +503,12 @@ function NotificationDialog({ notif, onClose }: { notif: Partial<PartnerNotifica
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
               <Label>Client *</Label>
-              <Select value={form.client_id} onValueChange={(v) => setForm({ ...form, client_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Choisir…" /></SelectTrigger>
-                <SelectContent>
-                  {clients.map((c: any) => (
-                    <SelectItem key={c.id} value={c.id}>{c.company_name}{c.ndi ? ` (${c.ndi})` : ""}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <ClientCombobox
+                options={clients as any}
+                value={form.client_id}
+                onChange={(v) => setForm({ ...form, client_id: v })}
+                placeholder="Rechercher / choisir un client…"
+              />
             </div>
             <div>
               <Label>Plateforme</Label>

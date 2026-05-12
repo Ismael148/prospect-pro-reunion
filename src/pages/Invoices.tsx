@@ -372,6 +372,22 @@ export default function Invoices() {
               </div>
             </div>
 
+            {/* Payment methods */}
+            <div className="space-y-2">
+              <Label>Modes de règlement (cochez un ou plusieurs)</Label>
+              <div className="grid grid-cols-2 gap-2 p-3 rounded-lg border border-border/50 bg-muted/20">
+                {PAYMENT_OPTIONS.map((opt) => (
+                  <label key={opt.value} className="flex items-center gap-2 cursor-pointer text-sm">
+                    <Checkbox
+                      checked={paymentMethods.includes(opt.value)}
+                      onCheckedChange={() => togglePaymentMethod(opt.value)}
+                    />
+                    <span>{opt.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
             {/* Line items */}
             <div className="space-y-2">
               <Label>Lignes de facturation</Label>

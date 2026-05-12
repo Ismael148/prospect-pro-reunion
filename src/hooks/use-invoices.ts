@@ -126,6 +126,8 @@ export function useCreateInvoice() {
           client_id: data.client_id,
           client_email: client.email,
           company_name: client.company_name,
+          manager_name: client.manager_name,
+          greeting_name: (client.manager_name?.trim() || client.company_name),
           support_link: supportLink,
           form_nfc_link: formNfcLink,
           form_site_link: formSiteLink,

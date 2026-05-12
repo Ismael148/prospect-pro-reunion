@@ -20,8 +20,8 @@ import type { SavedTemplate } from "@/hooks/use-email-templates";
 
 import { BRAND_COLOR, wrapInBrandedTemplate } from "@/lib/email-template";
 
-function buildEmailBody(companyName: string, domainName: string, amount: number) {
-  return `<p style="margin:0 0 20px">Bonjour <strong>${companyName}</strong>,</p>
+function buildEmailBody(greetingName: string, domainName: string, amount: number) {
+  return `<p style="margin:0 0 20px">Bonjour <strong>${greetingName}</strong>,</p>
 <p style="margin:0 0 20px">Veuillez trouver ci-jointe la facture de renouvellement de votre nom de domaine :</p>
 <div style="margin:20px 0;padding:20px;background:#f8f9fa;border-radius:12px;border-left:4px solid ${BRAND_COLOR}">
   <p style="margin:0 0 8px;font-size:16px;font-weight:700;color:#1a1a2e">🌐 ${domainName}</p>

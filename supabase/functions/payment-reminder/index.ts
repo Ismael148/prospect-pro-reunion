@@ -105,7 +105,16 @@ Deno.serve(async (req) => {
 
       try {
         const link = `${PUBLISHED_URL}/tuto/paiements?token=${inv.token}`;
-        const company = inv.company_name || inv.contact_email;
+        let greeting: string | null = null;
+        if (inv.client_id) {
+          const { data: c } = await supabase
+            .from("clients")
+            .select("manager_name, company_name")
+            .eq("id", inv.client_id)
+            .maybeSingle();
+          greeting = (c?.manager_name?.trim() || c?.company_name) ?? null;
+        }
+        const company = greeting || inv.company_name || inv.contact_email;
         const { subject, html } = buildEmailHtml(company, link, inv.reminder_count);
         await sendBrevoEmail(inv.contact_email, company, subject, html);
 

@@ -20,8 +20,8 @@ import type { SavedTemplate } from "@/hooks/use-email-templates";
 
 import { BRAND_COLOR, wrapInBrandedTemplate } from "@/lib/email-template";
 
-function buildEmailBody(companyName: string, domainName: string, amount: number) {
-  return `<p style="margin:0 0 20px">Bonjour <strong>${companyName}</strong>,</p>
+function buildEmailBody(greetingName: string, domainName: string, amount: number) {
+  return `<p style="margin:0 0 20px">Bonjour <strong>${greetingName}</strong>,</p>
 <p style="margin:0 0 20px">Veuillez trouver ci-jointe la facture de renouvellement de votre nom de domaine :</p>
 <div style="margin:20px 0;padding:20px;background:#f8f9fa;border-radius:12px;border-left:4px solid ${BRAND_COLOR}">
   <p style="margin:0 0 8px;font-size:16px;font-weight:700;color:#1a1a2e">🌐 ${domainName}</p>
@@ -36,6 +36,7 @@ function buildEmailBody(companyName: string, domainName: string, amount: number)
 interface ClientData {
   id: string;
   company_name: string;
+  manager_name?: string | null;
   email: string | null;
   address?: string | null;
   postal_code?: string | null;
@@ -59,7 +60,8 @@ export default function DomainRenewalInvoice({ client }: { client: ClientData })
 
   const amountNum = Number(amount) || 0;
   const defaultSubject = `Facture renouvellement nom de domaine — ${domainName.trim()}`;
-  const defaultBody = buildEmailBody(client.company_name, domainName.trim(), amountNum);
+  const greetingName = client.manager_name?.trim() || client.company_name;
+  const defaultBody = buildEmailBody(greetingName, domainName.trim(), amountNum);
 
   const previewHtml = useMemo(() => {
     return wrapInBrandedTemplate(emailBodyOverride || defaultBody, undefined, branding || undefined);
@@ -156,7 +158,7 @@ export default function DomainRenewalInvoice({ client }: { client: ClientData })
         body: {
           action: "send_client_email",
           recipientEmail: client.email,
-          recipientName: client.company_name,
+          recipientName: greetingName,
           subject,
           htmlContent,
           trigger: "domain_renewal_invoice",

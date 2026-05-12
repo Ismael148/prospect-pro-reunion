@@ -13,6 +13,7 @@ interface InvoicePDFData {
   total_amount: number;
   notes?: string | null;
   items: InvoiceItem[];
+  payment_methods?: string[] | null;
   client: {
     company_name: string;
     address?: string | null;

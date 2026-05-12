@@ -145,6 +145,7 @@ export default function Invoices() {
         due_date: dueDate || null,
         created_by: user!.id,
         status: "brouillon",
+        payment_methods: paymentMethods.length > 0 ? paymentMethods : null,
       } as any);
       toast.success("Facture créée");
       setDialogOpen(false);
@@ -158,6 +159,7 @@ export default function Invoices() {
     setNotes("");
     setDueDate("");
     setItems([{ description: "", quantity: 1, unit_price: 0, total: 0 }]);
+    setPaymentMethods([]);
   };
 
   const handleStatusChange = async (id: string, status: string) => {

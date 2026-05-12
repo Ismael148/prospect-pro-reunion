@@ -36,6 +36,7 @@ function buildEmailBody(greetingName: string, domainName: string, amount: number
 interface ClientData {
   id: string;
   company_name: string;
+  manager_name?: string | null;
   email: string | null;
   address?: string | null;
   postal_code?: string | null;

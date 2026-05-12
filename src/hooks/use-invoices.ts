@@ -83,7 +83,7 @@ export function useCreateInvoice() {
       try {
         const { data: client } = await supabase
           .from("clients")
-          .select("company_name, address, postal_code, city, email, phone, siret, support_token, payment_method, pack_type")
+          .select("company_name, manager_name, address, postal_code, city, email, phone, siret, support_token, payment_method, pack_type")
           .eq("id", data.client_id)
           .single();
 

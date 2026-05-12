@@ -23,11 +23,19 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import {
   FileText, Plus, Trash2, Download, Loader2, Search, Eye, CheckCircle,
 } from "lucide-react";
 import { motion } from "framer-motion";
+
+const PAYMENT_OPTIONS: { value: string; label: string }[] = [
+  { value: "virement", label: "Virement bancaire" },
+  { value: "cb", label: "Carte bancaire" },
+  { value: "cheque", label: "Chèque" },
+  { value: "especes", label: "Espèces" },
+];
 
 const STATUS_LABELS: Record<string, string> = {
   brouillon: "Brouillon",

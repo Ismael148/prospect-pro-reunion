@@ -24,6 +24,7 @@ export interface Invoice {
   paid_date: string | null;
   notes: string | null;
   items: InvoiceItem[];
+  payment_methods?: string[] | null;
   created_by: string;
   created_at: string;
   updated_at: string;

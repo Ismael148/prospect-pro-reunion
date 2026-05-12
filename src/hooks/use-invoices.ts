@@ -106,6 +106,7 @@ export function useCreateInvoice() {
           total_amount: data.total_amount,
           notes: data.notes,
           items: data.items,
+          payment_methods: data.payment_methods,
           client: {
             company_name: client.company_name,
             address: client.address,

@@ -50,6 +50,8 @@ function getEmailActions(client: ClientData): EmailAction[] {
   const nfcFormLink = client.support_token ? `${PUBLISHED_URL}/f/${client.support_token}/nfc` : '';
   const siteFormLink = client.support_token ? `${PUBLISHED_URL}/f/${client.support_token}/site` : '';
 
+  const greeting = client.manager_name?.trim() || client.company_name;
+
   return [
     {
       id: 'support_link',
@@ -58,7 +60,7 @@ function getEmailActions(client: ClientData): EmailAction[] {
       subject: `Votre espace support — ${client.company_name}`,
       trigger: 'support_link',
       condition: (c) => !!c.support_token,
-      bodyFn: () => `<p style="margin:0 0 20px">Bonjour <strong>${client.company_name}</strong>,</p>
+      bodyFn: () => `<p style="margin:0 0 20px">Bonjour <strong>${greeting}</strong>,</p>
 <p style="margin:0 0 20px">Vous pouvez désormais accéder à votre <strong>espace support dédié</strong> pour soumettre vos demandes.</p>
 <ul style="padding-left:20px;color:#52525b;margin:0 0 24px;line-height:2">
   <li>Cliquez sur le bouton ci-dessous</li>
@@ -75,7 +77,7 @@ ${makeCta('📋 Accéder à mon espace support', supportLink)}
       subject: `Complétez votre formulaire carte NFC — ${client.company_name}`,
       trigger: 'form_reminder_nfc',
       condition: (c) => !!c.support_token,
-      bodyFn: () => `<p style="margin:0 0 20px">Bonjour <strong>${client.company_name}</strong>,</p>
+      bodyFn: () => `<p style="margin:0 0 20px">Bonjour <strong>${greeting}</strong>,</p>
 <p style="margin:0 0 20px">Pour créer votre <strong>carte NFC personnalisée</strong>, nous avons besoin de vos informations.</p>
 ${makeCta('💳 Remplir le formulaire NFC', nfcFormLink)}
 <p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
@@ -87,13 +89,11 @@ ${makeCta('💳 Remplir le formulaire NFC', nfcFormLink)}
       subject: `Complétez votre formulaire site internet — ${client.company_name}`,
       trigger: 'form_reminder_site',
       condition: (c) => !!c.support_token && c.pack_type !== 'star_bizness_nfc',
-      bodyFn: () => `<p style="margin:0 0 20px">Bonjour <strong>${client.company_name}</strong>,</p>
+      bodyFn: () => `<p style="margin:0 0 20px">Bonjour <strong>${greeting}</strong>,</p>
 <p style="margin:0 0 20px">Pour démarrer la création de votre <strong>site internet</strong>, nous avons besoin de vos informations.</p>
 ${makeCta('🌐 Remplir le formulaire site', siteFormLink)}
 <p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
     },
-    {
-      id: 'google_review',
       label: 'Demande avis Google',
       icon: <Star className="w-4 h-4" />,
       subject: `Votre avis compte pour nous — ${client.company_name}`,

@@ -60,7 +60,8 @@ export default function DomainRenewalInvoice({ client }: { client: ClientData })
 
   const amountNum = Number(amount) || 0;
   const defaultSubject = `Facture renouvellement nom de domaine — ${domainName.trim()}`;
-  const defaultBody = buildEmailBody(client.company_name, domainName.trim(), amountNum);
+  const greetingName = client.manager_name?.trim() || client.company_name;
+  const defaultBody = buildEmailBody(greetingName, domainName.trim(), amountNum);
 
   const previewHtml = useMemo(() => {
     return wrapInBrandedTemplate(emailBodyOverride || defaultBody, undefined, branding || undefined);

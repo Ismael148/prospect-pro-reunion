@@ -1276,6 +1276,7 @@ export type Database = {
           items: Json
           notes: string | null
           paid_date: string | null
+          payment_methods: string[] | null
           status: string
           tax_amount: number
           tax_rate: number
@@ -1294,6 +1295,7 @@ export type Database = {
           items?: Json
           notes?: string | null
           paid_date?: string | null
+          payment_methods?: string[] | null
           status?: string
           tax_amount?: number
           tax_rate?: number
@@ -1312,6 +1314,7 @@ export type Database = {
           items?: Json
           notes?: string | null
           paid_date?: string | null
+          payment_methods?: string[] | null
           status?: string
           tax_amount?: number
           tax_rate?: number

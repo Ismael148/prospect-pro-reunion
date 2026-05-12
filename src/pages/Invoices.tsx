@@ -70,6 +70,7 @@ export default function Invoices() {
   const [items, setItems] = useState<InvoiceItem[]>([
     { description: "", quantity: 1, unit_price: 0, total: 0 },
   ]);
+  const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
 
   const clientMap = useMemo(() => {
     const map = new Map<string, any>();

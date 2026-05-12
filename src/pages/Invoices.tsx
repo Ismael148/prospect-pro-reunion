@@ -23,11 +23,19 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import {
   FileText, Plus, Trash2, Download, Loader2, Search, Eye, CheckCircle,
 } from "lucide-react";
 import { motion } from "framer-motion";
+
+const PAYMENT_OPTIONS: { value: string; label: string }[] = [
+  { value: "virement", label: "Virement bancaire" },
+  { value: "cb", label: "Carte bancaire" },
+  { value: "cheque", label: "Chèque" },
+  { value: "especes", label: "Espèces" },
+];
 
 const STATUS_LABELS: Record<string, string> = {
   brouillon: "Brouillon",
@@ -62,6 +70,7 @@ export default function Invoices() {
   const [items, setItems] = useState<InvoiceItem[]>([
     { description: "", quantity: 1, unit_price: 0, total: 0 },
   ]);
+  const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
 
   const clientMap = useMemo(() => {
     const map = new Map<string, any>();
@@ -99,6 +108,9 @@ export default function Invoices() {
   const handleClientChange = (clientId: string) => {
     setSelectedClientId(clientId);
     const client = clientMap.get(clientId);
+    if (client?.payment_method) {
+      setPaymentMethods([client.payment_method]);
+    }
     if (client?.pack_type && PACK_PRICES[client.pack_type]) {
       const packLabel = PACK_LABELS[client.pack_type as keyof typeof PACK_LABELS] || client.pack_type;
       const price = client.pack_amount || PACK_PRICES[client.pack_type];
@@ -110,6 +122,12 @@ export default function Invoices() {
         ]);
       }
     }
+  };
+
+  const togglePaymentMethod = (value: string) => {
+    setPaymentMethods((prev) =>
+      prev.includes(value) ? prev.filter((m) => m !== value) : [...prev, value]
+    );
   };
 
   const handleCreate = async () => {
@@ -127,6 +145,7 @@ export default function Invoices() {
         due_date: dueDate || null,
         created_by: user!.id,
         status: "brouillon",
+        payment_methods: paymentMethods.length > 0 ? paymentMethods : null,
       } as any);
       toast.success("Facture créée");
       setDialogOpen(false);
@@ -140,6 +159,7 @@ export default function Invoices() {
     setNotes("");
     setDueDate("");
     setItems([{ description: "", quantity: 1, unit_price: 0, total: 0 }]);
+    setPaymentMethods([]);
   };
 
   const handleStatusChange = async (id: string, status: string) => {
@@ -349,6 +369,22 @@ export default function Invoices() {
               <div className="space-y-2">
                 <Label>Date d'échéance</Label>
                 <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+              </div>
+            </div>
+
+            {/* Payment methods */}
+            <div className="space-y-2">
+              <Label>Modes de règlement (cochez un ou plusieurs)</Label>
+              <div className="grid grid-cols-2 gap-2 p-3 rounded-lg border border-border/50 bg-muted/20">
+                {PAYMENT_OPTIONS.map((opt) => (
+                  <label key={opt.value} className="flex items-center gap-2 cursor-pointer text-sm">
+                    <Checkbox
+                      checked={paymentMethods.includes(opt.value)}
+                      onCheckedChange={() => togglePaymentMethod(opt.value)}
+                    />
+                    <span>{opt.label}</span>
+                  </label>
+                ))}
               </div>
             </div>
 

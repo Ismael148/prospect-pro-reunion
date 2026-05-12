@@ -108,6 +108,9 @@ export default function Invoices() {
   const handleClientChange = (clientId: string) => {
     setSelectedClientId(clientId);
     const client = clientMap.get(clientId);
+    if (client?.payment_method) {
+      setPaymentMethods([client.payment_method]);
+    }
     if (client?.pack_type && PACK_PRICES[client.pack_type]) {
       const packLabel = PACK_LABELS[client.pack_type as keyof typeof PACK_LABELS] || client.pack_type;
       const price = client.pack_amount || PACK_PRICES[client.pack_type];
@@ -119,6 +122,12 @@ export default function Invoices() {
         ]);
       }
     }
+  };
+
+  const togglePaymentMethod = (value: string) => {
+    setPaymentMethods((prev) =>
+      prev.includes(value) ? prev.filter((m) => m !== value) : [...prev, value]
+    );
   };
 
   const handleCreate = async () => {

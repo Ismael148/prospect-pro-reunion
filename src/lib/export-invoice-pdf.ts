@@ -166,7 +166,12 @@ export function exportInvoicePDF(data: InvoicePDFData, options?: { returnBase64?
   y += 6;
   doc.setFont("helvetica", "normal");
   doc.setTextColor(...GRAY);
-  const paymentLabel = PAYMENT_LABELS[data.client.payment_method || ""] || data.client.payment_method || "—";
+  const methods = (data.payment_methods && data.payment_methods.length > 0)
+    ? data.payment_methods
+    : (data.client.payment_method ? [data.client.payment_method] : []);
+  const paymentLabel = methods.length > 0
+    ? methods.map((m) => PAYMENT_LABELS[m] || m).join(", ")
+    : "—";
   doc.text(paymentLabel, 15, y);
 
   // === TOTALS (right) ===

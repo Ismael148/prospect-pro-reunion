@@ -158,7 +158,7 @@ export default function DomainRenewalInvoice({ client }: { client: ClientData })
         body: {
           action: "send_client_email",
           recipientEmail: client.email,
-          recipientName: client.company_name,
+          recipientName: greetingName,
           subject,
           htmlContent,
           trigger: "domain_renewal_invoice",

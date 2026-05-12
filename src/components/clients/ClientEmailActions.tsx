@@ -94,6 +94,8 @@ ${makeCta('💳 Remplir le formulaire NFC', nfcFormLink)}
 ${makeCta('🌐 Remplir le formulaire site', siteFormLink)}
 <p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
     },
+    {
+      id: 'google_review',
       label: 'Demande avis Google',
       icon: <Star className="w-4 h-4" />,
       subject: `Votre avis compte pour nous — ${client.company_name}`,

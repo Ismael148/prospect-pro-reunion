@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import {
   ChevronLeft, ChevronRight, Plus, CalendarDays, Video, Users as UsersIcon,
-  MapPin, Mail, Trash2, Link as LinkIcon, Clock,
+  MapPin, Mail, Trash2, Link as LinkIcon, Clock, Eye, Send,
 } from "lucide-react";
 import { motion } from "framer-motion";
 

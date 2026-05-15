@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import {
   ChevronLeft, ChevronRight, Plus, CalendarDays, Video, Users as UsersIcon,
-  MapPin, Mail, Trash2, Link as LinkIcon, Clock,
+  MapPin, Mail, Trash2, Link as LinkIcon, Clock, Eye, Send,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -65,6 +65,7 @@ export default function Calendrier() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [filterType, setFilterType] = useState<string>("all");
 
   // Form state
@@ -197,16 +198,10 @@ export default function Calendrier() {
     } catch {/* toast handled */}
   }
 
-  async function sendEmailToClient(ev: CalendarEvent) {
-    if (!ev.client_id) {
-      toast.error("Aucun client lié");
-      return;
-    }
+  function buildEmailForEvent(ev: CalendarEvent): { html: string; subject: string; client: any } | null {
+    if (!ev.client_id) return null;
     const client = clients.find((c: any) => c.id === ev.client_id);
-    if (!client?.email) {
-      toast.error("Pas d'email pour ce client");
-      return;
-    }
+    if (!client) return null;
 
     const startD = new Date(ev.start_at);
     const endD = new Date(ev.end_at);
@@ -217,6 +212,7 @@ export default function Calendrier() {
       `${toTimeInput(startD)} - ${toTimeInput(endD)}`;
     const typeLabel = EVENT_TYPE_CONFIG[ev.event_type]?.label || "Événement";
     const brandColor = branding?.brand_color || "#ff006e";
+    const greeting = client.manager_name?.trim() || client.company_name;
 
     const html = `
 <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #fff;">
@@ -225,8 +221,9 @@ export default function Calendrier() {
     <h1 style="color: #fff; margin: 16px 0 0 0; font-size: 24px;">📅 ${typeLabel}</h1>
   </div>
   <div style="padding: 32px 24px; color: #1a1a2e;">
-    <p style="font-size: 16px; margin: 0 0 20px;">Bonjour ${client.manager_name || client.company_name},</p>
-    <p style="font-size: 15px; line-height: 1.6;">Nous avons le plaisir de vous confirmer un rendez-vous.</p>
+    <p style="font-size: 16px; margin: 0 0 20px;">Bonjour ${greeting},</p>
+    <p style="font-size: 15px; line-height: 1.6; margin: 0 0 16px;">Nous avons le plaisir de vous inviter à une réunion Google Meet afin d'échanger sur l'avancement de votre projet.</p>
+    <p style="font-size: 15px; line-height: 1.6; margin: 0 0 20px;">Cet échange nous permettra de passer en revue l'ensemble des modifications souhaitées pour votre site internet. Notre priorité est de nous assurer que le résultat final corresponde parfaitement à vos attentes et nous resterons pleinement mobilisés jusqu'à votre entière satisfaction.</p>
 
     <div style="background: #f8f9fc; border-left: 4px solid ${brandColor}; padding: 20px; margin: 24px 0; border-radius: 8px;">
       <h2 style="margin: 0 0 12px 0; font-size: 18px; color: ${brandColor};">${ev.title}</h2>
@@ -239,7 +236,7 @@ export default function Calendrier() {
     ${ev.meet_link ? `
     <div style="text-align: center; margin: 32px 0;">
       <a href="${ev.meet_link}" style="display: inline-block; background: ${brandColor}; color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">
-        🎥 Rejoindre la visio
+        🎥 Rejoindre la réunion Google Meet
       </a>
       <p style="margin: 12px 0 0 0; font-size: 13px; color: #666;">
         Ou copiez ce lien : <a href="${ev.meet_link}" style="color: ${brandColor};">${ev.meet_link}</a>
@@ -257,6 +254,21 @@ export default function Calendrier() {
   </div>
 </div>`.trim();
 
+    return { html, subject: `📅 ${typeLabel} : ${ev.title} — ${dateStr}`, client };
+  }
+
+  async function sendEmailToClient(ev: CalendarEvent) {
+    const built = buildEmailForEvent(ev);
+    if (!built) {
+      toast.error("Aucun client lié");
+      return;
+    }
+    const { html, subject, client } = built;
+    if (!client?.email) {
+      toast.error("Pas d'email pour ce client");
+      return;
+    }
+
     try {
       const { error } = await supabase.functions.invoke("send-brevo-campaign", {
         body: {
@@ -264,7 +276,7 @@ export default function Calendrier() {
           recipientEmail: client.email,
           recipientName: client.manager_name || client.company_name,
           htmlContent: html,
-          subject: `📅 ${typeLabel} : ${ev.title} — ${dateStr}`,
+          subject,
           trigger: "calendar_event",
           client_id: client.id,
         },
@@ -276,6 +288,7 @@ export default function Calendrier() {
         email_sent_at: new Date().toISOString(),
       } as any);
       toast.success("Email envoyé au client");
+      setPreviewOpen(false);
     } catch (e: any) {
       toast.error("Erreur : " + e.message);
     }
@@ -571,6 +584,15 @@ export default function Calendrier() {
                   <Button
                     variant="outline"
                     size="sm"
+                    onClick={() => setPreviewOpen(true)}
+                  >
+                    <Eye className="w-4 h-4 mr-1" /> Aperçu email
+                  </Button>
+                )}
+                {editingEvent.client_id && (
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => sendEmailToClient(editingEvent)}
                   >
                     <Mail className="w-4 h-4 mr-1" />
@@ -583,6 +605,41 @@ export default function Calendrier() {
             <Button onClick={submitForm} disabled={create.isPending || update.isPending}>
               {editingEvent ? "Mettre à jour" : "Créer"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Email Preview Dialog */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Aperçu de l'email</DialogTitle>
+            <DialogDescription>
+              {editingEvent && buildEmailForEvent(editingEvent)?.subject}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-auto rounded-lg border bg-muted/30 p-4">
+            {editingEvent && (() => {
+              const built = buildEmailForEvent(editingEvent);
+              return built ? (
+                <iframe
+                  title="Aperçu email"
+                  srcDoc={built.html}
+                  className="w-full min-h-[600px] bg-white rounded-md border-0"
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground">Aucun client lié à cet événement.</p>
+              );
+            })()}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPreviewOpen(false)}>Fermer</Button>
+            {editingEvent?.client_id && (
+              <Button onClick={() => sendEmailToClient(editingEvent)}>
+                <Send className="w-4 h-4 mr-1" />
+                {editingEvent.email_sent_to_client ? "Renvoyer" : "Envoyer"} au client
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

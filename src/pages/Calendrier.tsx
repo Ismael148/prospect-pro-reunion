@@ -65,6 +65,7 @@ export default function Calendrier() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [filterType, setFilterType] = useState<string>("all");
 
   // Form state

@@ -584,6 +584,15 @@ export default function Calendrier() {
                   <Button
                     variant="outline"
                     size="sm"
+                    onClick={() => setPreviewOpen(true)}
+                  >
+                    <Eye className="w-4 h-4 mr-1" /> Aperçu email
+                  </Button>
+                )}
+                {editingEvent.client_id && (
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => sendEmailToClient(editingEvent)}
                   >
                     <Mail className="w-4 h-4 mr-1" />
@@ -596,6 +605,41 @@ export default function Calendrier() {
             <Button onClick={submitForm} disabled={create.isPending || update.isPending}>
               {editingEvent ? "Mettre à jour" : "Créer"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Email Preview Dialog */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Aperçu de l'email</DialogTitle>
+            <DialogDescription>
+              {editingEvent && buildEmailForEvent(editingEvent)?.subject}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-auto rounded-lg border bg-muted/30 p-4">
+            {editingEvent && (() => {
+              const built = buildEmailForEvent(editingEvent);
+              return built ? (
+                <iframe
+                  title="Aperçu email"
+                  srcDoc={built.html}
+                  className="w-full min-h-[600px] bg-white rounded-md border-0"
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground">Aucun client lié à cet événement.</p>
+              );
+            })()}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPreviewOpen(false)}>Fermer</Button>
+            {editingEvent?.client_id && (
+              <Button onClick={() => sendEmailToClient(editingEvent)}>
+                <Send className="w-4 h-4 mr-1" />
+                {editingEvent.email_sent_to_client ? "Renvoyer" : "Envoyer"} au client
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

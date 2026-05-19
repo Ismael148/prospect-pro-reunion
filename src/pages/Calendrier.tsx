@@ -482,15 +482,26 @@ export default function Calendrier() {
               </div>
               <div>
                 <Label>Client (optionnel)</Label>
-                <Select value={form.client_id} onValueChange={(v) => setForm({ ...form, client_id: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Aucun client</SelectItem>
-                    {clients.map((c: any) => (
-                      <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <ClientCombobox
+                      options={clients as any}
+                      value={form.client_id === "none" ? "" : form.client_id}
+                      onChange={(id) => setForm({ ...form, client_id: id || "none" })}
+                      placeholder="Rechercher un client…"
+                    />
+                  </div>
+                  {form.client_id !== "none" && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setForm({ ...form, client_id: "none" })}
+                    >
+                      ✕
+                    </Button>
+                  )}
+                </div>
               </div>
               <div>
                 <Label>Date</Label>

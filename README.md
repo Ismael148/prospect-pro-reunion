@@ -1,73 +1,102 @@
-# Welcome to your Lovable project
+# Adamkom — CRM & Gestion de Projets
 
-## Project info
+Plateforme interne d'Adamkom (agence marketing digital à La Réunion 🇷🇪) pour gérer les clients, projets, factures, communications et automatisations.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+- **URL de production** : https://ai.adamkom.com
+- **Région** : EMEA · Fuseau **UTC+4 (La Réunion)**
+- **Devise** : Euro (€)
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## 🧱 Stack technique
 
-**Use Lovable**
+### 🎨 Frontend
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+| Techno | Rôle |
+|---|---|
+| **React 18** + **TypeScript 5** | Framework UI typé, base de toute l'application |
+| **Vite 5** | Bundler ultra-rapide pour le dev et la prod |
+| **Tailwind CSS v3** + `tailwindcss-animate` | Styling utilitaire et animations CSS |
+| **shadcn/ui** (Radix UI) | Composants accessibles (Dialog, Select, Combobox, Popover…) |
+| **Framer Motion** | Animations fluides (navigation Pipeline, hover calendrier…) |
+| **React Router** | Routing client-side |
+| **TanStack Query** | Cache, refetch et synchronisation des données serveur |
+| **Lucide React** | Bibliothèque d'icônes SVG |
+| **Sonner** | Toasts élégants pour les notifications utilisateur |
+| **react-day-picker** | Sélecteur de date (calendrier) |
+| **date-fns** | Manipulation de dates en français |
 
-Changes made via Lovable will be committed automatically to this repo.
+### ⚙️ Backend — Lovable Cloud (Supabase)
 
-**Use your preferred IDE**
+| Techno | Rôle |
+|---|---|
+| **PostgreSQL** | Base de données relationnelle (clients, projets, factures, etc.) |
+| **Row Level Security (RLS)** | Sécurité au niveau ligne par rôle utilisateur |
+| **Edge Functions (Deno)** | Logique serveur : webhooks, envois email, génération IA, suppression utilisateurs |
+| **Supabase Auth** | Authentification (login uniquement, inscription désactivée) |
+| **Supabase Storage** | Stockage fichiers (logos, images formulaires clients, max 10/client) |
+| **Realtime (Postgres Changes)** | Synchronisation live (notifications, badge sync, /debug-realtime) |
+| **pg_cron** | Tâches planifiées (alertes deadlines, rappels) |
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### 🤖 Intelligence artificielle
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+| Techno | Rôle |
+|---|---|
+| **Lovable AI Gateway** | Accès aux modèles sans clé API |
+| **Google Gemini 2.5 Flash** | Génération des emails clients personnalisés (HTML) |
 
-Follow these steps:
+### 🔌 Intégrations externes
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+| Service | Rôle |
+|---|---|
+| **n8n** | Routeur central d'automatisations (webhook unique → Switch node) |
+| **Brevo (ex-Sendinblue)** | Envoi des emails transactionnels et campagnes marketing |
+| **Meta (Facebook / Instagram)** | OAuth multi-pages, publication sociale |
+| **Google Business Manager** | Module GMB centralisé (checklist 8 étapes) |
+| **Firecrawl** | Prospection (scraping de leads, dédupliqué avec la DB) |
+| **Discord** | Notifications support, prospects RDV |
+| **Google Meet** | Liens visio pour les événements calendrier |
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### 📄 Génération de documents
 
-# Step 3: Install the necessary dependencies.
-npm i
+| Techno | Rôle |
+|---|---|
+| **jsPDF** + **jspdf-autotable** | Factures (charte navy/gold JJ Pothin), exports clients, rapports GMB |
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+### 🛠️ Outils de développement
+
+| Techno | Rôle |
+|---|---|
+| **ESLint** | Linting du code TypeScript/React |
+| **Vitest** | Tests unitaires |
+| **bun / npm** | Gestion des dépendances |
+| **lovable-tagger** | Plugin Vite (mode dev) pour le tagging composants |
+
+### 🌍 Déploiement
+
+- **Lovable** — hébergement, CI/CD et previews
+- Domaine custom : **ai.adamkom.com**
+- Région : **EMEA**
+- Workflows n8n importables : `public/n8n-workflows/*.json`
+
+---
+
+## 🔐 Sécurité & rôles
+
+6 rôles distincts (admin, agent_master, agent_support, webmaster, commercial, agent) avec contraintes RLS strictes.
+Inscription publique **désactivée** — création des comptes par les admins uniquement.
+
+## 📦 Structure projet
+
 ```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+src/
+├── components/       Composants UI (shadcn + métier)
+├── hooks/            Hooks TanStack Query (use-clients, use-invoices…)
+├── pages/            Routes (Clients, Projects, Calendrier, Gmb…)
+├── lib/              Helpers (PDF, email-template, constants)
+└── integrations/     Client Supabase auto-généré
+supabase/
+├── functions/        Edge Functions (Deno)
+└── migrations/       SQL versionné
+public/n8n-workflows/ Workflows n8n importables
+```

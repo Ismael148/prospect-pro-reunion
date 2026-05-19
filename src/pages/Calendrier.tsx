@@ -25,6 +25,7 @@ import {
   MapPin, Mail, Trash2, Link as LinkIcon, Clock, Eye, Send,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { ClientCombobox } from "@/components/ClientCombobox";
 
 const DEFAULT_MEET = "https://meet.google.com/cjd-ydcx-qpe";
 const MONTHS = [

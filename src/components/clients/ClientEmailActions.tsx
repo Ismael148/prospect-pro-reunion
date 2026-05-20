@@ -186,6 +186,66 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
   const [aiResult, setAiResult] = useState<{ subject: string; htmlContent: string } | null>(null);
   const [aiSending, setAiSending] = useState(false);
 
+  // Pro credentials email state
+  const [showProDialog, setShowProDialog] = useState(false);
+  const [proLoginUrl, setProLoginUrl] = useState("");
+  const [proEmail, setProEmail] = useState("");
+  const [proPassword, setProPassword] = useState("");
+  const [proSending, setProSending] = useState(false);
+
+  const greeting = client.manager_name?.trim() || client.company_name;
+
+  const buildProCredentialsHtml = () => {
+    const row = (label: string, value: string) => `
+      <tr>
+        <td style="padding:10px 14px;background:#f4f4f5;border:1px solid #e4e4e7;font-weight:600;color:#27272a;width:160px">${label}</td>
+        <td style="padding:10px 14px;background:#fff;border:1px solid #e4e4e7;color:#18181b;font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;word-break:break-all">${value || '—'}</td>
+      </tr>`;
+    const body = `<p style="margin:0 0 20px">Bonjour <strong>${greeting}</strong>,</p>
+<p style="margin:0 0 20px">Voici vos <strong>accès professionnels</strong> à votre espace dédié. Nous vous recommandons de les conserver en lieu sûr et de modifier votre mot de passe lors de votre première connexion.</p>
+<table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;margin:0 0 20px;font-size:14px">
+  ${row('🔗 Lien de connexion', proLoginUrl ? `<a href="${proLoginUrl}" style="color:${BRAND_COLOR};text-decoration:none">${proLoginUrl}</a>` : '')}
+  ${row('📧 Email pro', proEmail)}
+  ${row('🔑 Mot de passe', proPassword)}
+</table>
+${proLoginUrl ? makeCta('🔐 Se connecter à mon espace', proLoginUrl) : ''}
+<p style="margin:0 0 20px;font-size:13px;color:#71717a">⚠️ Pour votre sécurité, ne partagez jamais ces identifiants. En cas de problème de connexion, contactez-nous via votre espace support.</p>
+<p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`;
+    const supportLink = client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined;
+    return wrapInBrandedTemplate(body, supportLink, branding || undefined);
+  };
+
+  const handleSendProCredentials = async () => {
+    if (!client.email) { toast.error("Pas d'email client"); return; }
+    if (!proLoginUrl.trim() || !proEmail.trim() || !proPassword.trim()) {
+      toast.error("Remplissez les 3 champs (lien, email, mot de passe)"); return;
+    }
+    setProSending(true);
+    try {
+      const htmlContent = buildProCredentialsHtml();
+      const subject = `Vos accès professionnels — ${client.company_name}`;
+      const { error } = await supabase.functions.invoke("send-brevo-campaign", {
+        body: {
+          action: "send_client_email",
+          recipientEmail: client.email,
+          recipientName: client.company_name,
+          subject,
+          htmlContent,
+          trigger: "pro_credentials",
+          client_id: client.id,
+        },
+      });
+      if (error) throw error;
+      toast.success(`Accès envoyés à ${client.email}`);
+      setShowProDialog(false);
+      setProLoginUrl(""); setProEmail(""); setProPassword("");
+    } catch (e: any) {
+      toast.error(e.message || "Erreur lors de l'envoi");
+    } finally {
+      setProSending(false);
+    }
+  };
+
   if (!client.email) {
     return null;
   }

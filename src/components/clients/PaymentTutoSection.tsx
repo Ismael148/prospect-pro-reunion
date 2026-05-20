@@ -21,6 +21,7 @@ interface Props {
   clientNdi?: string | null;
   clientEmail?: string | null;
   clientCompany?: string;
+  clientManager?: string | null;
 }
 
 const PROVIDER_LOGOS: Record<string, string> = {
@@ -33,7 +34,7 @@ const PROVIDER_LOGOS: Record<string, string> = {
   sumup: "🟦",
 };
 
-export default function PaymentTutoSection({ clientId, clientNdi, clientEmail, clientCompany }: Props) {
+export default function PaymentTutoSection({ clientId, clientNdi, clientEmail, clientCompany, clientManager }: Props) {
   const { user, hasRole } = useAuth();
   const isAdmin = hasRole("admin");
   const queryClient = useQueryClient();
@@ -113,7 +114,7 @@ export default function PaymentTutoSection({ clientId, clientNdi, clientEmail, c
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewLink, setPreviewLink] = useState<string>("");
 
-  const greeting = clientCompany || clientEmail || "vous";
+  const greeting = (clientManager && clientManager.trim()) || clientCompany || clientEmail || "vous";
   const subject = clientCompany
     ? `💳 ${clientCompany} — Configurez vos moyens de paiement en ligne`
     : `💳 Configurez vos moyens de paiement en ligne`;
@@ -236,7 +237,7 @@ export default function PaymentTutoSection({ clientId, clientNdi, clientEmail, c
         body: {
           action: "send_client_email",
           recipientEmail: clientEmail,
-          recipientName: clientCompany || clientEmail,
+          recipientName: greeting,
           subject,
           htmlContent,
           trigger: "tuto_paiements",

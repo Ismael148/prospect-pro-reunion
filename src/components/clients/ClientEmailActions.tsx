@@ -390,15 +390,26 @@ ${proLoginUrl ? makeCta('🔐 Se connecter à mon espace', proLoginUrl) : ''}
             <div className="flex items-center gap-2">
               <Mail className="w-5 h-5" /> Actions Email Client
             </div>
-            <Button
-              size="sm"
-              variant="outline"
-              className="gap-1.5 border-primary/20 text-primary hover:bg-primary/5"
-              onClick={() => setShowAiDialog(true)}
-            >
-              <Sparkles className="w-4 h-4" />
-              Générer par IA
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5"
+                onClick={() => setShowProDialog(true)}
+              >
+                <KeyRound className="w-4 h-4" />
+                Envoyer accès pro
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5 border-primary/20 text-primary hover:bg-primary/5"
+                onClick={() => setShowAiDialog(true)}
+              >
+                <Sparkles className="w-4 h-4" />
+                Générer par IA
+              </Button>
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent>

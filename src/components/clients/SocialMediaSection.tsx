@@ -227,7 +227,7 @@ function NewPublicationDialog({ clientId, accounts }: NewPublicationDialogProps)
   );
 }
 
-function TutoLinksBlock({ clientId, clientNdi, clientEmail, clientCompany }: { clientId: string; clientNdi?: string | null; clientEmail?: string | null; clientCompany?: string }) {
+function TutoLinksBlock({ clientId, clientNdi, clientEmail, clientCompany, clientManager }: { clientId: string; clientNdi?: string | null; clientEmail?: string | null; clientCompany?: string; clientManager?: string | null }) {
   const [resending, setResending] = useState<"facebook" | "gmb" | "instagram" | null>(null);
 
   const fbLink = clientNdi ? `${PUBLISHED_URL}/tuto/facebook?client=${clientNdi}` : `${PUBLISHED_URL}/tuto/facebook`;
@@ -250,7 +250,7 @@ function TutoLinksBlock({ clientId, clientNdi, clientEmail, clientCompany }: { c
       const emoji = kind === "facebook" ? "📘" : kind === "gmb" ? "📍" : "📸";
       const subjectLabel = kind === "facebook" ? "page Facebook" : kind === "gmb" ? "fiche Google" : "compte Instagram (+ liaison Facebook)";
       const subject = `Accès à votre ${subjectLabel} — ${clientCompany || ""}`.trim();
-      const greeting = clientCompany || "vous";
+      const greeting = (clientManager && clientManager.trim()) || clientCompany || "vous";
       const intro = kind === "instagram"
         ? `Voici le tutoriel <strong>Instagram</strong> : nous vous guidons pour <strong>créer votre compte Instagram</strong> (si besoin), le passer en <strong>compte Entreprise</strong>, puis le <strong>relier à votre page Facebook</strong> via le Centre de comptes Meta.`
         : `Suite à notre échange, voici à nouveau le tutoriel <strong>${platformLabel}</strong> pour nous transmettre les accès nécessaires à la gestion de vos réseaux sociaux.`;
@@ -273,7 +273,7 @@ function TutoLinksBlock({ clientId, clientNdi, clientEmail, clientCompany }: { c
         body: {
           action: "send_client_email",
           recipientEmail: clientEmail,
-          recipientName: clientCompany || clientEmail,
+          recipientName: greeting,
           subject,
           htmlContent,
           trigger: kind === "facebook" ? "tuto_facebook" : kind === "gmb" ? "tuto_gmb" : "tuto_instagram",
@@ -474,7 +474,7 @@ function TutoEmailHistoryDialog({ open, onClose, kind, clientEmail }: { open: bo
   );
 }
 
-export default function SocialMediaSection({ clientId, clientNdi, clientEmail, clientCompany }: { clientId: string; clientNdi?: string | null; clientEmail?: string | null; clientCompany?: string }) {
+export default function SocialMediaSection({ clientId, clientNdi, clientEmail, clientCompany, clientManager }: { clientId: string; clientNdi?: string | null; clientEmail?: string | null; clientCompany?: string; clientManager?: string | null }) {
   const { data: accounts, isLoading: loadingAccounts } = useSocialAccounts(clientId);
   const { data: publications, isLoading: loadingPubs } = useSocialPublications(clientId);
   const deleteAccount = useDeleteSocialAccount();
@@ -554,7 +554,7 @@ export default function SocialMediaSection({ clientId, clientNdi, clientEmail, c
       </CardHeader>
       <CardContent>
         {/* ─── LIENS TUTOS PERSONNALISÉS ─── */}
-        <TutoLinksBlock clientId={clientId} clientNdi={clientNdi} clientEmail={clientEmail} clientCompany={clientCompany} />
+        <TutoLinksBlock clientId={clientId} clientNdi={clientNdi} clientEmail={clientEmail} clientCompany={clientCompany} clientManager={clientManager} />
         <Tabs defaultValue="comptes">
           <TabsList className="mb-4">
             <TabsTrigger value="comptes">Comptes</TabsTrigger>

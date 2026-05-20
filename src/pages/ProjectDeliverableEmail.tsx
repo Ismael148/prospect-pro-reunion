@@ -242,7 +242,7 @@ export default function ProjectDeliverableEmail() {
   );
 
   const client = (project as any)?.clients;
-  const clientName = client?.company_name || "client";
+  const clientName = client?.manager_name?.trim() || client?.company_name || "client";
   const clientEmail = client?.email || "";
   const supportToken = client?.support_token || "";
   const supportLink = supportToken ? `${PUBLISHED_URL}/s/${supportToken}` : "";

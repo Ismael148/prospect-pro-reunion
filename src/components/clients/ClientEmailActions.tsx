@@ -228,7 +228,7 @@ ${proLoginUrl ? makeCta('🔐 Se connecter à mon espace', proLoginUrl) : ''}
         body: {
           action: "send_client_email",
           recipientEmail: client.email,
-          recipientName: client.company_name,
+          recipientName: greeting,
           subject,
           htmlContent,
           trigger: "pro_credentials",
@@ -270,7 +270,7 @@ ${proLoginUrl ? makeCta('🔐 Se connecter à mon espace', proLoginUrl) : ''}
         body: {
           action: "send_client_email",
           recipientEmail: client.email,
-          recipientName: client.company_name,
+          recipientName: greeting,
           subject,
           htmlContent,
           trigger: action.trigger,
@@ -354,7 +354,7 @@ ${proLoginUrl ? makeCta('🔐 Se connecter à mon espace', proLoginUrl) : ''}
         body: {
           action: "send_client_email",
           recipientEmail: client.email,
-          recipientName: client.company_name,
+          recipientName: greeting,
           subject: aiResult.subject,
           htmlContent: aiResult.htmlContent,
           trigger: "ai_generated",

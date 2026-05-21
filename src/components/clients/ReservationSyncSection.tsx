@@ -1,105 +1,63 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { CalendarSync, Copy, Mail, Loader2, ExternalLink, Link2 } from "lucide-react";
+import { CalendarSync, Copy, Mail, Loader2, ExternalLink, Link2, Inbox } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { PUBLISHED_URL } from "@/lib/constants";
 
 interface Props {
   clientId: string;
   clientEmail?: string | null;
   clientCompany?: string;
   clientManager?: string | null;
+  clientToken?: string | null;
 }
 
-// Logos via simple-icons CDN (svg colorisé, fiable et conforme aux marques)
 const PLATFORMS = [
-  {
-    key: "airbnb",
-    name: "Airbnb",
-    color: "#FF5A5F",
-    logo: "https://cdn.simpleicons.org/airbnb/FF5A5F",
-    helpUrl: "https://www.airbnb.fr/help/article/99",
-    steps: [
-      "Connectez-vous sur airbnb.fr puis allez dans <strong>Annonces</strong>.",
-      "Cliquez sur l'annonce concernée → onglet <strong>Calendrier</strong>.",
-      "Cliquez sur <strong>Disponibilités</strong> puis <strong>Synchronisez les calendriers</strong>.",
-      "Section <strong>Exporter le calendrier</strong> → <strong>Copier le lien</strong> (.ics).",
-      "Collez ce lien dans le champ <em>Lien iCal Airbnb</em> ci-dessous puis envoyez-le-nous.",
-    ],
-  },
-  {
-    key: "booking",
-    name: "Booking.com",
-    color: "#003580",
-    logo: "https://cdn.simpleicons.org/bookingdotcom/003580",
-    helpUrl: "https://partner.booking.com/fr/aide/tarifs-disponibilites/calendrier/synchroniser-mon-calendrier",
-    steps: [
-      "Connectez-vous sur <strong>admin.booking.com</strong> (extranet partenaire).",
-      "Menu <strong>Tarifs & Disponibilités</strong> → <strong>Synchronisation de calendrier</strong>.",
-      "Section <strong>Exporter le calendrier</strong> : sélectionnez le type de chambre.",
-      "Cliquez sur <strong>Copier le lien iCal</strong>.",
-      "Collez-le dans le champ <em>Lien iCal Booking.com</em> ci-dessous.",
-    ],
-  },
-  {
-    key: "vrbo",
-    name: "Vrbo / Abritel",
-    color: "#0F4C81",
-    logo: "https://cdn.simpleicons.org/vrbo/0F4C81",
-    helpUrl: "https://help.vrbo.com/articles/How-do-I-sync-my-calendars",
-    steps: [
-      "Connectez-vous sur <strong>vrbo.com</strong> ou abritel.fr.",
-      "Allez dans <strong>Calendrier</strong> → <strong>Importer/Exporter</strong>.",
-      "Section <strong>Exporter le calendrier</strong> → copier l'URL iCal.",
-      "Collez-le dans le champ <em>Lien iCal Vrbo</em> ci-dessous.",
-    ],
-  },
-  {
-    key: "gites",
-    name: "Gîtes de France",
-    color: "#1F8E3E",
-    logo: "https://cdn.simpleicons.org/letterboxd/1F8E3E",
-    helpUrl: "https://pro.gites-de-france.com/",
-    steps: [
-      "Connectez-vous sur l'<strong>espace propriétaire</strong> Gîtes de France.",
-      "Onglet <strong>Planning</strong> → <strong>Synchronisation iCal</strong>.",
-      "Copiez l'<strong>URL d'export iCal</strong>.",
-    ],
-  },
-  {
-    key: "expedia",
-    name: "Expedia",
-    color: "#FFC72C",
-    logo: "https://cdn.simpleicons.org/expedia/00355F",
-    helpUrl: "https://welcome.expediapartnercentral.com/",
-    steps: [
-      "Connectez-vous à <strong>Expedia Partner Central</strong>.",
-      "Menu <strong>Tarifs & Disponibilités</strong> → <strong>Calendrier</strong>.",
-      "Activez l'<strong>export iCal</strong> et copiez le lien généré.",
-    ],
-  },
+  { key: "airbnb", name: "Airbnb", color: "#FF5A5F", logo: "https://cdn.simpleicons.org/airbnb/FF5A5F" },
+  { key: "booking", name: "Booking.com", color: "#003580", logo: "https://cdn.simpleicons.org/bookingdotcom/003580" },
+  { key: "vrbo", name: "Vrbo / Abritel", color: "#0F4C81", logo: "https://cdn.simpleicons.org/vrbo/0F4C81" },
+  { key: "gites", name: "Gîtes de France", color: "#1F8E3E", logo: "https://cdn.simpleicons.org/letterboxd/1F8E3E" },
+  { key: "expedia", name: "Expedia", color: "#00355F", logo: "https://cdn.simpleicons.org/expedia/00355F" },
 ] as const;
 
-export default function ReservationSyncSection({ clientId, clientEmail, clientCompany, clientManager }: Props) {
+interface Submission {
+  id: string;
+  airbnb_url: string | null;
+  booking_url: string | null;
+  vrbo_url: string | null;
+  gites_url: string | null;
+  expedia_url: string | null;
+  notes: string | null;
+  status: string;
+  submitted_at: string;
+}
+
+export default function ReservationSyncSection({ clientId, clientEmail, clientCompany, clientManager, clientToken }: Props) {
   const [sending, setSending] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [urls, setUrls] = useState<Record<string, string>>({
-    airbnb: "",
-    booking: "",
-    vrbo: "",
-    gites: "",
-    expedia: "",
-  });
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
 
   const greeting = (clientManager && clientManager.trim()) || clientCompany || "vous";
-  const subject = `📅 ${clientCompany || ""} — Synchronisation des plateformes de réservation (Airbnb · Booking · Vrbo)`.trim();
+  const formUrl = clientToken ? `${PUBLISHED_URL}/ical/${clientToken}` : null;
+  const subject = `📅 ${clientCompany || ""} — Synchronisation de vos plateformes de réservation`.trim();
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("reservation_ical_submissions")
+        .select("id,airbnb_url,booking_url,vrbo_url,gites_url,expedia_url,notes,status,submitted_at")
+        .eq("client_id", clientId)
+        .order("submitted_at", { ascending: false });
+      setSubmissions((data as Submission[]) || []);
+    })();
+  }, [clientId]);
 
   const buildEmailHtml = () => `
 <!DOCTYPE html>
@@ -108,48 +66,56 @@ export default function ReservationSyncSection({ clientId, clientEmail, clientCo
 <body style="margin:0;padding:0;background:#f5f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Arial,sans-serif;color:#18181b;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f7;padding:32px 12px;">
     <tr><td align="center">
-      <table role="presentation" width="640" cellpadding="0" cellspacing="0" style="max-width:640px;width:100%;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 8px 32px -12px rgba(0,0,0,0.12);">
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 8px 32px -12px rgba(0,0,0,0.12);">
         <tr><td style="background:linear-gradient(135deg,#ff006e 0%,#ff5c8a 100%);padding:36px 32px;text-align:center;">
           <div style="font-size:44px;line-height:1;margin-bottom:8px;">📅</div>
-          <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;letter-spacing:-0.3px;">Synchronisez vos plateformes de réservation</h1>
-          <p style="margin:10px 0 0;color:rgba(255,255,255,0.92);font-size:14px;">Airbnb · Booking.com · Vrbo · Gîtes de France · Expedia</p>
+          <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;letter-spacing:-0.3px;">Synchronisez vos réservations</h1>
+          <p style="margin:10px 0 0;color:rgba(255,255,255,0.92);font-size:14px;">Airbnb · Booking · Vrbo · Gîtes de France · Expedia</p>
         </td></tr>
 
         <tr><td style="padding:32px 36px 8px;">
           <p style="margin:0 0 14px;font-size:16px;line-height:1.6;">Bonjour <strong>${greeting}</strong>,</p>
-          <p style="margin:0 0 16px;font-size:15px;line-height:1.65;color:#3f3f46;">
-            Pour afficher en temps réel les <strong>disponibilités</strong> de vos hébergements sur votre site et
-            éviter les <strong>doubles réservations</strong>, nous synchronisons votre site avec vos plateformes via le format
-            <strong>iCal (.ics)</strong>.
+          <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:#3f3f46;">
+            Afin d'afficher en temps réel vos <strong>disponibilités</strong> sur votre site internet
+            et d'éviter les <strong>doubles réservations</strong>, nous avons préparé pour vous un
+            <strong>formulaire guidé</strong>.
           </p>
-          <p style="margin:0 0 22px;font-size:15px;line-height:1.65;color:#3f3f46;">
-            Il vous suffit de récupérer le <strong>lien d'export iCal</strong> sur chaque plateforme et de nous le renvoyer
-            en répondant simplement à cet email.
+          <p style="margin:0 0 22px;font-size:15px;line-height:1.7;color:#3f3f46;">
+            Vous y trouverez la procédure détaillée, plateforme par plateforme, pour récupérer vos
+            liens iCal — et vous pourrez nous les transmettre en quelques clics, en toute sécurité.
           </p>
         </td></tr>
 
-        ${PLATFORMS.map((p, i) => `
-        <tr><td style="padding:8px 36px;">
-          <div style="border:1px solid #ececef;border-radius:14px;padding:18px 20px;background:#fafafa;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-              <img src="${p.logo}" alt="${p.name}" width="22" height="22" style="display:inline-block;vertical-align:middle;border:0;" />
-              <strong style="font-size:15px;color:${p.color};letter-spacing:0.2px;">${i + 1}. ${p.name}</strong>
-            </div>
-            <ol style="margin:0;padding-left:20px;font-size:13.5px;line-height:1.65;color:#3f3f46;">
-              ${p.steps.map((s) => `<li style="margin:3px 0;">${s}</li>`).join("")}
-            </ol>
-            <p style="margin:10px 0 0;font-size:12px;">
-              <a href="${p.helpUrl}" style="color:${p.color};text-decoration:none;">→ Aide officielle ${p.name}</a>
-            </p>
+        <tr><td align="center" style="padding:8px 36px 28px;">
+          <a href="${formUrl}" style="display:inline-block;background:linear-gradient(135deg,#ff006e,#ff5c8a);color:#ffffff;text-decoration:none;padding:16px 36px;border-radius:12px;font-size:15px;font-weight:700;letter-spacing:0.3px;box-shadow:0 6px 18px -4px rgba(255,0,110,0.45);">
+            ✦ Ouvrir le formulaire guidé
+          </a>
+          <p style="margin:14px 0 0;font-size:11px;color:#a1a1aa;word-break:break-all;">
+            ou copiez ce lien : <span style="color:#71717a;">${formUrl}</span>
+          </p>
+        </td></tr>
+
+        <tr><td style="padding:0 36px 8px;">
+          <div style="background:#fafafa;border:1px solid #ececef;border-radius:12px;padding:18px 20px;">
+            <p style="margin:0 0 10px;font-size:13px;font-weight:600;color:#18181b;">Plateformes prises en charge :</p>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                ${PLATFORMS.map(p => `
+                <td align="center" style="padding:6px;">
+                  <img src="${p.logo}" alt="${p.name}" width="28" height="28" style="display:block;margin:0 auto 4px;border:0;" />
+                  <span style="font-size:10px;color:#52525b;">${p.name}</span>
+                </td>`).join("")}
+              </tr>
+            </table>
           </div>
-        </td></tr>`).join("")}
+        </td></tr>
 
         <tr><td style="padding:22px 36px 8px;">
           <div style="background:#fff6fa;border:1px solid #ffd6e6;border-radius:12px;padding:14px 18px;">
-            <p style="margin:0;font-size:13.5px;line-height:1.6;color:#52525b;">
-              📨 <strong>Comment nous envoyer vos liens ?</strong><br/>
-              Répondez simplement à cet email en collant les URLs iCal récupérées (une par plateforme).
-              Notre équipe technique configure la synchronisation sous 24h ouvrées.
+            <p style="margin:0;font-size:13px;line-height:1.65;color:#52525b;">
+              ⏱️ <strong>Cela ne prend que quelques minutes.</strong><br/>
+              Une fois vos liens reçus, notre équipe technique configure la synchronisation
+              sous <strong>24h ouvrées</strong> et vous confirme la mise en service.
             </p>
           </div>
         </td></tr>
@@ -167,22 +133,19 @@ export default function ReservationSyncSection({ clientId, clientEmail, clientCo
   </table>
 </body></html>`;
 
-  const previewHtml = useMemo(() => buildEmailHtml(), [greeting, clientCompany]);
+  const previewHtml = useMemo(() => buildEmailHtml(), [greeting, clientCompany, formUrl]);
 
-  const copyTuto = async () => {
+  const copyLink = async () => {
+    if (!formUrl) return;
     try {
-      await navigator.clipboard.writeText(previewHtml);
-      toast.success("Tutoriel HTML copié");
-    } catch {
-      toast.error("Impossible de copier");
-    }
+      await navigator.clipboard.writeText(formUrl);
+      toast.success("Lien du formulaire copié");
+    } catch { toast.error("Impossible de copier"); }
   };
 
   const sendEmail = async () => {
-    if (!clientEmail) {
-      toast.error("Aucun email client renseigné");
-      return;
-    }
+    if (!clientEmail) { toast.error("Aucun email client renseigné"); return; }
+    if (!formUrl) { toast.error("Token client manquant — impossible de générer le lien"); return; }
     setSending(true);
     try {
       const { error } = await supabase.functions.invoke("send-brevo-campaign", {
@@ -192,18 +155,16 @@ export default function ReservationSyncSection({ clientId, clientEmail, clientCo
           recipientName: greeting,
           subject,
           htmlContent: buildEmailHtml(),
-          trigger: "tuto_reservation_sync",
+          trigger: "tuto_reservation_sync_form",
           client_id: clientId,
         },
       });
       if (error) throw error;
-      toast.success(`Tutoriel iCal envoyé à ${clientEmail}`);
+      toast.success(`Email envoyé à ${clientEmail}`);
       setPreviewOpen(false);
     } catch (e: any) {
       toast.error(e.message || "Erreur lors de l'envoi");
-    } finally {
-      setSending(false);
-    }
+    } finally { setSending(false); }
   };
 
   return (
@@ -212,105 +173,115 @@ export default function ReservationSyncSection({ clientId, clientEmail, clientCo
         <CardTitle className="flex items-center gap-2 text-base">
           <CalendarSync className="w-4 h-4 text-primary" />
           Synchronisation plateformes de réservation
-          <Badge variant="outline" className="ml-2 text-[10px]">iCal · Airbnb · Booking · Vrbo · +2</Badge>
+          <Badge variant="outline" className="ml-2 text-[10px]">iCal · Formulaire guidé</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="p-3 rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
           <div className="flex items-center gap-2 mb-2">
             <Link2 className="w-4 h-4 text-primary" />
-            <span className="text-xs font-semibold text-primary uppercase tracking-wide">Tutoriel personnalisé iCal</span>
+            <span className="text-xs font-semibold text-primary uppercase tracking-wide">Envoyer le tutoriel + formulaire</span>
           </div>
           <p className="text-[11px] text-muted-foreground mb-3">
-            Envoyez à <strong>{greeting}</strong> les instructions détaillées pour récupérer les liens iCal de chaque
-            plateforme (Airbnb, Booking, Vrbo…) afin d'éviter les doubles réservations sur le site.
+            Envoyez à <strong>{greeting}</strong> un email contenant un bouton vers un
+            <strong> formulaire guidé</strong> où le client peut récupérer puis envoyer ses liens iCal
+            (Airbnb, Booking, Vrbo, Gîtes, Expedia) en quelques clics.
           </p>
+
+          {formUrl && (
+            <div className="mb-3 flex items-center gap-2">
+              <Input value={formUrl} readOnly className="text-[11px] h-8" />
+              <Button size="sm" variant="ghost" onClick={copyLink}>
+                <Copy className="w-3.5 h-3.5" />
+              </Button>
+              <a href={formUrl} target="_blank" rel="noopener noreferrer">
+                <Button size="sm" variant="ghost">
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </Button>
+              </a>
+            </div>
+          )}
+
           <div className="flex flex-wrap gap-2">
-            <Button size="sm" variant="outline" onClick={copyTuto}>
-              <Copy className="w-3.5 h-3.5 mr-1" /> Copier le tuto HTML
-            </Button>
             <Button
               size="sm"
               className="bg-gradient-to-r from-primary to-primary/80"
               onClick={() => setPreviewOpen(true)}
-              disabled={!clientEmail}
+              disabled={!clientEmail || !formUrl}
             >
               <Mail className="w-3.5 h-3.5 mr-1" /> Aperçu & Envoyer
             </Button>
           </div>
-          {!clientEmail && (
-            <p className="text-[11px] text-destructive mt-2">⚠️ Renseignez l'email du client pour pouvoir lui envoyer le tuto.</p>
-          )}
+          {!clientEmail && <p className="text-[11px] text-destructive mt-2">⚠️ Renseignez l'email du client.</p>}
+          {!clientToken && <p className="text-[11px] text-destructive mt-2">⚠️ Token client manquant — impossible de générer le lien du formulaire.</p>}
         </div>
 
-        {/* Aperçu des plateformes couvertes */}
+        {/* Plateformes couvertes */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
           {PLATFORMS.map((p) => (
-            <a
+            <div
               key={p.key}
-              href={p.helpUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-lg border bg-card/40 hover:bg-card transition-colors"
+              className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-lg border bg-card/40"
               style={{ borderColor: `${p.color}33` }}
             >
               <img src={p.logo} alt={p.name} className="w-7 h-7" />
               <span className="text-[11px] font-medium text-center leading-tight">{p.name}</span>
-              <ExternalLink className="w-3 h-3 text-muted-foreground" />
-            </a>
+            </div>
           ))}
         </div>
 
-        {/* Champs de stockage rapide des URLs (collecte interne, pour copy/notes) */}
+        {/* Soumissions reçues */}
         <div className="space-y-2">
-          <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Liens iCal reçus du client
+          <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+            <Inbox className="w-3.5 h-3.5" /> Liens iCal reçus ({submissions.length})
           </h4>
-          {PLATFORMS.map((p) => (
-            <div key={p.key} className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 w-32 shrink-0">
-                <img src={p.logo} alt={p.name} className="w-4 h-4" />
-                <Label className="text-xs">{p.name}</Label>
+          {submissions.length === 0 && (
+            <p className="text-[11px] text-muted-foreground italic">
+              Aucune soumission pour le moment. Les réponses du client apparaîtront ici dès qu'il aura rempli le formulaire.
+            </p>
+          )}
+          {submissions.map((s) => (
+            <div key={s.id} className="p-3 rounded-lg border bg-card/40 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Badge variant="secondary" className="text-[10px]">
+                  {new Date(s.submitted_at).toLocaleString("fr-FR", { timeZone: "Indian/Reunion" })}
+                </Badge>
+                <Badge variant="outline" className="text-[10px]">{s.status}</Badge>
               </div>
-              <Input
-                placeholder={`https://...${p.key}.ics`}
-                value={urls[p.key] || ""}
-                onChange={(e) => setUrls({ ...urls, [p.key]: e.target.value })}
-                className="text-xs flex-1"
-              />
-              <Button
-                size="sm"
-                variant="ghost"
-                disabled={!urls[p.key]}
-                onClick={() => {
-                  navigator.clipboard.writeText(urls[p.key]);
-                  toast.success(`URL ${p.name} copiée`);
-                }}
-              >
-                <Copy className="w-3.5 h-3.5" />
-              </Button>
+              {PLATFORMS.map((p) => {
+                const url = (s as any)[`${p.key}_url`] as string | null;
+                if (!url) return null;
+                return (
+                  <div key={p.key} className="flex items-center gap-2">
+                    <img src={p.logo} alt={p.name} className="w-4 h-4" />
+                    <Input value={url} readOnly className="text-[11px] h-7 flex-1" />
+                    <Button
+                      size="sm" variant="ghost"
+                      onClick={() => { navigator.clipboard.writeText(url); toast.success(`URL ${p.name} copiée`); }}
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                );
+              })}
+              {s.notes && (
+                <p className="text-[11px] text-muted-foreground italic border-t pt-1.5">📝 {s.notes}</p>
+              )}
             </div>
           ))}
-          <p className="text-[11px] text-muted-foreground italic">
-            💡 Collez ici les liens iCal reçus par mail du client pour les transmettre à l'équipe technique.
-          </p>
         </div>
       </CardContent>
 
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Aperçu de l'email — Synchronisation iCal</DialogTitle>
+            <DialogTitle>Aperçu de l'email — Formulaire iCal</DialogTitle>
             <DialogDescription>
               Destinataire : <strong>{clientEmail}</strong> · Sujet : <em>{subject}</em>
             </DialogDescription>
           </DialogHeader>
           <div className="rounded-lg border overflow-hidden bg-white">
-            <iframe
-              title="Aperçu email iCal"
-              srcDoc={previewHtml}
-              className="w-full h-[60vh] bg-white"
-            />
+            <iframe title="Aperçu email iCal" srcDoc={previewHtml} className="w-full h-[60vh] bg-white" />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setPreviewOpen(false)}>Annuler</Button>

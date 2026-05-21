@@ -1649,7 +1649,7 @@ export default function ClientDetail() {
       {client.pack_type !== "star_bizness_nfc" && <SocialMediaSection clientId={id!} clientNdi={(client as any).ndi} clientEmail={(client as any).email} clientCompany={(client as any).company_name} clientManager={(client as any).manager_name} />}
       {/* {client.pack_type !== "star_bizness_nfc" && <ChatbotConfigSection clientId={id!} clientCompany={(client as any).company_name} />} */}
       {client.pack_type !== "star_bizness_nfc" && <PaymentTutoSection clientId={id!} clientNdi={(client as any).ndi} clientEmail={(client as any).email} clientCompany={(client as any).company_name} clientManager={(client as any).manager_name} />}
-      {client.pack_type !== "star_bizness_nfc" && <ReservationSyncSection clientId={id!} clientEmail={(client as any).email} clientCompany={(client as any).company_name} clientManager={(client as any).manager_name} />}
+      {client.pack_type !== "star_bizness_nfc" && <ReservationSyncSection clientId={id!} clientEmail={(client as any).email} clientCompany={(client as any).company_name} clientManager={(client as any).manager_name} clientToken={(client as any).support_token} />}
       <NotesSection clientId={id!} activities={activities} />
     </div>
   );

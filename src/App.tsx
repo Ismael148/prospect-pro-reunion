@@ -189,6 +189,9 @@ const App = () => (
             {/* Legacy long URLs (backward compat) */}
             <Route path="/support/:token" element={<SupportForm />} />
             <Route path="/formulaire/:token/:type" element={<ClientForm />} />
+            <Route path="/ical/:token" element={<ReservationSyncForm />} />
+            <Route path="/sync-reservations/:token" element={<ReservationSyncForm />} />
+
             <Route path="/valider-logo/:clientId" element={<LogoValidation />} />
             <Route path="/meta-callback" element={
               <ProtectedRoute><MetaCallback /></ProtectedRoute>

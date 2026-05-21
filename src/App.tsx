@@ -26,6 +26,7 @@ import WebmasterDashboard from "./pages/WebmasterDashboard";
 import AgentMasterDashboard from "./pages/AgentMasterDashboard";
 import MetaCallback from "./pages/MetaCallback";
 import ClientForm from "./pages/ClientForm";
+import ReservationSyncForm from "./pages/ReservationSyncForm";
 import ImportCSV from "./pages/ImportCSV";
 import Campaigns from "./pages/Campaigns";
 import NfcClients from "./pages/NfcClients";

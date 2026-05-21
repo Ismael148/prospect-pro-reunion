@@ -2097,6 +2097,62 @@ export type Database = {
           },
         ]
       }
+      reservation_ical_submissions: {
+        Row: {
+          airbnb_url: string | null
+          booking_url: string | null
+          client_id: string
+          created_at: string
+          expedia_url: string | null
+          gites_url: string | null
+          id: string
+          notes: string | null
+          other_urls: Json | null
+          status: string
+          submitted_at: string
+          updated_at: string
+          vrbo_url: string | null
+        }
+        Insert: {
+          airbnb_url?: string | null
+          booking_url?: string | null
+          client_id: string
+          created_at?: string
+          expedia_url?: string | null
+          gites_url?: string | null
+          id?: string
+          notes?: string | null
+          other_urls?: Json | null
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+          vrbo_url?: string | null
+        }
+        Update: {
+          airbnb_url?: string | null
+          booking_url?: string | null
+          client_id?: string
+          created_at?: string
+          expedia_url?: string | null
+          gites_url?: string | null
+          id?: string
+          notes?: string | null
+          other_urls?: Json | null
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+          vrbo_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservation_ical_submissions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       salary_advances: {
         Row: {
           amount: number

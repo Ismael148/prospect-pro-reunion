@@ -376,18 +376,29 @@ function Step5_FindId() {
     <div className="space-y-5">
       <div>
         <Badge className="bg-[#ff006e]/10 text-[#ff006e] hover:bg-[#ff006e]/10 border-0">30 sec</Badge>
-        <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 mt-2">Trouver l'ID de votre BM</h2>
+        <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 mt-2">Trouver l'ID de votre Business Manager</h2>
         <p className="mt-2 text-zinc-600">
-          On a besoin de cet identifiant unique (15-16 chiffres) pour vous identifier dans notre système.
+          On a besoin de cet identifiant unique (<strong>15 à 16 chiffres</strong>) pour vous rattacher dans notre système.
         </p>
+      </div>
+
+      <div className="rounded-xl border-2 border-amber-300 bg-amber-50 p-4">
+        <p className="text-sm text-amber-900">
+          ⚠️ <strong>Attention — à ne pas confondre :</strong>
+        </p>
+        <ul className="mt-2 space-y-1 text-sm text-amber-900 list-disc pl-5">
+          <li><strong>ID de la Page Facebook</strong> : identifie uniquement votre page publique (visible dans « Informations sur la Page », 16 chiffres — voir capture ci-dessous). <em>Ce n'est PAS celui qu'on demande.</em></li>
+          <li><strong>ID du Business Manager (Portefeuille business)</strong> : identifie votre compte entreprise Meta qui contient la page. <strong>C'est celui-ci qu'il nous faut</strong> (15-16 chiffres).</li>
+        </ul>
       </div>
 
       <ol className="space-y-3">
         {[
-          { t: "Dans le BM → ⚙️ Paramètres", d: "Toujours l'icône engrenage en bas à gauche." },
+          { t: "Allez sur business.facebook.com", d: "Connectez-vous avec le compte qui gère votre BM." },
+          { t: "Cliquez sur ⚙️ Paramètres (en bas à gauche)", d: "Puis ouvrez « Paramètres de l'entreprise »." },
           { t: "Menu gauche → « Infos sur l'entreprise »", d: "Section « Compte »." },
-          { t: "Repérez « ID de l'entreprise »", d: "Affiché en haut, sous le nom de votre BM." },
-          { t: "Copiez-le 📋", d: "Vous en aurez besoin à l'étape suivante." },
+          { t: "Repérez « ID de l'entreprise »", d: "Affiché en haut, sous le nom de votre Portefeuille business. Un nombre de 15 à 16 chiffres." },
+          { t: "Copiez-le 📋", d: "Collez-le à l'étape suivante du formulaire." },
         ].map((s, i) => (
           <li key={i} className="flex gap-4">
             <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gradient-to-br from-[#ff006e] to-[#ff5c8a] text-white font-bold flex items-center justify-center text-sm">
@@ -401,7 +412,19 @@ function Step5_FindId() {
         ))}
       </ol>
 
-      <MiniMockup label="Infos sur l'entreprise">
+      <div className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm">
+        <p className="text-xs text-zinc-500 mb-2 font-medium">
+          Exemple visuel : ici c'est l'ID de la <strong>Page Facebook</strong> (16 chiffres entourés en rouge).
+          L'ID du Business Manager se trouve au même type d'emplacement, mais dans « Infos sur l'entreprise ».
+        </p>
+        <img
+          src="/tuto/fb-bm-id.png"
+          alt="Capture d'écran Meta Business montrant l'ID de la Page Facebook"
+          className="w-full rounded-lg border border-zinc-200"
+        />
+      </div>
+
+      <MiniMockup label="Infos sur l'entreprise (Business Manager)">
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Building2 className="h-5 w-5 text-blue-700" />
@@ -409,9 +432,9 @@ function Step5_FindId() {
           </div>
           <div className="rounded-lg border-2 border-[#ff006e] bg-[#ff006e]/5 p-3 relative">
             <span className="text-[10px] uppercase font-semibold text-zinc-500 tracking-wide">
-              ID de l'entreprise
+              ID de l'entreprise (15-16 chiffres)
             </span>
-            <p className="font-mono text-lg font-bold text-zinc-900 mt-1">123456789012345</p>
+            <p className="font-mono text-lg font-bold text-zinc-900 mt-1">1234567890123456</p>
             <span className="absolute -top-2 -right-2 bg-[#ff006e] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
               ← copiez ça
             </span>

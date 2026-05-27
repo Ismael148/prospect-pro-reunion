@@ -45,6 +45,7 @@ import OnboardingInbox from "./pages/FbOnboardingInbox";
 import EmailsLog from "./pages/EmailsLog";
 import PaymentCredentials from "./pages/PaymentCredentials";
 import TutoPaiements from "./pages/TutoPaiements";
+import TutoMotoPress from "./pages/TutoMotoPress";
 import Calendrier from "./pages/Calendrier";
 import NotFound from "./pages/NotFound";
 

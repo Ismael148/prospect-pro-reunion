@@ -181,6 +181,7 @@ const App = () => (
             <Route path="/tuto/gmb" element={<TutoGmb />} />
             <Route path="/tuto/instagram" element={<TutoInstagram />} />
             <Route path="/tuto/paiements" element={<TutoPaiements />} />
+            <Route path="/tuto/motopress" element={<TutoMotoPress />} />
             {/* Public routes */}
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />

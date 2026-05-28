@@ -214,9 +214,7 @@ export default function ReservationSyncSection({ clientId, clientEmail, clientCo
   <tr><td style="padding:32px 36px 8px;">
     <p style="margin:0 0 14px;font-size:16px;line-height:1.6;">Bonjour <strong>${greeting}</strong>,</p>
     <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:#3f3f46;">
-      Pour que les réservations effectuées sur <strong>votre site Adamkom</strong> apparaissent
-      automatiquement sur Airbnb, Booking, Vrbo, etc., il vous suffit d'ajouter
-      <strong>UN seul lien</strong> sur chaque plateforme.
+      Pour que les réservations de <strong>votre site Adamkom</strong> s'affichent automatiquement sur Airbnb, Booking, Vrbo, etc. — et que vos conditions d'annulation et de séjour soient bien transmises — il vous suffit d'ajouter <strong>UN seul lien</strong> sur chaque plateforme.
     </p>
   </td></tr>
 

@@ -236,6 +236,41 @@ export default function ReservationSyncSection({ clientId, clientEmail, clientCo
           {!clientToken && <p className="text-[11px] text-destructive mt-2">⚠️ Token client manquant — impossible de générer le lien du formulaire.</p>}
         </div>
 
+        {/* URL iCal du site du client (à coller sur les plateformes) */}
+        <div className="p-3 rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 to-transparent">
+          <div className="flex items-center gap-2 mb-2">
+            <Link2 className="w-4 h-4 text-emerald-600" />
+            <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wide">
+              Lien iCal du site (sens inverse)
+            </span>
+          </div>
+          <p className="text-[11px] text-muted-foreground mb-3">
+            Collez ici le lien iCal <strong>exporté depuis le site du client</strong> (ex: MotoPress, WooCommerce Bookings…).
+            Ce lien sera affiché dans le tutoriel public avec les instructions étape par étape pour le coller
+            sur Airbnb, Booking, Vrbo, etc. — permettant la synchronisation dans les <strong>deux sens</strong>.
+          </p>
+          <div className="flex items-center gap-2">
+            <Input
+              value={siteIcalUrl}
+              onChange={(e) => setSiteIcalUrl(e.target.value)}
+              placeholder="https://site-du-client.com/wp-admin/...export.ics"
+              className="text-[11px] h-8"
+            />
+            <Button size="sm" onClick={saveSiteIcalUrl} disabled={savingUrl} className="bg-emerald-600 hover:bg-emerald-700">
+              {savingUrl ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Enregistrer"}
+            </Button>
+            {siteIcalUrl && (
+              <Button
+                size="sm" variant="ghost"
+                onClick={() => { navigator.clipboard.writeText(siteIcalUrl); toast.success("Lien copié"); }}
+              >
+                <Copy className="w-3.5 h-3.5" />
+              </Button>
+            )}
+          </div>
+        </div>
+
+
         {/* Plateformes couvertes */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
           {PLATFORMS.map((p) => (

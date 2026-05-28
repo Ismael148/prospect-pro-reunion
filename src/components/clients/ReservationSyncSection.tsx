@@ -401,6 +401,22 @@ export default function ReservationSyncSection({ clientId, clientEmail, clientCo
               </Button>
             )}
           </div>
+
+          <div className="mt-3 pt-3 border-t border-emerald-500/20">
+            <Button
+              size="sm"
+              onClick={() => setPastePreviewOpen(true)}
+              disabled={!clientEmail || !siteIcalUrl?.trim()}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              <ArrowLeftRight className="w-3.5 h-3.5 mr-1" /> Envoyer le tuto "où coller ce lien"
+            </Button>
+            {!siteIcalUrl?.trim() && (
+              <p className="text-[11px] text-muted-foreground mt-1.5 italic">
+                Enregistre d'abord le lien iCal du site pour activer l'envoi.
+              </p>
+            )}
+          </div>
         </div>
 
 

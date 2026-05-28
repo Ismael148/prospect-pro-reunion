@@ -211,7 +211,7 @@ export default function ReservationSyncForm() {
               La synchronisation iCal se fait dans <strong>les deux sens</strong> :<br />
               <span className="block mt-2">① <strong>Plateformes → Site</strong> : récupérez vos liens iCal et collez-les ci-dessous.</span>
               <span className="block mt-1">② <strong>Site → Plateformes</strong> : copiez le lien iCal de votre site (encadré vert) et collez-le sur chaque plateforme en suivant les étapes 🟢.</span>
-              <span className="block mt-2 text-xs">Résultat : <strong>plus aucune double réservation</strong>.</span>
+              <span className="block mt-2 text-xs">Résultat : <strong>plus aucune double réservation</strong>, et vos conditions d'annulation sont transmises lorsque la plateforme le permet.</span>
             </CardDescription>
           </CardHeader>
         </Card>

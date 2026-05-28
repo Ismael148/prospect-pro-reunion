@@ -43,6 +43,8 @@ export default function ReservationSyncSection({ clientId, clientEmail, clientCo
   const [sending, setSending] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [siteIcalUrl, setSiteIcalUrl] = useState<string>("");
+  const [savingUrl, setSavingUrl] = useState(false);
 
   const greeting = (clientManager && clientManager.trim()) || clientCompany || "vous";
   const formUrl = clientToken ? `${PUBLISHED_URL}/ical/${clientToken}` : null;
@@ -50,14 +52,32 @@ export default function ReservationSyncSection({ clientId, clientEmail, clientCo
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
-        .from("reservation_ical_submissions")
-        .select("id,airbnb_url,booking_url,vrbo_url,gites_url,expedia_url,notes,status,submitted_at")
-        .eq("client_id", clientId)
-        .order("submitted_at", { ascending: false });
-      setSubmissions((data as Submission[]) || []);
+      const [{ data: subs }, { data: client }] = await Promise.all([
+        supabase
+          .from("reservation_ical_submissions")
+          .select("id,airbnb_url,booking_url,vrbo_url,gites_url,expedia_url,notes,status,submitted_at")
+          .eq("client_id", clientId)
+          .order("submitted_at", { ascending: false }),
+        supabase.from("clients").select("site_ical_url").eq("id", clientId).maybeSingle(),
+      ]);
+      setSubmissions((subs as Submission[]) || []);
+      setSiteIcalUrl(((client as any)?.site_ical_url as string) || "");
     })();
   }, [clientId]);
+
+  const saveSiteIcalUrl = async () => {
+    setSavingUrl(true);
+    try {
+      const { error } = await supabase
+        .from("clients")
+        .update({ site_ical_url: siteIcalUrl.trim() || null } as any)
+        .eq("id", clientId);
+      if (error) throw error;
+      toast.success("Lien iCal du site enregistré — visible dans le tutoriel du formulaire client");
+    } catch (e: any) {
+      toast.error(e.message || "Erreur");
+    } finally { setSavingUrl(false); }
+  };
 
   const buildEmailHtml = () => `
 <!DOCTYPE html>

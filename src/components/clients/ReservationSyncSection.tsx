@@ -156,7 +156,113 @@ export default function ReservationSyncSection({ clientId, clientEmail, clientCo
   </table>
 </body></html>`;
 
+  const PASTE_STEPS: Record<string, string[]> = {
+    airbnb: [
+      "Connectez-vous sur airbnb.com → Annonces → sélectionnez votre logement",
+      "Menu Calendrier → Disponibilités → Synchroniser les calendriers",
+      "Cliquez « Importer un calendrier » → collez le lien ci-dessous → Nommez « Site Adamkom » → Importer",
+    ],
+    booking: [
+      "Connectez-vous sur admin.booking.com → Tarifs & Disponibilités",
+      "Onglet « Synchronisation calendrier » (iCal) → Importer un calendrier",
+      "Collez le lien ci-dessous → Nommez « Site Adamkom » → Enregistrer",
+    ],
+    vrbo: [
+      "Connectez-vous sur vrbo.com / abritel.fr → Calendrier",
+      "Importer un calendrier → collez le lien ci-dessous → Enregistrer",
+    ],
+    gites: [
+      "Espace propriétaire Gîtes de France → Calendrier de réservation",
+      "Importer un planning externe (iCal) → collez le lien → Valider",
+    ],
+    expedia: [
+      "Expedia Partner Central → Property → Rates & Inventory",
+      "Calendar sync → Import calendar → collez le lien → Save",
+    ],
+  };
+
+  const buildPasteEmailHtml = () => {
+    const siteLink = siteIcalUrl?.trim();
+    const platformsHtml = PLATFORMS.map(p => `
+      <tr><td style="padding:14px 0;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #ececef;border-radius:12px;overflow:hidden;">
+          <tr><td style="padding:14px 18px;background:${p.color}0d;border-bottom:1px solid #ececef;">
+            <table role="presentation"><tr>
+              <td style="padding-right:10px;vertical-align:middle;"><img src="${p.logo}" alt="${p.name}" width="22" height="22" style="display:block;"/></td>
+              <td style="vertical-align:middle;font-weight:700;color:${p.color};font-size:14px;">${p.name}</td>
+            </tr></table>
+          </td></tr>
+          <tr><td style="padding:14px 18px;font-size:13px;line-height:1.7;color:#3f3f46;">
+            <ol style="margin:0 0 0 18px;padding:0;">
+              ${PASTE_STEPS[p.key].map(s => `<li style="margin-bottom:4px;">${s}</li>`).join("")}
+            </ol>
+          </td></tr>
+        </table>
+      </td></tr>`).join("");
+
+    return `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${pasteSubject}</title></head>
+<body style="margin:0;padding:0;background:#f5f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Arial,sans-serif;color:#18181b;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f7;padding:32px 12px;">
+<tr><td align="center">
+<table role="presentation" width="640" cellpadding="0" cellspacing="0" style="max-width:640px;width:100%;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 8px 32px -12px rgba(0,0,0,0.12);">
+  <tr><td style="background:linear-gradient(135deg,#059669 0%,#10b981 100%);padding:36px 32px;text-align:center;">
+    <div style="font-size:44px;line-height:1;margin-bottom:8px;">🔗</div>
+    <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;letter-spacing:-0.3px;">Afficher les réservations de votre site sur vos plateformes</h1>
+    <p style="margin:10px 0 0;color:rgba(255,255,255,0.92);font-size:14px;">Tutoriel iCal — sens inverse</p>
+  </td></tr>
+
+  <tr><td style="padding:32px 36px 8px;">
+    <p style="margin:0 0 14px;font-size:16px;line-height:1.6;">Bonjour <strong>${greeting}</strong>,</p>
+    <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:#3f3f46;">
+      Pour que les réservations effectuées sur <strong>votre site Adamkom</strong> apparaissent
+      automatiquement sur Airbnb, Booking, Vrbo, etc., il vous suffit d'ajouter
+      <strong>UN seul lien</strong> sur chaque plateforme.
+    </p>
+  </td></tr>
+
+  ${siteLink ? `
+  <tr><td style="padding:8px 36px 16px;">
+    <div style="background:#ecfdf5;border:2px solid #10b981;border-radius:14px;padding:18px 20px;">
+      <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#047857;text-transform:uppercase;letter-spacing:0.5px;">🔗 Votre lien iCal à copier</p>
+      <div style="background:#ffffff;border:1px solid #a7f3d0;border-radius:8px;padding:12px 14px;font-family:Menlo,Monaco,'Courier New',monospace;font-size:12px;color:#065f46;word-break:break-all;">${siteLink}</div>
+      <p style="margin:10px 0 0;font-size:12px;color:#047857;">Copiez ce lien — vous le collerez à l'étape 3 de chaque plateforme ci-dessous.</p>
+    </div>
+  </td></tr>` : `
+  <tr><td style="padding:8px 36px 16px;">
+    <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:14px 18px;">
+      <p style="margin:0;font-size:13px;color:#9a3412;">⚠️ Aucun lien iCal de site enregistré côté Adamkom. Contactez-nous pour le générer.</p>
+    </div>
+  </td></tr>`}
+
+  <tr><td style="padding:8px 36px 16px;">
+    <h2 style="margin:0 0 6px;font-size:16px;color:#18181b;">📚 Tutoriel par plateforme</h2>
+    <p style="margin:0 0 8px;font-size:13px;color:#71717a;">Cliquez, suivez les 3 étapes, c'est terminé en 2 minutes par plateforme.</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${platformsHtml}</table>
+  </td></tr>
+
+  <tr><td style="padding:16px 36px 8px;">
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:14px 18px;">
+      <p style="margin:0;font-size:13px;line-height:1.65;color:#166534;">
+        ✅ <strong>Une fois fait, c'est automatique.</strong> Les disponibilités de votre site se mettront à jour
+        sur Airbnb, Booking, etc. — fini les doubles réservations.
+      </p>
+    </div>
+  </td></tr>
+
+  <tr><td style="padding:24px 36px 36px;">
+    <p style="margin:0 0 4px;font-size:14px;color:#27272a;">Besoin d'aide ? Répondez simplement à cet email.</p>
+    <p style="margin:8px 0 0;font-size:15px;font-weight:700;color:#059669;">L'équipe Adamkom</p>
+  </td></tr>
+
+  <tr><td style="background:#fafafa;padding:18px 36px;border-top:1px solid #ececef;text-align:center;">
+    <p style="margin:0;font-size:11px;color:#a1a1aa;">© Adamkom · Agence digitale · La Réunion</p>
+  </td></tr>
+</table>
+</td></tr></table></body></html>`;
+  };
+
   const previewHtml = useMemo(() => buildEmailHtml(), [greeting, clientCompany, formUrl]);
+  const pastePreviewHtml = useMemo(() => buildPasteEmailHtml(), [greeting, clientCompany, siteIcalUrl]);
 
   const copyLink = async () => {
     if (!formUrl) return;

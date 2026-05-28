@@ -156,34 +156,56 @@ export default function ReservationSyncSection({ clientId, clientEmail, clientCo
   </table>
 </body></html>`;
 
-  const PASTE_STEPS: Record<string, string[]> = {
-    airbnb: [
-      "Connectez-vous sur airbnb.com → Annonces → sélectionnez votre logement",
-      "Menu Calendrier → Disponibilités → Synchroniser les calendriers",
-      "Cliquez « Importer un calendrier » → collez le lien ci-dessous → Nommez « Site Adamkom » → Importer",
-    ],
-    booking: [
-      "Connectez-vous sur admin.booking.com → Tarifs & Disponibilités",
-      "Onglet « Synchronisation calendrier » (iCal) → Importer un calendrier",
-      "Collez le lien ci-dessous → Nommez « Site Adamkom » → Enregistrer",
-    ],
-    vrbo: [
-      "Connectez-vous sur vrbo.com / abritel.fr → Calendrier",
-      "Importer un calendrier → collez le lien ci-dessous → Enregistrer",
-    ],
-    gites: [
-      "Espace propriétaire Gîtes de France → Calendrier de réservation",
-      "Importer un planning externe (iCal) → collez le lien → Valider",
-    ],
-    expedia: [
-      "Expedia Partner Central → Property → Rates & Inventory",
-      "Calendar sync → Import calendar → collez le lien → Save",
-    ],
+  const PASTE_STEPS: Record<string, { steps: string[]; docUrl: string; docLabel: string }> = {
+    airbnb: {
+      steps: [
+        "Connectez-vous sur airbnb.com → Annonces → sélectionnez votre logement",
+        "Menu Calendrier → Disponibilités → Synchroniser les calendriers",
+        "Cliquez « Importer un calendrier » → collez le lien ci-dessous → Nommez « Site Internet » → Importer",
+      ],
+      docUrl: "https://www.airbnb.fr/help/article/99",
+      docLabel: "Guide officiel Airbnb · Synchroniser les calendriers",
+    },
+    booking: {
+      steps: [
+        "Connectez-vous sur admin.booking.com → Tarifs & Disponibilités",
+        "Onglet « Synchronisation calendrier » (iCal) → Importer un calendrier",
+        "Collez le lien ci-dessous → Nommez « Site Internet » → Enregistrer",
+      ],
+      docUrl: "https://partner.booking.com/fr/aide/tarifs-disponibilites/synchronisation-calendrier-ical",
+      docLabel: "Guide officiel Booking.com · Synchronisation iCal",
+    },
+    vrbo: {
+      steps: [
+        "Connectez-vous sur vrbo.com / abritel.fr → Calendrier",
+        "Importer un calendrier → collez le lien ci-dessous → Enregistrer",
+      ],
+      docUrl: "https://help.vrbo.com/articles/How-do-I-import-or-export-a-calendar",
+      docLabel: "Guide officiel Vrbo / Abritel · Import calendrier",
+    },
+    gites: {
+      steps: [
+        "Espace propriétaire Gîtes de France → Calendrier de réservation",
+        "Importer un planning externe (iCal) → collez le lien → Valider",
+      ],
+      docUrl: "https://pro.gites-de-france.com/",
+      docLabel: "Espace propriétaire Gîtes de France",
+    },
+    expedia: {
+      steps: [
+        "Expedia Partner Central → Property → Rates & Inventory",
+        "Calendar sync → Import calendar → collez le lien → Save",
+      ],
+      docUrl: "https://welcome.expediagroup.com/fr/lodging/resources/articles/calendar-sync",
+      docLabel: "Guide officiel Expedia Partner Central",
+    },
   };
 
   const buildPasteEmailHtml = () => {
     const siteLink = siteIcalUrl?.trim();
-    const platformsHtml = PLATFORMS.map(p => `
+    const platformsHtml = PLATFORMS.map(p => {
+      const cfg = PASTE_STEPS[p.key];
+      return `
       <tr><td style="padding:14px 0;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #ececef;border-radius:12px;overflow:hidden;">
           <tr><td style="padding:14px 18px;background:${p.color}0d;border-bottom:1px solid #ececef;">
@@ -194,11 +216,15 @@ export default function ReservationSyncSection({ clientId, clientEmail, clientCo
           </td></tr>
           <tr><td style="padding:14px 18px;font-size:13px;line-height:1.7;color:#3f3f46;">
             <ol style="margin:0 0 0 18px;padding:0;">
-              ${PASTE_STEPS[p.key].map(s => `<li style="margin-bottom:4px;">${s}</li>`).join("")}
+              ${cfg.steps.map(s => `<li style="margin-bottom:4px;">${s}</li>`).join("")}
             </ol>
+            <p style="margin:10px 0 0;font-size:12px;">
+              📖 <a href="${cfg.docUrl}" target="_blank" rel="noopener" style="color:${p.color};text-decoration:underline;font-weight:600;">${cfg.docLabel}</a>
+            </p>
           </td></tr>
         </table>
-      </td></tr>`).join("");
+      </td></tr>`;
+    }).join("");
 
     return `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${pasteSubject}</title></head>
 <body style="margin:0;padding:0;background:#f5f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Arial,sans-serif;color:#18181b;">
@@ -214,7 +240,7 @@ export default function ReservationSyncSection({ clientId, clientEmail, clientCo
   <tr><td style="padding:32px 36px 8px;">
     <p style="margin:0 0 14px;font-size:16px;line-height:1.6;">Bonjour <strong>${greeting}</strong>,</p>
     <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:#3f3f46;">
-      Pour que les réservations de <strong>votre site Adamkom</strong> s'affichent automatiquement sur Airbnb, Booking, Vrbo, etc. — et que vos conditions d'annulation et de séjour soient bien transmises — il vous suffit d'ajouter <strong>UN seul lien</strong> sur chaque plateforme.
+      Pour que <strong>la réservation se synchronise</strong> et que les <strong>conditions de Booking et d'Airbnb</strong> (annulation, séjour, politique tarifaire) soient appliquées lorsque c'est possible, il vous suffit d'ajouter <strong>UN seul lien</strong> sur chaque plateforme.
     </p>
   </td></tr>
 
@@ -228,13 +254,13 @@ export default function ReservationSyncSection({ clientId, clientEmail, clientCo
   </td></tr>` : `
   <tr><td style="padding:8px 36px 16px;">
     <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:14px 18px;">
-      <p style="margin:0;font-size:13px;color:#9a3412;">⚠️ Aucun lien iCal de site enregistré côté Adamkom. Contactez-nous pour le générer.</p>
+      <p style="margin:0;font-size:13px;color:#9a3412;">⚠️ Aucun lien iCal de site n'a encore été généré. Contactez votre référent pour l'obtenir.</p>
     </div>
   </td></tr>`}
 
   <tr><td style="padding:8px 36px 16px;">
     <h2 style="margin:0 0 6px;font-size:16px;color:#18181b;">📚 Tutoriel par plateforme</h2>
-    <p style="margin:0 0 8px;font-size:13px;color:#71717a;">Cliquez, suivez les 3 étapes, c'est terminé en 2 minutes par plateforme.</p>
+    <p style="margin:0 0 8px;font-size:13px;color:#71717a;">Cliquez, suivez les 3 étapes, c'est terminé en 2 minutes par plateforme. Chaque fiche renvoie aussi vers la <strong>documentation officielle</strong> de la plateforme.</p>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${platformsHtml}</table>
   </td></tr>
 
@@ -248,12 +274,7 @@ export default function ReservationSyncSection({ clientId, clientEmail, clientCo
   </td></tr>
 
   <tr><td style="padding:24px 36px 36px;">
-    <p style="margin:0 0 4px;font-size:14px;color:#27272a;">Besoin d'aide ? Répondez simplement à cet email.</p>
-    <p style="margin:8px 0 0;font-size:15px;font-weight:700;color:#059669;">L'équipe Adamkom</p>
-  </td></tr>
-
-  <tr><td style="background:#fafafa;padding:18px 36px;border-top:1px solid #ececef;text-align:center;">
-    <p style="margin:0;font-size:11px;color:#a1a1aa;">© Adamkom · Agence digitale · La Réunion</p>
+    <p style="margin:0;font-size:14px;color:#27272a;">Besoin d'aide ? Répondez simplement à cet email.</p>
   </td></tr>
 </table>
 </td></tr></table></body></html>`;

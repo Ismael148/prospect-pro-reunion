@@ -203,7 +203,9 @@ export default function ReservationSyncSection({ clientId, clientEmail, clientCo
 
   const buildPasteEmailHtml = () => {
     const siteLink = siteIcalUrl?.trim();
-    const platformsHtml = PLATFORMS.map(p => `
+    const platformsHtml = PLATFORMS.map(p => {
+      const cfg = PASTE_STEPS[p.key];
+      return `
       <tr><td style="padding:14px 0;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #ececef;border-radius:12px;overflow:hidden;">
           <tr><td style="padding:14px 18px;background:${p.color}0d;border-bottom:1px solid #ececef;">
@@ -214,11 +216,15 @@ export default function ReservationSyncSection({ clientId, clientEmail, clientCo
           </td></tr>
           <tr><td style="padding:14px 18px;font-size:13px;line-height:1.7;color:#3f3f46;">
             <ol style="margin:0 0 0 18px;padding:0;">
-              ${PASTE_STEPS[p.key].map(s => `<li style="margin-bottom:4px;">${s}</li>`).join("")}
+              ${cfg.steps.map(s => `<li style="margin-bottom:4px;">${s}</li>`).join("")}
             </ol>
+            <p style="margin:10px 0 0;font-size:12px;">
+              📖 <a href="${cfg.docUrl}" target="_blank" rel="noopener" style="color:${p.color};text-decoration:underline;font-weight:600;">${cfg.docLabel}</a>
+            </p>
           </td></tr>
         </table>
-      </td></tr>`).join("");
+      </td></tr>`;
+    }).join("");
 
     return `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${pasteSubject}</title></head>
 <body style="margin:0;padding:0;background:#f5f5f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Arial,sans-serif;color:#18181b;">

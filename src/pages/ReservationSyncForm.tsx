@@ -96,7 +96,7 @@ export default function ReservationSyncForm() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [client, setClient] = useState<{ id: string; company_name: string } | null>(null);
+  const [client, setClient] = useState<{ id: string; company_name: string; site_ical_url: string | null } | null>(null);
   const [form, setForm] = useState<Record<string, string>>({
     airbnb_url: "", booking_url: "", vrbo_url: "", gites_url: "", expedia_url: "", notes: "",
   });
@@ -106,9 +106,15 @@ export default function ReservationSyncForm() {
       if (!token) return;
       const { data, error } = await supabase
         .from("clients")
-        .select("id, company_name")
+        .select("id, company_name, site_ical_url")
         .eq("support_token", token)
         .maybeSingle();
+      if (error || !data) {
+        toast.error("Lien invalide ou expiré");
+      } else {
+        setClient(data as any);
+      }
+      setLoading(false);
       if (error || !data) {
         toast.error("Lien invalide ou expiré");
       } else {

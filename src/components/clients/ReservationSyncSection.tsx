@@ -296,6 +296,30 @@ export default function ReservationSyncSection({ clientId, clientEmail, clientCo
     } finally { setSending(false); }
   };
 
+  const sendPasteEmail = async () => {
+    if (!clientEmail) { toast.error("Aucun email client renseigné"); return; }
+    if (!siteIcalUrl?.trim()) { toast.error("Enregistre d'abord le lien iCal du site"); return; }
+    setSendingPaste(true);
+    try {
+      const { error } = await supabase.functions.invoke("send-brevo-campaign", {
+        body: {
+          action: "send_client_email",
+          recipientEmail: clientEmail,
+          recipientName: greeting,
+          subject: pasteSubject,
+          htmlContent: buildPasteEmailHtml(),
+          trigger: "tuto_reservation_paste_link",
+          client_id: clientId,
+        },
+      });
+      if (error) throw error;
+      toast.success(`Tuto sens inverse envoyé à ${clientEmail}`);
+      setPastePreviewOpen(false);
+    } catch (e: any) {
+      toast.error(e.message || "Erreur lors de l'envoi");
+    } finally { setSendingPaste(false); }
+  };
+
   return (
     <Card>
       <CardHeader>

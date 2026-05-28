@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, Send, CheckCircle2, CalendarSync, ExternalLink } from "lucide-react";
+import { Loader2, Send, CheckCircle2, CalendarSync, ExternalLink, Link2, Copy, ArrowLeftRight } from "lucide-react";
 import logo from "@/assets/logo.webp";
 
 const PLATFORMS = [

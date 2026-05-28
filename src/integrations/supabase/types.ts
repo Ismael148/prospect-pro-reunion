@@ -466,6 +466,7 @@ export type Database = {
           signed_by: string | null
           signed_by_commercial: string | null
           siret: string | null
+          site_ical_url: string | null
           site_type: string | null
           support_token: string | null
           updated_at: string
@@ -515,6 +516,7 @@ export type Database = {
           signed_by?: string | null
           signed_by_commercial?: string | null
           siret?: string | null
+          site_ical_url?: string | null
           site_type?: string | null
           support_token?: string | null
           updated_at?: string
@@ -564,6 +566,7 @@ export type Database = {
           signed_by?: string | null
           signed_by_commercial?: string | null
           siret?: string | null
+          site_ical_url?: string | null
           site_type?: string | null
           support_token?: string | null
           updated_at?: string

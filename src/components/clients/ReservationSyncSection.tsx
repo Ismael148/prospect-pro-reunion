@@ -43,6 +43,8 @@ export default function ReservationSyncSection({ clientId, clientEmail, clientCo
   const [sending, setSending] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [siteIcalUrl, setSiteIcalUrl] = useState<string>("");
+  const [savingUrl, setSavingUrl] = useState(false);
 
   const greeting = (clientManager && clientManager.trim()) || clientCompany || "vous";
   const formUrl = clientToken ? `${PUBLISHED_URL}/ical/${clientToken}` : null;
@@ -50,14 +52,32 @@ export default function ReservationSyncSection({ clientId, clientEmail, clientCo
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
-        .from("reservation_ical_submissions")
-        .select("id,airbnb_url,booking_url,vrbo_url,gites_url,expedia_url,notes,status,submitted_at")
-        .eq("client_id", clientId)
-        .order("submitted_at", { ascending: false });
-      setSubmissions((data as Submission[]) || []);
+      const [{ data: subs }, { data: client }] = await Promise.all([
+        supabase
+          .from("reservation_ical_submissions")
+          .select("id,airbnb_url,booking_url,vrbo_url,gites_url,expedia_url,notes,status,submitted_at")
+          .eq("client_id", clientId)
+          .order("submitted_at", { ascending: false }),
+        supabase.from("clients").select("site_ical_url").eq("id", clientId).maybeSingle(),
+      ]);
+      setSubmissions((subs as Submission[]) || []);
+      setSiteIcalUrl(((client as any)?.site_ical_url as string) || "");
     })();
   }, [clientId]);
+
+  const saveSiteIcalUrl = async () => {
+    setSavingUrl(true);
+    try {
+      const { error } = await supabase
+        .from("clients")
+        .update({ site_ical_url: siteIcalUrl.trim() || null } as any)
+        .eq("id", clientId);
+      if (error) throw error;
+      toast.success("Lien iCal du site enregistré — visible dans le tutoriel du formulaire client");
+    } catch (e: any) {
+      toast.error(e.message || "Erreur");
+    } finally { setSavingUrl(false); }
+  };
 
   const buildEmailHtml = () => `
 <!DOCTYPE html>
@@ -215,6 +235,41 @@ export default function ReservationSyncSection({ clientId, clientEmail, clientCo
           {!clientEmail && <p className="text-[11px] text-destructive mt-2">⚠️ Renseignez l'email du client.</p>}
           {!clientToken && <p className="text-[11px] text-destructive mt-2">⚠️ Token client manquant — impossible de générer le lien du formulaire.</p>}
         </div>
+
+        {/* URL iCal du site du client (à coller sur les plateformes) */}
+        <div className="p-3 rounded-xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 to-transparent">
+          <div className="flex items-center gap-2 mb-2">
+            <Link2 className="w-4 h-4 text-emerald-600" />
+            <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wide">
+              Lien iCal du site (sens inverse)
+            </span>
+          </div>
+          <p className="text-[11px] text-muted-foreground mb-3">
+            Collez ici le lien iCal <strong>exporté depuis le site du client</strong> (ex: MotoPress, WooCommerce Bookings…).
+            Ce lien sera affiché dans le tutoriel public avec les instructions étape par étape pour le coller
+            sur Airbnb, Booking, Vrbo, etc. — permettant la synchronisation dans les <strong>deux sens</strong>.
+          </p>
+          <div className="flex items-center gap-2">
+            <Input
+              value={siteIcalUrl}
+              onChange={(e) => setSiteIcalUrl(e.target.value)}
+              placeholder="https://site-du-client.com/wp-admin/...export.ics"
+              className="text-[11px] h-8"
+            />
+            <Button size="sm" onClick={saveSiteIcalUrl} disabled={savingUrl} className="bg-emerald-600 hover:bg-emerald-700">
+              {savingUrl ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Enregistrer"}
+            </Button>
+            {siteIcalUrl && (
+              <Button
+                size="sm" variant="ghost"
+                onClick={() => { navigator.clipboard.writeText(siteIcalUrl); toast.success("Lien copié"); }}
+              >
+                <Copy className="w-3.5 h-3.5" />
+              </Button>
+            )}
+          </div>
+        </div>
+
 
         {/* Plateformes couvertes */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-2">

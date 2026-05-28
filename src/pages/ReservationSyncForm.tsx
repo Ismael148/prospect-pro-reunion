@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, Send, CheckCircle2, CalendarSync, ExternalLink } from "lucide-react";
+import { Loader2, Send, CheckCircle2, CalendarSync, ExternalLink, Link2, Copy, ArrowLeftRight } from "lucide-react";
 import logo from "@/assets/logo.webp";
 
 const PLATFORMS = [
@@ -21,6 +21,12 @@ const PLATFORMS = [
       "Onglet Calendrier → Disponibilités → Synchroniser les calendriers",
       "Section « Exporter le calendrier » → Copier le lien (.ics)",
     ],
+    pasteSteps: [
+      "Toujours dans Annonces → Calendrier → Synchroniser les calendriers",
+      "Cliquez sur « Importer le calendrier »",
+      "Donnez un nom (ex: « Mon site web ») puis collez le lien ci-dessous",
+      "Validez : Airbnb bloquera automatiquement les dates déjà réservées sur votre site",
+    ],
   },
   {
     key: "booking_url", name: "Booking.com", color: "#003580",
@@ -30,6 +36,12 @@ const PLATFORMS = [
       "Connectez-vous sur admin.booking.com",
       "Tarifs & Disponibilités → Synchronisation de calendrier",
       "Section Exporter → Copier le lien iCal",
+    ],
+    pasteSteps: [
+      "admin.booking.com → Tarifs & Disponibilités → Synchronisation de calendrier",
+      "Onglet « Importer un calendrier » → Ajouter une connexion",
+      "Nom: « Site web » + collez le lien ci-dessous",
+      "Sauvegardez : les réservations de votre site bloqueront Booking",
     ],
   },
   {
@@ -41,6 +53,11 @@ const PLATFORMS = [
       "Calendrier → Importer/Exporter",
       "Copier l'URL iCal d'export",
     ],
+    pasteSteps: [
+      "Calendrier → Importer/Exporter → Importer un calendrier",
+      "Nom: « Site web » + collez le lien ci-dessous",
+      "Validez : Vrbo synchronisera automatiquement les indisponibilités",
+    ],
   },
   {
     key: "gites_url", name: "Gîtes de France", color: "#1F8E3E",
@@ -50,6 +67,11 @@ const PLATFORMS = [
       "Espace propriétaire Gîtes de France",
       "Planning → Synchronisation iCal",
       "Copier l'URL d'export iCal",
+    ],
+    pasteSteps: [
+      "Espace propriétaire → Planning → Synchronisation iCal",
+      "Section « Importer » → collez le lien ci-dessous",
+      "Nommez la source « Site web » et enregistrez",
     ],
   },
   {
@@ -61,6 +83,11 @@ const PLATFORMS = [
       "Tarifs & Disponibilités → Calendrier",
       "Activer l'export iCal puis copier le lien",
     ],
+    pasteSteps: [
+      "Partner Central → Tarifs & Disponibilités → Calendrier",
+      "Section « Importer un calendrier iCal » → collez le lien ci-dessous",
+      "Donnez un nom et validez l'import",
+    ],
   },
 ] as const;
 
@@ -69,7 +96,7 @@ export default function ReservationSyncForm() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [client, setClient] = useState<{ id: string; company_name: string } | null>(null);
+  const [client, setClient] = useState<{ id: string; company_name: string; site_ical_url: string | null } | null>(null);
   const [form, setForm] = useState<Record<string, string>>({
     airbnb_url: "", booking_url: "", vrbo_url: "", gites_url: "", expedia_url: "", notes: "",
   });
@@ -79,9 +106,15 @@ export default function ReservationSyncForm() {
       if (!token) return;
       const { data, error } = await supabase
         .from("clients")
-        .select("id, company_name")
+        .select("id, company_name, site_ical_url")
         .eq("support_token", token)
         .maybeSingle();
+      if (error || !data) {
+        toast.error("Lien invalide ou expiré");
+      } else {
+        setClient(data as any);
+      }
+      setLoading(false);
       if (error || !data) {
         toast.error("Lien invalide ou expiré");
       } else {
@@ -175,11 +208,41 @@ export default function ReservationSyncForm() {
           <CardHeader>
             <CardTitle className="text-base">Comment ça marche ?</CardTitle>
             <CardDescription>
-              Pour chaque plateforme utilisée, récupérez le lien iCal (.ics) et collez-le ci-dessous.
-              Cela évite les doubles réservations en synchronisant vos disponibilités en temps réel sur votre site.
+              La synchronisation iCal se fait dans <strong>les deux sens</strong> :<br />
+              <span className="block mt-2">① <strong>Plateformes → Site</strong> : récupérez vos liens iCal et collez-les ci-dessous.</span>
+              <span className="block mt-1">② <strong>Site → Plateformes</strong> : copiez le lien iCal de votre site (encadré vert) et collez-le sur chaque plateforme en suivant les étapes 🟢.</span>
+              <span className="block mt-2 text-xs">Résultat : <strong>plus aucune double réservation</strong>.</span>
             </CardDescription>
           </CardHeader>
         </Card>
+
+        {client.site_ical_url && (
+          <Card className="border-emerald-500/40 bg-gradient-to-br from-emerald-50 to-white">
+            <CardContent className="pt-6 space-y-3">
+              <div className="flex items-center gap-2">
+                <ArrowLeftRight className="w-5 h-5 text-emerald-600" />
+                <h3 className="font-bold text-emerald-700">Votre lien iCal — à coller sur vos plateformes</h3>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Voici le lien iCal généré par <strong>votre site web</strong>. Copiez-le et collez-le sur chacune de
+                vos plateformes (instructions détaillées dans chaque carte ci-dessous, section verte 🟢).
+              </p>
+              <div className="flex items-center gap-2">
+                <Input value={client.site_ical_url} readOnly className="text-xs font-mono bg-white" />
+                <Button
+                  size="sm"
+                  className="bg-emerald-600 hover:bg-emerald-700 shrink-0"
+                  onClick={() => {
+                    navigator.clipboard.writeText(client.site_ical_url!);
+                    toast.success("Lien copié ! Collez-le sur vos plateformes.");
+                  }}
+                >
+                  <Copy className="w-3.5 h-3.5 mr-1" /> Copier
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {PLATFORMS.map((p) => (
           <Card key={p.key} style={{ borderColor: `${p.color}33` }}>
@@ -196,21 +259,54 @@ export default function ReservationSyncForm() {
                 </a>
               </div>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <ol className="text-xs space-y-1 list-decimal pl-5 text-muted-foreground">
-                {p.steps.map((s, i) => <li key={i}>{s}</li>)}
-              </ol>
-              <div>
-                <Label htmlFor={p.key} className="text-xs">Lien iCal {p.name}</Label>
-                <Input
-                  id={p.key}
-                  type="url"
-                  placeholder={`https://...${p.name.toLowerCase().split(" ")[0]}.ics`}
-                  value={form[p.key]}
-                  onChange={(e) => setForm({ ...form, [p.key]: e.target.value })}
-                  className="mt-1"
-                />
+            <CardContent className="space-y-4">
+              {/* SENS 1 : Plateforme → Site */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-pink-100 text-pink-700 hover:bg-pink-100 text-[10px]">① Exporter vers nous</Badge>
+                </div>
+                <ol className="text-xs space-y-1 list-decimal pl-5 text-muted-foreground">
+                  {p.steps.map((s, i) => <li key={i}>{s}</li>)}
+                </ol>
+                <div>
+                  <Label htmlFor={p.key} className="text-xs">Lien iCal {p.name}</Label>
+                  <Input
+                    id={p.key}
+                    type="url"
+                    placeholder={`https://...${p.name.toLowerCase().split(" ")[0]}.ics`}
+                    value={form[p.key]}
+                    onChange={(e) => setForm({ ...form, [p.key]: e.target.value })}
+                    className="mt-1"
+                  />
+                </div>
               </div>
+
+              {/* SENS 2 : Site → Plateforme */}
+              {client.site_ical_url && (
+                <div className="space-y-2 rounded-lg bg-emerald-50/60 border border-emerald-200 p-3">
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 text-[10px]">
+                      🟢 ② Importer notre lien dans {p.name}
+                    </Badge>
+                  </div>
+                  <ol className="text-xs space-y-1 list-decimal pl-5 text-emerald-900/80">
+                    {p.pasteSteps.map((s, i) => <li key={i}>{s}</li>)}
+                  </ol>
+                  <div className="flex items-center gap-2 pt-1">
+                    <Input value={client.site_ical_url} readOnly className="text-[11px] h-8 font-mono bg-white" />
+                    <Button
+                      size="sm" variant="outline"
+                      className="border-emerald-300 text-emerald-700 hover:bg-emerald-100"
+                      onClick={() => {
+                        navigator.clipboard.writeText(client.site_ical_url!);
+                        toast.success("Lien copié !");
+                      }}
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}

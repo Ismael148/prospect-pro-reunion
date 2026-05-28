@@ -156,29 +156,49 @@ export default function ReservationSyncSection({ clientId, clientEmail, clientCo
   </table>
 </body></html>`;
 
-  const PASTE_STEPS: Record<string, string[]> = {
-    airbnb: [
-      "Connectez-vous sur airbnb.com → Annonces → sélectionnez votre logement",
-      "Menu Calendrier → Disponibilités → Synchroniser les calendriers",
-      "Cliquez « Importer un calendrier » → collez le lien ci-dessous → Nommez « Site Adamkom » → Importer",
-    ],
-    booking: [
-      "Connectez-vous sur admin.booking.com → Tarifs & Disponibilités",
-      "Onglet « Synchronisation calendrier » (iCal) → Importer un calendrier",
-      "Collez le lien ci-dessous → Nommez « Site Adamkom » → Enregistrer",
-    ],
-    vrbo: [
-      "Connectez-vous sur vrbo.com / abritel.fr → Calendrier",
-      "Importer un calendrier → collez le lien ci-dessous → Enregistrer",
-    ],
-    gites: [
-      "Espace propriétaire Gîtes de France → Calendrier de réservation",
-      "Importer un planning externe (iCal) → collez le lien → Valider",
-    ],
-    expedia: [
-      "Expedia Partner Central → Property → Rates & Inventory",
-      "Calendar sync → Import calendar → collez le lien → Save",
-    ],
+  const PASTE_STEPS: Record<string, { steps: string[]; docUrl: string; docLabel: string }> = {
+    airbnb: {
+      steps: [
+        "Connectez-vous sur airbnb.com → Annonces → sélectionnez votre logement",
+        "Menu Calendrier → Disponibilités → Synchroniser les calendriers",
+        "Cliquez « Importer un calendrier » → collez le lien ci-dessous → Nommez « Site Internet » → Importer",
+      ],
+      docUrl: "https://www.airbnb.fr/help/article/99",
+      docLabel: "Guide officiel Airbnb · Synchroniser les calendriers",
+    },
+    booking: {
+      steps: [
+        "Connectez-vous sur admin.booking.com → Tarifs & Disponibilités",
+        "Onglet « Synchronisation calendrier » (iCal) → Importer un calendrier",
+        "Collez le lien ci-dessous → Nommez « Site Internet » → Enregistrer",
+      ],
+      docUrl: "https://partner.booking.com/fr/aide/tarifs-disponibilites/synchronisation-calendrier-ical",
+      docLabel: "Guide officiel Booking.com · Synchronisation iCal",
+    },
+    vrbo: {
+      steps: [
+        "Connectez-vous sur vrbo.com / abritel.fr → Calendrier",
+        "Importer un calendrier → collez le lien ci-dessous → Enregistrer",
+      ],
+      docUrl: "https://help.vrbo.com/articles/How-do-I-import-or-export-a-calendar",
+      docLabel: "Guide officiel Vrbo / Abritel · Import calendrier",
+    },
+    gites: {
+      steps: [
+        "Espace propriétaire Gîtes de France → Calendrier de réservation",
+        "Importer un planning externe (iCal) → collez le lien → Valider",
+      ],
+      docUrl: "https://pro.gites-de-france.com/",
+      docLabel: "Espace propriétaire Gîtes de France",
+    },
+    expedia: {
+      steps: [
+        "Expedia Partner Central → Property → Rates & Inventory",
+        "Calendar sync → Import calendar → collez le lien → Save",
+      ],
+      docUrl: "https://welcome.expediagroup.com/fr/lodging/resources/articles/calendar-sync",
+      docLabel: "Guide officiel Expedia Partner Central",
+    },
   };
 
   const buildPasteEmailHtml = () => {

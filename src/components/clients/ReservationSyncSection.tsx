@@ -41,7 +41,9 @@ interface Submission {
 
 export default function ReservationSyncSection({ clientId, clientEmail, clientCompany, clientManager, clientToken }: Props) {
   const [sending, setSending] = useState(false);
+  const [sendingPaste, setSendingPaste] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [pastePreviewOpen, setPastePreviewOpen] = useState(false);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [siteIcalUrl, setSiteIcalUrl] = useState<string>("");
   const [savingUrl, setSavingUrl] = useState(false);
@@ -49,6 +51,7 @@ export default function ReservationSyncSection({ clientId, clientEmail, clientCo
   const greeting = (clientManager && clientManager.trim()) || clientCompany || "vous";
   const formUrl = clientToken ? `${PUBLISHED_URL}/ical/${clientToken}` : null;
   const subject = `📅 ${clientCompany || ""} — Synchronisation de vos plateformes de réservation`.trim();
+  const pasteSubject = `🔗 ${clientCompany || ""} — Afficher vos réservations site sur Airbnb, Booking…`.trim();
 
   useEffect(() => {
     (async () => {

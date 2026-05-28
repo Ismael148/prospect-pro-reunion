@@ -21,6 +21,12 @@ const PLATFORMS = [
       "Onglet Calendrier → Disponibilités → Synchroniser les calendriers",
       "Section « Exporter le calendrier » → Copier le lien (.ics)",
     ],
+    pasteSteps: [
+      "Toujours dans Annonces → Calendrier → Synchroniser les calendriers",
+      "Cliquez sur « Importer le calendrier »",
+      "Donnez un nom (ex: « Mon site web ») puis collez le lien ci-dessous",
+      "Validez : Airbnb bloquera automatiquement les dates déjà réservées sur votre site",
+    ],
   },
   {
     key: "booking_url", name: "Booking.com", color: "#003580",
@@ -30,6 +36,12 @@ const PLATFORMS = [
       "Connectez-vous sur admin.booking.com",
       "Tarifs & Disponibilités → Synchronisation de calendrier",
       "Section Exporter → Copier le lien iCal",
+    ],
+    pasteSteps: [
+      "admin.booking.com → Tarifs & Disponibilités → Synchronisation de calendrier",
+      "Onglet « Importer un calendrier » → Ajouter une connexion",
+      "Nom: « Site web » + collez le lien ci-dessous",
+      "Sauvegardez : les réservations de votre site bloqueront Booking",
     ],
   },
   {
@@ -41,6 +53,11 @@ const PLATFORMS = [
       "Calendrier → Importer/Exporter",
       "Copier l'URL iCal d'export",
     ],
+    pasteSteps: [
+      "Calendrier → Importer/Exporter → Importer un calendrier",
+      "Nom: « Site web » + collez le lien ci-dessous",
+      "Validez : Vrbo synchronisera automatiquement les indisponibilités",
+    ],
   },
   {
     key: "gites_url", name: "Gîtes de France", color: "#1F8E3E",
@@ -51,6 +68,11 @@ const PLATFORMS = [
       "Planning → Synchronisation iCal",
       "Copier l'URL d'export iCal",
     ],
+    pasteSteps: [
+      "Espace propriétaire → Planning → Synchronisation iCal",
+      "Section « Importer » → collez le lien ci-dessous",
+      "Nommez la source « Site web » et enregistrez",
+    ],
   },
   {
     key: "expedia_url", name: "Expedia", color: "#00355F",
@@ -60,6 +82,11 @@ const PLATFORMS = [
       "Expedia Partner Central",
       "Tarifs & Disponibilités → Calendrier",
       "Activer l'export iCal puis copier le lien",
+    ],
+    pasteSteps: [
+      "Partner Central → Tarifs & Disponibilités → Calendrier",
+      "Section « Importer un calendrier iCal » → collez le lien ci-dessous",
+      "Donnez un nom et validez l'import",
     ],
   },
 ] as const;

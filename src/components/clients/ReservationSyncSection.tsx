@@ -7,7 +7,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { CalendarSync, Copy, Mail, Loader2, ExternalLink, Link2, Inbox } from "lucide-react";
+import { CalendarSync, Copy, Mail, Loader2, ExternalLink, Link2, Inbox, ArrowLeftRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PUBLISHED_URL } from "@/lib/constants";
 

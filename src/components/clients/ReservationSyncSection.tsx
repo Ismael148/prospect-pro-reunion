@@ -496,6 +496,27 @@ export default function ReservationSyncSection({ clientId, clientEmail, clientCo
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={pastePreviewOpen} onOpenChange={setPastePreviewOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Aperçu — Tuto "où coller le lien du site"</DialogTitle>
+            <DialogDescription>
+              Destinataire : <strong>{clientEmail}</strong> · Sujet : <em>{pasteSubject}</em>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-lg border overflow-hidden bg-white">
+            <iframe title="Aperçu email paste tuto" srcDoc={pastePreviewHtml} className="w-full h-[60vh] bg-white" />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPastePreviewOpen(false)}>Annuler</Button>
+            <Button onClick={sendPasteEmail} disabled={sendingPaste} className="bg-emerald-600 hover:bg-emerald-700">
+              {sendingPaste ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Mail className="w-4 h-4 mr-2" />}
+              Envoyer à {clientEmail}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

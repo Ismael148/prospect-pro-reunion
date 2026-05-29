@@ -491,6 +491,28 @@ function Step5_FindId() {
         </p>
       </div>
 
+      {/* Direct shortcut link */}
+      <div className="rounded-2xl border-2 border-emerald-400 bg-gradient-to-br from-emerald-50 to-teal-50 p-5">
+        <p className="text-sm font-bold text-emerald-950 mb-2">⚡ Raccourci direct (le plus simple)</p>
+        <p className="text-xs text-emerald-900 mb-3">
+          Cliquez sur le bouton ci-dessous : vous arrivez <strong>directement</strong> sur la page où se trouve votre ID Business Manager.
+          Pas besoin de chercher dans les menus !
+        </p>
+        <a
+          href="https://business.facebook.com/settings/info"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2.5 rounded-xl shadow-md transition-colors text-sm"
+        >
+          <Building2 className="h-4 w-4" />
+          Ouvrir « Infos sur l'entreprise »
+          <ExternalLink className="h-4 w-4" />
+        </a>
+        <p className="text-[11px] text-emerald-800 mt-3">
+          💡 Une fois sur la page, votre <strong>ID de l'entreprise</strong> (15 à 16 chiffres) est affiché en haut sous le nom de votre Portefeuille business. Copiez-le et collez-le à l'étape 6.
+        </p>
+      </div>
+
       <ol className="space-y-3">
         {[
           { t: <>Allez sur <a href="https://business.facebook.com" target="_blank" rel="noopener noreferrer" className="text-[#ff006e] font-semibold inline-flex items-center gap-1 hover:underline">business.facebook.com <ExternalLink className="h-3 w-3" /></a></>, d: "Connectez-vous avec le compte qui gère votre BM (PAS la page Facebook publique)." },

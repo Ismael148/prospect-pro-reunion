@@ -24,18 +24,16 @@ export default function LogoValidation() {
         setLoading(false);
         return;
       }
-      const { data, error } = await supabase
-        .from("clients")
-        .select("id, company_name, logo_file_url, logo_drive_url, logo_validated_by_client, logo_validation_token")
-        .eq("id", clientId)
-        .maybeSingle();
-      if (error || !data) {
-        setError("Client introuvable");
-      } else if ((data as any).logo_validation_token !== token) {
+      const { data, error } = await (supabase as any).rpc("get_client_logo_for_validation", {
+        p_client_id: clientId,
+        p_token: token,
+      });
+      const row = Array.isArray(data) ? data[0] : null;
+      if (error || !row) {
         setError("Lien invalide ou expiré");
       } else {
-        setClient(data);
-        if ((data as any).logo_validated_by_client) setDone(true);
+        setClient(row);
+        if (row.logo_validated_by_client) setDone(true);
       }
       setLoading(false);
     })();
@@ -44,10 +42,12 @@ export default function LogoValidation() {
   const validate = async () => {
     setValidating(true);
     try {
-      const { error } = await (supabase.from("clients") as any)
-        .update({ logo_validated_by_client: true })
-        .eq("id", clientId);
+      const { data, error } = await (supabase as any).rpc("validate_logo_with_token", {
+        p_client_id: clientId,
+        p_token: token,
+      });
       if (error) throw error;
+      if (data !== true) throw new Error("Lien invalide ou expiré");
       setDone(true);
       toast.success("Merci ! Votre logo est validé");
     } catch (e: any) {

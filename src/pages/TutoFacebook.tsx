@@ -31,6 +31,7 @@ import { z } from "zod";
 import { useSubmitFbOnboarding, useClientByNdi } from "@/hooks/use-fb-onboarding";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.webp";
+import addPagePopupImg from "@/assets/tuto-fb-add-page-popup.png";
 
 /* ──────────────────────────────────────────────────────────
    Steps content
@@ -335,11 +336,14 @@ function Step4_Attach() {
             d: "⚠️ Il n'y a PAS de gros bouton bleu visible. C'est un petit lien/bouton discret au-dessus de la liste des pages. Dès que vous cliquez, une fenêtre popup s'ouvre.",
           },
           {
-            t: "Dans le popup → choisissez « Ajouter une page »",
-            d: "Une fenêtre s'ouvre avec 3 options : « Ajouter une page », « Demander l'accès à une page », « Créer une nouvelle page ». Cliquez sur la PREMIÈRE : « Ajouter une page ».",
+            t: "Dans le popup → cochez la (ou les) page(s) à ajouter",
+            d: "Une fenêtre s'ouvre : « Que souhaitez-vous ajouter dans ce portefeuille business ? ». Cochez la case à gauche de VOTRE page Facebook puis cliquez sur « Suivant ».",
           },
-          { t: "Tapez le nom OU l'URL de votre page Facebook", d: "Le popup vous demande de saisir le nom ou le lien (ex : facebook.com/votre-entreprise)." },
-          { t: "Confirmez", d: "Votre page est désormais rattachée à votre BM ✅" },
+          {
+            t: "⚠️ Étape « Ajouter un employé / des personnes » → cliquez sur « Ignorer »",
+            d: "Juste après, Facebook vous propose d'ajouter un employé ou de partager l'accès. Ce n'est PAS nécessaire pour nous : cliquez simplement sur « Ignorer » (bouton gris en bas à droite). On gérera les accès plus tard.",
+          },
+          { t: "Confirmez", d: "Votre page est désormais rattachée à votre Business Manager ✅" },
         ].map((s, i) => (
           <li key={i} className="flex gap-4">
             <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gradient-to-br from-[#ff006e] to-[#ff5c8a] text-white font-bold flex items-center justify-center text-sm">

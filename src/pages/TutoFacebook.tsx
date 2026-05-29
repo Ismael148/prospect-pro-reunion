@@ -31,6 +31,7 @@ import { z } from "zod";
 import { useSubmitFbOnboarding, useClientByNdi } from "@/hooks/use-fb-onboarding";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.webp";
+import addPagePopupImg from "@/assets/tuto-fb-add-page-popup.png";
 
 
 /* ──────────────────────────────────────────────────────────
@@ -359,28 +360,16 @@ function Step4_Attach() {
         ))}
       </ol>
 
-      <MiniMockup label="Popup : ajouter une page">
-        <div className="flex gap-3">
-          <div className="w-24 space-y-1.5">
-            <div className="h-6 bg-zinc-200 rounded text-[10px] flex items-center px-2 text-zinc-600">Comptes</div>
-            <div className="h-6 bg-[#ff006e] rounded text-[10px] flex items-center px-2 text-white font-semibold">
-              Pages
-            </div>
-            <div className="h-6 bg-zinc-100 rounded text-[10px] flex items-center px-2 text-zinc-500">Pixels</div>
-          </div>
-          <div className="flex-1 space-y-2">
-            <div className="flex justify-between items-center">
-              <span className="text-xs font-bold text-zinc-700">Pages</span>
-              <button className="text-[10px] text-blue-600 px-2 py-1 rounded font-semibold border border-blue-600 hover:bg-blue-50">
-                + Ajouter
-              </button>
-            </div>
-            <div className="rounded border border-dashed border-zinc-300 p-2 text-[10px] text-zinc-400 text-center">
-              Liste de pages (vide au début)
-            </div>
-          </div>
-        </div>
-      </MiniMockup>
+      <figure className="rounded-xl overflow-hidden border border-zinc-200 bg-white shadow-sm">
+        <img
+          src={addPagePopupImg}
+          alt="Popup Facebook : ajouter une page"
+          className="w-full h-auto"
+        />
+        <figcaption className="text-xs text-zinc-500 px-3 py-2 border-t border-zinc-100">
+          Aperçu du popup « ajouter une page » qui s'ouvre automatiquement.
+        </figcaption>
+      </figure>
 
 
       <div className="rounded-xl bg-amber-50 border-2 border-amber-300 p-4 flex gap-3">

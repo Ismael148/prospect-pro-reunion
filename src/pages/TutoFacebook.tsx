@@ -189,7 +189,20 @@ function Step2_CreatePage() {
           },
           {
             t: "Cliquez sur « Créer la page »",
-            d: "Voilà, votre page est en ligne 🎉. Notez l'URL (ex : facebook.com/votre-entreprise).",
+            d: (
+              <>
+                Voilà, votre page est en ligne 🎉. Notez l'URL (ex :{" "}
+                <a
+                  href="https://facebook.com/votre-entreprise"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#ff006e] font-semibold inline-flex items-center gap-1 hover:underline"
+                >
+                  facebook.com/votre-entreprise <ExternalLink className="h-3 w-3" />
+                </a>
+                ).
+              </>
+            ),
           },
         ].map((s, i) => (
           <li key={i} className="flex gap-4">

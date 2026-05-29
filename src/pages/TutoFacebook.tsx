@@ -381,33 +381,25 @@ function Step4_Attach() {
       </MiniMockup>
 
       <div className="rounded-xl bg-blue-50 border-2 border-blue-300 p-4">
-        <p className="text-xs font-bold text-blue-900 mb-2">📌 À quoi ressemble le popup qui s'ouvre :</p>
-        <div className="rounded-lg bg-white border border-blue-200 p-3 space-y-2 shadow-sm">
-          <p className="text-xs font-bold text-zinc-800">Ajouter des pages</p>
-          <p className="text-[10px] text-zinc-500">Choisissez ce que vous voulez faire :</p>
-          <div className="space-y-1.5 mt-2">
-            <div className="rounded border-2 border-[#ff006e] bg-[#ff006e]/5 p-2">
-              <p className="text-[11px] font-bold text-zinc-800">✅ Ajouter une page</p>
-              <p className="text-[9px] text-zinc-500">Pour les pages que vous possédez</p>
-            </div>
-            <div className="rounded border border-zinc-200 p-2 opacity-60">
-              <p className="text-[11px] font-semibold text-zinc-600">❌ Demander l'accès à une page</p>
-              <p className="text-[9px] text-zinc-400">Pour les pages d'un client</p>
-            </div>
-            <div className="rounded border border-zinc-200 p-2 opacity-60">
-              <p className="text-[11px] font-semibold text-zinc-600">Créer une nouvelle page</p>
-            </div>
-          </div>
-        </div>
+        <p className="text-xs font-bold text-blue-900 mb-3">📌 Voici exactement à quoi ressemble le popup qui s'ouvre :</p>
+        <img
+          src={addPagePopupImg}
+          alt="Popup Facebook : Que souhaitez-vous ajouter dans ce portefeuille business — cochez votre page"
+          className="w-full rounded-lg border border-blue-200 shadow-sm"
+        />
+        <p className="text-[11px] text-blue-900 mt-3">
+          👉 Cochez simplement la case à gauche de votre page Facebook, puis cliquez sur le bouton bleu <strong>« Suivant »</strong> en bas à droite.
+        </p>
       </div>
 
-      <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 flex gap-3">
+      <div className="rounded-xl bg-amber-50 border-2 border-amber-300 p-4 flex gap-3">
         <HelpCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm font-semibold text-amber-900">Important</p>
+          <p className="text-sm font-bold text-amber-900">⚠️ Étape suivante : « Ajouter un employé »</p>
           <p className="text-xs text-amber-800 mt-1">
-            Choisissez bien <strong>« Ajouter une page »</strong> (pas « Demander l'accès »), car c'est VOTRE page,
-            pas celle d'un client.
+            Juste après avoir coché la page, Facebook vous proposera d'<strong>ajouter un employé</strong> ou de partager l'accès avec quelqu'un.
+            <br />
+            👉 <strong>Cliquez sur « Ignorer »</strong> (bouton gris en bas). Ce n'est pas nécessaire — on s'occupera des accès plus tard.
           </p>
         </div>
       </div>

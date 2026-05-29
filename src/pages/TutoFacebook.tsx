@@ -300,13 +300,13 @@ function Step3_CreateBM() {
 
       <MiniMockup label="business.facebook.com">
         <div className="flex items-center justify-between mb-3">
+          <button className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-semibold">
+            + Créer un compte
+          </button>
           <div className="flex items-center gap-2">
             <Building2 className="h-5 w-5 text-blue-700" />
             <span className="font-bold text-zinc-800">Meta Business Suite</span>
           </div>
-          <button className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-semibold">
-            + Créer un compte
-          </button>
         </div>
         <div className="rounded-lg border-2 border-dashed border-[#ff006e] bg-[#ff006e]/5 p-4 text-center">
           <p className="text-sm font-semibold text-zinc-800">Bienvenue dans votre BM</p>

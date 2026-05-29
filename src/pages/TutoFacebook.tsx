@@ -31,7 +31,7 @@ import { z } from "zod";
 import { useSubmitFbOnboarding, useClientByNdi } from "@/hooks/use-fb-onboarding";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.webp";
-import addPagePopupImg from "@/assets/tuto-fb-add-page-popup.png";
+
 
 /* ──────────────────────────────────────────────────────────
    Steps content

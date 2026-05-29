@@ -445,7 +445,17 @@ function Step5_FindId() {
             </p>
             <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-2 mb-2">
               <p className="text-[10px] text-emerald-800 font-semibold uppercase tracking-wide">Où on le trouve</p>
-              <p className="text-xs text-zinc-700 mt-0.5">business.facebook.com → ⚙️ Paramètres → « Infos sur l'entreprise »</p>
+              <p className="text-xs text-zinc-700 mt-0.5">
+                <a
+                  href="https://business.facebook.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#ff006e] font-semibold inline-flex items-center gap-1 hover:underline"
+                >
+                  business.facebook.com <ExternalLink className="h-3 w-3" />
+                </a>{" "}
+                → ⚙️ Paramètres → « Infos sur l'entreprise »
+              </p>
             </div>
             <div className="font-mono text-sm bg-emerald-50 text-emerald-900 font-bold rounded px-2 py-1 text-center border border-emerald-200">
               1234567890123456

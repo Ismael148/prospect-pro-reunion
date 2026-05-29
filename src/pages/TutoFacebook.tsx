@@ -382,22 +382,75 @@ function Step5_FindId() {
         </p>
       </div>
 
-      <div className="rounded-xl border-2 border-amber-300 bg-amber-50 p-4">
-        <p className="text-sm text-amber-900">
-          ⚠️ <strong>Attention — à ne pas confondre :</strong>
+      {/* Big visual comparison Page ID vs BM ID */}
+      <div className="rounded-2xl border-2 border-amber-400 bg-gradient-to-br from-amber-50 to-orange-50 p-5">
+        <div className="flex items-start gap-3 mb-4">
+          <div className="h-10 w-10 rounded-full bg-amber-500 flex items-center justify-center flex-shrink-0">
+            <span className="text-white text-xl font-bold">!</span>
+          </div>
+          <div>
+            <p className="font-bold text-amber-950 text-base">⚠️ À ne SURTOUT pas confondre</p>
+            <p className="text-sm text-amber-900 mt-0.5">
+              Beaucoup de gens se trompent ici. Lisez bien la différence ci-dessous 👇
+            </p>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-3">
+          {/* WRONG — Page ID */}
+          <div className="rounded-xl border-2 border-red-300 bg-white p-4 relative overflow-hidden">
+            <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+              ❌ PAS ÇA
+            </span>
+            <div className="flex items-center gap-2 mb-2">
+              <Facebook className="h-5 w-5 text-blue-600" />
+              <span className="font-bold text-zinc-900 text-sm">ID de la PAGE Facebook</span>
+            </div>
+            <p className="text-xs text-zinc-600 mb-3">
+              Identifie uniquement votre <strong>page publique</strong> (celle que les gens visitent et likent).
+            </p>
+            <div className="rounded-lg bg-red-50 border border-red-200 p-2 mb-2">
+              <p className="text-[10px] text-red-700 font-semibold uppercase tracking-wide">Où on le trouve</p>
+              <p className="text-xs text-zinc-700 mt-0.5">Sur votre page → « À propos » → « Informations sur la Page »</p>
+            </div>
+            <div className="font-mono text-sm bg-zinc-100 text-zinc-500 line-through rounded px-2 py-1 text-center">
+              100123456789012
+            </div>
+          </div>
+
+          {/* RIGHT — BM ID */}
+          <div className="rounded-xl border-2 border-emerald-400 bg-white p-4 relative overflow-hidden shadow-md">
+            <span className="absolute top-2 right-2 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+              ✅ C'EST ÇA
+            </span>
+            <div className="flex items-center gap-2 mb-2">
+              <Building2 className="h-5 w-5 text-emerald-700" />
+              <span className="font-bold text-zinc-900 text-sm">ID du BUSINESS MANAGER</span>
+            </div>
+            <p className="text-xs text-zinc-600 mb-3">
+              Identifie votre <strong>compte entreprise Meta</strong> (le « coffre » qui contient la page).
+            </p>
+            <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-2 mb-2">
+              <p className="text-[10px] text-emerald-800 font-semibold uppercase tracking-wide">Où on le trouve</p>
+              <p className="text-xs text-zinc-700 mt-0.5">business.facebook.com → ⚙️ Paramètres → « Infos sur l'entreprise »</p>
+            </div>
+            <div className="font-mono text-sm bg-emerald-50 text-emerald-900 font-bold rounded px-2 py-1 text-center border border-emerald-200">
+              1234567890123456
+            </div>
+          </div>
+        </div>
+
+        <p className="text-xs text-amber-900 mt-3 text-center">
+          💡 Astuce mémo : <strong>Page ID</strong> = identifiant public · <strong>BM ID</strong> = identifiant pro (celui qu'on demande)
         </p>
-        <ul className="mt-2 space-y-1 text-sm text-amber-900 list-disc pl-5">
-          <li><strong>ID de la Page Facebook</strong> : identifie uniquement votre page publique (visible dans « Informations sur la Page », 16 chiffres — voir capture ci-dessous). <em>Ce n'est PAS celui qu'on demande.</em></li>
-          <li><strong>ID du Business Manager (Portefeuille business)</strong> : identifie votre compte entreprise Meta qui contient la page. <strong>C'est celui-ci qu'il nous faut</strong> (15-16 chiffres).</li>
-        </ul>
       </div>
 
       <ol className="space-y-3">
         {[
-          { t: "Allez sur business.facebook.com", d: "Connectez-vous avec le compte qui gère votre BM." },
+          { t: "Allez sur business.facebook.com", d: "Connectez-vous avec le compte qui gère votre BM (PAS la page Facebook publique)." },
           { t: "Cliquez sur ⚙️ Paramètres (en bas à gauche)", d: "Puis ouvrez « Paramètres de l'entreprise »." },
-          { t: "Menu gauche → « Infos sur l'entreprise »", d: "Section « Compte »." },
-          { t: "Repérez « ID de l'entreprise »", d: "Affiché en haut, sous le nom de votre Portefeuille business. Un nombre de 15 à 16 chiffres." },
+          { t: "Menu gauche → « Infos sur l'entreprise »", d: "Section « Compte ». ⚠️ Pas « Pages » — sinon vous tomberez sur l'ID de la page, pas du BM." },
+          { t: "Repérez « ID de l'entreprise »", d: "Affiché en haut, sous le nom de votre Portefeuille business. 15 à 16 chiffres." },
           { t: "Copiez-le 📋", d: "Collez-le à l'étape suivante du formulaire." },
         ].map((s, i) => (
           <li key={i} className="flex gap-4">
@@ -414,8 +467,8 @@ function Step5_FindId() {
 
       <div className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm">
         <p className="text-xs text-zinc-500 mb-2 font-medium">
-          Exemple visuel : ici c'est l'ID de la <strong>Page Facebook</strong> (16 chiffres entourés en rouge).
-          L'ID du Business Manager se trouve au même type d'emplacement, mais dans « Infos sur l'entreprise ».
+          📸 Sur la capture ci-dessous, ce qui est entouré est l'ID de la <strong>Page Facebook</strong> (à NE PAS envoyer).
+          Le bon ID — celui du Business Manager — se trouve au même type d'emplacement, mais dans « Infos sur l'entreprise » du BM.
         </p>
         <img
           src="/tuto/fb-bm-id.png"
@@ -424,15 +477,16 @@ function Step5_FindId() {
         />
       </div>
 
-      <MiniMockup label="Infos sur l'entreprise (Business Manager)">
+      <MiniMockup label="business.facebook.com → Paramètres → Infos sur l'entreprise">
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Building2 className="h-5 w-5 text-blue-700" />
             <span className="font-bold text-zinc-800">Mon Entreprise SARL</span>
+            <span className="ml-auto text-[10px] text-zinc-400 uppercase">Portefeuille business</span>
           </div>
           <div className="rounded-lg border-2 border-[#ff006e] bg-[#ff006e]/5 p-3 relative">
             <span className="text-[10px] uppercase font-semibold text-zinc-500 tracking-wide">
-              ID de l'entreprise (15-16 chiffres)
+              ID de l'entreprise (15-16 chiffres) — c'est CELUI-CI
             </span>
             <p className="font-mono text-lg font-bold text-zinc-900 mt-1">1234567890123456</p>
             <span className="absolute -top-2 -right-2 bg-[#ff006e] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">

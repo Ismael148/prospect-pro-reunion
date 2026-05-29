@@ -31,6 +31,7 @@ import { z } from "zod";
 import { useSubmitFbOnboarding, useClientByNdi } from "@/hooks/use-fb-onboarding";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.webp";
+import addPagePopupImg from "@/assets/tuto-fb-add-page-popup.png";
 
 /* ──────────────────────────────────────────────────────────
    Steps content
@@ -335,11 +336,14 @@ function Step4_Attach() {
             d: "⚠️ Il n'y a PAS de gros bouton bleu visible. C'est un petit lien/bouton discret au-dessus de la liste des pages. Dès que vous cliquez, une fenêtre popup s'ouvre.",
           },
           {
-            t: "Dans le popup → choisissez « Ajouter une page »",
-            d: "Une fenêtre s'ouvre avec 3 options : « Ajouter une page », « Demander l'accès à une page », « Créer une nouvelle page ». Cliquez sur la PREMIÈRE : « Ajouter une page ».",
+            t: "Dans le popup → cochez la (ou les) page(s) à ajouter",
+            d: "Une fenêtre s'ouvre : « Que souhaitez-vous ajouter dans ce portefeuille business ? ». Cochez la case à gauche de VOTRE page Facebook puis cliquez sur « Suivant ».",
           },
-          { t: "Tapez le nom OU l'URL de votre page Facebook", d: "Le popup vous demande de saisir le nom ou le lien (ex : facebook.com/votre-entreprise)." },
-          { t: "Confirmez", d: "Votre page est désormais rattachée à votre BM ✅" },
+          {
+            t: "⚠️ Étape « Ajouter un employé / des personnes » → cliquez sur « Ignorer »",
+            d: "Juste après, Facebook vous propose d'ajouter un employé ou de partager l'accès. Ce n'est PAS nécessaire pour nous : cliquez simplement sur « Ignorer » (bouton gris en bas à droite). On gérera les accès plus tard.",
+          },
+          { t: "Confirmez", d: "Votre page est désormais rattachée à votre Business Manager ✅" },
         ].map((s, i) => (
           <li key={i} className="flex gap-4">
             <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gradient-to-br from-[#ff006e] to-[#ff5c8a] text-white font-bold flex items-center justify-center text-sm">
@@ -377,33 +381,25 @@ function Step4_Attach() {
       </MiniMockup>
 
       <div className="rounded-xl bg-blue-50 border-2 border-blue-300 p-4">
-        <p className="text-xs font-bold text-blue-900 mb-2">📌 À quoi ressemble le popup qui s'ouvre :</p>
-        <div className="rounded-lg bg-white border border-blue-200 p-3 space-y-2 shadow-sm">
-          <p className="text-xs font-bold text-zinc-800">Ajouter des pages</p>
-          <p className="text-[10px] text-zinc-500">Choisissez ce que vous voulez faire :</p>
-          <div className="space-y-1.5 mt-2">
-            <div className="rounded border-2 border-[#ff006e] bg-[#ff006e]/5 p-2">
-              <p className="text-[11px] font-bold text-zinc-800">✅ Ajouter une page</p>
-              <p className="text-[9px] text-zinc-500">Pour les pages que vous possédez</p>
-            </div>
-            <div className="rounded border border-zinc-200 p-2 opacity-60">
-              <p className="text-[11px] font-semibold text-zinc-600">❌ Demander l'accès à une page</p>
-              <p className="text-[9px] text-zinc-400">Pour les pages d'un client</p>
-            </div>
-            <div className="rounded border border-zinc-200 p-2 opacity-60">
-              <p className="text-[11px] font-semibold text-zinc-600">Créer une nouvelle page</p>
-            </div>
-          </div>
-        </div>
+        <p className="text-xs font-bold text-blue-900 mb-3">📌 Voici exactement à quoi ressemble le popup qui s'ouvre :</p>
+        <img
+          src={addPagePopupImg}
+          alt="Popup Facebook : Que souhaitez-vous ajouter dans ce portefeuille business — cochez votre page"
+          className="w-full rounded-lg border border-blue-200 shadow-sm"
+        />
+        <p className="text-[11px] text-blue-900 mt-3">
+          👉 Cochez simplement la case à gauche de votre page Facebook, puis cliquez sur le bouton bleu <strong>« Suivant »</strong> en bas à droite.
+        </p>
       </div>
 
-      <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 flex gap-3">
+      <div className="rounded-xl bg-amber-50 border-2 border-amber-300 p-4 flex gap-3">
         <HelpCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm font-semibold text-amber-900">Important</p>
+          <p className="text-sm font-bold text-amber-900">⚠️ Étape suivante : « Ajouter un employé »</p>
           <p className="text-xs text-amber-800 mt-1">
-            Choisissez bien <strong>« Ajouter une page »</strong> (pas « Demander l'accès »), car c'est VOTRE page,
-            pas celle d'un client.
+            Juste après avoir coché la page, Facebook vous proposera d'<strong>ajouter un employé</strong> ou de partager l'accès avec quelqu'un.
+            <br />
+            👉 <strong>Cliquez sur « Ignorer »</strong> (bouton gris en bas). Ce n'est pas nécessaire — on s'occupera des accès plus tard.
           </p>
         </div>
       </div>
@@ -492,6 +488,28 @@ function Step5_FindId() {
 
         <p className="text-xs text-amber-900 mt-3 text-center">
           💡 Astuce mémo : <strong>Page ID</strong> = identifiant public · <strong>BM ID</strong> = identifiant pro (celui qu'on demande)
+        </p>
+      </div>
+
+      {/* Direct shortcut link */}
+      <div className="rounded-2xl border-2 border-emerald-400 bg-gradient-to-br from-emerald-50 to-teal-50 p-5">
+        <p className="text-sm font-bold text-emerald-950 mb-2">⚡ Raccourci direct (le plus simple)</p>
+        <p className="text-xs text-emerald-900 mb-3">
+          Cliquez sur le bouton ci-dessous : vous arrivez <strong>directement</strong> sur la page où se trouve votre ID Business Manager.
+          Pas besoin de chercher dans les menus !
+        </p>
+        <a
+          href="https://business.facebook.com/settings/info"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2.5 rounded-xl shadow-md transition-colors text-sm"
+        >
+          <Building2 className="h-4 w-4" />
+          Ouvrir « Infos sur l'entreprise »
+          <ExternalLink className="h-4 w-4" />
+        </a>
+        <p className="text-[11px] text-emerald-800 mt-3">
+          💡 Une fois sur la page, votre <strong>ID de l'entreprise</strong> (15 à 16 chiffres) est affiché en haut sous le nom de votre Portefeuille business. Copiez-le et collez-le à l'étape 6.
         </p>
       </div>
 

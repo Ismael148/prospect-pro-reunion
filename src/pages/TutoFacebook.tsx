@@ -272,7 +272,7 @@ function Step3_CreateBM() {
               </>
             ),
           },
-          { t: "Cliquez « Créer un compte »", d: "Bouton bleu en haut à droite." },
+          { t: "Cliquez « Créer un compte »", d: "Bouton bleu situé en haut à gauche de la page." },
           {
             t: "Renseignez les infos",
             d: "Nom de votre entreprise, votre nom, votre email professionnel.",
@@ -300,13 +300,13 @@ function Step3_CreateBM() {
 
       <MiniMockup label="business.facebook.com">
         <div className="flex items-center justify-between mb-3">
+          <button className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-semibold">
+            + Créer un compte
+          </button>
           <div className="flex items-center gap-2">
             <Building2 className="h-5 w-5 text-blue-700" />
             <span className="font-bold text-zinc-800">Meta Business Suite</span>
           </div>
-          <button className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-semibold">
-            + Créer un compte
-          </button>
         </div>
         <div className="rounded-lg border-2 border-dashed border-[#ff006e] bg-[#ff006e]/5 p-4 text-center">
           <p className="text-sm font-semibold text-zinc-800">Bienvenue dans votre BM</p>
@@ -328,10 +328,17 @@ function Step4_Attach() {
 
       <ol className="space-y-3">
         {[
-          { t: "Dans le BM, cliquez sur ⚙️ Paramètres", d: "Icône engrenage en bas à gauche." },
-          { t: "Menu de gauche → « Comptes » → « Pages »", d: "Vous arrivez sur la liste des pages." },
-          { t: "Bouton bleu « Ajouter »", d: "Choisissez « Ajouter une page » (PAS « Demander l'accès »)." },
-          { t: "Tapez le nom de votre page", d: "Sélectionnez-la dans la liste qui s'affiche." },
+          { t: "Dans le BM, cliquez sur ⚙️ Paramètres", d: "Icône engrenage en bas à gauche du menu." },
+          { t: "Menu de gauche → « Comptes » → « Pages »", d: "Vous arrivez sur la liste de vos pages (peut être vide au début, c'est normal)." },
+          {
+            t: "Cliquez directement sur « Ajouter » (au-dessus de la liste)",
+            d: "⚠️ Il n'y a PAS de gros bouton bleu visible. C'est un petit lien/bouton discret au-dessus de la liste des pages. Dès que vous cliquez, une fenêtre popup s'ouvre.",
+          },
+          {
+            t: "Dans le popup → choisissez « Ajouter une page »",
+            d: "Une fenêtre s'ouvre avec 3 options : « Ajouter une page », « Demander l'accès à une page », « Créer une nouvelle page ». Cliquez sur la PREMIÈRE : « Ajouter une page ».",
+          },
+          { t: "Tapez le nom OU l'URL de votre page Facebook", d: "Le popup vous demande de saisir le nom ou le lien (ex : facebook.com/votre-entreprise)." },
           { t: "Confirmez", d: "Votre page est désormais rattachée à votre BM ✅" },
         ].map((s, i) => (
           <li key={i} className="flex gap-4">
@@ -358,17 +365,37 @@ function Step4_Attach() {
           <div className="flex-1 space-y-2">
             <div className="flex justify-between items-center">
               <span className="text-xs font-bold text-zinc-700">Pages</span>
-              <button className="text-[10px] bg-blue-600 text-white px-2 py-1 rounded font-semibold">
+              <button className="text-[10px] text-blue-600 px-2 py-1 rounded font-semibold border border-blue-600 hover:bg-blue-50">
                 + Ajouter
               </button>
             </div>
-            <div className="h-12 rounded border-2 border-[#ff006e] bg-[#ff006e]/5 flex items-center px-3">
-              <Facebook className="h-4 w-4 text-blue-600 mr-2" />
-              <span className="text-xs font-semibold text-zinc-800">Mon Entreprise SARL</span>
+            <div className="rounded border border-dashed border-zinc-300 p-2 text-[10px] text-zinc-400 text-center">
+              Liste de pages (vide au début)
             </div>
           </div>
         </div>
       </MiniMockup>
+
+      <div className="rounded-xl bg-blue-50 border-2 border-blue-300 p-4">
+        <p className="text-xs font-bold text-blue-900 mb-2">📌 À quoi ressemble le popup qui s'ouvre :</p>
+        <div className="rounded-lg bg-white border border-blue-200 p-3 space-y-2 shadow-sm">
+          <p className="text-xs font-bold text-zinc-800">Ajouter des pages</p>
+          <p className="text-[10px] text-zinc-500">Choisissez ce que vous voulez faire :</p>
+          <div className="space-y-1.5 mt-2">
+            <div className="rounded border-2 border-[#ff006e] bg-[#ff006e]/5 p-2">
+              <p className="text-[11px] font-bold text-zinc-800">✅ Ajouter une page</p>
+              <p className="text-[9px] text-zinc-500">Pour les pages que vous possédez</p>
+            </div>
+            <div className="rounded border border-zinc-200 p-2 opacity-60">
+              <p className="text-[11px] font-semibold text-zinc-600">❌ Demander l'accès à une page</p>
+              <p className="text-[9px] text-zinc-400">Pour les pages d'un client</p>
+            </div>
+            <div className="rounded border border-zinc-200 p-2 opacity-60">
+              <p className="text-[11px] font-semibold text-zinc-600">Créer une nouvelle page</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 flex gap-3">
         <HelpCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />

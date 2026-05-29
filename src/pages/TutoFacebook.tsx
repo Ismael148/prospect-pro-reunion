@@ -332,12 +332,16 @@ function Step4_Attach() {
           { t: "Dans le BM, cliquez sur ⚙️ Paramètres", d: "Icône engrenage en bas à gauche du menu." },
           { t: "Menu de gauche → « Comptes » → « Pages »", d: "Vous arrivez sur la liste de vos pages (peut être vide au début, c'est normal)." },
           {
-            t: "Cliquez directement sur « Ajouter » (au-dessus de la liste)",
-            d: "⚠️ Il n'y a PAS de gros bouton bleu visible. C'est un petit lien/bouton discret au-dessus de la liste des pages. Dès que vous cliquez, une fenêtre popup s'ouvre.",
+            t: "Une fenêtre popup s'ouvre toute seule",
+            d: "Pas besoin de chercher un bouton « Ajouter » : dès que vous arrivez sur l'onglet « Pages », Facebook ouvre automatiquement la fenêtre « Que souhaitez-vous ajouter dans ce portefeuille business ? » avec la liste de vos pages.",
           },
           {
-            t: "Dans le popup → cochez la (ou les) page(s) à ajouter",
-            d: "Une fenêtre s'ouvre : « Que souhaitez-vous ajouter dans ce portefeuille business ? ». Cochez la case à gauche de VOTRE page Facebook puis cliquez sur « Suivant ».",
+            t: "☑️ Cochez la case à GAUCHE de votre page Facebook",
+            d: "Ce n'est PAS un bouton « Ajouter » — c'est une simple case à cocher (☐) à gauche de chaque page. Cochez celle qui correspond à VOTRE entreprise (vous pouvez en cocher plusieurs si vous avez plusieurs pages).",
+          },
+          {
+            t: "Cliquez sur le bouton bleu « Suivant »",
+            d: "Il se trouve en bas à droite du popup, à côté de « Ignorer ».",
           },
           {
             t: "⚠️ Étape « Ajouter un employé / des personnes » → cliquez sur « Ignorer »",

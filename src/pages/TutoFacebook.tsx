@@ -329,11 +329,9 @@ function Step4_Attach() {
 
       <ol className="space-y-3">
         {[
-          { t: "Dans le BM, cliquez sur ⚙️ Paramètres", d: "Icône engrenage en bas à gauche du menu." },
-          { t: "Menu de gauche → « Comptes » → « Pages »", d: "Vous arrivez sur la liste de vos pages (peut être vide au début, c'est normal)." },
           {
             t: "Une fenêtre popup s'ouvre toute seule",
-            d: "Pas besoin de chercher un bouton « Ajouter » : dès que vous arrivez sur l'onglet « Pages », Facebook ouvre automatiquement la fenêtre « Que souhaitez-vous ajouter dans ce portefeuille business ? » avec la liste de vos pages.",
+            d: "Pas besoin de chercher un bouton : dès que vous arrivez dans votre Business Manager, Facebook ouvre automatiquement la fenêtre « Que souhaitez-vous ajouter dans ce portefeuille business ? » avec la liste de vos pages.",
           },
           {
             t: "☑️ Cochez la case à GAUCHE de votre page Facebook",
@@ -361,7 +359,7 @@ function Step4_Attach() {
         ))}
       </ol>
 
-      <MiniMockup label="Paramètres → Comptes → Pages">
+      <MiniMockup label="Popup : ajouter une page">
         <div className="flex gap-3">
           <div className="w-24 space-y-1.5">
             <div className="h-6 bg-zinc-200 rounded text-[10px] flex items-center px-2 text-zinc-600">Comptes</div>

@@ -640,7 +640,9 @@ function Step6_Form({
             placeholder="ex : 123456789012345"
             maxLength={50}
           />
-          <p className="text-[11px] text-zinc-500 mt-1">15-16 chiffres trouvés à l'étape 5.</p>
+          <p className="text-[11px] text-zinc-500 mt-1">
+            15-16 chiffres trouvés à l'étape 5 — <strong className="text-amber-700">⚠️ pas l'ID de votre page Facebook</strong>, mais bien celui du Business Manager (Portefeuille business).
+          </p>
         </div>
 
         <div>

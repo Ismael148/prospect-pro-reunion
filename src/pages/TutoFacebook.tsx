@@ -189,7 +189,20 @@ function Step2_CreatePage() {
           },
           {
             t: "Cliquez sur « Créer la page »",
-            d: "Voilà, votre page est en ligne 🎉. Notez l'URL (ex : facebook.com/votre-entreprise).",
+            d: (
+              <>
+                Voilà, votre page est en ligne 🎉. Notez l'URL (ex :{" "}
+                <a
+                  href="https://facebook.com/votre-entreprise"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#ff006e] font-semibold inline-flex items-center gap-1 hover:underline"
+                >
+                  facebook.com/votre-entreprise <ExternalLink className="h-3 w-3" />
+                </a>
+                ).
+              </>
+            ),
           },
         ].map((s, i) => (
           <li key={i} className="flex gap-4">
@@ -432,7 +445,17 @@ function Step5_FindId() {
             </p>
             <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-2 mb-2">
               <p className="text-[10px] text-emerald-800 font-semibold uppercase tracking-wide">Où on le trouve</p>
-              <p className="text-xs text-zinc-700 mt-0.5">business.facebook.com → ⚙️ Paramètres → « Infos sur l'entreprise »</p>
+              <p className="text-xs text-zinc-700 mt-0.5">
+                <a
+                  href="https://business.facebook.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#ff006e] font-semibold inline-flex items-center gap-1 hover:underline"
+                >
+                  business.facebook.com <ExternalLink className="h-3 w-3" />
+                </a>{" "}
+                → ⚙️ Paramètres → « Infos sur l'entreprise »
+              </p>
             </div>
             <div className="font-mono text-sm bg-emerald-50 text-emerald-900 font-bold rounded px-2 py-1 text-center border border-emerald-200">
               1234567890123456
@@ -447,7 +470,7 @@ function Step5_FindId() {
 
       <ol className="space-y-3">
         {[
-          { t: "Allez sur business.facebook.com", d: "Connectez-vous avec le compte qui gère votre BM (PAS la page Facebook publique)." },
+          { t: <>Allez sur <a href="https://business.facebook.com" target="_blank" rel="noopener noreferrer" className="text-[#ff006e] font-semibold inline-flex items-center gap-1 hover:underline">business.facebook.com <ExternalLink className="h-3 w-3" /></a></>, d: "Connectez-vous avec le compte qui gère votre BM (PAS la page Facebook publique)." },
           { t: "Cliquez sur ⚙️ Paramètres (en bas à gauche)", d: "Puis ouvrez « Paramètres de l'entreprise »." },
           { t: "Menu gauche → « Infos sur l'entreprise »", d: "Section « Compte ». ⚠️ Pas « Pages » — sinon vous tomberez sur l'ID de la page, pas du BM." },
           { t: "Repérez « ID de l'entreprise »", d: "Affiché en haut, sous le nom de votre Portefeuille business. 15 à 16 chiffres." },

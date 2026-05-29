@@ -382,17 +382,6 @@ function Step4_Attach() {
         </div>
       </MiniMockup>
 
-      <div className="rounded-xl bg-blue-50 border-2 border-blue-300 p-4">
-        <p className="text-xs font-bold text-blue-900 mb-3">📌 Voici exactement à quoi ressemble le popup qui s'ouvre :</p>
-        <img
-          src={addPagePopupImg}
-          alt="Popup Facebook : Que souhaitez-vous ajouter dans ce portefeuille business — cochez votre page"
-          className="w-full rounded-lg border border-blue-200 shadow-sm"
-        />
-        <p className="text-[11px] text-blue-900 mt-3">
-          👉 Cochez simplement la case à gauche de votre page Facebook, puis cliquez sur le bouton bleu <strong>« Suivant »</strong> en bas à droite.
-        </p>
-      </div>
 
       <div className="rounded-xl bg-amber-50 border-2 border-amber-300 p-4 flex gap-3">
         <HelpCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />

@@ -470,7 +470,7 @@ function Step5_FindId() {
 
       <ol className="space-y-3">
         {[
-          { t: "Allez sur business.facebook.com", d: "Connectez-vous avec le compte qui gère votre BM (PAS la page Facebook publique)." },
+          { t: <>Allez sur <a href="https://business.facebook.com" target="_blank" rel="noopener noreferrer" className="text-[#ff006e] font-semibold inline-flex items-center gap-1 hover:underline">business.facebook.com <ExternalLink className="h-3 w-3" /></a></>, d: "Connectez-vous avec le compte qui gère votre BM (PAS la page Facebook publique)." },
           { t: "Cliquez sur ⚙️ Paramètres (en bas à gauche)", d: "Puis ouvrez « Paramètres de l'entreprise »." },
           { t: "Menu gauche → « Infos sur l'entreprise »", d: "Section « Compte ». ⚠️ Pas « Pages » — sinon vous tomberez sur l'ID de la page, pas du BM." },
           { t: "Repérez « ID de l'entreprise »", d: "Affiché en haut, sous le nom de votre Portefeuille business. 15 à 16 chiffres." },

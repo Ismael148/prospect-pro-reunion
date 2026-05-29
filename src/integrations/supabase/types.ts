@@ -2545,11 +2545,25 @@ export type Database = {
     Functions: {
       fire_due_client_reminders: { Args: never; Returns: undefined }
       generate_monthly_social_deliverables: { Args: never; Returns: undefined }
+      get_client_logo_for_validation: {
+        Args: { p_client_id: string; p_token: string }
+        Returns: {
+          company_name: string
+          id: string
+          logo_drive_url: string
+          logo_file_url: string
+          logo_validated_by_client: boolean
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      validate_logo_with_token: {
+        Args: { p_client_id: string; p_token: string }
         Returns: boolean
       }
     }

@@ -211,7 +211,7 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
 ${proLoginUrl ? makeCta('🔐 Se connecter à mon espace', proLoginUrl) : ''}
 
 <div style="margin:24px 0;padding:18px 20px;background:#fff7fb;border:1px solid #ffd1e3;border-left:4px solid ${BRAND_COLOR};border-radius:8px">
-  <p style="margin:0 0 10px;font-weight:700;color:${BRAND_DARK};font-size:15px">📬 Comment utiliser votre email pro ?</p>
+  <p style="margin:0 0 10px;font-weight:700;color:#18181b;font-size:15px">📬 Comment utiliser votre email pro ?</p>
   <p style="margin:0 0 10px;font-size:14px;color:#3f3f46;line-height:1.6">Le lien ci-dessus ouvre une <strong>plateforme de gestion d'emails professionnelle</strong> (votre webmail). C'est votre <strong>boîte mail dédiée à votre site internet</strong>.</p>
   <p style="margin:0 0 10px;font-size:14px;color:#3f3f46;line-height:1.6">👉 <strong>Connectez-vous</strong> avec l'email et le mot de passe ci-dessus pour consulter vos messages.</p>
   <p style="margin:0;font-size:14px;color:#3f3f46;line-height:1.6">📨 <strong>Tous les messages</strong> envoyés depuis le formulaire de contact de votre site (devis, demandes clients, réservations…) arriveront <strong>directement dans cette boîte</strong>. Pensez à la consulter régulièrement !</p>

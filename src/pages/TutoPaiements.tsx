@@ -160,16 +160,15 @@ export default function TutoPaiements() {
   useEffect(() => {
     if (!token) return;
     (async () => {
-      const { data } = await supabase
-        .from("payment_invitations")
-        .select("*")
-        .eq("token", token)
-        .maybeSingle();
-      if (data) {
-        setInvitation(data);
-        setCompanyName(data.company_name || "");
-        setContactEmail(data.contact_email || "");
-        setContactName(data.contact_name || "");
+      const { data } = await (supabase as any).rpc("get_payment_invitation_public", {
+        p_token: token,
+      });
+      const row = Array.isArray(data) ? data[0] : data;
+      if (row) {
+        setInvitation(row);
+        setCompanyName(row.company_name || "");
+        setContactEmail(row.contact_email || "");
+        setContactName(row.contact_name || "");
       }
     })();
   }, [token]);
@@ -255,11 +254,10 @@ export default function TutoPaiements() {
     }
 
     // Mark invitation as completed
-    if (invitation?.id) {
-      await supabase
-        .from("payment_invitations")
-        .update({ completed_at: new Date().toISOString() })
-        .eq("id", invitation.id);
+    if (token && invitation?.id) {
+      await (supabase as any).rpc("complete_payment_invitation_public", {
+        p_token: token,
+      });
     }
 
     setSubmitting(false);

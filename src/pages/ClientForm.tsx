@@ -246,20 +246,20 @@ export default function ClientForm() {
             label="Logo de l'entreprise"
             value={formData.logo_url || ""}
             onChange={(url) => handleChange("logo_url", url)}
-            folder={`${data.client.id}/nfc`}
+            folder={`${token}/nfc`}
             required
           />
           <ImageUpload
             label="Photo de profil"
             value={formData.photo_url || ""}
             onChange={(url) => handleChange("photo_url", url)}
-            folder={`${data.client.id}/nfc`}
+            folder={`${token}/nfc`}
           />
           <GalleryUpload
             label="Photos supplémentaires (locaux, produits, équipe...)"
             values={formData.gallery_urls || []}
             onChange={(urls) => setFormData((prev) => ({ ...prev, gallery_urls: urls }))}
-            folder={`${data.client.id}/nfc`}
+            folder={`${token}/nfc`}
             max={10}
           />
         </div>
@@ -270,14 +270,14 @@ export default function ClientForm() {
             label="Logo de l'entreprise"
             value={formData.logo_url || ""}
             onChange={(url) => handleChange("logo_url", url)}
-            folder={`${data.client.id}/site`}
+            folder={`${token}/site`}
             required
           />
           <GalleryUpload
             label="Galerie photos (locaux, produits, équipe...)"
             values={formData.gallery_urls || []}
             onChange={(urls) => setFormData((prev) => ({ ...prev, gallery_urls: urls }))}
-            folder={`${data.client.id}/site`}
+            folder={`${token}/site`}
             max={10}
           />
         </div>

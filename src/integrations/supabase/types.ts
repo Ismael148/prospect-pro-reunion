@@ -2543,8 +2543,48 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      complete_payment_invitation_public: {
+        Args: { p_token: string }
+        Returns: boolean
+      }
+      create_support_ticket_public: {
+        Args: {
+          p_attachments?: string[]
+          p_category: string
+          p_message: string
+          p_priority?: string
+          p_subject: string
+          p_token: string
+        }
+        Returns: {
+          attachments: string[]
+          category: Database["public"]["Enums"]["support_category"]
+          client_id: string
+          created_at: string
+          id: string
+          message: string
+          priority: string
+          status: Database["public"]["Enums"]["ticket_status"]
+          subject: string
+          ticket_number: string
+        }[]
+      }
       fire_due_client_reminders: { Args: never; Returns: undefined }
       generate_monthly_social_deliverables: { Args: never; Returns: undefined }
+      get_client_form_public: {
+        Args: {
+          p_form_type: Database["public"]["Enums"]["client_form_type"]
+          p_token: string
+        }
+        Returns: {
+          client_id: string
+          company_name: string
+          form_data: Json
+          form_id: string
+          nfc_quantity: number
+          status: Database["public"]["Enums"]["client_form_status"]
+        }[]
+      }
       get_client_logo_for_validation: {
         Args: { p_client_id: string; p_token: string }
         Returns: {
@@ -2555,12 +2595,65 @@ export type Database = {
           logo_validated_by_client: boolean
         }[]
       }
+      get_payment_invitation_public: {
+        Args: { p_token: string }
+        Returns: {
+          client_id: string
+          client_ndi: string
+          company_name: string
+          completed_at: string
+          contact_email: string
+          contact_name: string
+          expires_at: string
+          id: string
+          providers: Database["public"]["Enums"]["payment_provider"][]
+        }[]
+      }
+      get_public_client_by_support_token: {
+        Args: { p_token: string }
+        Returns: {
+          company_name: string
+          id: string
+          nfc_quantity: number
+          pack_type: string
+          site_ical_url: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      is_valid_support_token_text: {
+        Args: { _token: string }
+        Returns: boolean
+      }
+      submit_client_form_public: {
+        Args: {
+          p_form_data: Json
+          p_form_type: Database["public"]["Enums"]["client_form_type"]
+          p_token: string
+        }
+        Returns: {
+          client_id: string
+          created_at: string
+          form_data: Json
+          form_type: Database["public"]["Enums"]["client_form_type"]
+          id: string
+          status: Database["public"]["Enums"]["client_form_status"]
+          submitted_at: string | null
+          updated_at: string
+          validated_at: string | null
+          validated_by: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "client_forms"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       validate_logo_with_token: {
         Args: { p_client_id: string; p_token: string }

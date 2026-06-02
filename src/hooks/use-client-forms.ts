@@ -38,19 +38,30 @@ export function useClientFormByToken(token: string, formType: "nfc" | "site") {
   return useQuery({
     queryKey: ["client-form", token, formType],
     queryFn: async () => {
-      const { data: client, error: clientError } = await supabase
-        .from("clients")
-        .select("id, company_name, nfc_quantity")
-        .eq("support_token", token)
-        .single();
-      if (clientError) throw clientError;
+      const { data, error } = await (supabase as any).rpc("get_client_form_public", {
+        p_token: token,
+        p_form_type: formType,
+      });
+      if (error) throw error;
 
-      const { data: form } = await supabase
-        .from("client_forms")
-        .select("*")
-        .eq("client_id", client.id)
-        .eq("form_type", formType)
-        .maybeSingle();
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row?.client_id) throw new Error("Lien invalide");
+
+      const client = {
+        id: row.client_id,
+        company_name: row.company_name,
+        nfc_quantity: row.nfc_quantity,
+      };
+
+      const form = row.form_id
+        ? {
+            id: row.form_id,
+            client_id: row.client_id,
+            form_type: formType,
+            form_data: row.form_data,
+            status: row.status,
+          }
+        : null;
 
       return { client, form };
     },
@@ -70,29 +81,13 @@ export function useSubmitClientForm() {
       formType: "nfc" | "site";
       formData: ClientFormData;
     }) => {
-      const { data: client, error: clientError } = await supabase
-        .from("clients")
-        .select("id")
-        .eq("support_token", token)
-        .single();
-      if (clientError) throw clientError;
-
-      const { data, error } = await supabase
-        .from("client_forms")
-        .upsert(
-          {
-            client_id: client.id,
-            form_type: formType,
-            form_data: formData as any,
-            status: "soumis",
-            submitted_at: new Date().toISOString(),
-          },
-          { onConflict: "client_id,form_type" }
-        )
-        .select()
-        .single();
+      const { data, error } = await (supabase as any).rpc("submit_client_form_public", {
+        p_token: token,
+        p_form_type: formType,
+        p_form_data: formData,
+      });
       if (error) throw error;
-      return data;
+      return Array.isArray(data) ? data[0] : data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["client-form"] });

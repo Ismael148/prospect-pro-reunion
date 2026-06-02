@@ -154,6 +154,31 @@ ${makeCta('📍 Suivre le tutoriel Google', tutoLink)}
 <p style="margin:0">Très cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`;
       },
     },
+    {
+      id: 'tuto_motopress',
+      label: 'Tuto MotoPress (Réservations)',
+      icon: <CalendarCheck className="w-4 h-4" />,
+      subject: `Gérez vos réservations en ligne — ${client.company_name}`,
+      trigger: 'tuto_motopress',
+      bodyFn: () => {
+        const tutoLink = `${PUBLISHED_URL}/tuto/motopress`;
+        return `<p style="margin:0 0 20px">Bonjour <strong>${greeting}</strong>,</p>
+<p style="margin:0 0 20px">Votre site internet est livré avec <strong>MotoPress Hotel Booking</strong>, le plugin qui transforme votre site en véritable <strong>moteur de réservation en ligne</strong> — un peu comme Airbnb ou Booking, mais 100% sur <em>votre</em> propre site (et sans commission !).</p>
+<p style="margin:0 0 20px">Avec MotoPress, vous pouvez :</p>
+<ul style="padding-left:20px;color:#52525b;margin:0 0 24px;line-height:2">
+  <li>📅 Gérer le <strong>calendrier de disponibilités</strong> de vos logements / prestations</li>
+  <li>💶 Définir vos <strong>tarifs</strong> (basse / haute saison, week-ends, promotions)</li>
+  <li>📨 Recevoir les <strong>réservations en ligne</strong> directement par email</li>
+  <li>🔄 <strong>Synchroniser</strong> votre calendrier avec Airbnb & Booking pour éviter les doubles réservations</li>
+  <li>✅ Confirmer / refuser une demande en 1 clic depuis votre tableau de bord</li>
+</ul>
+<p style="margin:0 0 20px">Pour vous accompagner, nous avons préparé un <strong>tutoriel pas-à-pas</strong> ultra-clair (avec captures d'écran) qui vous explique tout : ajouter un logement, créer un tarif, gérer une réservation, synchroniser vos plateformes externes…</p>
+${makeCta('📅 Suivre le tutoriel MotoPress', tutoLink)}
+<p style="margin:0 0 20px;font-size:13px;color:#71717a">💡 Vous pouvez gérer MotoPress 100% en autonomie. Et si vous préférez nous déléguer la configuration ou la mise en ligne de vos logements, notre équipe peut s'en charger sur devis.</p>
+<p style="margin:0 0 20px">N'hésitez pas à nous écrire via votre espace support si vous avez la moindre question.</p>
+<p style="margin:0">Très cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`;
+      },
+    },
   ];
 }
 

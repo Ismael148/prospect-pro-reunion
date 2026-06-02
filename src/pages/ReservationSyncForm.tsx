@@ -104,21 +104,14 @@ export default function ReservationSyncForm() {
   useEffect(() => {
     (async () => {
       if (!token) return;
-      const { data, error } = await supabase
-        .from("clients")
-        .select("id, company_name, site_ical_url")
-        .eq("support_token", token)
-        .maybeSingle();
-      if (error || !data) {
+      const { data, error } = await (supabase as any).rpc("get_public_client_by_support_token", {
+        p_token: token,
+      });
+      const row = Array.isArray(data) ? data[0] : data;
+      if (error || !row) {
         toast.error("Lien invalide ou expiré");
       } else {
-        setClient(data as any);
-      }
-      setLoading(false);
-      if (error || !data) {
-        toast.error("Lien invalide ou expiré");
-      } else {
-        setClient(data);
+        setClient(row as any);
       }
       setLoading(false);
     })();

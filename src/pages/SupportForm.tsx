@@ -51,15 +51,14 @@ export default function SupportForm() {
   useEffect(() => {
     if (!token) return;
     const fetchClient = async () => {
-      const { data, error } = await supabase
-        .from("clients")
-        .select("id, company_name, email, support_token, pack_type")
-        .eq("support_token", token)
-        .single();
-      if (error || !data) {
+      const { data, error } = await (supabase as any).rpc("get_public_client_by_support_token", {
+        p_token: token,
+      });
+      const row = Array.isArray(data) ? data[0] : data;
+      if (error || !row) {
         setError("Lien invalide ou expiré");
       } else {
-        setClient(data);
+        setClient(row);
       }
       setLoading(false);
     };
@@ -95,7 +94,7 @@ export default function SupportForm() {
           continue;
         }
         const ext = file.name.split(".").pop();
-        const fileName = `support/${client.id}/${crypto.randomUUID()}.${ext}`;
+        const fileName = `${token}/support/${crypto.randomUUID()}.${ext}`;
         const { error } = await supabase.storage
           .from("client-forms")
           .upload(fileName, file, { upsert: true });
@@ -141,21 +140,17 @@ export default function SupportForm() {
     }
     setSubmitting(true);
     try {
-      // Insert without ticket_number — the DB trigger generates it automatically
-      const { data: ticket, error: ticketError } = await supabase
-        .from("support_tickets")
-        .insert([{
-          client_id: client.id,
-          category: form.category as any,
-          subject: form.subject,
-          message: form.message,
-          priority: form.priority,
-          attachments: attachments.length > 0 ? attachments : null,
-        } as any])
-        .select()
-        .single();
+      const { data: ticketData, error: ticketError } = await (supabase as any).rpc("create_support_ticket_public", {
+        p_token: token,
+        p_category: form.category,
+        p_subject: form.subject,
+        p_message: form.message,
+        p_priority: form.priority,
+        p_attachments: attachments.length > 0 ? attachments : null,
+      });
 
       if (ticketError) throw ticketError;
+      const ticket = Array.isArray(ticketData) ? ticketData[0] : ticketData;
 
       try {
         const supportPayload = {
@@ -163,12 +158,11 @@ export default function SupportForm() {
           ticket_number: ticket.ticket_number,
           company_name: client.company_name,
           client_name: client.company_name,
-          client_email: client.email,
           category: categoryLabels[form.category] || form.category,
           subject: form.subject,
           message: form.message,
           priority: form.priority,
-          support_link: `${PUBLISHED_URL}/s/${client.support_token}`,
+          support_link: `${PUBLISHED_URL}/s/${token}`,
         };
 
         await supabase.functions.invoke("support-notification", {

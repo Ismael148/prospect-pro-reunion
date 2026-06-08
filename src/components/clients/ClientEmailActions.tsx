@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import {
-  Mail, Send, Loader2, Ticket, FileText, CreditCard, Globe, Eye, Sparkles, Wand2, Star, Facebook, MapPin, KeyRound, Copy, CalendarCheck,
+  Mail, Send, Loader2, Ticket, FileText, CreditCard, Globe, Eye, Sparkles, Wand2, Star, Facebook, MapPin, KeyRound, Copy, CalendarCheck, AtSign,
 } from "lucide-react";
 import EmailTemplateSaver from "@/components/EmailTemplateSaver";
 import type { SavedTemplate } from "@/hooks/use-email-templates";
@@ -218,6 +218,15 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
   const [proPassword, setProPassword] = useState("");
   const [proSending, setProSending] = useState(false);
 
+  // Tuto Email Pro → Gmail dialog state
+  const [showGmailDialog, setShowGmailDialog] = useState(false);
+  const [gmailProEmail, setGmailProEmail] = useState(client.email || "");
+  const [gmailDomain, setGmailDomain] = useState(
+    (client.email || "").includes("@") ? (client.email as string).split("@")[1] : ""
+  );
+  const [gmailExtraConfig, setGmailExtraConfig] = useState("");
+  const [gmailSending, setGmailSending] = useState(false);
+
   const greeting = client.manager_name?.trim() || client.company_name;
 
   const buildProCredentialsHtml = () => {
@@ -276,6 +285,62 @@ ${proLoginUrl ? makeCta('🔐 Se connecter à mon espace', proLoginUrl) : ''}
       toast.error(e.message || "Erreur lors de l'envoi");
     } finally {
       setProSending(false);
+    }
+  };
+
+  const buildGmailTutoHtml = () => {
+    const domain = gmailDomain.trim() || "[votredomaine]";
+    const params = new URLSearchParams();
+    if (gmailProEmail.trim()) params.set("email", gmailProEmail.trim());
+    if (gmailDomain.trim()) params.set("domain", gmailDomain.trim());
+    if (gmailExtraConfig.trim()) params.set("config", gmailExtraConfig.trim());
+    const tutoLink = `${PUBLISHED_URL}/tuto/email-pro-gmail${params.toString() ? `?${params.toString()}` : ""}`;
+    const extraBlock = gmailExtraConfig.trim()
+      ? `<div style="margin:18px 0;padding:14px 18px;background:#fffbeb;border:1px solid #fde68a;border-left:4px solid #f59e0b;border-radius:8px">
+  <p style="margin:0 0 8px;font-weight:700;color:#78350f">📌 Vos informations de configuration :</p>
+  <pre style="margin:0;font-family:'SFMono-Regular',Consolas,Menlo,monospace;font-size:13px;color:#78350f;white-space:pre-wrap">${gmailExtraConfig.trim().replace(/</g,"&lt;")}</pre>
+</div>`
+      : "";
+    return `<p style="margin:0 0 20px">Bonjour <strong>${greeting}</strong>,</p>
+<p style="margin:0 0 20px">Plutôt que de jongler entre votre webmail pro et Gmail, vous pouvez <strong>centraliser vos emails pros dans votre compte Gmail habituel</strong> — sur ordinateur ET sur téléphone.</p>
+<p style="margin:0 0 20px">Nous avons préparé un <strong>tutoriel pas-à-pas (10 minutes)</strong> avec toutes les valeurs à copier-coller (hébergeur <strong>LWS</strong> pré-rempli pour <strong>${domain}</strong>).</p>
+${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
+${extraBlock}
+<div style="margin:24px 0;padding:18px 20px;background:#fff7fb;border:1px solid #ffd1e3;border-left:4px solid ${BRAND_COLOR};border-radius:8px">
+  <p style="margin:0 0 8px;font-weight:700;color:#18181b">🔐 Pourquoi c'est à vous de le faire&nbsp;?</p>
+  <p style="margin:0;font-size:14px;color:#3f3f46;line-height:1.6">Pour votre <strong>sécurité</strong>, Adamkom <strong>ne demande jamais</strong> et <strong>n'a jamais accès</strong> à vos mots de passe (ni Gmail, ni email pro). C'est donc plus <strong>pratique et plus sûr</strong> que vous fassiez cette manipulation vous-même, en 10 minutes. On vous guide à chaque étape.</p>
+</div>
+<p style="margin:0 0 20px;font-size:13px;color:#71717a">Besoin d'un coup de main&nbsp;? Écrivez-nous via votre espace support : on vous accompagne sans jamais vous demander vos accès.</p>
+<p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`;
+  };
+
+  const handleSendGmailTuto = async () => {
+    if (!client.email) { toast.error("Pas d'email client"); return; }
+    setGmailSending(true);
+    try {
+      const bodyHtml = buildGmailTutoHtml();
+      const supportLink = client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined;
+      const htmlContent = wrapInBrandedTemplate(bodyHtml, supportLink, branding || undefined);
+      const subject = `Recevez vos emails pro dans Gmail — ${client.company_name}`;
+      const { error } = await supabase.functions.invoke("send-brevo-campaign", {
+        body: {
+          action: "send_client_email",
+          recipientEmail: client.email,
+          recipientName: greeting,
+          subject,
+          htmlContent,
+          trigger: "tuto_email_pro_gmail",
+          client_id: client.id,
+        },
+      });
+      if (error) throw error;
+      toast.success(`Tuto envoyé à ${client.email}`);
+      setShowGmailDialog(false);
+      setGmailExtraConfig("");
+    } catch (e: any) {
+      toast.error(e.message || "Erreur lors de l'envoi");
+    } finally {
+      setGmailSending(false);
     }
   };
 
@@ -432,6 +497,15 @@ ${proLoginUrl ? makeCta('🔐 Se connecter à mon espace', proLoginUrl) : ''}
               >
                 <KeyRound className="w-4 h-4" />
                 Envoyer accès pro
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5"
+                onClick={() => setShowGmailDialog(true)}
+              >
+                <AtSign className="w-4 h-4" />
+                Tuto Email Pro → Gmail
               </Button>
               <Button
                 size="sm"
@@ -661,6 +735,85 @@ ${proLoginUrl ? makeCta('🔐 Se connecter à mon espace', proLoginUrl) : ''}
               disabled={proSending || !proLoginUrl.trim() || !proEmail.trim() || !proPassword.trim()}
             >
               {proSending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+              Envoyer à {client.email}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Gmail Tuto Dialog */}
+      <Dialog open={showGmailDialog} onOpenChange={setShowGmailDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AtSign className="w-5 h-5 text-primary" /> Envoyer le tuto « Email Pro → Gmail »
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
+              💡 Hébergeur pré-rempli : <strong>LWS</strong>. Les valeurs IMAP/SMTP seront affichées
+              dans le tuto sous la forme <code className="font-mono">mail.[domaine]</code>.
+              Ajoutez ci-dessous des informations spécifiques au client si nécessaire (ex&nbsp;:
+              serveur exact, port custom, alias…).
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Email pro du client</Label>
+                <Input
+                  type="email"
+                  placeholder="contact@votresite.fr"
+                  value={gmailProEmail}
+                  onChange={(e) => {
+                    setGmailProEmail(e.target.value);
+                    if (e.target.value.includes("@")) {
+                      setGmailDomain(e.target.value.split("@")[1]);
+                    }
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Domaine (auto)</Label>
+                <Input
+                  type="text"
+                  placeholder="votresite.fr"
+                  value={gmailDomain}
+                  onChange={(e) => setGmailDomain(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Informations de configuration supplémentaires (optionnel)</Label>
+              <Textarea
+                rows={6}
+                placeholder={`Ex :\nServeur IMAP : mail.monsite.fr\nServeur SMTP : mail.monsite.fr\nPort IMAP : 993 (SSL)\nPort SMTP : 465 (SSL)\nMot de passe : voir email précédent\n\n(Ce bloc sera affiché en surbrillance dans le tuto et dans l'email envoyé au client.)`}
+                value={gmailExtraConfig}
+                onChange={(e) => setGmailExtraConfig(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Laissez vide si l'hébergeur est LWS standard — le tuto donne déjà toutes les valeurs.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Aperçu de l'email</Label>
+              <div
+                className="border border-border rounded-lg overflow-hidden bg-white max-h-[350px] overflow-y-auto"
+                dangerouslySetInnerHTML={{
+                  __html: wrapInBrandedTemplate(
+                    buildGmailTutoHtml(),
+                    client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined,
+                    branding || undefined
+                  ),
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowGmailDialog(false)}>Annuler</Button>
+            <Button onClick={handleSendGmailTuto} disabled={gmailSending}>
+              {gmailSending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
               Envoyer à {client.email}
             </Button>
           </DialogFooter>

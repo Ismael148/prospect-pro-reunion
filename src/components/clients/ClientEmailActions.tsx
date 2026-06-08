@@ -740,6 +740,85 @@ ${extraBlock}
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Gmail Tuto Dialog */}
+      <Dialog open={showGmailDialog} onOpenChange={setShowGmailDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AtSign className="w-5 h-5 text-primary" /> Envoyer le tuto « Email Pro → Gmail »
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
+              💡 Hébergeur pré-rempli : <strong>LWS</strong>. Les valeurs IMAP/SMTP seront affichées
+              dans le tuto sous la forme <code className="font-mono">mail.[domaine]</code>.
+              Ajoutez ci-dessous des informations spécifiques au client si nécessaire (ex&nbsp;:
+              serveur exact, port custom, alias…).
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Email pro du client</Label>
+                <Input
+                  type="email"
+                  placeholder="contact@votresite.fr"
+                  value={gmailProEmail}
+                  onChange={(e) => {
+                    setGmailProEmail(e.target.value);
+                    if (e.target.value.includes("@")) {
+                      setGmailDomain(e.target.value.split("@")[1]);
+                    }
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Domaine (auto)</Label>
+                <Input
+                  type="text"
+                  placeholder="votresite.fr"
+                  value={gmailDomain}
+                  onChange={(e) => setGmailDomain(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Informations de configuration supplémentaires (optionnel)</Label>
+              <Textarea
+                rows={6}
+                placeholder={`Ex :\nServeur IMAP : mail.monsite.fr\nServeur SMTP : mail.monsite.fr\nPort IMAP : 993 (SSL)\nPort SMTP : 465 (SSL)\nMot de passe : voir email précédent\n\n(Ce bloc sera affiché en surbrillance dans le tuto et dans l'email envoyé au client.)`}
+                value={gmailExtraConfig}
+                onChange={(e) => setGmailExtraConfig(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Laissez vide si l'hébergeur est LWS standard — le tuto donne déjà toutes les valeurs.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Aperçu de l'email</Label>
+              <div
+                className="border border-border rounded-lg overflow-hidden bg-white max-h-[350px] overflow-y-auto"
+                dangerouslySetInnerHTML={{
+                  __html: wrapInBrandedTemplate(
+                    buildGmailTutoHtml(),
+                    client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined,
+                    branding || undefined
+                  ),
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowGmailDialog(false)}>Annuler</Button>
+            <Button onClick={handleSendGmailTuto} disabled={gmailSending}>
+              {gmailSending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+              Envoyer à {client.email}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

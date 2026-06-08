@@ -345,8 +345,31 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
 <p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`;
   };
 
+  const validateGmailForm = (): string | null => {
+    const email = gmailProEmail.trim();
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    if (!emailRe.test(email)) return "Email pro invalide.";
+    const domain = gmailDomain.trim();
+    if (!domain || !/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(domain)) return "Domaine invalide (ex: votresite.fr).";
+    const hostRe = /^[a-z0-9.-]+\.[a-z]{2,}$/i;
+    if (!hostRe.test(gmailPopServer.trim())) return "Serveur POP invalide (ex: mail.votresite.fr).";
+    if (!hostRe.test(gmailSmtpServer.trim())) return "Serveur SMTP invalide (ex: mail.votresite.fr).";
+    const portRe = /^\d+$/;
+    const popP = Number(gmailPopPort);
+    if (!portRe.test(gmailPopPort.trim()) || popP < 1 || popP > 65535) return "Port POP invalide (1-65535, ex: 995).";
+    const smtpP = Number(gmailSmtpPort);
+    if (!portRe.test(gmailSmtpPort.trim()) || smtpP < 1 || smtpP > 65535) return "Port SMTP invalide (1-65535, ex: 465).";
+    if (![110, 995].includes(popP)) return "Port POP recommandé : 995 (SSL) ou 110.";
+    if (![465, 587, 25].includes(smtpP)) return "Port SMTP recommandé : 465 (SSL), 587 (STARTTLS) ou 25.";
+    if (!gmailPassword.trim()) return "Le mot de passe est requis pour que le client puisse configurer son compte.";
+    if (!gmailLabel.trim()) return "Le libellé Gmail est requis.";
+    return null;
+  };
+
   const handleSendGmailTuto = async () => {
     if (!client.email) { toast.error("Pas d'email client"); return; }
+    const err = validateGmailForm();
+    if (err) { toast.error(err); return; }
     setGmailSending(true);
     try {
       const bodyHtml = buildGmailTutoHtml();
@@ -913,13 +936,18 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
               />
             </div>
           </div>
-          <DialogFooter>
+          {(() => { const err = validateGmailForm(); return (
+          <DialogFooter className="flex-col sm:flex-row sm:items-center gap-2">
+            {err && (
+              <p className="text-xs text-destructive flex-1 text-left">⚠️ {err}</p>
+            )}
             <Button variant="outline" onClick={() => setShowGmailDialog(false)}>Annuler</Button>
-            <Button onClick={handleSendGmailTuto} disabled={gmailSending}>
+            <Button onClick={handleSendGmailTuto} disabled={gmailSending || !!err}>
               {gmailSending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
               Envoyer à {client.email}
             </Button>
           </DialogFooter>
+          ); })()}
         </DialogContent>
       </Dialog>
     </>

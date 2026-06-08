@@ -3,8 +3,8 @@ import { useSearchParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight, ArrowLeft, CheckCircle2, Sparkles, ShieldCheck,
-  Mail, Settings2, Send, Smartphone, HelpCircle, Inbox,
-  ExternalLink, Copy, Info, AlertTriangle, ListChecks, ClipboardCheck,
+  Mail, Settings2, Send, HelpCircle, ExternalLink, Copy,
+  Info, ListChecks,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,21 +13,24 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import logo from "@/assets/logo.webp";
 
-type StepKey =
-  | "intro" | "creds" | "recap" | "open" | "add"
-  | "pop" | "smtp" | "test" | "mobile" | "done";
+/**
+ * Tuto Email Pro → Gmail
+ * Suit À LA LETTRE la procédure officielle Gmail :
+ * https://support.google.com/mail/answer/21289?hl=fr
+ *
+ * Objectif client (très simple) :
+ *  1) Recevoir les mails de l'adresse pro dans Gmail
+ *  2) Pouvoir répondre/envoyer depuis l'adresse pro via Gmail
+ */
+
+type StepKey = "creds" | "receive" | "send" | "test" | "done";
 
 const STEPS: { key: StepKey; label: string; time: string; icon: any }[] = [
-  { key: "intro",  label: "Pourquoi & comment",                 time: "1 min", icon: Sparkles },
-  { key: "creds",  label: "Vos identifiants",                   time: "1 min", icon: ShieldCheck },
-  { key: "recap",  label: "Récapitulatif avant Gmail",          time: "1 min", icon: ClipboardCheck },
-  { key: "open",   label: "Ouvrir Gmail",                       time: "1 min", icon: Settings2 },
-  { key: "add",    label: "Ajouter votre email pro",            time: "2 min", icon: Mail },
-  { key: "pop",    label: "Réception (POP)",                    time: "2 min", icon: Inbox },
-  { key: "smtp",   label: "Envoi (SMTP)",                       time: "2 min", icon: Send },
-  { key: "test",   label: "Vérifier & tester",                  time: "1 min", icon: CheckCircle2 },
-  { key: "mobile", label: "Sur votre téléphone",                time: "1 min", icon: Smartphone },
-  { key: "done",   label: "Marquer comme effectué",             time: "30 s",  icon: ListChecks },
+  { key: "creds",   label: "1. Vos identifiants",         time: "1 min", icon: ShieldCheck },
+  { key: "receive", label: "2. Recevoir dans Gmail",      time: "3 min", icon: Mail },
+  { key: "send",    label: "3. Envoyer depuis Gmail",     time: "3 min", icon: Send },
+  { key: "test",    label: "4. Tester",                   time: "1 min", icon: CheckCircle2 },
+  { key: "done",    label: "5. Terminé",                  time: "30 s",  icon: ListChecks },
 ];
 
 // Captures officielles Google (centre d'aide Gmail)
@@ -36,46 +39,28 @@ const GIF_OPEN_SETTINGS =
 const GIF_ADD_ACCOUNT =
   "https://storage.googleapis.com/support-kms-prod/fLy5R54whP2vhKzEIsJO8MhrJMktHrlqNKMs";
 
-// Tâches checklist par étape
 const STEP_TASKS: Record<StepKey, string[]> = {
-  intro: ["J'ai compris le principe (POP officiel Gmail)"],
-  creds: [
-    "J'ai bien repéré mon email pro et mon mot de passe",
-    "J'ai copié serveurs POP/SMTP et leurs ports",
-  ],
-  recap: ["J'ai vérifié que tous mes identifiants sont corrects"],
-  open: [
-    "J'ai ouvert gmail.com sur un ordinateur",
-    "J'ai ouvert la roue dentée ⚙️ → Voir tous les paramètres",
-    "Je suis dans l'onglet « Comptes et importation »",
-  ],
-  add: [
+  creds: ["J'ai mes identifiants sous les yeux"],
+  receive: [
+    "J'ai ouvert Gmail → ⚙️ → Voir tous les paramètres",
+    "Onglet « Comptes et importation »",
     "J'ai cliqué « Ajouter un compte de messagerie »",
-    "J'ai saisi mon adresse email pro",
-    "J'ai choisi « Importer les e-mails depuis mon autre compte (POP3) »",
+    "J'ai saisi mon adresse email pro et choisi POP3",
+    "J'ai rempli serveur POP, port, identifiant, mot de passe",
+    "J'ai coché SSL + « Ajouter un libellé »",
+    "Gmail a accepté → mes emails pro arrivent",
   ],
-  pop: [
-    "J'ai saisi le serveur POP et le port",
-    "J'ai coché « Connexion sécurisée (SSL) »",
-    "J'ai ajouté le libellé pour ranger les messages",
-    "Gmail a accepté la connexion",
-  ],
-  smtp: [
-    "J'ai répondu OUI à « envoyer en tant que »",
+  send: [
+    "J'ai répondu OUI à « envoyer des messages en tant que… »",
     "J'ai DÉCOCHÉ « Considérer comme un alias »",
-    "J'ai saisi le serveur SMTP, le port et le mot de passe",
-    "Gmail a accepté l'envoi",
+    "J'ai saisi serveur SMTP, port, identifiant, mot de passe",
+    "J'ai reçu le code de vérification et l'ai validé",
   ],
   test: [
-    "J'ai reçu et saisi le code de vérification",
-    "Je me suis envoyé un email test (réception OK)",
-    "J'ai envoyé un email depuis l'adresse pro (envoi OK)",
+    "Je me suis envoyé un email test (je l'ai bien reçu dans Gmail)",
+    "J'ai envoyé un email DEPUIS l'adresse pro (réception OK)",
   ],
-  mobile: [
-    "J'ai ouvert l'app Gmail sur mon téléphone",
-    "Les emails pro arrivent bien sur mobile",
-  ],
-  done: ["Tout fonctionne — je marque la configuration comme terminée"],
+  done: ["Tout fonctionne — je marque comme terminé"],
 };
 
 function GlassCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
@@ -169,7 +154,7 @@ function StepChecklist({
     <div className="rounded-xl border-2 border-[#ff006e]/20 bg-gradient-to-br from-[#ff006e]/5 to-transparent p-4">
       <div className="flex items-center justify-between mb-3">
         <p className="font-semibold text-zinc-900 flex items-center gap-2">
-          <ListChecks className="h-4 w-4 text-[#ff006e]" /> Checklist de l'étape
+          <ListChecks className="h-4 w-4 text-[#ff006e]" /> Cochez quand c'est fait
         </p>
         <Badge variant="outline" className="text-xs">{done} / {tasks.length}</Badge>
       </div>
@@ -248,7 +233,7 @@ export default function TutoEmailProGmail() {
   );
   const progressPct = Math.round((doneTasks / totalTasks) * 100);
 
-  const [current, setCurrent] = useState<StepKey>("intro");
+  const [current, setCurrent] = useState<StepKey>("creds");
   const idx = STEPS.findIndex((s) => s.key === current);
   const isStepDone = (key: StepKey) => {
     const tasks = STEP_TASKS[key] || [];
@@ -260,7 +245,7 @@ export default function TutoEmailProGmail() {
 
   const markDone = () => {
     setState((s) => ({ ...s, doneAt: new Date().toISOString() }));
-    toast.success("Configuration marquée comme effectuée 🎉");
+    toast.success("Configuration marquée comme terminée 🎉");
   };
   const resetDone = () => {
     setState((s) => ({ ...s, doneAt: null }));
@@ -278,7 +263,7 @@ export default function TutoEmailProGmail() {
           <div className="flex items-center gap-2">
             {state.doneAt && (
               <Badge className="bg-emerald-500 text-white hover:bg-emerald-500">
-                <CheckCircle2 className="h-3 w-3 mr-1" /> Configuration effectuée
+                <CheckCircle2 className="h-3 w-3 mr-1" /> Terminé
               </Badge>
             )}
             <Badge className="bg-[#ff006e] text-white hover:bg-[#ff006e]">
@@ -291,18 +276,21 @@ export default function TutoEmailProGmail() {
       <section className="max-w-7xl mx-auto px-4 md:px-8 pt-10 pb-6">
         <div className="max-w-3xl">
           <Badge className="bg-[#ff006e]/10 text-[#ff006e] hover:bg-[#ff006e]/10 border-0 mb-4">
-            <Sparkles className="h-3 w-3 mr-1" /> Guide officiel · mis à jour 2026
+            <Sparkles className="h-3 w-3 mr-1" /> Procédure officielle Google
           </Badge>
           <h1 className="text-3xl md:text-5xl font-bold text-zinc-900 leading-tight">
-            Recevez vos emails pro{" "}
+            Recevez & envoyez vos emails pro{" "}
             <span className="bg-gradient-to-r from-[#ff006e] to-[#ff5c8a] bg-clip-text text-transparent">
-              directement dans Gmail
+              depuis votre Gmail
             </span>
           </h1>
           <p className="mt-4 text-zinc-600">
-            En 10 minutes, on suit ensemble la <strong>procédure officielle Gmail</strong> pour brancher
-            votre adresse pro (<span className="font-mono">{cfg.email}</span>) à votre compte Google
-            habituel. Cochez chaque étape pour suivre votre avancée.
+            On suit <strong>à la lettre</strong> la procédure officielle Gmail (
+            <a className="underline" href="https://support.google.com/mail/answer/21289?hl=fr" target="_blank" rel="noopener noreferrer">
+              support.google.com/mail/answer/21289
+            </a>). En <strong>moins de 10 minutes</strong>, votre adresse pro
+            (<span className="font-mono">{cfg.email}</span>) sera branchée à votre Gmail :
+            vous <strong>recevez</strong> ET vous <strong>envoyez</strong> depuis Gmail.
           </p>
           <div className="mt-4">
             <div className="flex items-center justify-between text-xs text-zinc-600 mb-1">
@@ -320,11 +308,11 @@ export default function TutoEmailProGmail() {
             <ShieldCheck className="h-5 w-5 text-[#ff006e]" />
           </div>
           <div>
-            <p className="font-semibold text-zinc-900">🔐 Vos accès restent 100% privés</p>
+            <p className="font-semibold text-zinc-900">🔐 100% privé — vous gardez le contrôle</p>
             <p className="text-sm text-zinc-700 mt-1">
-              C'est <strong>plus pratique et plus sécurisé quand c'est VOUS qui le faites</strong>. Chez{" "}
-              <strong>Adamkom</strong>, nous <strong>n'avons jamais accès</strong> à votre compte Gmail
-              ni à votre mot de passe email pro&nbsp;: nous ne le demandons jamais.
+              Cette configuration se fait <strong>côté Gmail uniquement</strong>. Chez{" "}
+              <strong>Adamkom</strong>, nous <strong>ne demandons jamais</strong> les accès à votre compte
+              Gmail ni à votre webmail pro — c'est plus pratique et plus sécurisé que ce soit vous qui le fassiez.
             </p>
           </div>
         </div>
@@ -382,52 +370,20 @@ export default function TutoEmailProGmail() {
                 transition={{ duration: 0.2 }}
                 className="space-y-5"
               >
-                {current === "intro" && (
-                  <>
-                    <StepHeader
-                      time="1 min"
-                      title="Pourquoi rapatrier vos emails pro dans Gmail ?"
-                      subtitle="Gmail est l'interface email la plus utilisée au monde. On la connecte à votre adresse pro pour tout centraliser."
-                    />
-                    <div className="grid md:grid-cols-3 gap-3">
-                      {[
-                        { i: Smartphone, t: "Mobile & desktop", d: "Vos emails pro arrivent dans l'app Gmail de votre téléphone, automatiquement." },
-                        { i: Inbox, t: "Une seule boîte", d: "Plus besoin d'aller sur votre webmail : tout est centralisé." },
-                        { i: ShieldCheck, t: "Sécurité Google", d: "Filtres anti-spam, 2FA, recherche puissante." },
-                      ].map((c, i) => {
-                        const Icon = c.i;
-                        return (
-                          <div key={i} className="rounded-xl border border-zinc-200 bg-white p-4">
-                            <Icon className="h-6 w-6 text-[#ff006e] mb-2" />
-                            <p className="font-semibold text-zinc-900 text-sm">{c.t}</p>
-                            <p className="text-xs text-zinc-600 mt-1">{c.d}</p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <InfoBox variant="info">
-                      ℹ️ <strong>Méthode utilisée</strong> : « ajouter un compte de messagerie » via{" "}
-                      <strong>POP</strong>. C'est la procédure officielle Gmail (
-                      <a className="underline" href="https://support.google.com/mail/answer/21289?hl=fr" target="_blank" rel="noopener noreferrer">
-                        support.google.com/mail/answer/21289
-                      </a>).
-                    </InfoBox>
-                  </>
-                )}
-
+                {/* ────────── ÉTAPE 1 : Identifiants ────────── */}
                 {current === "creds" && (
                   <>
                     <StepHeader
                       time="1 min"
-                      title="Vos identifiants (préparés par Adamkom)"
-                      subtitle="Gardez cette page ouverte : vous allez recopier ces valeurs dans Gmail."
+                      title="Étape 1 — Vos identifiants"
+                      subtitle="Gardez cette page ouverte. Vous allez recopier ces infos dans Gmail."
                     />
                     <div className="grid sm:grid-cols-2 gap-3">
                       <CopyRow label="Email pro" value={cfg.email} />
                       <CopyRow label="Mot de passe" value={cfg.password || "(celui de votre webmail)"} />
-                      <CopyRow label="Serveur POP (réception)" value={cfg.popServer} />
+                      <CopyRow label="Serveur de réception (POP)" value={cfg.popServer} />
                       <CopyRow label="Port POP" value={`${cfg.popPort} (SSL)`} />
-                      <CopyRow label="Serveur SMTP (envoi)" value={cfg.smtpServer} />
+                      <CopyRow label="Serveur d'envoi (SMTP)" value={cfg.smtpServer} />
                       <CopyRow label="Port SMTP" value={`${cfg.smtpPort} (SSL)`} />
                       <CopyRow label="Libellé Gmail" value={cfg.label} />
                     </div>
@@ -436,7 +392,7 @@ export default function TutoEmailProGmail() {
                         <div className="flex items-start gap-3">
                           <Info className="h-5 w-5 text-amber-700 flex-shrink-0 mt-0.5" />
                           <div>
-                            <p className="font-semibold text-amber-900">📌 Notes complémentaires :</p>
+                            <p className="font-semibold text-amber-900">📌 Notes supplémentaires :</p>
                             <pre className="mt-2 whitespace-pre-wrap font-mono text-sm text-amber-900">
                               {customConfig}
                             </pre>
@@ -444,192 +400,136 @@ export default function TutoEmailProGmail() {
                         </div>
                       </div>
                     )}
-                  </>
-                )}
-
-                {current === "recap" && (
-                  <>
-                    <StepHeader
-                      time="1 min"
-                      title="Récapitulatif avant de passer à Gmail"
-                      subtitle="Voici toutes les infos qui vont vous être demandées par Gmail. Vérifiez-les avant de continuer."
-                    />
-                    <div className="rounded-2xl border-2 border-[#ff006e]/30 overflow-hidden">
-                      <table className="w-full text-sm">
-                        <tbody>
-                          {[
-                            ["📧 Email pro", cfg.email],
-                            ["🔑 Mot de passe", cfg.password || "(celui de votre webmail)"],
-                            ["📥 Serveur POP (réception)", cfg.popServer],
-                            ["📥 Port POP", `${cfg.popPort} (SSL/TLS)`],
-                            ["📤 Serveur SMTP (envoi)", cfg.smtpServer],
-                            ["📤 Port SMTP", `${cfg.smtpPort} (SSL/TLS)`],
-                            ["🏷️ Libellé Gmail", cfg.label],
-                          ].map(([k, v]) => (
-                            <tr key={k} className="border-b last:border-0 border-zinc-200">
-                              <td className="px-4 py-3 bg-zinc-50 font-semibold text-zinc-700 w-1/2 sm:w-1/3">{k}</td>
-                              <td className="px-4 py-3 font-mono text-zinc-900 break-all">{v || "—"}</td>
-                            </tr>
-                          ))}
-                          {customConfig && (
-                            <tr>
-                              <td className="px-4 py-3 bg-amber-50 font-semibold text-amber-900 align-top">📌 Notes</td>
-                              <td className="px-4 py-3 bg-amber-50 whitespace-pre-wrap text-amber-900">{customConfig}</td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
                     <InfoBox variant="tip">
-                      ✅ Si tout semble correct, cochez la case ci-dessous et continuez vers Gmail.
-                      Sinon, contactez Adamkom — on corrige avant que vous ne perdiez du temps dans Gmail.
+                      ✅ Tout est prêt ? Cliquez sur <strong>Suivant</strong> pour passer à Gmail.
                     </InfoBox>
                   </>
                 )}
 
-                {current === "open" && (
+                {/* ────────── ÉTAPE 2 : RECEVOIR (POP) ────────── */}
+                {current === "receive" && (
                   <>
                     <StepHeader
-                      time="1 min"
-                      title="Ouvrir Gmail sur un ordinateur"
-                      subtitle="Important : cette manipulation se fait depuis un ordinateur (pas le téléphone). Le mobile se synchronise tout seul ensuite."
+                      time="3 min"
+                      title="Étape 2 — Recevoir vos emails pro dans Gmail"
+                      subtitle="Source : centre d'aide Gmail — « Ajouter un autre compte de messagerie sur votre ordinateur »."
                     />
+                    <InfoBox variant="info">
+                      ℹ️ <strong>Important :</strong> faites cette étape <strong>depuis un ordinateur</strong>.
+                      L'application Gmail sur téléphone se synchronisera toute seule ensuite.
+                    </InfoBox>
+
                     <NumberedList
                       items={[
-                        { t: "Allez sur gmail.com", d: "Connectez-vous au compte Gmail où vous voulez recevoir vos emails pro." },
-                        { t: "Cliquez sur la roue dentée ⚙️", d: "En haut à droite de Gmail." },
-                        { t: "Cliquez sur « Afficher tous les paramètres »", d: "C'est le bouton en haut du petit menu qui s'ouvre." },
-                        { t: "Onglet « Comptes et importation »", d: "C'est là que tout se passe." },
+                        { t: "Connectez-vous à Gmail", d: <span>Sur ordinateur, ouvrez <a className="underline" href="https://mail.google.com" target="_blank" rel="noopener noreferrer">mail.google.com</a> avec votre Gmail habituel.</span> },
+                        { t: "Ouvrez les Paramètres", d: <span>En haut à droite, cliquez sur la roue dentée ⚙️ → <strong>« Voir tous les paramètres »</strong>.</span> },
+                        { t: "Onglet « Comptes et importation »", d: "C'est le 4ᵉ ou 5ᵉ onglet en haut de la page." },
+                        { t: "Section « Consulter d'autres comptes de messagerie »", d: <span>Cliquez sur <strong>« Ajouter un compte de messagerie »</strong>.</span> },
+                        { t: "Saisissez votre adresse email pro", d: <span>Tapez <span className="font-mono bg-zinc-100 px-1.5 py-0.5 rounded">{cfg.email}</span> puis <strong>Suivant</strong>.</span> },
+                        { t: "Choisissez POP3", d: <span>Sélectionnez <strong>« Importer les e-mails depuis mon autre compte (POP3) »</strong> puis <strong>Suivant</strong>.</span> },
+                        { t: "Remplissez le formulaire POP", d: (
+                          <div className="mt-2 space-y-1.5">
+                            <div>• <strong>Nom d'utilisateur</strong> : <span className="font-mono bg-zinc-100 px-1.5 py-0.5 rounded">{cfg.email}</span></div>
+                            <div>• <strong>Mot de passe</strong> : <span className="font-mono bg-zinc-100 px-1.5 py-0.5 rounded">{cfg.password || "(celui de votre webmail)"}</span></div>
+                            <div>• <strong>Serveur POP</strong> : <span className="font-mono bg-zinc-100 px-1.5 py-0.5 rounded">{cfg.popServer}</span></div>
+                            <div>• <strong>Port</strong> : <span className="font-mono bg-zinc-100 px-1.5 py-0.5 rounded">{cfg.popPort}</span></div>
+                          </div>
+                        ) },
+                        { t: "Cases à cocher recommandées (par Google)", d: (
+                          <ul className="mt-1 ml-4 list-disc space-y-0.5">
+                            <li>« Toujours utiliser une connexion sécurisée (<strong>SSL</strong>) »</li>
+                            <li>« <strong>Ajouter un libellé</strong> aux messages entrants » → <span className="font-mono">{cfg.label}</span></li>
+                          </ul>
+                        ) },
+                        { t: "Cliquez sur « Ajouter un compte »", d: "Gmail va tester la connexion. Si tout est vert, c'est bon ✅." },
                       ]}
                     />
-                    <GoogleScreenshot src={GIF_OPEN_SETTINGS} alt="Ouvrir les paramètres Gmail" caption="Paramètres → Comptes et importation" />
+
+                    <GoogleScreenshot src={GIF_OPEN_SETTINGS} alt="Ouvrir les paramètres Gmail" caption="Paramètres → Voir tous les paramètres → Comptes et importation" />
+                    <GoogleScreenshot src={GIF_ADD_ACCOUNT} alt="Ajouter un compte de messagerie dans Gmail" caption="Ajouter un compte de messagerie" />
+
                     <a href="https://mail.google.com/mail/u/0/#settings/accounts" target="_blank" rel="noopener noreferrer">
                       <Button className="bg-gradient-to-r from-[#ff006e] to-[#ff5c8a] hover:opacity-90">
-                        <ExternalLink className="h-4 w-4 mr-2" /> Ouvrir cette page Gmail
+                        <ExternalLink className="h-4 w-4 mr-2" /> Ouvrir Gmail → Comptes et importation
                       </Button>
                     </a>
-                  </>
-                )}
 
-                {current === "add" && (
-                  <>
-                    <StepHeader
-                      time="2 min"
-                      title="Ajouter votre email pro"
-                      subtitle="Procédure officielle : Comptes et importation → Consulter d'autres comptes de messagerie."
-                    />
-                    <NumberedList
-                      items={[
-                        { t: "Section « Consulter d'autres comptes de messagerie »", d: "Cliquez sur « Ajouter un compte de messagerie »." },
-                        { t: "Saisissez l'adresse email pro", d: <span>Tapez : <span className="font-mono bg-zinc-100 px-1.5 py-0.5 rounded">{cfg.email}</span>, puis <strong>Suivant</strong>.</span> },
-                        { t: "Choisissez POP3", d: <span>Sélectionnez <strong>« Importer les e-mails depuis mon autre compte (POP3) »</strong>, puis <strong>Suivant</strong>.</span> },
-                      ]}
-                    />
-                    <GoogleScreenshot src={GIF_ADD_ACCOUNT} alt="Ajouter un compte dans Gmail" caption="Consulter d'autres comptes de messagerie" />
                     <InfoBox variant="warn">
-                      ⚠️ Si Gmail vous dit que POP est désactivé, suivez les étapes affichées à l'écran ou contactez Adamkom.
+                      ⚠️ Si Gmail affiche <strong>« Le serveur a refusé l'accès POP3 »</strong> :
+                      vérifiez le serveur (<span className="font-mono">{cfg.popServer}</span>) et le port
+                      (<span className="font-mono">{cfg.popPort}</span>). Si le problème persiste, contactez Adamkom.
                     </InfoBox>
                   </>
                 )}
 
-                {current === "pop" && (
+                {/* ────────── ÉTAPE 3 : ENVOYER (SMTP) ────────── */}
+                {current === "send" && (
                   <>
                     <StepHeader
-                      time="2 min"
-                      title="Paramètres de réception (POP)"
-                      subtitle="Collez ici les valeurs que nous vous avons préparées."
+                      time="3 min"
+                      title="Étape 3 — Envoyer DEPUIS votre adresse pro"
+                      subtitle="Juste après l'étape 2, Gmail vous propose automatiquement cette étape. C'est ce qui vous permet de RÉPONDRE depuis l'adresse pro (et pas depuis votre Gmail perso)."
                     />
-                    <div className="grid sm:grid-cols-2 gap-3">
-                      <CopyRow label="Nom d'utilisateur" value={cfg.email} />
-                      <CopyRow label="Mot de passe" value={cfg.password || "(celui de votre webmail)"} />
-                      <CopyRow label="Serveur POP" value={cfg.popServer} />
-                      <CopyRow label="Port" value={cfg.popPort} />
-                    </div>
-                    <GoogleScreenshot src={GIF_ADD_ACCOUNT} alt="Formulaire POP Gmail" caption="Formulaire POP — Gmail" />
+                    <NumberedList
+                      items={[
+                        { t: "« Souhaitez-vous pouvoir envoyer des messages en tant que… ? »", d: <span>Cliquez sur <strong>OUI</strong>, puis <strong>Suivant</strong>.</span> },
+                        { t: "Nom à afficher", d: "C'est ce que verront vos destinataires (ex : votre prénom ou le nom de votre entreprise)." },
+                        { t: "DÉCOCHEZ « Considérer comme un alias »", d: "Pour que les réponses partent bien depuis l'adresse pro." },
+                        { t: "Remplissez le formulaire SMTP", d: (
+                          <div className="mt-2 space-y-1.5">
+                            <div>• <strong>Serveur SMTP</strong> : <span className="font-mono bg-zinc-100 px-1.5 py-0.5 rounded">{cfg.smtpServer}</span></div>
+                            <div>• <strong>Port</strong> : <span className="font-mono bg-zinc-100 px-1.5 py-0.5 rounded">{cfg.smtpPort}</span></div>
+                            <div>• <strong>Nom d'utilisateur</strong> : <span className="font-mono bg-zinc-100 px-1.5 py-0.5 rounded">{cfg.email}</span></div>
+                            <div>• <strong>Mot de passe</strong> : <span className="font-mono bg-zinc-100 px-1.5 py-0.5 rounded">{cfg.password || "(le même qu'à l'étape 2)"}</span></div>
+                            <div>• <strong>Sécurité</strong> : <span className="font-mono bg-zinc-100 px-1.5 py-0.5 rounded">SSL</span></div>
+                          </div>
+                        ) },
+                        { t: "Cliquez sur « Ajouter un compte »", d: "Gmail envoie un code de vérification sur votre adresse pro." },
+                        { t: "Récupérez le code", d: <span>Ouvrez votre <strong>webmail habituel</strong>, copiez le code reçu, et collez-le dans Gmail. Validez ✅.</span> },
+                      ]}
+                    />
+
                     <InfoBox variant="tip">
-                      ✅ <strong>Cases à cocher recommandées</strong> :
-                      <ul className="mt-2 ml-5 list-disc space-y-1">
-                        <li>« Conserver une copie sur le serveur »</li>
-                        <li>« Toujours utiliser une connexion sécurisée (SSL) »</li>
-                        <li>« Ajouter un libellé » → <span className="font-mono bg-white px-1.5 py-0.5 rounded border">{cfg.label}</span></li>
-                      </ul>
-                    </InfoBox>
-                    <InfoBox variant="warn">
-                      Si Gmail affiche <strong>« Le serveur a refusé l'accès POP3 »</strong>, vérifiez serveur ({cfg.popServer}) et port ({cfg.popPort}).
+                      ✨ <strong>Astuce :</strong> dans Gmail → ⚙️ → Comptes et importation, activez
+                      <strong> « Répondre avec la même adresse que celle utilisée pour recevoir le message »</strong>.
+                      Comme ça, quand un client écrit à votre adresse pro, votre réponse partira bien depuis l'adresse pro.
                     </InfoBox>
                   </>
                 )}
 
-                {current === "smtp" && (
-                  <>
-                    <StepHeader
-                      time="2 min"
-                      title="Paramètres d'envoi (SMTP)"
-                      subtitle="Indispensable pour RÉPONDRE depuis votre adresse pro (et pas votre Gmail perso)."
-                    />
-                    <NumberedList
-                      items={[
-                        { t: "« Souhaitez-vous pouvoir envoyer des messages en tant que… ? »", d: "Cliquez sur Oui, puis Suivant." },
-                        { t: "Nom à afficher", d: "Ex : « Votre Société » — c'est ce que le destinataire voit." },
-                        { t: "DÉCOCHEZ « Considérer comme un alias »", d: "Pour que les réponses partent vraiment depuis l'adresse pro." },
-                        { t: "Remplissez les paramètres SMTP ci-dessous", d: "Puis « Ajouter un compte »." },
-                      ]}
-                    />
-                    <div className="grid sm:grid-cols-2 gap-3">
-                      <CopyRow label="Serveur SMTP" value={cfg.smtpServer} />
-                      <CopyRow label="Port" value={cfg.smtpPort} />
-                      <CopyRow label="Nom d'utilisateur" value={cfg.email} />
-                      <CopyRow label="Mot de passe" value={cfg.password || "(idem réception)"} />
-                      <CopyRow label="Sécurité" value="SSL/TLS" />
-                    </div>
-                  </>
-                )}
-
+                {/* ────────── ÉTAPE 4 : TESTER ────────── */}
                 {current === "test" && (
                   <>
                     <StepHeader
                       time="1 min"
-                      title="Vérifier & tester"
-                      subtitle="Gmail envoie un code de vérification sur votre adresse pro pour confirmer que c'est bien vous."
+                      title="Étape 4 — Vérifier que tout fonctionne"
+                      subtitle="On fait deux tests simples pour s'assurer que la réception ET l'envoi marchent."
                     />
                     <NumberedList
                       items={[
-                        { t: "Récupérez le code", d: <span>Ouvrez votre <strong>webmail pro</strong> habituel.</span> },
-                        { t: "Saisissez le code dans Gmail", d: "Et validez." },
-                        { t: "Envoyez-vous un email test", d: "Depuis Gmail → vers votre adresse pro, puis l'inverse." },
-                        { t: "Choisissez l'adresse expéditrice par défaut", d: "Dans Gmail, vous pouvez désormais choisir Gmail ou Pro lors de la composition." },
+                        { t: "Test RÉCEPTION", d: <span>Depuis votre téléphone (ou un autre compte), envoyez un email à <span className="font-mono">{cfg.email}</span>. Il doit apparaître dans Gmail (avec le libellé <strong>{cfg.label}</strong>) au bout de quelques minutes.</span> },
+                        { t: "Test ENVOI", d: <span>Dans Gmail, cliquez sur <strong>« Nouveau message »</strong>. Dans le champ <strong>« De »</strong>, choisissez votre adresse pro <span className="font-mono">{cfg.email}</span>. Envoyez-vous un email à vous-même et vérifiez que vous le recevez bien.</span> },
+                        { t: "Sur mobile", d: "Ouvrez l'app Gmail sur votre téléphone : vos emails pro arrivent automatiquement, rien à configurer." },
                       ]}
                     />
-                    <InfoBox variant="tip">
-                      ✨ Activez aussi <strong>« Répondre avec la même adresse que celle utilisée pour recevoir le message »</strong>.
+                    <InfoBox variant="info">
+                      ⏱️ Gmail vérifie votre boîte pro toutes les quelques minutes. Si un email tarde, ouvrez Gmail → ⚙️ → Comptes et importation → <strong>« Vérifier les e-mails maintenant »</strong>.
                     </InfoBox>
                   </>
                 )}
 
-                {current === "mobile" && (
-                  <>
-                    <StepHeader
-                      time="1 min"
-                      title="Sur votre téléphone (app Gmail)"
-                      subtitle="Bonne nouvelle : il n'y a rien à refaire."
-                    />
-                    <InfoBox variant="tip">
-                      📱 L'app Gmail (iOS / Android) <strong>synchronise automatiquement</strong> votre adresse pro dès que la config ordinateur est terminée.
-                    </InfoBox>
-                  </>
-                )}
-
+                {/* ────────── ÉTAPE 5 : TERMINÉ ────────── */}
                 {current === "done" && (
                   <>
                     <StepHeader
                       time="30 s"
-                      title="🎉 Marquer la configuration comme effectuée"
-                      subtitle="Quand tout fonctionne (réception + envoi + mobile), cliquez sur le bouton ci-dessous."
+                      title="🎉 Terminé !"
+                      subtitle="Réception + envoi fonctionnent ? Marquez la configuration comme terminée."
                     />
                     {state.doneAt ? (
                       <div className="rounded-2xl border-2 border-emerald-300 bg-emerald-50 p-5 text-emerald-900">
                         <p className="font-bold text-lg flex items-center gap-2">
-                          <CheckCircle2 className="h-5 w-5" /> Configuration effectuée !
+                          <CheckCircle2 className="h-5 w-5" /> Configuration terminée !
                         </p>
                         <p className="text-sm mt-1">
                           Marquée le {new Date(state.doneAt).toLocaleString("fr-FR")}.
@@ -644,12 +544,13 @@ export default function TutoEmailProGmail() {
                         onClick={markDone}
                         className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:opacity-90"
                       >
-                        <CheckCircle2 className="h-5 w-5 mr-2" /> Marquer comme effectuée
+                        <CheckCircle2 className="h-5 w-5 mr-2" /> Marquer comme terminé
                       </Button>
                     )}
                     <InfoBox variant="security">
-                      🔐 Rappel : si vous devez réinitialiser le mot de passe email pro, faites-le depuis votre interface d'hébergement.
-                      <strong> Adamkom n'a pas accès à ce mot de passe</strong> et ne vous le demandera jamais.
+                      🔐 <strong>Rappel sécurité :</strong> votre mot de passe email pro reste connu de
+                      vous seul. <strong>Adamkom n'y a pas accès</strong> et ne vous le demandera jamais.
+                      Pour le modifier, faites-le depuis votre interface d'hébergement (LWS).
                     </InfoBox>
                   </>
                 )}
@@ -694,7 +595,7 @@ export default function TutoEmailProGmail() {
             <div className="flex-1">
               <p className="font-semibold text-zinc-900">Bloqué quelque part ?</p>
               <p className="text-sm text-zinc-600">
-                Contactez le support Adamkom via votre espace dédié. Nous vous guidons sans jamais demander vos mots de passe.
+                Contactez le support Adamkom via votre espace dédié. On vous guide sans jamais demander vos mots de passe.
               </p>
             </div>
             <a href="mailto:contact@adamkom.com">

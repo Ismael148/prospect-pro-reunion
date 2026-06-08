@@ -782,49 +782,121 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
           </DialogHeader>
           <div className="space-y-4">
             <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
-              💡 Hébergeur pré-rempli : <strong>LWS</strong>. Les valeurs IMAP/SMTP seront affichées
-              dans le tuto sous la forme <code className="font-mono">mail.[domaine]</code>.
-              Ajoutez ci-dessous des informations spécifiques au client si nécessaire (ex&nbsp;:
-              serveur exact, port custom, alias…).
+              💡 Le tuto suit la <strong>procédure officielle Gmail</strong> (méthode POP, captures Google).
+              Remplissez les champs ci-dessous : ils seront <strong>pré-remplis dans le tuto</strong> et
+              <strong> récapitulés dans l'email</strong> envoyé au client.
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>Email pro du client</Label>
+                <Label>📧 Email pro du client</Label>
                 <Input
                   type="email"
                   placeholder="contact@votresite.fr"
                   value={gmailProEmail}
                   onChange={(e) => {
-                    setGmailProEmail(e.target.value);
-                    if (e.target.value.includes("@")) {
-                      setGmailDomain(e.target.value.split("@")[1]);
+                    const v = e.target.value;
+                    setGmailProEmail(v);
+                    if (v.includes("@")) {
+                      const d = v.split("@")[1];
+                      setGmailDomain(d);
+                      setGmailPopServer(`mail.${d}`);
+                      setGmailSmtpServer(`mail.${d}`);
                     }
                   }}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Domaine (auto)</Label>
+                <Label>🌐 Domaine</Label>
                 <Input
                   type="text"
                   placeholder="votresite.fr"
                   value={gmailDomain}
-                  onChange={(e) => setGmailDomain(e.target.value)}
+                  onChange={(e) => {
+                    const d = e.target.value;
+                    setGmailDomain(d);
+                    if (d) {
+                      setGmailPopServer(`mail.${d}`);
+                      setGmailSmtpServer(`mail.${d}`);
+                    }
+                  }}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>Informations de configuration supplémentaires (optionnel)</Label>
+              <Label>🔑 Mot de passe (optionnel — rappel pour le client)</Label>
+              <Input
+                type="text"
+                placeholder="Laissez vide si déjà communiqué dans un email précédent"
+                value={gmailPassword}
+                onChange={(e) => setGmailPassword(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                ⚠️ N'inscrivez le mot de passe que si vous souhaitez vraiment le rappeler au client dans cet email.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="space-y-2 sm:col-span-2">
+                <Label>📥 Serveur POP (entrant)</Label>
+                <Input
+                  type="text"
+                  placeholder="mail.votresite.fr"
+                  value={gmailPopServer}
+                  onChange={(e) => setGmailPopServer(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Port POP</Label>
+                <Input
+                  type="text"
+                  placeholder="995"
+                  value={gmailPopPort}
+                  onChange={(e) => setGmailPopPort(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="space-y-2 sm:col-span-2">
+                <Label>📤 Serveur SMTP (sortant)</Label>
+                <Input
+                  type="text"
+                  placeholder="mail.votresite.fr"
+                  value={gmailSmtpServer}
+                  onChange={(e) => setGmailSmtpServer(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Port SMTP</Label>
+                <Input
+                  type="text"
+                  placeholder="465"
+                  value={gmailSmtpPort}
+                  onChange={(e) => setGmailSmtpPort(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>🏷️ Libellé Gmail (pour ranger les emails entrants)</Label>
+              <Input
+                type="text"
+                placeholder="Pro"
+                value={gmailLabel}
+                onChange={(e) => setGmailLabel(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>📝 Notes complémentaires (optionnel)</Label>
               <Textarea
-                rows={6}
-                placeholder={`Ex :\nServeur IMAP : mail.monsite.fr\nServeur SMTP : mail.monsite.fr\nPort IMAP : 993 (SSL)\nPort SMTP : 465 (SSL)\nMot de passe : voir email précédent\n\n(Ce bloc sera affiché en surbrillance dans le tuto et dans l'email envoyé au client.)`}
+                rows={4}
+                placeholder={`Ex :\n- Si Gmail demande un « mot de passe d'application », contactez-nous.\n- Pensez à cocher « Conserver une copie sur le serveur ».`}
                 value={gmailExtraConfig}
                 onChange={(e) => setGmailExtraConfig(e.target.value)}
               />
-              <p className="text-xs text-muted-foreground">
-                Laissez vide si l'hébergeur est LWS standard — le tuto donne déjà toutes les valeurs.
-              </p>
             </div>
 
             <div className="space-y-2">

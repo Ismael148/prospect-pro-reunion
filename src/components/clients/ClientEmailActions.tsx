@@ -221,9 +221,14 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
   // Tuto Email Pro → Gmail dialog state
   const [showGmailDialog, setShowGmailDialog] = useState(false);
   const [gmailProEmail, setGmailProEmail] = useState(client.email || "");
-  const [gmailDomain, setGmailDomain] = useState(
-    (client.email || "").includes("@") ? (client.email as string).split("@")[1] : ""
-  );
+  const initialDomain = (client.email || "").includes("@") ? (client.email as string).split("@")[1] : "";
+  const [gmailDomain, setGmailDomain] = useState(initialDomain);
+  const [gmailPopServer, setGmailPopServer] = useState(initialDomain ? `mail.${initialDomain}` : "");
+  const [gmailPopPort, setGmailPopPort] = useState("995");
+  const [gmailSmtpServer, setGmailSmtpServer] = useState(initialDomain ? `mail.${initialDomain}` : "");
+  const [gmailSmtpPort, setGmailSmtpPort] = useState("465");
+  const [gmailPassword, setGmailPassword] = useState("");
+  const [gmailLabel, setGmailLabel] = useState("Pro");
   const [gmailExtraConfig, setGmailExtraConfig] = useState("");
   const [gmailSending, setGmailSending] = useState(false);
 
@@ -293,19 +298,45 @@ ${proLoginUrl ? makeCta('🔐 Se connecter à mon espace', proLoginUrl) : ''}
     const params = new URLSearchParams();
     if (gmailProEmail.trim()) params.set("email", gmailProEmail.trim());
     if (gmailDomain.trim()) params.set("domain", gmailDomain.trim());
+    if (gmailPopServer.trim()) params.set("pop_server", gmailPopServer.trim());
+    if (gmailPopPort.trim()) params.set("pop_port", gmailPopPort.trim());
+    if (gmailSmtpServer.trim()) params.set("smtp_server", gmailSmtpServer.trim());
+    if (gmailSmtpPort.trim()) params.set("smtp_port", gmailSmtpPort.trim());
+    if (gmailPassword.trim()) params.set("password", gmailPassword.trim());
+    if (gmailLabel.trim()) params.set("label", gmailLabel.trim());
     if (gmailExtraConfig.trim()) params.set("config", gmailExtraConfig.trim());
     const tutoLink = `${PUBLISHED_URL}/tuto/email-pro-gmail${params.toString() ? `?${params.toString()}` : ""}`;
+
+    const row = (label: string, value: string) => `
+      <tr>
+        <td style="padding:8px 12px;background:#f4f4f5;border:1px solid #e4e4e7;font-weight:600;color:#27272a;width:170px;font-size:13px">${label}</td>
+        <td style="padding:8px 12px;background:#fff;border:1px solid #e4e4e7;color:#18181b;font-family:'SFMono-Regular',Consolas,Menlo,monospace;font-size:13px;word-break:break-all">${value || '—'}</td>
+      </tr>`;
+
+    const credentialsTable = `
+<table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;margin:0 0 16px">
+  ${row('📧 Email pro', gmailProEmail.trim())}
+  ${row('🔑 Mot de passe', gmailPassword.trim() || '(celui de votre webmail)')}
+  ${row('📥 Serveur POP', gmailPopServer.trim())}
+  ${row('📥 Port POP', `${gmailPopPort.trim()} (SSL)`)}
+  ${row('📤 Serveur SMTP', gmailSmtpServer.trim())}
+  ${row('📤 Port SMTP', `${gmailSmtpPort.trim()} (SSL)`)}
+  ${row('🏷️ Libellé Gmail', gmailLabel.trim() || 'Pro')}
+</table>`;
+
     const extraBlock = gmailExtraConfig.trim()
       ? `<div style="margin:18px 0;padding:14px 18px;background:#fffbeb;border:1px solid #fde68a;border-left:4px solid #f59e0b;border-radius:8px">
-  <p style="margin:0 0 8px;font-weight:700;color:#78350f">📌 Vos informations de configuration :</p>
+  <p style="margin:0 0 8px;font-weight:700;color:#78350f">📌 Notes complémentaires :</p>
   <pre style="margin:0;font-family:'SFMono-Regular',Consolas,Menlo,monospace;font-size:13px;color:#78350f;white-space:pre-wrap">${gmailExtraConfig.trim().replace(/</g,"&lt;")}</pre>
 </div>`
       : "";
     return `<p style="margin:0 0 20px">Bonjour <strong>${greeting}</strong>,</p>
 <p style="margin:0 0 20px">Plutôt que de jongler entre votre webmail pro et Gmail, vous pouvez <strong>centraliser vos emails pros dans votre compte Gmail habituel</strong> — sur ordinateur ET sur téléphone.</p>
-<p style="margin:0 0 20px">Nous avons préparé un <strong>tutoriel pas-à-pas (10 minutes)</strong> avec toutes les valeurs à copier-coller (hébergeur <strong>LWS</strong> pré-rempli pour <strong>${domain}</strong>).</p>
-${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
+<p style="margin:0 0 16px">Voici <strong>vos informations de configuration</strong> à utiliser dans Gmail (gardez cet email sous la main pendant la procédure) :</p>
+${credentialsTable}
 ${extraBlock}
+<p style="margin:0 0 20px">Nous avons préparé un <strong>tutoriel pas-à-pas (10 minutes)</strong> qui suit la <strong>procédure officielle Gmail</strong>, avec captures d'écran et toutes les valeurs ci-dessus déjà pré-remplies pour <strong>${domain}</strong>.</p>
+${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
 <div style="margin:24px 0;padding:18px 20px;background:#fff7fb;border:1px solid #ffd1e3;border-left:4px solid ${BRAND_COLOR};border-radius:8px">
   <p style="margin:0 0 8px;font-weight:700;color:#18181b">🔐 Pourquoi c'est à vous de le faire&nbsp;?</p>
   <p style="margin:0;font-size:14px;color:#3f3f46;line-height:1.6">Pour votre <strong>sécurité</strong>, Adamkom <strong>ne demande jamais</strong> et <strong>n'a jamais accès</strong> à vos mots de passe (ni Gmail, ni email pro). C'est donc plus <strong>pratique et plus sûr</strong> que vous fassiez cette manipulation vous-même, en 10 minutes. On vous guide à chaque étape.</p>
@@ -751,49 +782,121 @@ ${extraBlock}
           </DialogHeader>
           <div className="space-y-4">
             <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
-              💡 Hébergeur pré-rempli : <strong>LWS</strong>. Les valeurs IMAP/SMTP seront affichées
-              dans le tuto sous la forme <code className="font-mono">mail.[domaine]</code>.
-              Ajoutez ci-dessous des informations spécifiques au client si nécessaire (ex&nbsp;:
-              serveur exact, port custom, alias…).
+              💡 Le tuto suit la <strong>procédure officielle Gmail</strong> (méthode POP, captures Google).
+              Remplissez les champs ci-dessous : ils seront <strong>pré-remplis dans le tuto</strong> et
+              <strong> récapitulés dans l'email</strong> envoyé au client.
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>Email pro du client</Label>
+                <Label>📧 Email pro du client</Label>
                 <Input
                   type="email"
                   placeholder="contact@votresite.fr"
                   value={gmailProEmail}
                   onChange={(e) => {
-                    setGmailProEmail(e.target.value);
-                    if (e.target.value.includes("@")) {
-                      setGmailDomain(e.target.value.split("@")[1]);
+                    const v = e.target.value;
+                    setGmailProEmail(v);
+                    if (v.includes("@")) {
+                      const d = v.split("@")[1];
+                      setGmailDomain(d);
+                      setGmailPopServer(`mail.${d}`);
+                      setGmailSmtpServer(`mail.${d}`);
                     }
                   }}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Domaine (auto)</Label>
+                <Label>🌐 Domaine</Label>
                 <Input
                   type="text"
                   placeholder="votresite.fr"
                   value={gmailDomain}
-                  onChange={(e) => setGmailDomain(e.target.value)}
+                  onChange={(e) => {
+                    const d = e.target.value;
+                    setGmailDomain(d);
+                    if (d) {
+                      setGmailPopServer(`mail.${d}`);
+                      setGmailSmtpServer(`mail.${d}`);
+                    }
+                  }}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>Informations de configuration supplémentaires (optionnel)</Label>
+              <Label>🔑 Mot de passe (optionnel — rappel pour le client)</Label>
+              <Input
+                type="text"
+                placeholder="Laissez vide si déjà communiqué dans un email précédent"
+                value={gmailPassword}
+                onChange={(e) => setGmailPassword(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                ⚠️ N'inscrivez le mot de passe que si vous souhaitez vraiment le rappeler au client dans cet email.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="space-y-2 sm:col-span-2">
+                <Label>📥 Serveur POP (entrant)</Label>
+                <Input
+                  type="text"
+                  placeholder="mail.votresite.fr"
+                  value={gmailPopServer}
+                  onChange={(e) => setGmailPopServer(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Port POP</Label>
+                <Input
+                  type="text"
+                  placeholder="995"
+                  value={gmailPopPort}
+                  onChange={(e) => setGmailPopPort(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="space-y-2 sm:col-span-2">
+                <Label>📤 Serveur SMTP (sortant)</Label>
+                <Input
+                  type="text"
+                  placeholder="mail.votresite.fr"
+                  value={gmailSmtpServer}
+                  onChange={(e) => setGmailSmtpServer(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Port SMTP</Label>
+                <Input
+                  type="text"
+                  placeholder="465"
+                  value={gmailSmtpPort}
+                  onChange={(e) => setGmailSmtpPort(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>🏷️ Libellé Gmail (pour ranger les emails entrants)</Label>
+              <Input
+                type="text"
+                placeholder="Pro"
+                value={gmailLabel}
+                onChange={(e) => setGmailLabel(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>📝 Notes complémentaires (optionnel)</Label>
               <Textarea
-                rows={6}
-                placeholder={`Ex :\nServeur IMAP : mail.monsite.fr\nServeur SMTP : mail.monsite.fr\nPort IMAP : 993 (SSL)\nPort SMTP : 465 (SSL)\nMot de passe : voir email précédent\n\n(Ce bloc sera affiché en surbrillance dans le tuto et dans l'email envoyé au client.)`}
+                rows={4}
+                placeholder={`Ex :\n- Si Gmail demande un « mot de passe d'application », contactez-nous.\n- Pensez à cocher « Conserver une copie sur le serveur ».`}
                 value={gmailExtraConfig}
                 onChange={(e) => setGmailExtraConfig(e.target.value)}
               />
-              <p className="text-xs text-muted-foreground">
-                Laissez vide si l'hébergeur est LWS standard — le tuto donne déjà toutes les valeurs.
-              </p>
             </div>
 
             <div className="space-y-2">

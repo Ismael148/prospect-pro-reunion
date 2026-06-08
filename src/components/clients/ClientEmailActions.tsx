@@ -936,13 +936,18 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
               />
             </div>
           </div>
-          <DialogFooter>
+          {(() => { const err = validateGmailForm(); return (
+          <DialogFooter className="flex-col sm:flex-row sm:items-center gap-2">
+            {err && (
+              <p className="text-xs text-destructive flex-1 text-left">⚠️ {err}</p>
+            )}
             <Button variant="outline" onClick={() => setShowGmailDialog(false)}>Annuler</Button>
-            <Button onClick={handleSendGmailTuto} disabled={gmailSending}>
+            <Button onClick={handleSendGmailTuto} disabled={gmailSending || !!err}>
               {gmailSending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
               Envoyer à {client.email}
             </Button>
           </DialogFooter>
+          ); })()}
         </DialogContent>
       </Dialog>
     </>

@@ -501,6 +501,15 @@ ${extraBlock}
               <Button
                 size="sm"
                 variant="outline"
+                className="gap-1.5"
+                onClick={() => setShowGmailDialog(true)}
+              >
+                <AtSign className="w-4 h-4" />
+                Tuto Email Pro → Gmail
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
                 className="gap-1.5 border-primary/20 text-primary hover:bg-primary/5"
                 onClick={() => setShowAiDialog(true)}
               >

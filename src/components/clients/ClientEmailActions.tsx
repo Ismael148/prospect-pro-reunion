@@ -221,9 +221,14 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
   // Tuto Email Pro → Gmail dialog state
   const [showGmailDialog, setShowGmailDialog] = useState(false);
   const [gmailProEmail, setGmailProEmail] = useState(client.email || "");
-  const [gmailDomain, setGmailDomain] = useState(
-    (client.email || "").includes("@") ? (client.email as string).split("@")[1] : ""
-  );
+  const initialDomain = (client.email || "").includes("@") ? (client.email as string).split("@")[1] : "";
+  const [gmailDomain, setGmailDomain] = useState(initialDomain);
+  const [gmailPopServer, setGmailPopServer] = useState(initialDomain ? `mail.${initialDomain}` : "");
+  const [gmailPopPort, setGmailPopPort] = useState("995");
+  const [gmailSmtpServer, setGmailSmtpServer] = useState(initialDomain ? `mail.${initialDomain}` : "");
+  const [gmailSmtpPort, setGmailSmtpPort] = useState("465");
+  const [gmailPassword, setGmailPassword] = useState("");
+  const [gmailLabel, setGmailLabel] = useState("Pro");
   const [gmailExtraConfig, setGmailExtraConfig] = useState("");
   const [gmailSending, setGmailSending] = useState(false);
 

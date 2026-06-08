@@ -288,6 +288,62 @@ ${proLoginUrl ? makeCta('🔐 Se connecter à mon espace', proLoginUrl) : ''}
     }
   };
 
+  const buildGmailTutoHtml = () => {
+    const domain = gmailDomain.trim() || "[votredomaine]";
+    const params = new URLSearchParams();
+    if (gmailProEmail.trim()) params.set("email", gmailProEmail.trim());
+    if (gmailDomain.trim()) params.set("domain", gmailDomain.trim());
+    if (gmailExtraConfig.trim()) params.set("config", gmailExtraConfig.trim());
+    const tutoLink = `${PUBLISHED_URL}/tuto/email-pro-gmail${params.toString() ? `?${params.toString()}` : ""}`;
+    const extraBlock = gmailExtraConfig.trim()
+      ? `<div style="margin:18px 0;padding:14px 18px;background:#fffbeb;border:1px solid #fde68a;border-left:4px solid #f59e0b;border-radius:8px">
+  <p style="margin:0 0 8px;font-weight:700;color:#78350f">📌 Vos informations de configuration :</p>
+  <pre style="margin:0;font-family:'SFMono-Regular',Consolas,Menlo,monospace;font-size:13px;color:#78350f;white-space:pre-wrap">${gmailExtraConfig.trim().replace(/</g,"&lt;")}</pre>
+</div>`
+      : "";
+    return `<p style="margin:0 0 20px">Bonjour <strong>${greeting}</strong>,</p>
+<p style="margin:0 0 20px">Plutôt que de jongler entre votre webmail pro et Gmail, vous pouvez <strong>centraliser vos emails pros dans votre compte Gmail habituel</strong> — sur ordinateur ET sur téléphone.</p>
+<p style="margin:0 0 20px">Nous avons préparé un <strong>tutoriel pas-à-pas (10 minutes)</strong> avec toutes les valeurs à copier-coller (hébergeur <strong>LWS</strong> pré-rempli pour <strong>${domain}</strong>).</p>
+${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
+${extraBlock}
+<div style="margin:24px 0;padding:18px 20px;background:#fff7fb;border:1px solid #ffd1e3;border-left:4px solid ${BRAND_COLOR};border-radius:8px">
+  <p style="margin:0 0 8px;font-weight:700;color:#18181b">🔐 Pourquoi c'est à vous de le faire&nbsp;?</p>
+  <p style="margin:0;font-size:14px;color:#3f3f46;line-height:1.6">Pour votre <strong>sécurité</strong>, Adamkom <strong>ne demande jamais</strong> et <strong>n'a jamais accès</strong> à vos mots de passe (ni Gmail, ni email pro). C'est donc plus <strong>pratique et plus sûr</strong> que vous fassiez cette manipulation vous-même, en 10 minutes. On vous guide à chaque étape.</p>
+</div>
+<p style="margin:0 0 20px;font-size:13px;color:#71717a">Besoin d'un coup de main&nbsp;? Écrivez-nous via votre espace support : on vous accompagne sans jamais vous demander vos accès.</p>
+<p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`;
+  };
+
+  const handleSendGmailTuto = async () => {
+    if (!client.email) { toast.error("Pas d'email client"); return; }
+    setGmailSending(true);
+    try {
+      const bodyHtml = buildGmailTutoHtml();
+      const supportLink = client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined;
+      const htmlContent = wrapInBrandedTemplate(bodyHtml, supportLink, branding || undefined);
+      const subject = `Recevez vos emails pro dans Gmail — ${client.company_name}`;
+      const { error } = await supabase.functions.invoke("send-brevo-campaign", {
+        body: {
+          action: "send_client_email",
+          recipientEmail: client.email,
+          recipientName: greeting,
+          subject,
+          htmlContent,
+          trigger: "tuto_email_pro_gmail",
+          client_id: client.id,
+        },
+      });
+      if (error) throw error;
+      toast.success(`Tuto envoyé à ${client.email}`);
+      setShowGmailDialog(false);
+      setGmailExtraConfig("");
+    } catch (e: any) {
+      toast.error(e.message || "Erreur lors de l'envoi");
+    } finally {
+      setGmailSending(false);
+    }
+  };
+
   if (!client.email) {
     return null;
   }

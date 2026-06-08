@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import {
-  Mail, Send, Loader2, Ticket, FileText, CreditCard, Globe, Eye, Sparkles, Wand2, Star, Facebook, MapPin, KeyRound, Copy, CalendarCheck,
+  Mail, Send, Loader2, Ticket, FileText, CreditCard, Globe, Eye, Sparkles, Wand2, Star, Facebook, MapPin, KeyRound, Copy, CalendarCheck, AtSign,
 } from "lucide-react";
 import EmailTemplateSaver from "@/components/EmailTemplateSaver";
 import type { SavedTemplate } from "@/hooks/use-email-templates";
@@ -217,6 +217,15 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
   const [proEmail, setProEmail] = useState("");
   const [proPassword, setProPassword] = useState("");
   const [proSending, setProSending] = useState(false);
+
+  // Tuto Email Pro → Gmail dialog state
+  const [showGmailDialog, setShowGmailDialog] = useState(false);
+  const [gmailProEmail, setGmailProEmail] = useState(client.email || "");
+  const [gmailDomain, setGmailDomain] = useState(
+    (client.email || "").includes("@") ? (client.email as string).split("@")[1] : ""
+  );
+  const [gmailExtraConfig, setGmailExtraConfig] = useState("");
+  const [gmailSending, setGmailSending] = useState(false);
 
   const greeting = client.manager_name?.trim() || client.company_name;
 

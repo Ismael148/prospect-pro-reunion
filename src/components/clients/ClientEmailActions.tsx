@@ -61,10 +61,7 @@ function getEmailActions(client: ClientData): EmailAction[] {
       trigger: 'support_link',
       condition: (c) => !!c.support_token,
       bodyFn: () => `<p style="margin:0 0 20px">Bonjour <strong>${greeting}</strong>,</p>
-<p style="margin:0 0 20px">Nous avons le plaisir de vous transmettre votre lien personnel pour nous envoyer un <strong>ticket support</strong>.</p>
-<p style="margin:0 0 20px">Vous pouvez l'utiliser pour nous communiquer toutes vos <strong>modifications, mises à jour ou demandes</strong> concernant l'ensemble de nos offres <strong>Adamkom by JJP</strong>. Notre équipe revient vers vous dans les meilleurs délais.</p>
-<p style="margin:0 0 20px;font-size:14px;color:#52525b">👉 <a href="${supportLink}" style="color:${BRAND_COLOR};text-decoration:underline;font-weight:600">Cliquez ici pour ouvrir un ticket support</a></p>
-<p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
+<p style="margin:0 0 20px">Nous avons le plaisir de vous transmettre votre lien personnel pour nous envoyer un <strong>ticket support</strong>.</p>`,
     },
     {
       id: 'form_nfc',

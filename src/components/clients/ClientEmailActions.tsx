@@ -57,17 +57,13 @@ function getEmailActions(client: ClientData): EmailAction[] {
       id: 'support_link',
       label: 'Envoyer lien support',
       icon: <Ticket className="w-4 h-4" />,
-      subject: `Votre espace support — ${client.company_name}`,
+      subject: `Votre lien support — ${client.company_name}`,
       trigger: 'support_link',
       condition: (c) => !!c.support_token,
       bodyFn: () => `<p style="margin:0 0 20px">Bonjour <strong>${greeting}</strong>,</p>
-<p style="margin:0 0 20px">Vous pouvez désormais accéder à votre <strong>espace support dédié</strong> pour soumettre vos demandes.</p>
-<ul style="padding-left:20px;color:#52525b;margin:0 0 24px;line-height:2">
-  <li>Cliquez sur le bouton ci-dessous</li>
-  <li>Décrivez votre demande</li>
-  <li>Notre équipe vous prend en charge rapidement</li>
-</ul>
-${makeCta('📋 Accéder à mon espace support', supportLink)}
+<p style="margin:0 0 20px">Nous avons le plaisir de vous transmettre votre lien personnel pour nous envoyer un <strong>ticket support</strong>.</p>
+<p style="margin:0 0 24px">Vous pouvez l'utiliser pour nous communiquer toutes vos <strong>modifications, mises à jour ou demandes</strong> concernant l'ensemble de nos offres <strong>Adamkom by JJP</strong>. Notre équipe revient vers vous dans les meilleurs délais.</p>
+${makeCta('📨 Envoyer ma demande', supportLink)}
 <p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
     },
     {

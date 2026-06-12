@@ -41,6 +41,7 @@ import Gmb from "./pages/Gmb";
 import TutoFacebook from "./pages/TutoFacebook";
 import TutoInstagram from "./pages/TutoInstagram";
 import TutoGmb from "./pages/TutoGmb";
+import TutoGmbValidation from "./pages/TutoGmbValidation";
 import OnboardingInbox from "./pages/FbOnboardingInbox";
 import EmailsLog from "./pages/EmailsLog";
 import PaymentCredentials from "./pages/PaymentCredentials";

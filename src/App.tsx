@@ -41,6 +41,7 @@ import Gmb from "./pages/Gmb";
 import TutoFacebook from "./pages/TutoFacebook";
 import TutoInstagram from "./pages/TutoInstagram";
 import TutoGmb from "./pages/TutoGmb";
+import TutoGmbValidation from "./pages/TutoGmbValidation";
 import OnboardingInbox from "./pages/FbOnboardingInbox";
 import EmailsLog from "./pages/EmailsLog";
 import PaymentCredentials from "./pages/PaymentCredentials";
@@ -180,6 +181,7 @@ const App = () => (
             {/* Public tutorials */}
             <Route path="/tuto/facebook" element={<TutoFacebook />} />
             <Route path="/tuto/gmb" element={<TutoGmb />} />
+            <Route path="/tuto/gmb-validation" element={<TutoGmbValidation />} />
             <Route path="/tuto/instagram" element={<TutoInstagram />} />
             <Route path="/tuto/paiements" element={<TutoPaiements />} />
             <Route path="/tuto/motopress" element={<TutoMotoPress />} />

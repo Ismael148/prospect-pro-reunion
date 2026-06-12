@@ -181,6 +181,7 @@ const App = () => (
             {/* Public tutorials */}
             <Route path="/tuto/facebook" element={<TutoFacebook />} />
             <Route path="/tuto/gmb" element={<TutoGmb />} />
+            <Route path="/tuto/gmb-validation" element={<TutoGmbValidation />} />
             <Route path="/tuto/instagram" element={<TutoInstagram />} />
             <Route path="/tuto/paiements" element={<TutoPaiements />} />
             <Route path="/tuto/motopress" element={<TutoMotoPress />} />

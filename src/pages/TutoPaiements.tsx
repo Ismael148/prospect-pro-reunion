@@ -214,18 +214,15 @@ export default function TutoPaiements() {
 
     setSubmitting(true);
 
-    const { error } = await supabase.from("payment_credentials").insert({
-      client_id: invitation?.client_id || null,
-      client_ndi: invitation?.client_ndi || null,
-      company_name: companyName,
-      contact_email: contactEmail,
-      contact_name: contactName || null,
-      provider: selectedProvider,
-      environment,
-      credentials,
-      notes: notes || null,
-      status: "recu",
-      submitted_via: token ? "invitation" : "public_form",
+    const { error } = await (supabase as any).rpc("submit_payment_credentials_public", {
+      p_token: token || null,
+      p_company_name: companyName,
+      p_contact_email: contactEmail,
+      p_contact_name: contactName || null,
+      p_provider: selectedProvider,
+      p_environment: environment,
+      p_credentials: credentials,
+      p_notes: notes || null,
     });
 
     if (error) {

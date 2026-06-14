@@ -2655,6 +2655,19 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      submit_payment_credentials_public: {
+        Args: {
+          p_company_name: string
+          p_contact_email: string
+          p_contact_name: string
+          p_credentials: Json
+          p_environment: Database["public"]["Enums"]["payment_env"]
+          p_notes: string
+          p_provider: Database["public"]["Enums"]["payment_provider"]
+          p_token: string
+        }
+        Returns: string
+      }
       validate_logo_with_token: {
         Args: { p_client_id: string; p_token: string }
         Returns: boolean

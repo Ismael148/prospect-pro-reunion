@@ -42,7 +42,7 @@ export default function Clients() {
   const [showFilters, setShowFilters] = useState(false);
 
   const [form, setForm] = useState({
-    company_name: "", phone: "", email: "", address: "", city: "",
+    company_name: "", manager_name: "", phone: "", email: "", address: "", city: "",
     postal_code: "", sector: "", website: "", notes: "",
     pack_type: "" as PackType | "", payment_method: "", signature_date: "",
     signed_by_commercial: "", assigned_to: "",

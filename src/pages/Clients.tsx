@@ -152,6 +152,10 @@ export default function Clients() {
                 <Label>Nom de l'entreprise *</Label>
                 <Input value={form.company_name} onChange={(e) => setForm({ ...form, company_name: e.target.value })} placeholder="Ex: Boulangerie du Port" />
               </div>
+              <div className="space-y-2">
+                <Label>Nom du gérant</Label>
+                <Input value={form.manager_name} onChange={(e) => setForm({ ...form, manager_name: e.target.value })} placeholder="Ex: Jean Dupont" />
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2"><Label>Téléphone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="0692 00 00 00" /></div>
                 <div className="space-y-2"><Label>Email</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="contact@exemple.com" /></div>

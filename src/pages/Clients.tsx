@@ -42,7 +42,7 @@ export default function Clients() {
   const [showFilters, setShowFilters] = useState(false);
 
   const [form, setForm] = useState({
-    company_name: "", phone: "", email: "", address: "", city: "",
+    company_name: "", manager_name: "", phone: "", email: "", address: "", city: "",
     postal_code: "", sector: "", website: "", notes: "",
     pack_type: "" as PackType | "", payment_method: "", signature_date: "",
     signed_by_commercial: "", assigned_to: "",
@@ -92,6 +92,7 @@ export default function Clients() {
     try {
       await createClient.mutateAsync({
         company_name: form.company_name.trim(),
+        manager_name: form.manager_name.trim() || null,
         phone: form.phone.trim() || null,
         email: form.email.trim() || null,
         address: form.address.trim() || null,
@@ -111,7 +112,7 @@ export default function Clients() {
       } as any);
       toast.success("Client créé");
       setOpen(false);
-      setForm({ company_name: "", phone: "", email: "", address: "", city: "", postal_code: "", sector: "", website: "", notes: "", pack_type: "", payment_method: "", signature_date: "", signed_by_commercial: "", assigned_to: "" });
+      setForm({ company_name: "", manager_name: "", phone: "", email: "", address: "", city: "", postal_code: "", sector: "", website: "", notes: "", pack_type: "", payment_method: "", signature_date: "", signed_by_commercial: "", assigned_to: "" });
     } catch { toast.error("Erreur"); }
   };
 
@@ -151,6 +152,10 @@ export default function Clients() {
               <div className="space-y-2">
                 <Label>Nom de l'entreprise *</Label>
                 <Input value={form.company_name} onChange={(e) => setForm({ ...form, company_name: e.target.value })} placeholder="Ex: Boulangerie du Port" />
+              </div>
+              <div className="space-y-2">
+                <Label>Nom du gérant</Label>
+                <Input value={form.manager_name} onChange={(e) => setForm({ ...form, manager_name: e.target.value })} placeholder="Ex: Jean Dupont" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2"><Label>Téléphone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="0692 00 00 00" /></div>

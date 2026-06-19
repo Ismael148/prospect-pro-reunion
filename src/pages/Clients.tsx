@@ -92,6 +92,7 @@ export default function Clients() {
     try {
       await createClient.mutateAsync({
         company_name: form.company_name.trim(),
+        manager_name: form.manager_name.trim() || null,
         phone: form.phone.trim() || null,
         email: form.email.trim() || null,
         address: form.address.trim() || null,
@@ -111,7 +112,7 @@ export default function Clients() {
       } as any);
       toast.success("Client créé");
       setOpen(false);
-      setForm({ company_name: "", phone: "", email: "", address: "", city: "", postal_code: "", sector: "", website: "", notes: "", pack_type: "", payment_method: "", signature_date: "", signed_by_commercial: "", assigned_to: "" });
+      setForm({ company_name: "", manager_name: "", phone: "", email: "", address: "", city: "", postal_code: "", sector: "", website: "", notes: "", pack_type: "", payment_method: "", signature_date: "", signed_by_commercial: "", assigned_to: "" });
     } catch { toast.error("Erreur"); }
   };
 

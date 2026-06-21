@@ -1,10 +1,11 @@
-# Adamkom — CRM & Gestion de Projets
+# ADAMKOM CRM — Gestion clients, projets et factures
 
-Plateforme interne d'Adamkom (agence marketing digital à La Réunion 🇷🇪) pour gérer les clients, projets, factures, communications et automatisations.
+Plateforme interne d’ADAMKOM (agence marketing digital à La Réunion 🇷🇪) pour centraliser la gestion des clients, projets, factures, communications et automatisations.
 
 - **URL de production** : https://ai.adamkom.com
 - **Région** : EMEA · Fuseau **UTC+4 (La Réunion)**
 - **Devise** : Euro (€)
+- **Développeur** : **Zo Lalaina Ismal RAJAOHARIMANANA**
 
 ---
 
@@ -14,19 +15,19 @@ Plateforme interne d'Adamkom (agence marketing digital à La Réunion 🇷🇪) 
 
 | Techno | Rôle |
 |---|---|
-| **React 18** + **TypeScript 5** | Framework UI typé, base de toute l'application |
-| **Vite 5** | Bundler ultra-rapide pour le dev et la prod |
+| **React 18** + **TypeScript 5** | Framework UI typé, base de toute l’application |
+| **Vite 5** | Bundler ultra-rapide pour le développement et la production |
 | **Tailwind CSS v3** + `tailwindcss-animate` | Styling utilitaire et animations CSS |
-| **shadcn/ui** (Radix UI) | Composants accessibles (Dialog, Select, Combobox, Popover…) |
+| **shadcn/ui** (basé sur Radix UI) | Composants accessibles (Dialog, Select, Combobox, Popover…) |
 | **Framer Motion** | Animations fluides (navigation Pipeline, hover calendrier…) |
 | **React Router** | Routing client-side |
 | **TanStack Query** | Cache, refetch et synchronisation des données serveur |
-| **Lucide React** | Bibliothèque d'icônes SVG |
+| **Lucide React** | Bibliothèque d’icônes SVG |
 | **Sonner** | Toasts élégants pour les notifications utilisateur |
 | **react-day-picker** | Sélecteur de date (calendrier) |
 | **date-fns** | Manipulation de dates en français |
 
-### ⚙️ Backend — Lovable Cloud (Supabase)
+### ⚙️ Backend — Cloud privé (Supabase)
 
 | Techno | Rôle |
 |---|---|
@@ -42,14 +43,14 @@ Plateforme interne d'Adamkom (agence marketing digital à La Réunion 🇷🇪) 
 
 | Techno | Rôle |
 |---|---|
-| **Lovable AI Gateway** | Accès aux modèles sans clé API |
+| **AI Gateway interne** | Accès aux modèles sans clé API externe |
 | **Google Gemini 2.5 Flash** | Génération des emails clients personnalisés (HTML) |
 
 ### 🔌 Intégrations externes
 
 | Service | Rôle |
 |---|---|
-| **n8n** | Routeur central d'automatisations (webhook unique → Switch node) |
+| **n8n** | Routeur central d’automatisation (webhook unique → Switch node) |
 | **Brevo (ex-Sendinblue)** | Envoi des emails transactionnels et campagnes marketing |
 | **Meta (Facebook / Instagram)** | OAuth multi-pages, publication sociale |
 | **Google Business Manager** | Module GMB centralisé (checklist 8 étapes) |
@@ -70,11 +71,10 @@ Plateforme interne d'Adamkom (agence marketing digital à La Réunion 🇷🇪) 
 | **ESLint** | Linting du code TypeScript/React |
 | **Vitest** | Tests unitaires |
 | **bun / npm** | Gestion des dépendances |
-| **lovable-tagger** | Plugin Vite (mode dev) pour le tagging composants |
 
 ### 🌍 Déploiement
 
-- **Lovable** — hébergement, CI/CD et previews
+- **Hébergement cloud** avec CI/CD intégré
 - Domaine custom : **ai.adamkom.com**
 - Région : **EMEA**
 - Workflows n8n importables : `public/n8n-workflows/*.json`
@@ -86,9 +86,11 @@ Plateforme interne d'Adamkom (agence marketing digital à La Réunion 🇷🇪) 
 6 rôles distincts (admin, agent_master, agent_support, webmaster, commercial, agent) avec contraintes RLS strictes.
 Inscription publique **désactivée** — création des comptes par les admins uniquement.
 
+---
+
 ## 📦 Structure projet
 
-```
+```text
 src/
 ├── components/       Composants UI (shadcn + métier)
 ├── hooks/            Hooks TanStack Query (use-clients, use-invoices…)
@@ -100,3 +102,9 @@ supabase/
 └── migrations/       SQL versionné
 public/n8n-workflows/ Workflows n8n importables
 ```
+
+---
+
+## 👤 Crédits
+
+Développé par **Zo Lalaina Ismal RAJAOHARIMANANA** pour ADAMKOM.

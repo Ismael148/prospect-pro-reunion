@@ -45,6 +45,7 @@ import ClientRemindersSection from "@/components/clients/ClientRemindersSection"
 import RelanceFlagsSection from "@/components/clients/RelanceFlagsSection";
 import { useClientForms, useValidateForm, ClientFormData } from "@/hooks/use-client-forms";
 import { triggerN8nWebhook } from "@/lib/n8n-webhook";
+import { exportClientFormZip } from "@/lib/export-client-form";
 import { motion } from "framer-motion";
 
 type PipelineStatus = Database["public"]["Enums"]["pipeline_status"];

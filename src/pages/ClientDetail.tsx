@@ -1293,6 +1293,29 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName }: {
                       <Button size="sm" variant="ghost" onClick={() => setViewingForm(viewingForm?.id === form.id ? null : form)}>
                         <Eye className="w-4 h-4" />
                       </Button>
+                      {form.status !== "en_attente" && fd && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          title="Télécharger (texte + images)"
+                          onClick={async () => {
+                            try {
+                              toast.loading("Préparation de l'archive…", { id: `dl-${form.id}` });
+                              await exportClientFormZip({
+                                formType: form.form_type,
+                                companyName,
+                                formData: fd,
+                                submittedAt: form.submitted_at,
+                              });
+                              toast.success("Archive téléchargée", { id: `dl-${form.id}` });
+                            } catch (e: any) {
+                              toast.error(e?.message || "Erreur export", { id: `dl-${form.id}` });
+                            }
+                          }}
+                        >
+                          <Download className="w-4 h-4" />
+                        </Button>
+                      )}
                       {form.status === "soumis" && hasRole("admin") && (
                         <>
                           <div className="relative">

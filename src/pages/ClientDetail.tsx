@@ -1169,7 +1169,7 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
 }
 
 // ============ Client Forms Section ============
-function ClientFormsSection({ clientId, supportToken, packType }: { clientId: string; supportToken?: string; packType?: string }) {
+function ClientFormsSection({ clientId, supportToken, packType, companyName }: { clientId: string; supportToken?: string; packType?: string; companyName: string }) {
   const { user, hasRole } = useAuth();
   const { data: forms, isLoading } = useClientForms(clientId);
   const validateForm = useValidateForm();

@@ -45,6 +45,7 @@ import ClientRemindersSection from "@/components/clients/ClientRemindersSection"
 import RelanceFlagsSection from "@/components/clients/RelanceFlagsSection";
 import { useClientForms, useValidateForm, ClientFormData } from "@/hooks/use-client-forms";
 import { triggerN8nWebhook } from "@/lib/n8n-webhook";
+import { exportClientFormZip } from "@/lib/export-client-form";
 import { motion } from "framer-motion";
 
 type PipelineStatus = Database["public"]["Enums"]["pipeline_status"];
@@ -1169,7 +1170,7 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
 }
 
 // ============ Client Forms Section ============
-function ClientFormsSection({ clientId, supportToken, packType }: { clientId: string; supportToken?: string; packType?: string }) {
+function ClientFormsSection({ clientId, supportToken, packType, companyName }: { clientId: string; supportToken?: string; packType?: string; companyName: string }) {
   const { user, hasRole } = useAuth();
   const { data: forms, isLoading } = useClientForms(clientId);
   const validateForm = useValidateForm();
@@ -1292,6 +1293,29 @@ function ClientFormsSection({ clientId, supportToken, packType }: { clientId: st
                       <Button size="sm" variant="ghost" onClick={() => setViewingForm(viewingForm?.id === form.id ? null : form)}>
                         <Eye className="w-4 h-4" />
                       </Button>
+                      {form.status !== "en_attente" && fd && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          title="Télécharger (texte + images)"
+                          onClick={async () => {
+                            try {
+                              toast.loading("Préparation de l'archive…", { id: `dl-${form.id}` });
+                              await exportClientFormZip({
+                                formType: form.form_type,
+                                companyName,
+                                formData: fd,
+                                submittedAt: form.submitted_at,
+                              });
+                              toast.success("Archive téléchargée", { id: `dl-${form.id}` });
+                            } catch (e: any) {
+                              toast.error(e?.message || "Erreur export", { id: `dl-${form.id}` });
+                            }
+                          }}
+                        >
+                          <Download className="w-4 h-4" />
+                        </Button>
+                      )}
                       {form.status === "soumis" && hasRole("admin") && (
                         <>
                           <div className="relative">
@@ -1645,7 +1669,7 @@ export default function ClientDetail() {
       }} />
       <SupportTicketsSection clientId={id!} />
       <ClientEmailHistory clientId={id!} clientEmail={client.email} />
-      <ClientFormsSection clientId={id!} supportToken={(client as any).support_token} packType={client.pack_type ?? undefined} />
+      <ClientFormsSection clientId={id!} supportToken={(client as any).support_token} packType={client.pack_type ?? undefined} companyName={(client as any).company_name} />
       {client.pack_type !== "star_bizness_nfc" && <SocialMediaSection clientId={id!} clientNdi={(client as any).ndi} clientEmail={(client as any).email} clientCompany={(client as any).company_name} clientManager={(client as any).manager_name} />}
       {/* {client.pack_type !== "star_bizness_nfc" && <ChatbotConfigSection clientId={id!} clientCompany={(client as any).company_name} />} */}
       {client.pack_type !== "star_bizness_nfc" && <PaymentTutoSection clientId={id!} clientNdi={(client as any).ndi} clientEmail={(client as any).email} clientCompany={(client as any).company_name} clientManager={(client as any).manager_name} />}

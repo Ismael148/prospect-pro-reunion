@@ -1645,7 +1645,7 @@ export default function ClientDetail() {
       }} />
       <SupportTicketsSection clientId={id!} />
       <ClientEmailHistory clientId={id!} clientEmail={client.email} />
-      <ClientFormsSection clientId={id!} supportToken={(client as any).support_token} packType={client.pack_type ?? undefined} />
+      <ClientFormsSection clientId={id!} supportToken={(client as any).support_token} packType={client.pack_type ?? undefined} companyName={(client as any).company_name} />
       {client.pack_type !== "star_bizness_nfc" && <SocialMediaSection clientId={id!} clientNdi={(client as any).ndi} clientEmail={(client as any).email} clientCompany={(client as any).company_name} clientManager={(client as any).manager_name} />}
       {/* {client.pack_type !== "star_bizness_nfc" && <ChatbotConfigSection clientId={id!} clientCompany={(client as any).company_name} />} */}
       {client.pack_type !== "star_bizness_nfc" && <PaymentTutoSection clientId={id!} clientNdi={(client as any).ndi} clientEmail={(client as any).email} clientCompany={(client as any).company_name} clientManager={(client as any).manager_name} />}

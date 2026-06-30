@@ -2655,6 +2655,40 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      submit_fb_onboarding_public: {
+        Args: {
+          p_business_manager_email: string
+          p_business_manager_id?: string
+          p_client_id?: string
+          p_client_ndi?: string
+          p_company_name: string
+          p_contact_email: string
+          p_fb_page_name?: string
+          p_fb_page_url?: string
+          p_has_existing_page: boolean
+          p_notes?: string
+          p_source_url?: string
+        }
+        Returns: string
+      }
+      submit_gmb_onboarding_public: {
+        Args: {
+          p_client_id?: string
+          p_client_ndi?: string
+          p_company_name: string
+          p_contact_email: string
+          p_gmb_address?: string
+          p_gmb_business_name?: string
+          p_gmb_maps_url?: string
+          p_gmb_phone?: string
+          p_google_account_email?: string
+          p_has_existing_listing: boolean
+          p_manager_added: boolean
+          p_notes?: string
+          p_source_url?: string
+        }
+        Returns: string
+      }
       submit_payment_credentials_public: {
         Args: {
           p_company_name: string

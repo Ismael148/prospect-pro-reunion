@@ -42,25 +42,21 @@ export interface FbOnboardingInput {
 export function useSubmitFbOnboarding() {
   return useMutation({
     mutationFn: async (input: FbOnboardingInput) => {
-      const payload = {
-        client_id: input.client_id || null,
-        client_ndi: input.client_ndi || null,
-        company_name: input.company_name.trim(),
-        contact_email: input.contact_email.trim(),
-        fb_page_url: input.fb_page_url?.trim() || null,
-        fb_page_name: input.fb_page_name?.trim() || null,
-        business_manager_id: input.business_manager_id?.trim() || null,
-        business_manager_email: input.business_manager_email.trim(),
-        has_existing_page: input.has_existing_page,
-        notes: input.notes?.trim() || null,
-        source_url: input.source_url || (typeof window !== "undefined" ? window.location.href : null),
-      };
-      // No .select() — anon has INSERT but no SELECT policy
-      const { error } = await (supabase as any)
-        .from("fb_onboarding_submissions")
-        .insert(payload);
+      const { error } = await (supabase as any).rpc("submit_fb_onboarding_public", {
+        p_company_name: input.company_name.trim(),
+        p_contact_email: input.contact_email.trim(),
+        p_business_manager_email: input.business_manager_email.trim(),
+        p_has_existing_page: input.has_existing_page,
+        p_client_id: input.client_id || null,
+        p_client_ndi: input.client_ndi || null,
+        p_fb_page_url: input.fb_page_url?.trim() || null,
+        p_fb_page_name: input.fb_page_name?.trim() || null,
+        p_business_manager_id: input.business_manager_id?.trim() || null,
+        p_notes: input.notes?.trim() || null,
+        p_source_url: input.source_url || (typeof window !== "undefined" ? window.location.href : null),
+      });
       if (error) throw error;
-      return payload as unknown as FbOnboardingSubmission;
+      return null as unknown as FbOnboardingSubmission;
     },
     onSuccess: () => toast.success("Merci ! Vos infos ont bien été envoyées à Adamkom."),
     onError: (e: any) => toast.error(e.message || "Erreur lors de l'envoi"),

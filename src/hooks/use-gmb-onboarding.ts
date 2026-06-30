@@ -45,27 +45,23 @@ export interface GmbOnboardingInput {
 export function useSubmitGmbOnboarding() {
   return useMutation({
     mutationFn: async (input: GmbOnboardingInput) => {
-      const payload = {
-        client_id: input.client_id || null,
-        client_ndi: input.client_ndi || null,
-        company_name: input.company_name.trim(),
-        contact_email: input.contact_email.trim(),
-        has_existing_listing: input.has_existing_listing,
-        gmb_business_name: input.gmb_business_name?.trim() || null,
-        gmb_maps_url: input.gmb_maps_url?.trim() || null,
-        gmb_address: input.gmb_address?.trim() || null,
-        gmb_phone: input.gmb_phone?.trim() || null,
-        manager_added: input.manager_added,
-        google_account_email: input.google_account_email?.trim() || null,
-        notes: input.notes?.trim() || null,
-        source_url: input.source_url || (typeof window !== "undefined" ? window.location.href : null),
-      };
-      // No .select() — anon has INSERT but no SELECT policy
-      const { error } = await (supabase as any)
-        .from("gmb_onboarding_submissions")
-        .insert(payload);
+      const { error } = await (supabase as any).rpc("submit_gmb_onboarding_public", {
+        p_company_name: input.company_name.trim(),
+        p_contact_email: input.contact_email.trim(),
+        p_has_existing_listing: input.has_existing_listing,
+        p_manager_added: input.manager_added,
+        p_client_id: input.client_id || null,
+        p_client_ndi: input.client_ndi || null,
+        p_gmb_business_name: input.gmb_business_name?.trim() || null,
+        p_gmb_maps_url: input.gmb_maps_url?.trim() || null,
+        p_gmb_address: input.gmb_address?.trim() || null,
+        p_gmb_phone: input.gmb_phone?.trim() || null,
+        p_google_account_email: input.google_account_email?.trim() || null,
+        p_notes: input.notes?.trim() || null,
+        p_source_url: input.source_url || (typeof window !== "undefined" ? window.location.href : null),
+      });
       if (error) throw error;
-      return payload as unknown as GmbOnboardingSubmission;
+      return null as unknown as GmbOnboardingSubmission;
     },
     onSuccess: () => toast.success("Merci ! Vos infos GMB ont bien été envoyées à Adamkom."),
     onError: (e: any) => toast.error(e.message || "Erreur lors de l'envoi"),

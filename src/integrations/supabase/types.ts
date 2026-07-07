@@ -1397,6 +1397,123 @@ export type Database = {
           },
         ]
       }
+      gmb_review_replies: {
+        Row: {
+          client_id: string
+          content: string
+          created_at: string
+          formality: string | null
+          generated_by: string | null
+          id: string
+          is_final: boolean
+          length: string | null
+          review_id: string
+          tone: string | null
+        }
+        Insert: {
+          client_id: string
+          content: string
+          created_at?: string
+          formality?: string | null
+          generated_by?: string | null
+          id?: string
+          is_final?: boolean
+          length?: string | null
+          review_id: string
+          tone?: string | null
+        }
+        Update: {
+          client_id?: string
+          content?: string
+          created_at?: string
+          formality?: string | null
+          generated_by?: string | null
+          id?: string
+          is_final?: boolean
+          length?: string | null
+          review_id?: string
+          tone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gmb_review_replies_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gmb_review_replies_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "gmb_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gmb_reviews: {
+        Row: {
+          author_name: string
+          client_gmb_id: string | null
+          client_id: string
+          created_at: string
+          created_by: string | null
+          google_review_id: string | null
+          id: string
+          rating: number
+          received_at: string
+          replied_at: string | null
+          review_text: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          author_name: string
+          client_gmb_id?: string | null
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          google_review_id?: string | null
+          id?: string
+          rating: number
+          received_at?: string
+          replied_at?: string | null
+          review_text?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          author_name?: string
+          client_gmb_id?: string | null
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          google_review_id?: string | null
+          id?: string
+          rating?: number
+          received_at?: string
+          replied_at?: string | null
+          review_text?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gmb_reviews_client_gmb_id_fkey"
+            columns: ["client_gmb_id"]
+            isOneToOne: false
+            referencedRelation: "client_gmb"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gmb_reviews_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
           amount: number

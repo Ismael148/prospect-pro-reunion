@@ -19,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useClients } from "@/hooks/use-clients";
+import { ClientCombobox } from "@/components/ClientCombobox";
 import {
   useDomainRenewals, useCreateDomainRenewal, useUpdateDomainRenewal,
   useDeleteDomainRenewal, useDomainRenewalReminders, useLogRenewalReminder,

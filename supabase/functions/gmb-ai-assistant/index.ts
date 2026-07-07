@@ -15,7 +15,8 @@ type Action =
   | "post"
   | "posts_saisonniers"
   | "faq"
-  | "reponses_avis";
+  | "reponses_avis"
+  | "repondre_avis";
 
 const SYSTEM_BASE = `Tu es un EXPERT SENIOR Google Business Profile (GBP/GMB) niveau Google Product Expert, 10+ ans de SEO local, spécialisé pour La Réunion (974, UTC+4, français).
 

@@ -152,11 +152,13 @@ export function GalleryUpload({ label, values, onChange, folder, max = 10 }: Gal
 
         if (error) throw error;
 
-        const { data: urlData } = supabase.storage
+        const { data: signedData, error: signedError } = await supabase.storage
           .from("client-forms")
-          .getPublicUrl(fileName);
+          .createSignedUrl(fileName, 315360000);
 
-        newUrls.push(urlData.publicUrl);
+        if (signedError || !signedData?.signedUrl) throw signedError || new Error("URL signée indisponible");
+
+        newUrls.push(signedData.signedUrl);
       }
 
       onChange([...values, ...newUrls]);

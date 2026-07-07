@@ -73,6 +73,8 @@ import {
 import { GmbWebmasterPlaybook } from "@/components/gmb/GmbWebmasterPlaybook";
 import { GmbActivityTimeline } from "@/components/gmb/GmbActivityTimeline";
 import { GmbMonthlyGoals } from "@/components/gmb/GmbMonthlyGoals";
+import { GMB_ACTIVITY_LABELS, type GmbActivityType } from "@/hooks/use-gmb-activities";
+import { FileDown } from "lucide-react";
 
 const PUBLIC_BASE_URL =
   typeof window !== "undefined" ? window.location.origin : "https://ai.adamkom.com";
@@ -460,6 +462,62 @@ function GmbCard({
           ) : null}
           <Button size="sm" onClick={onOpen}>
             Gérer
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-1"
+            title="Générer un rapport PDF du mois pour le client"
+            onClick={async () => {
+              try {
+                const now = new Date();
+                const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+                const monthYear = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+                const [{ data: acts }, { data: goal }] = await Promise.all([
+                  (supabase as any)
+                    .from("gmb_activities")
+                    .select("*")
+                    .eq("client_gmb_id", row.id)
+                    .gte("performed_at", monthStart)
+                    .order("performed_at", { ascending: false }),
+                  (supabase as any)
+                    .from("gmb_monthly_goals")
+                    .select("*")
+                    .eq("client_gmb_id", row.id)
+                    .eq("month_year", monthYear)
+                    .maybeSingle(),
+                ]);
+                const { generateGmbReport } = await import("@/lib/export-gmb-report");
+                generateGmbReport({
+                  clientName: client?.company_name || "Client",
+                  city: client?.city,
+                  sector: (client as any)?.sector,
+                  gmbUrl: row.gmb_url,
+                  monthLabel: now.toLocaleDateString("fr-FR", { month: "long", year: "numeric" }),
+                  generatedAt: now.toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" }),
+                  activities: (acts || []).map((a: any) => ({
+                    action_type: a.action_type,
+                    actionLabel: GMB_ACTIVITY_LABELS[a.action_type as GmbActivityType] || "Action",
+                    description: a.description,
+                    performed_at: a.performed_at,
+                    link: a.link,
+                  })),
+                  checklist: CHECKLIST_ITEMS.map((c) => ({
+                    label: c.label,
+                    done: Boolean((row as any)[c.key]),
+                  })),
+                  goal: goal || null,
+                  totalReviews: row.total_reviews,
+                  averageRating: row.average_rating,
+                });
+                toast.success("Rapport PDF généré");
+              } catch (e: any) {
+                console.error(e);
+                toast.error(e?.message || "Erreur génération PDF");
+              }
+            }}
+          >
+            <FileDown className="h-3 w-3" /> Rapport PDF
           </Button>
           {client?.gmb_public_token && (
             <Button

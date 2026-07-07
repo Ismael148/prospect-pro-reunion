@@ -143,11 +143,44 @@ export default function GmbPublic() {
               href={gmb.gmb_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-4 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition"
+              className="mt-4 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition mr-2"
               style={{ background: "#ff006e", color: "white" }}
             >
               <ExternalLink className="h-4 w-4" /> Voir ma fiche Google
             </a>
+          )}
+          {gmb && (
+            <button
+              onClick={async () => {
+                const { generateGmbReport } = await import("@/lib/export-gmb-report");
+                const now = new Date();
+                generateGmbReport({
+                  clientName: client.company_name,
+                  city: client.city,
+                  sector: client.sector,
+                  gmbUrl: gmb.gmb_url,
+                  monthLabel: now.toLocaleDateString("fr-FR", { month: "long", year: "numeric" }),
+                  generatedAt: now.toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" }),
+                  activities: (activities || []).map((a) => ({
+                    action_type: a.action_type,
+                    actionLabel: GMB_ACTIVITY_LABELS[a.action_type] || "Action",
+                    description: a.description,
+                    performed_at: a.performed_at,
+                    link: a.link,
+                  })),
+                  checklist: CHECKLIST_LABELS.map((c) => ({
+                    label: c.label,
+                    done: Boolean(gmb[c.key]),
+                  })),
+                  goal: goal || null,
+                  totalReviews: gmb.total_reviews,
+                  averageRating: gmb.average_rating,
+                });
+              }}
+              className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
+            >
+              <ExternalLink className="h-4 w-4" /> Télécharger le rapport PDF
+            </button>
           )}
         </section>
 

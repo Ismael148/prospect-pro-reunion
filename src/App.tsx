@@ -198,6 +198,8 @@ const App = () => (
             <Route path="/formulaire/:token/:type" element={<ClientForm />} />
             <Route path="/ical/:token" element={<ReservationSyncForm />} />
             <Route path="/sync-reservations/:token" element={<ReservationSyncForm />} />
+            <Route path="/mon-gmb/:token" element={<GmbPublic />} />
+
 
             <Route path="/valider-logo/:clientId" element={<LogoValidation />} />
             <Route path="/meta-callback" element={

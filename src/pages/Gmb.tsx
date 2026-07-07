@@ -236,6 +236,7 @@ export default function Gmb() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Stats */}

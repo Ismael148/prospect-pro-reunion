@@ -73,6 +73,8 @@ import {
 import { GmbWebmasterPlaybook } from "@/components/gmb/GmbWebmasterPlaybook";
 import { GmbActivityTimeline } from "@/components/gmb/GmbActivityTimeline";
 import { GmbMonthlyGoals } from "@/components/gmb/GmbMonthlyGoals";
+import { GMB_ACTIVITY_LABELS, type GmbActivityType } from "@/hooks/use-gmb-activities";
+import { FileDown } from "lucide-react";
 
 const PUBLIC_BASE_URL =
   typeof window !== "undefined" ? window.location.origin : "https://ai.adamkom.com";

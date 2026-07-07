@@ -180,6 +180,7 @@ export function NotificationBell() {
   const navigate = useNavigate();
   const [active, setActive] = useState<Category>("all");
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
+  const { permission, enable, enabling } = usePushNotifications();
 
   const handleClick = (n: { id: string; read: boolean; link: string | null }) => {
     if (!n.read) markAsRead.mutate(n.id);

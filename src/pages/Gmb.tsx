@@ -69,12 +69,12 @@ import {
   type ClientGmbWithClient,
   buildGmbCreateUrl,
 } from "@/hooks/use-client-gmb";
+import { GmbWebmasterPlaybook } from "@/components/gmb/GmbWebmasterPlaybook";
+import { GmbActivityTimeline } from "@/components/gmb/GmbActivityTimeline";
+import { GmbMonthlyGoals } from "@/components/gmb/GmbMonthlyGoals";
 
-const CHECKLIST_ITEMS: Array<{
-  key: keyof ClientGmbWithClient;
-  label: string;
-  hint?: string;
-}> = [
+const PUBLIC_BASE_URL =
+  typeof window !== "undefined" ? window.location.origin : "https://ai.adamkom.com";
   { key: "checklist_account_created", label: "Compte Google Business créé", hint: "business.google.com" },
   { key: "checklist_postal_requested", label: "Vérification postale demandée" },
   { key: "checklist_code_received", label: "Code reçu du client" },

@@ -63,6 +63,7 @@ function GeneratorCard({ gen, clientId }: { gen: Generator; clientId: string }) 
   const [extra, setExtra] = useState("");
   const [result, setResult] = useState<string>("");
   const [copied, setCopied] = useState(false);
+  const [rawMode, setRawMode] = useState(true);
 
   const run = async () => {
     setResult("");

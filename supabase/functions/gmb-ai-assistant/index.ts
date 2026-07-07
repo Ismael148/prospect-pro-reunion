@@ -189,12 +189,12 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-pro",
         messages: [
           { role: "system", content: SYSTEM_BASE },
           { role: "user", content: prompt },
         ],
-        temperature: 0.8,
+        temperature: 0.75,
       }),
     });
 

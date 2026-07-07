@@ -63,19 +63,22 @@ export function ClientCombobox({
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
         <Command
           filter={(value, search) => {
-            return value.toLowerCase().includes(search.toLowerCase()) ? 1 : 0;
+            const norm = (s: string) =>
+              s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            return norm(value).includes(norm(search)) ? 1 : 0;
           }}
         >
-          <CommandInput placeholder="Rechercher un client…" />
-          <CommandList>
+          <CommandInput placeholder="Rechercher (nom, NDI, ville)…" />
+          <CommandList className="max-h-[300px]">
             <CommandEmpty>{emptyText}</CommandEmpty>
             <CommandGroup>
               {options.map((o) => {
                 const label = labelOf(o);
+                const searchable = `${o.company_name ?? ""} ${o.ndi ?? ""} ${o.city ?? ""}`;
                 return (
                   <CommandItem
                     key={o.id}
-                    value={`${label} ${o.ndi ?? ""}`}
+                    value={searchable}
                     onSelect={() => {
                       onChange(o.id);
                       setOpen(false);

@@ -58,7 +58,7 @@ import { toast } from "sonner";
 import { ClientCombobox } from "@/components/ClientCombobox";
 import {
   useClientGmbList,
-  useClientsWithoutGmb,
+  useAllClientsForGmbPicker,
   useUpsertClientGmb,
   useDeleteClientGmb,
   GMB_STATUS_LABELS,

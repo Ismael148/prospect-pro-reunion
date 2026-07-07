@@ -13,6 +13,12 @@ import {
   MessageSquare,
   Trash2,
   Copy,
+  Link2,
+  Download,
+  AlertTriangle,
+  BookOpen,
+  ListChecks,
+  Target,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -63,6 +69,12 @@ import {
   type ClientGmbWithClient,
   buildGmbCreateUrl,
 } from "@/hooks/use-client-gmb";
+import { GmbWebmasterPlaybook } from "@/components/gmb/GmbWebmasterPlaybook";
+import { GmbActivityTimeline } from "@/components/gmb/GmbActivityTimeline";
+import { GmbMonthlyGoals } from "@/components/gmb/GmbMonthlyGoals";
+
+const PUBLIC_BASE_URL =
+  typeof window !== "undefined" ? window.location.origin : "https://ai.adamkom.com";
 
 const CHECKLIST_ITEMS: Array<{
   key: keyof ClientGmbWithClient;
@@ -99,6 +111,18 @@ export default function Gmb() {
 
   const stats = useMemo(() => {
     const all = rows;
+    const now = Date.now();
+    const staleThreshold = 30 * 24 * 3600 * 1000;
+    const totalUnanswered = all.reduce((s, r) => s + (r.unanswered_reviews || 0), 0);
+    const stalePosts = all.filter((r) => {
+      if (r.status !== "active") return false;
+      if (!r.last_post_at) return true;
+      return now - new Date(r.last_post_at).getTime() > staleThreshold;
+    }).length;
+    const avgProgress =
+      all.length === 0
+        ? 0
+        : Math.round(all.reduce((s, r) => s + getProgress(r), 0) / all.length);
     return {
       total: all.length,
       active: all.filter((r) => r.status === "active").length,
@@ -106,8 +130,43 @@ export default function Gmb() {
         ["a_creer", "compte_cree", "verification_postale_demandee", "code_recu"].includes(r.status)
       ).length,
       suspended: all.filter((r) => r.status === "suspendue").length,
+      totalUnanswered,
+      stalePosts,
+      avgProgress,
     };
   }, [rows]);
+
+  const exportCsv = () => {
+    const header = [
+      "Client","Ville","NDI","Statut","Progression %","Note moyenne","Avis totaux","Avis sans réponse","Dernier post","URL fiche","Lien client",
+    ];
+    const lines = rows.map((r) => [
+      r.clients?.company_name || "",
+      r.clients?.city || "",
+      r.clients?.ndi || "",
+      GMB_STATUS_LABELS[r.status],
+      getProgress(r),
+      r.average_rating ?? "",
+      r.total_reviews ?? "",
+      r.unanswered_reviews ?? "",
+      r.last_post_at ? new Date(r.last_post_at).toLocaleDateString("fr-FR") : "",
+      r.gmb_url || "",
+      r.clients?.gmb_public_token
+        ? `${PUBLIC_BASE_URL}/mon-gmb/${r.clients.gmb_public_token}`
+        : "",
+    ]);
+    const csv = [header, ...lines]
+      .map((row) => row.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `gmb-suivi-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Export CSV téléchargé");
+  };
 
   const handleCreate = async () => {
     if (!pickedClientId) {
@@ -133,13 +192,17 @@ export default function Gmb() {
             postale, optimisation.
           </p>
         </div>
-        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              Activer le suivi GMB
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={exportCsv} className="gap-2">
+            <Download className="h-4 w-4" /> Export CSV
+          </Button>
+          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                Activer le suivi GMB
+              </Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Activer le suivi GMB pour un client</DialogTitle>
@@ -173,14 +236,20 @@ export default function Gmb() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <StatCard label="Fiches suivies" value={stats.total} />
+        <StatCard label="Fiches suivies" value={stats.total} sub={`${stats.avgProgress}% moyen`} />
         <StatCard label="Actives" value={stats.active} accent="text-emerald-600" />
         <StatCard label="En cours" value={stats.pending} accent="text-amber-600" />
-        <StatCard label="Suspendues" value={stats.suspended} accent="text-destructive" />
+        <StatCard
+          label="⚠ Alertes"
+          value={stats.totalUnanswered + stats.stalePosts}
+          accent="text-destructive"
+          sub={`${stats.totalUnanswered} avis · ${stats.stalePosts} sans post`}
+        />
       </div>
 
       {/* Filters */}
@@ -243,12 +312,13 @@ export default function Gmb() {
   );
 }
 
-function StatCard({ label, value, accent }: { label: string; value: number; accent?: string }) {
+function StatCard({ label, value, accent, sub }: { label: string; value: number; accent?: string; sub?: string }) {
   return (
     <Card>
       <CardContent className="p-4">
         <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
         <p className={`mt-1 text-3xl font-bold ${accent || ""}`}>{value}</p>
+        {sub && <p className="mt-0.5 text-[10px] text-muted-foreground">{sub}</p>}
       </CardContent>
     </Card>
   );
@@ -337,6 +407,21 @@ function GmbCard({
           <Button size="sm" onClick={onOpen}>
             Gérer
           </Button>
+          {client?.gmb_public_token && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1"
+              onClick={() => {
+                const url = `${PUBLIC_BASE_URL}/mon-gmb/${client.gmb_public_token}`;
+                navigator.clipboard.writeText(url);
+                toast.success("Lien client copié — envoie-le au client");
+              }}
+              title="Copier le lien de suivi client"
+            >
+              <Link2 className="h-3 w-3" /> Lien client
+            </Button>
+          )}
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button size="sm" variant="ghost" className="text-destructive">
@@ -430,20 +515,65 @@ function GmbDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Globe className="h-5 w-5 text-primary" />
             {client?.company_name || "Fiche GMB"}
           </DialogTitle>
+          {client?.gmb_public_token && (
+            <div className="flex items-center gap-2 pt-1">
+              <Link2 className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground truncate">
+                {`${PUBLIC_BASE_URL}/mon-gmb/${client.gmb_public_token}`}
+              </span>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-6 px-2 text-xs"
+                onClick={() => {
+                  navigator.clipboard.writeText(
+                    `${PUBLIC_BASE_URL}/mon-gmb/${client.gmb_public_token}`
+                  );
+                  toast.success("Lien copié");
+                }}
+              >
+                <Copy className="mr-1 h-3 w-3" /> Copier
+              </Button>
+            </div>
+          )}
         </DialogHeader>
 
-        <Tabs defaultValue="checklist">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="checklist">Checklist</TabsTrigger>
-            <TabsTrigger value="info">Infos fiche</TabsTrigger>
-            <TabsTrigger value="stats">Avis & stats</TabsTrigger>
+        <Tabs defaultValue="playbook">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="playbook" className="gap-1">
+              <BookOpen className="h-3 w-3" /> Guide
+            </TabsTrigger>
+            <TabsTrigger value="checklist" className="gap-1">
+              <ListChecks className="h-3 w-3" /> Checklist
+            </TabsTrigger>
+            <TabsTrigger value="goals" className="gap-1">
+              <Target className="h-3 w-3" /> Objectifs
+            </TabsTrigger>
+            <TabsTrigger value="activity" className="gap-1">
+              <MessageSquare className="h-3 w-3" /> Journal
+            </TabsTrigger>
+            <TabsTrigger value="info">Infos</TabsTrigger>
+            <TabsTrigger value="stats">Avis</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="playbook" className="pt-4">
+            <GmbWebmasterPlaybook row={row} />
+          </TabsContent>
+
+          <TabsContent value="goals" className="pt-4">
+            <GmbMonthlyGoals clientGmbId={row.id} clientId={row.client_id} />
+          </TabsContent>
+
+          <TabsContent value="activity" className="pt-4">
+            <GmbActivityTimeline clientGmbId={row.id} clientId={row.client_id} />
+          </TabsContent>
+
 
           <TabsContent value="checklist" className="space-y-4 pt-4">
             {/* Quick actions */}

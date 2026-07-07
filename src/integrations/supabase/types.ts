@@ -430,6 +430,7 @@ export type Database = {
           created_at: string
           created_by: string
           email: string | null
+          gmb_public_token: string | null
           has_gmb: boolean | null
           id: string
           logo_created: boolean
@@ -480,6 +481,7 @@ export type Database = {
           created_at?: string
           created_by: string
           email?: string | null
+          gmb_public_token?: string | null
           has_gmb?: boolean | null
           id?: string
           logo_created?: boolean
@@ -530,6 +532,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           email?: string | null
+          gmb_public_token?: string | null
           has_gmb?: boolean | null
           id?: string
           logo_created?: boolean
@@ -1179,6 +1182,126 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "fb_onboarding_submissions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gmb_activities: {
+        Row: {
+          action_type: Database["public"]["Enums"]["gmb_activity_type"]
+          client_gmb_id: string
+          client_id: string
+          created_at: string
+          description: string
+          id: string
+          link: string | null
+          performed_at: string
+          performed_by: string | null
+          visible_to_client: boolean
+        }
+        Insert: {
+          action_type?: Database["public"]["Enums"]["gmb_activity_type"]
+          client_gmb_id: string
+          client_id: string
+          created_at?: string
+          description: string
+          id?: string
+          link?: string | null
+          performed_at?: string
+          performed_by?: string | null
+          visible_to_client?: boolean
+        }
+        Update: {
+          action_type?: Database["public"]["Enums"]["gmb_activity_type"]
+          client_gmb_id?: string
+          client_id?: string
+          created_at?: string
+          description?: string
+          id?: string
+          link?: string | null
+          performed_at?: string
+          performed_by?: string | null
+          visible_to_client?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gmb_activities_client_gmb_id_fkey"
+            columns: ["client_gmb_id"]
+            isOneToOne: false
+            referencedRelation: "client_gmb"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gmb_activities_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gmb_monthly_goals: {
+        Row: {
+          client_gmb_id: string
+          client_id: string
+          created_at: string
+          id: string
+          month_year: string
+          notes: string | null
+          photos_done: number
+          photos_target: number
+          posts_done: number
+          posts_target: number
+          reviews_received: number
+          reviews_replied: number
+          reviews_reply_target_pct: number
+          updated_at: string
+        }
+        Insert: {
+          client_gmb_id: string
+          client_id: string
+          created_at?: string
+          id?: string
+          month_year: string
+          notes?: string | null
+          photos_done?: number
+          photos_target?: number
+          posts_done?: number
+          posts_target?: number
+          reviews_received?: number
+          reviews_replied?: number
+          reviews_reply_target_pct?: number
+          updated_at?: string
+        }
+        Update: {
+          client_gmb_id?: string
+          client_id?: string
+          created_at?: string
+          id?: string
+          month_year?: string
+          notes?: string | null
+          photos_done?: number
+          photos_target?: number
+          posts_done?: number
+          posts_target?: number
+          reviews_received?: number
+          reviews_replied?: number
+          reviews_reply_target_pct?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gmb_monthly_goals_client_gmb_id_fkey"
+            columns: ["client_gmb_id"]
+            isOneToOne: false
+            referencedRelation: "client_gmb"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gmb_monthly_goals_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
@@ -2619,6 +2742,7 @@ export type Database = {
           site_ical_url: string
         }[]
       }
+      get_public_gmb_dashboard: { Args: { p_token: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2738,6 +2862,18 @@ export type Database = {
         | "gestionnaire"
         | "proprietaire"
         | "proprietaire_principal"
+      gmb_activity_type:
+        | "post_publie"
+        | "photo_ajoutee"
+        | "avis_repondu"
+        | "description_maj"
+        | "horaires_maj"
+        | "produit_ajoute"
+        | "qa_repondue"
+        | "verification"
+        | "checklist_maj"
+        | "statut_maj"
+        | "autre"
       gmb_status:
         | "a_creer"
         | "compte_cree"
@@ -2987,6 +3123,19 @@ export const Constants = {
         "gestionnaire",
         "proprietaire",
         "proprietaire_principal",
+      ],
+      gmb_activity_type: [
+        "post_publie",
+        "photo_ajoutee",
+        "avis_repondu",
+        "description_maj",
+        "horaires_maj",
+        "produit_ajoute",
+        "qa_repondue",
+        "verification",
+        "checklist_maj",
+        "statut_maj",
+        "autre",
       ],
       gmb_status: [
         "a_creer",

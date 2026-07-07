@@ -49,6 +49,7 @@ import TutoPaiements from "./pages/TutoPaiements";
 import TutoMotoPress from "./pages/TutoMotoPress";
 import TutoEmailProGmail from "./pages/TutoEmailProGmail";
 import Calendrier from "./pages/Calendrier";
+import GmbPublic from "./pages/GmbPublic";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -197,6 +198,8 @@ const App = () => (
             <Route path="/formulaire/:token/:type" element={<ClientForm />} />
             <Route path="/ical/:token" element={<ReservationSyncForm />} />
             <Route path="/sync-reservations/:token" element={<ReservationSyncForm />} />
+            <Route path="/mon-gmb/:token" element={<GmbPublic />} />
+
 
             <Route path="/valider-logo/:clientId" element={<LogoValidation />} />
             <Route path="/meta-callback" element={

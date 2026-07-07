@@ -39,6 +39,7 @@ export function ClientCombobox({
   emptyText = "Aucun client trouvé.",
   disabled,
   className,
+  getBadge,
 }: Props) {
   const [open, setOpen] = React.useState(false);
   const selected = options.find((o) => o.id === value);

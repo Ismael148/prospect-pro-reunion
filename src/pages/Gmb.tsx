@@ -75,6 +75,12 @@ import { GmbMonthlyGoals } from "@/components/gmb/GmbMonthlyGoals";
 
 const PUBLIC_BASE_URL =
   typeof window !== "undefined" ? window.location.origin : "https://ai.adamkom.com";
+
+const CHECKLIST_ITEMS: Array<{
+  key: keyof ClientGmbWithClient;
+  label: string;
+  hint?: string;
+}> = [
   { key: "checklist_account_created", label: "Compte Google Business créé", hint: "business.google.com" },
   { key: "checklist_postal_requested", label: "Vérification postale demandée" },
   { key: "checklist_code_received", label: "Code reçu du client" },

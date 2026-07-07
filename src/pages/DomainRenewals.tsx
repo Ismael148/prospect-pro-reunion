@@ -405,12 +405,13 @@ export default function DomainRenewals() {
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
               <Label>Client *</Label>
-              <Select value={form.client_id} onValueChange={(v) => setForm({ ...form, client_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Sélectionner..." /></SelectTrigger>
-                <SelectContent>
-                  {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <ClientCombobox
+                options={clients.map((c) => ({ id: c.id, company_name: c.company_name, ndi: c.ndi, city: c.city }))}
+                value={form.client_id}
+                onChange={(v) => setForm({ ...form, client_id: v })}
+                placeholder="Rechercher un client…"
+                emptyText="Aucun client trouvé."
+              />
             </div>
             <div>
               <Label>Nom de domaine *</Label>

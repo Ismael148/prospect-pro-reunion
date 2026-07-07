@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useGmbAi, getHistory, type GmbAiAction } from "@/hooks/use-gmb-ai";
 import type { ClientGmbWithClient } from "@/hooks/use-client-gmb";
+import { GmbReviewsManager } from "./GmbReviewsManager";
 
 interface Props {
   row: ClientGmbWithClient;

@@ -241,10 +241,15 @@ export default function Gmb() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <StatCard label="Fiches suivies" value={stats.total} />
+        <StatCard label="Fiches suivies" value={stats.total} sub={`${stats.avgProgress}% moyen`} />
         <StatCard label="Actives" value={stats.active} accent="text-emerald-600" />
         <StatCard label="En cours" value={stats.pending} accent="text-amber-600" />
-        <StatCard label="Suspendues" value={stats.suspended} accent="text-destructive" />
+        <StatCard
+          label="⚠ Alertes"
+          value={stats.totalUnanswered + stats.stalePosts}
+          accent="text-destructive"
+          sub={`${stats.totalUnanswered} avis · ${stats.stalePosts} sans post`}
+        />
       </div>
 
       {/* Filters */}

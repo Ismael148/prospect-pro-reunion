@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { Sparkles, Copy, Check, Loader2, History, Wand2 } from "lucide-react";
+import { Sparkles, Copy, Check, Loader2, History, Wand2, Eye, Code2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { useGmbAi, getHistory, type GmbAiAction } from "@/hooks/use-gmb-ai";
 import type { ClientGmbWithClient } from "@/hooks/use-client-gmb";

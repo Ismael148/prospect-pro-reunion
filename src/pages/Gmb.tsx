@@ -313,11 +313,13 @@ export default function Gmb() {
 }
 
 function StatCard({ label, value, accent }: { label: string; value: number; accent?: string }) {
+function StatCard({ label, value, accent, sub }: { label: string; value: number; accent?: string; sub?: string }) {
   return (
     <Card>
       <CardContent className="p-4">
         <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
         <p className={`mt-1 text-3xl font-bold ${accent || ""}`}>{value}</p>
+        {sub && <p className="mt-0.5 text-[10px] text-muted-foreground">{sub}</p>}
       </CardContent>
     </Card>
   );

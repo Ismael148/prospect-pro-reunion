@@ -407,6 +407,21 @@ function GmbCard({
           <Button size="sm" onClick={onOpen}>
             Gérer
           </Button>
+          {client?.gmb_public_token && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1"
+              onClick={() => {
+                const url = `${PUBLIC_BASE_URL}/mon-gmb/${client.gmb_public_token}`;
+                navigator.clipboard.writeText(url);
+                toast.success("Lien client copié — envoie-le au client");
+              }}
+              title="Copier le lien de suivi client"
+            >
+              <Link2 className="h-3 w-3" /> Lien client
+            </Button>
+          )}
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button size="sm" variant="ghost" className="text-destructive">

@@ -111,6 +111,18 @@ export default function Gmb() {
 
   const stats = useMemo(() => {
     const all = rows;
+    const now = Date.now();
+    const staleThreshold = 30 * 24 * 3600 * 1000;
+    const totalUnanswered = all.reduce((s, r) => s + (r.unanswered_reviews || 0), 0);
+    const stalePosts = all.filter((r) => {
+      if (r.status !== "active") return false;
+      if (!r.last_post_at) return true;
+      return now - new Date(r.last_post_at).getTime() > staleThreshold;
+    }).length;
+    const avgProgress =
+      all.length === 0
+        ? 0
+        : Math.round(all.reduce((s, r) => s + getProgress(r), 0) / all.length);
     return {
       total: all.length,
       active: all.filter((r) => r.status === "active").length,
@@ -118,8 +130,43 @@ export default function Gmb() {
         ["a_creer", "compte_cree", "verification_postale_demandee", "code_recu"].includes(r.status)
       ).length,
       suspended: all.filter((r) => r.status === "suspendue").length,
+      totalUnanswered,
+      stalePosts,
+      avgProgress,
     };
   }, [rows]);
+
+  const exportCsv = () => {
+    const header = [
+      "Client","Ville","NDI","Statut","Progression %","Note moyenne","Avis totaux","Avis sans réponse","Dernier post","URL fiche","Lien client",
+    ];
+    const lines = rows.map((r) => [
+      r.clients?.company_name || "",
+      r.clients?.city || "",
+      r.clients?.ndi || "",
+      GMB_STATUS_LABELS[r.status],
+      getProgress(r),
+      r.average_rating ?? "",
+      r.total_reviews ?? "",
+      r.unanswered_reviews ?? "",
+      r.last_post_at ? new Date(r.last_post_at).toLocaleDateString("fr-FR") : "",
+      r.gmb_url || "",
+      r.clients?.gmb_public_token
+        ? `${PUBLIC_BASE_URL}/mon-gmb/${r.clients.gmb_public_token}`
+        : "",
+    ]);
+    const csv = [header, ...lines]
+      .map((row) => row.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `gmb-suivi-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Export CSV téléchargé");
+  };
 
   const handleCreate = async () => {
     if (!pickedClientId) {

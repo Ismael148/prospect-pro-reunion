@@ -97,7 +97,7 @@ export function useClientGmbList(filters?: { status?: GmbStatus | "all"; search?
       let q = (supabase as any)
         .from("client_gmb")
         .select(
-          "*, clients(id, company_name, ndi, address, city, postal_code, phone, sector, has_gmb)"
+          "*, clients(id, company_name, ndi, address, city, postal_code, phone, sector, has_gmb, gmb_public_token)"
         )
         .order("updated_at", { ascending: false });
       if (filters?.status && filters.status !== "all") q = q.eq("status", filters.status);

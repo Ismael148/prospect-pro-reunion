@@ -16,7 +16,8 @@ type Action =
   | "posts_saisonniers"
   | "faq"
   | "reponses_avis"
-  | "repondre_avis";
+  | "repondre_avis"
+  | "avis_avance";
 
 const SYSTEM_BASE = `Tu es un EXPERT SENIOR Google Business Profile (GBP/GMB) niveau Google Product Expert, 10+ ans de SEO local, spécialisé pour La Réunion (974, UTC+4, français).
 
@@ -158,6 +159,49 @@ Rédige **UNE réponse professionnelle personnalisée** à copier-coller directe
 - Livre la réponse dans un bloc \`\`\` code copiable, avec le compteur de caractères en fin.
 
 Si l'avis est négatif ou hostile : garde ton calme, empathie, invite au dialogue privé.`;
+
+    case "avis_avance": {
+      // extra is a JSON string with: author, rating, text, tone, formality, length
+      let params: any = {};
+      try { params = JSON.parse(extra || "{}"); } catch { params = {}; }
+      const toneLabel: Record<string, string> = {
+        chaleureux: "chaleureux et humain, comme un ami reconnaissant",
+        professionnel: "professionnel et posé, corporate mais accessible",
+        empathique: "empathique et attentif, focus sur l'écoute du ressenti client",
+        ferme: "ferme mais courtois, sans se laisser marcher dessus, factuel",
+        humoristique: "légèrement humoristique et décontracté (uniquement si l'avis s'y prête)",
+      };
+      const lengthLabel: Record<string, string> = {
+        courte: "TRÈS courte : 150-300 caractères, punchy",
+        moyenne: "moyenne : 400-600 caractères, équilibrée",
+        longue: "détaillée : 700-1000 caractères, avec explications concrètes",
+      };
+      const formalityLabel: Record<string, string> = {
+        tutoiement: "TUTOIEMENT (tu / ton / te)",
+        vouvoiement: "VOUVOIEMENT (vous / votre)",
+      };
+      return `${ctx}\n\n**AVIS CLIENT REÇU :**
+Auteur : ${params.author || "Client anonyme"}
+Note : ${params.rating || "?"}/5 ${"⭐".repeat(Number(params.rating) || 0)}
+Texte :
+"""
+${params.text || "(pas de texte)"}
+"""
+
+**PARAMÈTRES DE LA RÉPONSE (obligatoires) :**
+- Ton : ${toneLabel[params.tone] || toneLabel.professionnel}
+- Formalité : ${formalityLabel[params.formality] || formalityLabel.vouvoiement}
+- Longueur : ${lengthLabel[params.length] || lengthLabel.moyenne}
+
+**CONSIGNES :**
+- Personnalise en reprenant 1-2 éléments CONCRETS de l'avis (pas de générique)
+- Adapte au sentiment (${(Number(params.rating) || 3) >= 4 ? "positif : chaleur + invitation à revenir" : (Number(params.rating) || 3) === 3 ? "mitigé : accusé de réception + amélioration + contact privé" : "négatif : empathie + dialogue privé, contact ${client.phone || 'entreprise'}"})
+- Mentionne subtilement "${client.city || "La Réunion"}" pour le SEO local si naturel
+- JAMAIS le nom du client, JAMAIS de promesse de dédommagement public
+- Respecte STRICTEMENT le ton, la formalité et la longueur demandés
+- Français impeccable, prêt à copier-coller sur Google Business Profile
+- Livre UNIQUEMENT la réponse finale dans un bloc \`\`\` code, suivie du compteur de caractères.`;
+    }
   }
 }
 

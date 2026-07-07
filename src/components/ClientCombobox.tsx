@@ -84,6 +84,7 @@ export function ClientCombobox({
               {options.map((o) => {
                 const label = labelOf(o);
                 const searchable = `${o.company_name ?? ""} ${o.ndi ?? ""} ${o.city ?? ""}`;
+                const badge = getBadge?.(o);
                 return (
                   <CommandItem
                     key={o.id}
@@ -99,10 +100,18 @@ export function ClientCombobox({
                         value === o.id ? "opacity-100" : "opacity-0",
                       )}
                     />
-                    <span className="truncate">{label}</span>
+                    <span className="truncate flex-1">{label}</span>
+                    {badge && <span className="ml-2 shrink-0">{badge}</span>}
                   </CommandItem>
                 );
               })}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
             </CommandGroup>
           </CommandList>
         </Command>

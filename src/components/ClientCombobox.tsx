@@ -17,6 +17,7 @@ export interface ClientComboboxOption {
   company_name?: string | null;
   ndi?: string | null;
   city?: string | null;
+  [key: string]: any;
 }
 
 interface Props {
@@ -27,6 +28,7 @@ interface Props {
   emptyText?: string;
   disabled?: boolean;
   className?: string;
+  getBadge?: (option: ClientComboboxOption) => React.ReactNode;
 }
 
 export function ClientCombobox({

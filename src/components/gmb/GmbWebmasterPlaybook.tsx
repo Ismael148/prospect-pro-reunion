@@ -55,6 +55,7 @@ export function GmbWebmasterPlaybook({ row }: Props) {
               Suis les 4 phases dans l'ordre pour une fiche performante.
             </p>
           </div>
+          <GmbAiAssistant row={row} />
         </div>
       </Card>
 

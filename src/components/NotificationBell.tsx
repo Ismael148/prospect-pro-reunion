@@ -1,10 +1,11 @@
 import { useState, useMemo } from "react";
 import {
-  Bell, CheckCheck, UserPlus, ArrowRightLeft, LifeBuoy, FileText,
+  Bell, BellOff, CheckCheck, UserPlus, ArrowRightLeft, LifeBuoy, FileText,
   Calendar, AlertTriangle, Info, MessageCircle, ExternalLink, CheckCircle,
   Inbox, AtSign, FilePlus2, Filter,
 } from "lucide-react";
 import { useNotifications, useUnreadCount, useMarkAsRead, useMarkAllAsRead } from "@/hooks/use-notifications";
+import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -179,6 +180,7 @@ export function NotificationBell() {
   const navigate = useNavigate();
   const [active, setActive] = useState<Category>("all");
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
+  const { permission, enable, enabling } = usePushNotifications();
 
   const handleClick = (n: { id: string; read: boolean; link: string | null }) => {
     if (!n.read) markAsRead.mutate(n.id);
@@ -262,6 +264,19 @@ export function NotificationBell() {
             )}
           </div>
         </div>
+
+        {/* Push notifications banner */}
+        {permission !== "granted" && permission !== "unsupported" && (
+          <div className="flex items-center justify-between gap-2 px-4 py-2 border-b bg-primary/5">
+            <div className="flex items-center gap-2 text-xs">
+              <BellOff className="w-3.5 h-3.5 text-primary" />
+              <span className="text-foreground">Recevoir les notifs sur cet appareil</span>
+            </div>
+            <Button size="sm" className="h-7 text-[11px]" onClick={enable} disabled={enabling}>
+              {enabling ? "..." : "Activer"}
+            </Button>
+          </div>
+        )}
 
         {/* Category tabs */}
         <Tabs value={active} onValueChange={(v) => setActive(v as Category)}>

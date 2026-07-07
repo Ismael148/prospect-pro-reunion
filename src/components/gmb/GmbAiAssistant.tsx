@@ -55,6 +55,14 @@ const PHASES: { key: string; label: string; emoji: string; generators: Generator
       { action: "posts_saisonniers", title: "5 posts saisonniers", description: "Adaptés calendrier Réunion (Fet Kaf, Dipavali...)", emoji: "🌺" },
       { action: "faq", title: "FAQ anticipées", description: "8-10 Q/R optimisées SEO", emoji: "❓" },
       { action: "reponses_avis", title: "Modèles réponses avis", description: "5★ / 3★ / 1★ personnalisés", emoji: "⭐" },
+      {
+        action: "repondre_avis",
+        title: "Répondre à un avis (colle-le)",
+        description: "Colle l'avis client → réponse personnalisée prête à coller sur Google",
+        emoji: "💬",
+        needsExtra: "Colle ici l'avis client tel qu'il apparaît sur Google...",
+        extraMultiline: true,
+      },
     ],
   },
 ];

@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { GMB_PLAYBOOK, computePhaseProgress, type GmbPlaybookPhase } from "@/lib/gmb-playbook";
 import { useUpsertClientGmb, type ClientGmbWithClient } from "@/hooks/use-client-gmb";
 import { useCreateGmbActivity } from "@/hooks/use-gmb-activities";
+import { GmbAiAssistant } from "./GmbAiAssistant";
 
 interface Props {
   row: ClientGmbWithClient;

@@ -157,8 +157,8 @@ export function GmbAiAssistant({ row }: Props) {
           Assistant IA
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-full sm:max-w-2xl overflow-hidden flex flex-col p-0">
-        <SheetHeader className="border-b p-4 space-y-2">
+      <SheetContent side="right" className="w-full sm:max-w-3xl lg:max-w-4xl p-0 flex flex-col h-full">
+        <SheetHeader className="border-b p-4 space-y-2 shrink-0">
           <SheetTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
             Assistant IA GMB
@@ -172,46 +172,44 @@ export function GmbAiAssistant({ row }: Props) {
           </SheetDescription>
         </SheetHeader>
 
-        <ScrollArea className="flex-1">
-          <div className="p-4">
-            <Tabs defaultValue="phase1">
-              <TabsList className="grid grid-cols-3 w-full">
-                {PHASES.map((p) => (
-                  <TabsTrigger key={p.key} value={p.key} className="text-xs">
-                    <span className="mr-1">{p.emoji}</span> {p.label.split("—")[0].trim()}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-
-              {PHASES.map((phase) => (
-                <TabsContent key={phase.key} value={phase.key} className="space-y-3 mt-4">
-                  {phase.generators.map((gen) => (
-                    <GeneratorCard key={gen.action} gen={gen} clientId={clientId} />
-                  ))}
-                </TabsContent>
+        <div className="flex-1 overflow-y-auto p-4">
+          <Tabs defaultValue="phase1">
+            <TabsList className="grid grid-cols-3 w-full sticky top-0 z-10">
+              {PHASES.map((p) => (
+                <TabsTrigger key={p.key} value={p.key} className="text-xs">
+                  <span className="mr-1">{p.emoji}</span> {p.label.split("—")[0].trim()}
+                </TabsTrigger>
               ))}
-            </Tabs>
+            </TabsList>
 
-            {history.length > 0 && (
-              <div className="mt-6 space-y-2">
-                <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-                  <History className="h-3 w-3" />
-                  Historique récent ({history.length})
-                </div>
-                {history.map((h, i) => (
-                  <details key={i} className="rounded-md border bg-muted/20 p-2 text-xs">
-                    <summary className="cursor-pointer font-medium">
-                      {h.action} — {new Date(h.generatedAt).toLocaleString("fr-FR")}
-                    </summary>
-                    <div className="prose prose-sm dark:prose-invert max-w-none mt-2">
-                      <ReactMarkdown>{h.content}</ReactMarkdown>
-                    </div>
-                  </details>
+            {PHASES.map((phase) => (
+              <TabsContent key={phase.key} value={phase.key} className="space-y-3 mt-4">
+                {phase.generators.map((gen) => (
+                  <GeneratorCard key={gen.action} gen={gen} clientId={clientId} />
                 ))}
+              </TabsContent>
+            ))}
+          </Tabs>
+
+          {history.length > 0 && (
+            <div className="mt-6 space-y-2">
+              <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+                <History className="h-3 w-3" />
+                Historique récent ({history.length})
               </div>
-            )}
-          </div>
-        </ScrollArea>
+              {history.map((h, i) => (
+                <details key={i} className="rounded-md border bg-muted/20 p-2 text-xs">
+                  <summary className="cursor-pointer font-medium">
+                    {h.action} — {new Date(h.generatedAt).toLocaleString("fr-FR")}
+                  </summary>
+                  <div className="prose prose-sm dark:prose-invert max-w-none mt-2 whitespace-pre-wrap">
+                    <ReactMarkdown>{h.content}</ReactMarkdown>
+                  </div>
+                </details>
+              ))}
+            </div>
+          )}
+        </div>
       </SheetContent>
     </Sheet>
   );

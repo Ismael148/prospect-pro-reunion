@@ -193,12 +193,15 @@ export function GmbAiAssistant({ row }: Props) {
 
         <div className="flex-1 overflow-y-auto p-4">
           <Tabs defaultValue="phase1">
-            <TabsList className="grid grid-cols-3 w-full sticky top-0 z-10">
+            <TabsList className="grid grid-cols-4 w-full sticky top-0 z-10">
               {PHASES.map((p) => (
                 <TabsTrigger key={p.key} value={p.key} className="text-xs">
                   <span className="mr-1">{p.emoji}</span> {p.label.split("—")[0].trim()}
                 </TabsTrigger>
               ))}
+              <TabsTrigger value="avis" className="text-xs">
+                <span className="mr-1">⭐</span> Avis
+              </TabsTrigger>
             </TabsList>
 
             {PHASES.map((phase) => (
@@ -208,6 +211,10 @@ export function GmbAiAssistant({ row }: Props) {
                 ))}
               </TabsContent>
             ))}
+
+            <TabsContent value="avis" className="mt-4">
+              <GmbReviewsManager clientId={clientId} clientGmbId={row.id} />
+            </TabsContent>
           </Tabs>
 
           {history.length > 0 && (

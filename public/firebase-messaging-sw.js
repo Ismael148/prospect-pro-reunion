@@ -1,14 +1,16 @@
-// Firebase Cloud Messaging service worker for background push notifications
+/* Firebase Cloud Messaging service worker. Config is provided via query params
+   so we don't need a build step to inject the public web API key. */
 importScripts("https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js");
 
+const params = new URL(self.location.href).searchParams;
 firebase.initializeApp({
-  apiKey: "AIzaSyDummy-Replaced-At-Runtime",
+  apiKey: params.get("k") || "",
   authDomain: "adamkom-crm.firebaseapp.com",
-  projectId: "adamkom-crm",
+  projectId: params.get("p") || "adamkom-crm",
   storageBucket: "adamkom-crm.firebasestorage.app",
-  messagingSenderId: "317720872928",
-  appId: "1:317720872928:web:499026281ff0225d4c8d85",
+  messagingSenderId: params.get("s") || "317720872928",
+  appId: params.get("a") || "1:317720872928:web:499026281ff0225d4c8d85",
 });
 
 const messaging = firebase.messaging();
@@ -19,9 +21,7 @@ messaging.onBackgroundMessage((payload) => {
     body: payload.notification?.body || payload.data?.message || "",
     icon: "/favicon.ico",
     badge: "/favicon.ico",
-    data: {
-      url: payload.data?.link || "/",
-    },
+    data: { url: payload.data?.link || "/" },
     tag: payload.data?.notification_id || undefined,
   };
   self.registration.showNotification(title, options);

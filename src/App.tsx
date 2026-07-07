@@ -49,6 +49,7 @@ import TutoPaiements from "./pages/TutoPaiements";
 import TutoMotoPress from "./pages/TutoMotoPress";
 import TutoEmailProGmail from "./pages/TutoEmailProGmail";
 import Calendrier from "./pages/Calendrier";
+import GmbPublic from "./pages/GmbPublic";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

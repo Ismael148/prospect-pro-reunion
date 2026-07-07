@@ -58,6 +58,7 @@ export interface ClientGmbWithClient extends ClientGmb {
     phone: string | null;
     sector: string | null;
     has_gmb: boolean | null;
+    gmb_public_token: string | null;
   } | null;
 }
 

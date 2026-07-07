@@ -168,10 +168,23 @@ export default function Gmb() {
     toast.success("Export CSV téléchargé");
   };
 
+  const pickedCandidate = candidates.find((c: any) => c.id === pickedClientId);
+  const pickedAlreadyTracked = Boolean(pickedCandidate?.existing_gmb_id);
+
   const handleCreate = async () => {
     if (!pickedClientId) {
       toast.error("Sélectionne un client");
       return;
+    }
+    if (pickedAlreadyTracked) {
+      // Ouvre directement la fiche existante
+      const existing = rows.find((r) => r.client_id === pickedClientId);
+      if (existing) {
+        setActiveRow(existing);
+        setCreateOpen(false);
+        setPickedClientId("");
+        return;
+      }
     }
     await upsert.mutateAsync({ client_id: pickedClientId, status: "a_creer" });
     setCreateOpen(false);

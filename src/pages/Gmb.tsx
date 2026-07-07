@@ -13,6 +13,12 @@ import {
   MessageSquare,
   Trash2,
   Copy,
+  Link2,
+  Download,
+  AlertTriangle,
+  BookOpen,
+  ListChecks,
+  Target,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

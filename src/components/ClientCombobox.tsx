@@ -17,6 +17,7 @@ export interface ClientComboboxOption {
   company_name?: string | null;
   ndi?: string | null;
   city?: string | null;
+  [key: string]: any;
 }
 
 interface Props {
@@ -27,6 +28,7 @@ interface Props {
   emptyText?: string;
   disabled?: boolean;
   className?: string;
+  getBadge?: (option: ClientComboboxOption) => React.ReactNode;
 }
 
 export function ClientCombobox({
@@ -37,6 +39,7 @@ export function ClientCombobox({
   emptyText = "Aucun client trouvé.",
   disabled,
   className,
+  getBadge,
 }: Props) {
   const [open, setOpen] = React.useState(false);
   const selected = options.find((o) => o.id === value);
@@ -81,6 +84,7 @@ export function ClientCombobox({
               {options.map((o) => {
                 const label = labelOf(o);
                 const searchable = `${o.company_name ?? ""} ${o.ndi ?? ""} ${o.city ?? ""}`;
+                const badge = getBadge?.(o);
                 return (
                   <CommandItem
                     key={o.id}
@@ -96,7 +100,8 @@ export function ClientCombobox({
                         value === o.id ? "opacity-100" : "opacity-0",
                       )}
                     />
-                    <span className="truncate">{label}</span>
+                    <span className="truncate flex-1">{label}</span>
+                    {badge && <span className="ml-2 shrink-0">{badge}</span>}
                   </CommandItem>
                 );
               })}

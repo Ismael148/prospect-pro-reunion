@@ -150,6 +150,28 @@ export function useClientsWithoutGmb() {
   });
 }
 
+/** All clients + flag indicating if they already have a GMB row (for the picker). */
+export function useAllClientsForGmbPicker() {
+  return useQuery({
+    queryKey: ["clients-for-gmb-picker"],
+    queryFn: async () => {
+      const [{ data: clients }, { data: gmb }] = await Promise.all([
+        supabase
+          .from("clients")
+          .select("id, company_name, ndi, city, address, postal_code, phone, sector")
+          .order("company_name"),
+        (supabase as any).from("client_gmb").select("id, client_id"),
+      ]);
+      const byClient = new Map<string, string>();
+      (gmb || []).forEach((g: any) => byClient.set(g.client_id, g.id));
+      return (clients || []).map((c: any) => ({
+        ...c,
+        existing_gmb_id: byClient.get(c.id) || null,
+      }));
+    },
+  });
+}
+
 export function useUpsertClientGmb() {
   const qc = useQueryClient();
   return useMutation({

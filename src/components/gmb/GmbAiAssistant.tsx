@@ -111,12 +111,21 @@ function GeneratorCard({ gen, clientId }: { gen: Generator; clientId: string }) 
       </div>
 
       {gen.needsExtra && (
-        <Input
-          placeholder={gen.needsExtra}
-          value={extra}
-          onChange={(e) => setExtra(e.target.value)}
-          className="text-xs h-9"
-        />
+        gen.extraMultiline ? (
+          <Textarea
+            placeholder={gen.needsExtra}
+            value={extra}
+            onChange={(e) => setExtra(e.target.value)}
+            className="text-xs min-h-[100px]"
+          />
+        ) : (
+          <Input
+            placeholder={gen.needsExtra}
+            value={extra}
+            onChange={(e) => setExtra(e.target.value)}
+            className="text-xs h-9"
+          />
+        )
       )}
 
       {result && (

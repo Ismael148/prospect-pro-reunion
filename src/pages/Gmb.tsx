@@ -312,7 +312,6 @@ export default function Gmb() {
   );
 }
 
-function StatCard({ label, value, accent }: { label: string; value: number; accent?: string }) {
 function StatCard({ label, value, accent, sub }: { label: string; value: number; accent?: string; sub?: string }) {
   return (
     <Card>

@@ -1,86 +1,55 @@
-# Suite GMB complète — Suivi, guide webmaster, livrable client
+# 🤖 Assistant IA GMB pour Webmasters
 
-## Objectif
-Faire de la gestion de fiches Google un module leader : le webmaster sait quoi faire, l'admin voit tout d'un coup d'œil, le client voit ce qu'on fait pour lui.
+Un panneau IA intégré au playbook GMB (`GmbWebmasterPlaybook`) qui génère tout le contenu depuis juste le nom d'entreprise + secteur du client. Utilise **Lovable AI Gateway** (Gemini 2.5 Flash) — pas besoin de clé OpenAI, tout est déjà configuré et gratuit pour l'équipe.
 
-## 1. Base de données (nouvelles tables)
+## 🎯 Générateurs disponibles
 
-### `gmb_activities` — Journal d'activité par fiche
-- `id`, `client_gmb_id`, `client_id`
-- `action_type` enum : `post_publie`, `photo_ajoutee`, `avis_repondu`, `description_maj`, `horaires_maj`, `produit_ajoute`, `qa_repondue`, `verification`, `autre`
-- `description` text, `link` text (URL post/photo), `visible_to_client` bool (default true)
-- `performed_by` uuid, `performed_at` timestamptz
-- RLS : admin/webmaster CRUD ; lecture publique via token client (voir §3)
+**Phase 1 — Création :**
+- **Catégories GMB** → suggère 1 catégorie principale + 3-5 secondaires depuis la liste officielle Google (grounding IA + secteur client)
+- **Description entreprise (750 car max)** → optimisée SEO avec mots-clés locaux Réunion
 
-### `gmb_monthly_goals` — Objectifs mensuels par fiche
-- `id`, `client_gmb_id`, `month_year` (YYYY-MM)
-- `posts_target` int (défaut 4), `posts_done` int
-- `reviews_reply_target_pct` int (défaut 100), `reviews_replied` int, `reviews_received` int
-- `photos_target` int (défaut 8), `photos_done` int
-- unique (`client_gmb_id`, `month_year`)
+**Phase 2 — Optimisation :**
+- **Prompt photo de couverture** → prompt détaillé pour Nano Banana / Midjourney, style "photo réelle non-IA détectable" (grain, lumière naturelle, imperfections)
+- **Pack 10 prompts photos** → couverture + intérieur + équipe + produits/services + ambiance, tous "anti-détection IA"
+- **Description SEO longue** → avec mots-clés géolocalisés (ville + secteur + Réunion)
+- **Attributs / services / produits** → liste structurée à copier dans GBP
 
-### `clients.gmb_public_token` (uuid)
-Token pour la page livrable client publique (généré à l'activation du suivi GMB).
+**Phase 3 — Engagement :**
+- **Post GMB complet** → titre + description + prix + bouton CTA + prompt image
+- **Pack 5 posts saisonniers** → adaptés au calendrier Réunion (fêtes locales, saisons)
+- **FAQ anticipées** → 8-10 questions/réponses selon le secteur
+- **Réponses aux avis** → 3 modèles (5★, 3★, 1★) personnalisés au secteur
 
-## 2. Guide Webmaster GMB pas-à-pas
+**Phase 4 — Suivi avis :**
+- Système de rafraîchissement du compteur d'avis via champ `total_reviews` + notification quand un nouvel avis apparaît (le webmaster met à jour manuellement le compteur → trigger crée une notif interne "🌟 Nouvel avis sur [client]")
 
-Nouveau composant `GmbWebmasterPlaybook` intégré dans la fiche GMB (page `/gmb` détail modal ou nouvelle route `/gmb/:id`) :
-- Checklist enrichie regroupée en 4 phases : **Création** (compte, adresse, catégorie, vérification postale), **Optimisation** (logo, photos couverture/intérieur, horaires, description SEO, attributs, services), **Contenu** (1er post, produits, Q&A), **Récurrent** (posts hebdo, réponses avis <48h, photos mensuelles).
-- Chaque étape : titre, description, astuce, lien 1-clic vers la section Google Business Profile correspondante (via `business.google.com/n/<locationId>/...` quand `gmb_location_id` est renseigné).
-- Coche = met à jour `client_gmb.checklist_*` et loggue une entrée dans `gmb_activities`.
+## 🖥️ UX
 
-## 3. Dashboard suivi global GMB (enrichissement `/gmb`)
+Un bouton flottant **✨ Assistant IA** dans `GmbWebmasterPlaybook` ouvre un `Sheet` latéral avec :
+- Header : rappel nom entreprise + secteur (lecture seule, tiré du client)
+- Onglets par phase (1/2/3/4)
+- Chaque générateur = une carte avec bouton "Générer", spinner, résultat en `<pre>` copiable en 1 clic (toast confirmation)
+- Historique local (localStorage) des 5 dernières générations par client
 
-- Cartes KPI en haut : total fiches, % checklist moyen, avis non répondus (total), fiches en retard (>30j sans post ou avis >48h)
-- Tableau enrichi : colonnes `% checklist`, `Dernier post` (jours), `Avis non répondus`, `Objectif mois` (barre), `Alertes` (badges rouges), `Livrable client` (bouton "Copier le lien")
-- Filtres : statut, alertes seulement, mois
-- Export CSV bouton
+## 🔧 Technique
 
-## 4. Page livrable client publique
+**Edge Function** `gmb-ai-assistant` (nouvelle) :
+- Auth JWT obligatoire
+- Body : `{ client_id, action, extra? }` où action ∈ catégories | description | prompt_couverture | prompts_photos | seo_long | attributs | post | posts_saisonniers | faq | reponses_avis
+- Charge le client depuis Supabase (nom, secteur, ville, adresse)
+- Appelle `google/gemini-2.5-flash` via Lovable AI Gateway avec prompt système spécialisé par action
+- Retourne JSON structuré selon l'action
 
-Nouvelle route publique `/mon-gmb/:token` (pas d'auth) :
-- Résout `token` → `clients.gmb_public_token` → `client_gmb` + `gmb_activities` (visible_to_client=true) + `gmb_monthly_goals`
-- Affiche : nom entreprise, statut fiche (badge), progression checklist (grande barre), objectifs du mois (posts/avis/photos), timeline des 20 dernières actions visibles, lien vers la fiche Google
-- RPC `SECURITY DEFINER` `get_public_gmb_dashboard(p_token uuid)` renvoie tout en un appel (pas d'accès direct anon aux tables)
-- Design : cohérent charte Adamkom (Space Grotesk, #ff006e, glassmorphism)
+**Frontend** :
+- `src/components/gmb/GmbAiAssistant.tsx` (nouveau) — Sheet + onglets + générateurs
+- `src/hooks/use-gmb-ai.ts` (nouveau) — mutation React Query par action
+- Bouton d'ouverture dans `GmbWebmasterPlaybook.tsx` (header)
 
-## 5. Journal d'activité (timeline)
+**Notif nouvel avis** :
+- Trigger SQL sur `client_gmb` : si `total_reviews` augmente → insert dans `notifications` (déjà relié au push FCM)
 
-- Composant `GmbActivityTimeline` : liste chronologique inversée, icône par type, badge "visible client" toggle
-- Formulaire rapide "Logger une action" dans la modale fiche : type, description, lien, checkbox visible client
-- Auto-log : quand webmaster coche checklist, quand statut change, quand objectifs mis à jour
+Aucune modif de la table `client_gmb` — les résultats IA sont juste affichés/copiés, pas stockés (le webmaster copie/colle dans GBP).
 
-## 6. Objectifs mensuels
+## 🚀 Impact
 
-- Section dans la modale fiche : sliders/inputs pour cibles + comptage manuel (incrément +1 quand action loggée du bon type)
-- Barre de progression 3 couleurs (rouge <50%, ambre <80%, vert)
-- Auto-création du mois courant à l'ouverture
-
-## Fichiers touchés
-
-**Migration SQL** (une seule) :
-- créer `gmb_activities`, `gmb_monthly_goals`, colonne `clients.gmb_public_token` + trigger génération
-- RPC `get_public_gmb_dashboard`
-- GRANT + RLS
-
-**Front** :
-- `src/hooks/use-gmb-activities.ts` (nouveau)
-- `src/hooks/use-gmb-goals.ts` (nouveau)
-- `src/hooks/use-client-gmb.ts` (étendre)
-- `src/components/gmb/GmbWebmasterPlaybook.tsx` (nouveau)
-- `src/components/gmb/GmbActivityTimeline.tsx` (nouveau)
-- `src/components/gmb/GmbMonthlyGoals.tsx` (nouveau)
-- `src/components/gmb/GmbFicheModal.tsx` (nouveau — regroupe playbook + timeline + objectifs)
-- `src/pages/Gmb.tsx` (enrichir : KPI, alertes, colonnes, CSV, bouton lien public)
-- `src/pages/GmbPublic.tsx` (nouveau — route publique)
-- `src/App.tsx` (route `/mon-gmb/:token`)
-- `src/lib/gmb-playbook.ts` (structure de données des étapes du playbook)
-
-## Hors périmètre (pour plus tard)
-- Rappels pg_cron automatiques (post hebdo, avis >48h)
-- Rapport PDF mensuel auto envoyé au client
-- Benchmark concurrents
-- Synchronisation API Google Business (nécessite validation Meta/Google)
-
-## Livraison
-Un seul lot cohérent, testé au build. Les objectifs mensuels sont inclus comme demandé.
+Le webmaster passe de "je réfléchis, je rédige, je cherche" à "je clique, je copie, je colle". Chaque fiche GMB peut être remplie en ~15 min au lieu d'1h.

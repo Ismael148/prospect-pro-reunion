@@ -224,33 +224,56 @@ export default function Gmb() {
               <Label>Client</Label>
               {candidates.length === 0 ? (
                 <div className="rounded-md border p-3 text-sm text-muted-foreground">
-                  Tous les clients ont déjà un suivi GMB.
+                  Aucun client dans la base. Ajoute d'abord un client dans <strong>Clients</strong>.
                 </div>
               ) : (
                 <ClientCombobox
                   options={candidates as any}
                   value={pickedClientId}
                   onChange={setPickedClientId}
-                  placeholder="Rechercher / sélectionner un client…"
+                  placeholder="Rechercher un client (nom, NDI, ville)…"
+                  getBadge={(c: any) =>
+                    c.existing_gmb_id ? (
+                      <Badge variant="outline" className="text-[10px]">✓ Déjà suivi</Badge>
+                    ) : null
+                  }
                 />
               )}
-              <p className="text-sm text-muted-foreground">
-                Le statut initial sera <Badge variant="outline">À créer</Badge>. Tu pourras ensuite
-                ouvrir Google Business Manager pré-rempli en 1 clic.
-              </p>
+              {pickedAlreadyTracked ? (
+                <div className="rounded-md border border-primary/30 bg-primary/5 p-3 text-sm">
+                  Ce client a <strong>déjà</strong> une fiche GMB en suivi. Clique sur <strong>Ouvrir la fiche</strong> pour accéder au <strong>guide webmaster, la checklist, les objectifs mensuels et le journal d'activité</strong>.
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Le statut initial sera <Badge variant="outline">À créer</Badge>. Une fois activé, tu retrouves le <strong>guide pas-à-pas, la checklist des 8 étapes, les objectifs mensuels et le journal d'activité</strong> visible par le client.
+                </p>
+              )}
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setCreateOpen(false)}>
                 Annuler
               </Button>
               <Button onClick={handleCreate} disabled={upsert.isPending}>
-                Activer
+                {pickedAlreadyTracked ? "Ouvrir la fiche" : "Activer"}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
         </div>
       </div>
+
+      {/* Guide d'utilisation */}
+      <Card className="border-primary/20 bg-primary/5">
+        <CardContent className="p-4 text-sm">
+          <p className="font-semibold mb-2">📘 Comment ça marche ?</p>
+          <ol className="list-decimal ml-5 space-y-1 text-muted-foreground">
+            <li><strong>Activer le suivi GMB</strong> pour un client → il apparaît dans la liste ci-dessous.</li>
+            <li>Clique sur <strong>Gérer</strong> sur sa carte → tu accèdes à 6 onglets : <strong>Guide</strong> (pas-à-pas webmaster), <strong>Checklist</strong> (8 étapes), <strong>Objectifs</strong> (posts/avis/photos du mois), <strong>Journal</strong> (actions visibles ou non par le client), <strong>Infos</strong> et <strong>Avis</strong>.</li>
+            <li>Copie le <strong>Lien client</strong> et envoie-le au client — il voit alors le travail en direct sur <code>/mon-gmb/…</code>.</li>
+          </ol>
+        </CardContent>
+      </Card>
+
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">

@@ -84,8 +84,8 @@ function GeneratorCard({ gen, clientId }: { gen: Generator; clientId: string }) 
 
   return (
     <Card className="p-4 space-y-3">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="flex-1 min-w-0">
           <p className="font-semibold flex items-center gap-2">
             <span>{gen.emoji}</span> {gen.title}
           </p>
@@ -105,20 +105,37 @@ function GeneratorCard({ gen, clientId }: { gen: Generator; clientId: string }) 
           placeholder={gen.needsExtra}
           value={extra}
           onChange={(e) => setExtra(e.target.value)}
-          className="text-xs h-8"
+          className="text-xs h-9"
         />
       )}
 
       {result && (
         <div className="space-y-2">
-          <div className="flex justify-end">
-            <Button size="sm" variant="outline" onClick={copy} className="h-7 text-xs">
+          <div className="flex items-center justify-between gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setRawMode((v) => !v)}
+              className="h-7 text-xs"
+            >
+              {rawMode ? <><Eye className="mr-1 h-3 w-3" /> Aperçu</> : <><Code2 className="mr-1 h-3 w-3" /> Texte brut</>}
+            </Button>
+            <Button size="sm" variant="default" onClick={copy} className="h-7 text-xs">
               {copied ? <><Check className="mr-1 h-3 w-3" /> Copié</> : <><Copy className="mr-1 h-3 w-3" /> Tout copier</>}
             </Button>
           </div>
-          <div className="prose prose-sm dark:prose-invert max-w-none rounded-md border bg-muted/30 p-3 text-xs">
-            <ReactMarkdown>{result}</ReactMarkdown>
-          </div>
+          {rawMode ? (
+            <Textarea
+              value={result}
+              readOnly
+              onFocus={(e) => e.currentTarget.select()}
+              className="font-mono text-xs min-h-[300px] bg-muted/30"
+            />
+          ) : (
+            <div className="prose prose-sm dark:prose-invert max-w-none rounded-md border bg-muted/30 p-3 text-sm whitespace-pre-wrap break-words">
+              <ReactMarkdown>{result}</ReactMarkdown>
+            </div>
+          )}
         </div>
       )}
     </Card>

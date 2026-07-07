@@ -12,7 +12,8 @@ export type GmbAiAction =
   | "post"
   | "posts_saisonniers"
   | "faq"
-  | "reponses_avis";
+  | "reponses_avis"
+  | "repondre_avis";
 
 export interface GmbAiGeneration {
   action: GmbAiAction;

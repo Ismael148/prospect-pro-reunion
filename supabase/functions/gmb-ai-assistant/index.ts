@@ -15,7 +15,8 @@ type Action =
   | "post"
   | "posts_saisonniers"
   | "faq"
-  | "reponses_avis";
+  | "reponses_avis"
+  | "repondre_avis";
 
 const SYSTEM_BASE = `Tu es un EXPERT SENIOR Google Business Profile (GBP/GMB) niveau Google Product Expert, 10+ ans de SEO local, spécialisé pour La Réunion (974, UTC+4, français).
 
@@ -140,6 +141,23 @@ Format : **Q :** ... / **R :** ... (réponse SEO 2-3 phrases avec mots-clés nat
 1. Avis 5★ (remerciement + invitation revenir)
 2. Avis 3★ (accusé de réception + amélioration + prise de contact)
 3. Avis 1★ (empathie + hors public + numéro de contact)`;
+
+    case "repondre_avis":
+      return `${ctx}\n\n**AVIS CLIENT REÇU (à coller par le webmaster) :**
+"""
+${extra || "(avis non fourni)"}
+"""
+
+Rédige **UNE réponse professionnelle personnalisée** à copier-coller directement sur Google Business Profile :
+- Ton adapté au sentiment de l'avis (positif / neutre / négatif)
+- Personnalise en reprenant 1-2 éléments concrets mentionnés dans l'avis
+- Mentionne subtilement la ville "${client.city || "La Réunion"}" pour le SEO local
+- Remercie sans être obséquieux, propose un follow-up si négatif (email/téléphone : ${client.phone || "à compléter"})
+- JAMAIS le nom du client, JAMAIS de promesse de dédommagement public
+- 400-800 caractères, français impeccable
+- Livre la réponse dans un bloc \`\`\` code copiable, avec le compteur de caractères en fin.
+
+Si l'avis est négatif ou hostile : garde ton calme, empathie, invite au dialogue privé.`;
   }
 }
 

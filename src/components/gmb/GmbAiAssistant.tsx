@@ -22,6 +22,7 @@ interface Generator {
   description: string;
   emoji: string;
   needsExtra?: string;
+  extraMultiline?: boolean;
 }
 
 const PHASES: { key: string; label: string; emoji: string; generators: Generator[] }[] = [
@@ -54,6 +55,14 @@ const PHASES: { key: string; label: string; emoji: string; generators: Generator
       { action: "posts_saisonniers", title: "5 posts saisonniers", description: "Adaptés calendrier Réunion (Fet Kaf, Dipavali...)", emoji: "🌺" },
       { action: "faq", title: "FAQ anticipées", description: "8-10 Q/R optimisées SEO", emoji: "❓" },
       { action: "reponses_avis", title: "Modèles réponses avis", description: "5★ / 3★ / 1★ personnalisés", emoji: "⭐" },
+      {
+        action: "repondre_avis",
+        title: "Répondre à un avis (colle-le)",
+        description: "Colle l'avis client → réponse personnalisée prête à coller sur Google",
+        emoji: "💬",
+        needsExtra: "Colle ici l'avis client tel qu'il apparaît sur Google...",
+        extraMultiline: true,
+      },
     ],
   },
 ];
@@ -102,12 +111,21 @@ function GeneratorCard({ gen, clientId }: { gen: Generator; clientId: string }) 
       </div>
 
       {gen.needsExtra && (
-        <Input
-          placeholder={gen.needsExtra}
-          value={extra}
-          onChange={(e) => setExtra(e.target.value)}
-          className="text-xs h-9"
-        />
+        gen.extraMultiline ? (
+          <Textarea
+            placeholder={gen.needsExtra}
+            value={extra}
+            onChange={(e) => setExtra(e.target.value)}
+            className="text-xs min-h-[100px]"
+          />
+        ) : (
+          <Input
+            placeholder={gen.needsExtra}
+            value={extra}
+            onChange={(e) => setExtra(e.target.value)}
+            className="text-xs h-9"
+          />
+        )
       )}
 
       {result && (

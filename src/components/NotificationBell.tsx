@@ -1,10 +1,11 @@
 import { useState, useMemo } from "react";
 import {
-  Bell, CheckCheck, UserPlus, ArrowRightLeft, LifeBuoy, FileText,
+  Bell, BellOff, CheckCheck, UserPlus, ArrowRightLeft, LifeBuoy, FileText,
   Calendar, AlertTriangle, Info, MessageCircle, ExternalLink, CheckCircle,
   Inbox, AtSign, FilePlus2, Filter,
 } from "lucide-react";
 import { useNotifications, useUnreadCount, useMarkAsRead, useMarkAllAsRead } from "@/hooks/use-notifications";
+import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";

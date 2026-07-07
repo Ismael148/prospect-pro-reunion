@@ -55,6 +55,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { ClientCombobox } from "@/components/ClientCombobox";
 import {
   useClientGmbList,
@@ -177,14 +178,31 @@ export default function Gmb() {
       return;
     }
     if (pickedAlreadyTracked) {
-      // Ouvre directement la fiche existante
-      const existing = rows.find((r) => r.client_id === pickedClientId);
+      // Ouvre directement la fiche existante — recherche large (indépendante des filtres)
+      let existing = rows.find((r) => r.client_id === pickedClientId) as ClientGmbWithClient | undefined;
+      if (!existing) {
+        const { data, error } = await (supabase as any)
+          .from("client_gmb")
+          .select(
+            "*, clients(id, company_name, ndi, address, city, postal_code, phone, sector, has_gmb, gmb_public_token)"
+          )
+          .eq("client_id", pickedClientId)
+          .maybeSingle();
+        if (error) {
+          toast.error(error.message);
+          return;
+        }
+        existing = data as ClientGmbWithClient;
+      }
       if (existing) {
         setActiveRow(existing);
         setCreateOpen(false);
         setPickedClientId("");
-        return;
+        toast.info("Fiche GMB existante ouverte");
+      } else {
+        toast.error("Fiche introuvable");
       }
+      return;
     }
     await upsert.mutateAsync({ client_id: pickedClientId, status: "a_creer" });
     setCreateOpen(false);

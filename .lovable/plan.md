@@ -1,173 +1,86 @@
-## Page tuto Facebook publique pour clients Adamkom
+# Suite GMB complète — Suivi, guide webmaster, livrable client
 
-Une page web publique (non authentifiée) qui guide tes clients pas-à-pas pour créer leur Business Manager, créer/rattacher leur page Facebook, et te renvoyer les infos nécessaires. 100% intégrée au CRM, design Adamkom.
+## Objectif
+Faire de la gestion de fiches Google un module leader : le webmaster sait quoi faire, l'admin voit tout d'un coup d'œil, le client voit ce qu'on fait pour lui.
 
----
+## 1. Base de données (nouvelles tables)
 
-### URL et accès
+### `gmb_activities` — Journal d'activité par fiche
+- `id`, `client_gmb_id`, `client_id`
+- `action_type` enum : `post_publie`, `photo_ajoutee`, `avis_repondu`, `description_maj`, `horaires_maj`, `produit_ajoute`, `qa_repondue`, `verification`, `autre`
+- `description` text, `link` text (URL post/photo), `visible_to_client` bool (default true)
+- `performed_by` uuid, `performed_at` timestamptz
+- RLS : admin/webmaster CRUD ; lecture publique via token client (voir §3)
 
-- Route publique : `https://ai.adamkom.com/tuto/facebook?client=NDI-XXXX` (ou sans paramètre pour un partage générique)
-- Si `client=` est renseigné → le formulaire de fin pré-remplit le client et lie automatiquement la soumission à sa fiche CRM
-- Si pas de paramètre → le client tape son nom d'entreprise / téléphone et tu reçois l'info en alerte
+### `gmb_monthly_goals` — Objectifs mensuels par fiche
+- `id`, `client_gmb_id`, `month_year` (YYYY-MM)
+- `posts_target` int (défaut 4), `posts_done` int
+- `reviews_reply_target_pct` int (défaut 100), `reviews_replied` int, `reviews_received` int
+- `photos_target` int (défaut 8), `photos_done` int
+- unique (`client_gmb_id`, `month_year`)
 
----
+### `clients.gmb_public_token` (uuid)
+Token pour la page livrable client publique (généré à l'activation du suivi GMB).
 
-### Structure de la page
+## 2. Guide Webmaster GMB pas-à-pas
 
-```text
-┌────────────────────────────────────────────────────┐
-│ [Logo Adamkom]    Tutoriel Facebook Business      │
-│                   ⏱ 10 min · 100% gratuit         │
-├────────────────────────────────────────────────────┤
-│ HERO glassmorphism rose                            │
-│ "Créez votre Business Manager en 10 min"           │
-│ [Démarrer le tuto ↓]                               │
-├────────────────────────────────────────────────────┤
-│ STEPPER vertical (sticky à gauche)                 │
-│  ● Étape 1 — Avez-vous déjà une page FB ?         │
-│  ○ Étape 2 — Créer la page (si besoin)            │
-│  ○ Étape 3 — Créer le Business Manager            │
-│  ○ Étape 4 — Rattacher la page au BM              │
-│  ○ Étape 5 — Trouver l'ID du BM                   │
-│  ○ Étape 6 — Envoyer les infos à Adamkom          │
-├────────────────────────────────────────────────────┤
-│ CONTENU étape active (cards glassmorphism)         │
-│  - Titre + temps estimé                            │
-│  - Capture d'écran annotée (flèches roses)        │
-│  - Liste numérotée d'actions                       │
-│  - Bouton "C'est fait, étape suivante →"          │
-├────────────────────────────────────────────────────┤
-│ FORMULAIRE FINAL (étape 6)                         │
-│  Nom entreprise · Email rattaché · ID BM ·         │
-│  Nom de page · URL page · Notes                    │
-│  [Envoyer à Adamkom]                               │
-├────────────────────────────────────────────────────┤
-│ FOOTER : "Pas le temps ? Contactez-nous, on le    │
-│          fait pour vous (sur devis)"              │
-└────────────────────────────────────────────────────┘
-```
+Nouveau composant `GmbWebmasterPlaybook` intégré dans la fiche GMB (page `/gmb` détail modal ou nouvelle route `/gmb/:id`) :
+- Checklist enrichie regroupée en 4 phases : **Création** (compte, adresse, catégorie, vérification postale), **Optimisation** (logo, photos couverture/intérieur, horaires, description SEO, attributs, services), **Contenu** (1er post, produits, Q&A), **Récurrent** (posts hebdo, réponses avis <48h, photos mensuelles).
+- Chaque étape : titre, description, astuce, lien 1-clic vers la section Google Business Profile correspondante (via `business.google.com/n/<locationId>/...` quand `gmb_location_id` est renseigné).
+- Coche = met à jour `client_gmb.checklist_*` et loggue une entrée dans `gmb_activities`.
 
----
+## 3. Dashboard suivi global GMB (enrichissement `/gmb`)
 
-### Contenu des 6 étapes (rédigé pour clients non-tech)
+- Cartes KPI en haut : total fiches, % checklist moyen, avis non répondus (total), fiches en retard (>30j sans post ou avis >48h)
+- Tableau enrichi : colonnes `% checklist`, `Dernier post` (jours), `Avis non répondus`, `Objectif mois` (barre), `Alertes` (badges rouges), `Livrable client` (bouton "Copier le lien")
+- Filtres : statut, alertes seulement, mois
+- Export CSV bouton
 
-**Étape 1 — Avez-vous déjà une page Facebook ?**
-- Deux gros boutons : "Oui, j'ai déjà une page" → saute à étape 3 / "Non, je dois la créer" → continue étape 2
+## 4. Page livrable client publique
 
-**Étape 2 — Créer votre page Facebook (5 min)**
-- Va sur `facebook.com/pages/create`
-- Choisis un nom (ton nom d'entreprise)
-- Choisis une catégorie (ex : Restaurant, Coiffeur, Boutique)
-- Ajoute photo de profil (logo) + photo de couverture
-- Description courte (1-2 phrases sur ton activité)
-- Clique "Créer"
-- Capture annotée du formulaire FB
+Nouvelle route publique `/mon-gmb/:token` (pas d'auth) :
+- Résout `token` → `clients.gmb_public_token` → `client_gmb` + `gmb_activities` (visible_to_client=true) + `gmb_monthly_goals`
+- Affiche : nom entreprise, statut fiche (badge), progression checklist (grande barre), objectifs du mois (posts/avis/photos), timeline des 20 dernières actions visibles, lien vers la fiche Google
+- RPC `SECURITY DEFINER` `get_public_gmb_dashboard(p_token uuid)` renvoie tout en un appel (pas d'accès direct anon aux tables)
+- Design : cohérent charte Adamkom (Space Grotesk, #ff006e, glassmorphism)
 
-**Étape 3 — Créer votre Business Manager (3 min)**
-- Va sur `business.facebook.com/overview`
-- Clique "Créer un compte"
-- Renseigne : nom de l'entreprise, ton nom, ton email pro
-- Valide l'email (lien reçu)
-- Capture du dashboard BM vide
+## 5. Journal d'activité (timeline)
 
-**Étape 4 — Rattacher votre page au BM (2 min)**
-- Dans le BM → Paramètres → Comptes → Pages
-- Clique "Ajouter" → "Ajouter une page"
-- Tape le nom de ta page → Sélectionner → Confirmer
-- Capture annotée du menu Paramètres
+- Composant `GmbActivityTimeline` : liste chronologique inversée, icône par type, badge "visible client" toggle
+- Formulaire rapide "Logger une action" dans la modale fiche : type, description, lien, checkbox visible client
+- Auto-log : quand webmaster coche checklist, quand statut change, quand objectifs mis à jour
 
-**Étape 5 — Trouver l'ID de votre Business Manager (30 sec)**
-- Dans le BM → Paramètres → Infos sur l'entreprise
-- L'ID est affiché en haut (15-16 chiffres)
-- Copie-le
-- Capture avec flèche rose pointant l'ID
+## 6. Objectifs mensuels
 
-**Étape 6 — Envoyer les infos à Adamkom**
-- Formulaire intégré (zod-validé)
-- À la soumission : toast de remerciement + animation confetti rose
+- Section dans la modale fiche : sliders/inputs pour cibles + comptage manuel (incrément +1 quand action loggée du bon type)
+- Barre de progression 3 couleurs (rouge <50%, ambre <80%, vert)
+- Auto-création du mois courant à l'ouverture
 
----
+## Fichiers touchés
 
-### Schéma BDD (nouvelle table)
+**Migration SQL** (une seule) :
+- créer `gmb_activities`, `gmb_monthly_goals`, colonne `clients.gmb_public_token` + trigger génération
+- RPC `get_public_gmb_dashboard`
+- GRANT + RLS
 
-```sql
-create table public.fb_onboarding_submissions (
-  id uuid primary key default gen_random_uuid(),
-  client_id uuid references public.clients(id) on delete set null,
-  client_ndi text,                      -- pré-rempli si ?client=NDI-XXXX
-  company_name text not null,
-  contact_email text not null,
-  fb_page_url text,
-  fb_page_name text,
-  business_manager_id text,
-  business_manager_email text not null,
-  notes text,
-  status text not null default 'recu',  -- recu / traite / archive
-  source_url text,                      -- referrer
-  created_at timestamptz default now(),
-  processed_at timestamptz,
-  processed_by uuid references auth.users(id)
-);
+**Front** :
+- `src/hooks/use-gmb-activities.ts` (nouveau)
+- `src/hooks/use-gmb-goals.ts` (nouveau)
+- `src/hooks/use-client-gmb.ts` (étendre)
+- `src/components/gmb/GmbWebmasterPlaybook.tsx` (nouveau)
+- `src/components/gmb/GmbActivityTimeline.tsx` (nouveau)
+- `src/components/gmb/GmbMonthlyGoals.tsx` (nouveau)
+- `src/components/gmb/GmbFicheModal.tsx` (nouveau — regroupe playbook + timeline + objectifs)
+- `src/pages/Gmb.tsx` (enrichir : KPI, alertes, colonnes, CSV, bouton lien public)
+- `src/pages/GmbPublic.tsx` (nouveau — route publique)
+- `src/App.tsx` (route `/mon-gmb/:token`)
+- `src/lib/gmb-playbook.ts` (structure de données des étapes du playbook)
 
-alter table public.fb_onboarding_submissions enable row level security;
+## Hors périmètre (pour plus tard)
+- Rappels pg_cron automatiques (post hebdo, avis >48h)
+- Rapport PDF mensuel auto envoyé au client
+- Benchmark concurrents
+- Synchronisation API Google Business (nécessite validation Meta/Google)
 
--- Insertion publique (formulaire anonyme)
-create policy "anyone can submit fb onboarding"
-on public.fb_onboarding_submissions for insert to anon, authenticated
-with check (true);
-
--- Lecture/maj réservée admin/agent_master/agent
-create policy "team can read fb onboarding"
-on public.fb_onboarding_submissions for select to authenticated
-using (
-  has_role(auth.uid(),'admin') or
-  has_role(auth.uid(),'agent_master') or
-  has_role(auth.uid(),'agent')
-);
-
-create policy "team can update fb onboarding"
-on public.fb_onboarding_submissions for update to authenticated
-using (has_role(auth.uid(),'admin') or has_role(auth.uid(),'agent_master'));
-```
-
-À la soumission, un trigger crée aussi une `notification` interne + envoi Discord via le webhook n8n existant (route déjà en place).
-
----
-
-### Fichiers à créer / modifier
-
-**Nouveaux**
-- `src/pages/TutoFacebook.tsx` — page publique avec stepper, contenu, formulaire
-- `src/components/tuto/TutoStepper.tsx` — stepper vertical sticky
-- `src/components/tuto/TutoStep.tsx` — card glassmorphism d'une étape
-- `src/components/tuto/FbOnboardingForm.tsx` — formulaire zod + submit
-- `src/hooks/use-fb-onboarding.ts` — mutation insert + liste (admin)
-- `src/pages/FbOnboardingInbox.tsx` — page admin `/onboarding-fb` listant les soumissions reçues
-- `supabase/migrations/<ts>_fb_onboarding.sql` — table + RLS + trigger notif
-- `public/tuto/fb-step1.png … fb-step5.png` — captures d'écran annotées (placeholders SVG si pas encore de vraies captures)
-
-**Modifiés**
-- `src/App.tsx` — routes `/tuto/facebook` (publique) et `/onboarding-fb` (protégée)
-- `src/components/layout/AppSidebar.tsx` — entrée "Onboarding FB" pour admin/agent_master
-- `src/hooks/use-global-realtime.ts` — écoute table `fb_onboarding_submissions`
-- `src/components/clients/SocialMediaSection.tsx` — bouton "Envoyer le tuto FB au client" qui copie/partage le lien `/tuto/facebook?client=NDI-XXXX`
-
----
-
-### Design (cohérent charte Adamkom)
-
-- Fond : `bg-background` avec gradient subtil rose en haut (radial)
-- Cards : `backdrop-blur-xl bg-white/70 border border-white/40 shadow-xl rounded-2xl`
-- Accents : `#ff006e` sur titres, étapes actives, boutons CTA
-- Police : Space Grotesk (déjà chargée)
-- Animations : `framer-motion` sur transitions d'étapes (déjà installé)
-- Responsive mobile-first (la majorité des clients ouvrira sur téléphone)
-
----
-
-### Ce qui n'est PAS dans ce plan (volontairement)
-
-- Pas de récupération d'accès via OAuth Meta (tu as dit non)
-- Pas de PDF téléchargeable (tu as choisi "page web uniquement")
-- Pas d'option payante "on le fait pour toi" intégrée (juste mention en footer)
-- Pas de captures d'écran réelles dans v1 → on met des placeholders SVG annotés ; tu pourras me redemander d'intégrer les vraies captures plus tard
+## Livraison
+Un seul lot cohérent, testé au build. Les objectifs mensuels sont inclus comme demandé.

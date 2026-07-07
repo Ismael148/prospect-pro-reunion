@@ -99,10 +99,11 @@ export default function SupportForm() {
           .from("client-forms")
           .upload(fileName, file, { upsert: true });
         if (error) throw error;
-        const { data: urlData } = supabase.storage
+        const { data: signedData, error: signedError } = await supabase.storage
           .from("client-forms")
-          .getPublicUrl(fileName);
-        setAttachments((prev) => [...prev, urlData.publicUrl]);
+          .createSignedUrl(fileName, 315360000);
+        if (signedError || !signedData?.signedUrl) throw signedError || new Error("URL signée indisponible");
+        setAttachments((prev) => [...prev, signedData.signedUrl]);
       }
       toast.success("Fichier(s) uploadé(s) !");
     } catch (err: any) {

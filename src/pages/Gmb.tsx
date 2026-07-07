@@ -105,7 +105,7 @@ export default function Gmb() {
   const [pickedClientId, setPickedClientId] = useState<string>("");
 
   const { data: rows = [], isLoading } = useClientGmbList({ status: statusFilter, search });
-  const { data: candidates = [] } = useClientsWithoutGmb();
+  const { data: candidates = [] } = useAllClientsForGmbPicker();
   const upsert = useUpsertClientGmb();
   const del = useDeleteClientGmb();
 

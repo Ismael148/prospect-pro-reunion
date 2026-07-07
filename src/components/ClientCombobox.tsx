@@ -112,10 +112,3 @@ export function ClientCombobox({
     </Popover>
   );
 }
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
-  );
-}

@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { Sparkles, Copy, Check, Loader2, History, Wand2 } from "lucide-react";
+import { Sparkles, Copy, Check, Loader2, History, Wand2, Eye, Code2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { useGmbAi, getHistory, type GmbAiAction } from "@/hooks/use-gmb-ai";
 import type { ClientGmbWithClient } from "@/hooks/use-client-gmb";
@@ -63,6 +63,7 @@ function GeneratorCard({ gen, clientId }: { gen: Generator; clientId: string }) 
   const [extra, setExtra] = useState("");
   const [result, setResult] = useState<string>("");
   const [copied, setCopied] = useState(false);
+  const [rawMode, setRawMode] = useState(true);
 
   const run = async () => {
     setResult("");
@@ -84,8 +85,8 @@ function GeneratorCard({ gen, clientId }: { gen: Generator; clientId: string }) 
 
   return (
     <Card className="p-4 space-y-3">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="flex-1 min-w-0">
           <p className="font-semibold flex items-center gap-2">
             <span>{gen.emoji}</span> {gen.title}
           </p>
@@ -105,20 +106,37 @@ function GeneratorCard({ gen, clientId }: { gen: Generator; clientId: string }) 
           placeholder={gen.needsExtra}
           value={extra}
           onChange={(e) => setExtra(e.target.value)}
-          className="text-xs h-8"
+          className="text-xs h-9"
         />
       )}
 
       {result && (
         <div className="space-y-2">
-          <div className="flex justify-end">
-            <Button size="sm" variant="outline" onClick={copy} className="h-7 text-xs">
+          <div className="flex items-center justify-between gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setRawMode((v) => !v)}
+              className="h-7 text-xs"
+            >
+              {rawMode ? <><Eye className="mr-1 h-3 w-3" /> Aperçu</> : <><Code2 className="mr-1 h-3 w-3" /> Texte brut</>}
+            </Button>
+            <Button size="sm" variant="default" onClick={copy} className="h-7 text-xs">
               {copied ? <><Check className="mr-1 h-3 w-3" /> Copié</> : <><Copy className="mr-1 h-3 w-3" /> Tout copier</>}
             </Button>
           </div>
-          <div className="prose prose-sm dark:prose-invert max-w-none rounded-md border bg-muted/30 p-3 text-xs">
-            <ReactMarkdown>{result}</ReactMarkdown>
-          </div>
+          {rawMode ? (
+            <Textarea
+              value={result}
+              readOnly
+              onFocus={(e) => e.currentTarget.select()}
+              className="font-mono text-xs min-h-[300px] bg-muted/30"
+            />
+          ) : (
+            <div className="prose prose-sm dark:prose-invert max-w-none rounded-md border bg-muted/30 p-3 text-sm whitespace-pre-wrap break-words">
+              <ReactMarkdown>{result}</ReactMarkdown>
+            </div>
+          )}
         </div>
       )}
     </Card>
@@ -139,8 +157,8 @@ export function GmbAiAssistant({ row }: Props) {
           Assistant IA
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-full sm:max-w-2xl overflow-hidden flex flex-col p-0">
-        <SheetHeader className="border-b p-4 space-y-2">
+      <SheetContent side="right" className="w-full sm:max-w-3xl lg:max-w-4xl p-0 flex flex-col h-full">
+        <SheetHeader className="border-b p-4 space-y-2 shrink-0">
           <SheetTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
             Assistant IA GMB
@@ -154,46 +172,44 @@ export function GmbAiAssistant({ row }: Props) {
           </SheetDescription>
         </SheetHeader>
 
-        <ScrollArea className="flex-1">
-          <div className="p-4">
-            <Tabs defaultValue="phase1">
-              <TabsList className="grid grid-cols-3 w-full">
-                {PHASES.map((p) => (
-                  <TabsTrigger key={p.key} value={p.key} className="text-xs">
-                    <span className="mr-1">{p.emoji}</span> {p.label.split("—")[0].trim()}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-
-              {PHASES.map((phase) => (
-                <TabsContent key={phase.key} value={phase.key} className="space-y-3 mt-4">
-                  {phase.generators.map((gen) => (
-                    <GeneratorCard key={gen.action} gen={gen} clientId={clientId} />
-                  ))}
-                </TabsContent>
+        <div className="flex-1 overflow-y-auto p-4">
+          <Tabs defaultValue="phase1">
+            <TabsList className="grid grid-cols-3 w-full sticky top-0 z-10">
+              {PHASES.map((p) => (
+                <TabsTrigger key={p.key} value={p.key} className="text-xs">
+                  <span className="mr-1">{p.emoji}</span> {p.label.split("—")[0].trim()}
+                </TabsTrigger>
               ))}
-            </Tabs>
+            </TabsList>
 
-            {history.length > 0 && (
-              <div className="mt-6 space-y-2">
-                <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-                  <History className="h-3 w-3" />
-                  Historique récent ({history.length})
-                </div>
-                {history.map((h, i) => (
-                  <details key={i} className="rounded-md border bg-muted/20 p-2 text-xs">
-                    <summary className="cursor-pointer font-medium">
-                      {h.action} — {new Date(h.generatedAt).toLocaleString("fr-FR")}
-                    </summary>
-                    <div className="prose prose-sm dark:prose-invert max-w-none mt-2">
-                      <ReactMarkdown>{h.content}</ReactMarkdown>
-                    </div>
-                  </details>
+            {PHASES.map((phase) => (
+              <TabsContent key={phase.key} value={phase.key} className="space-y-3 mt-4">
+                {phase.generators.map((gen) => (
+                  <GeneratorCard key={gen.action} gen={gen} clientId={clientId} />
                 ))}
+              </TabsContent>
+            ))}
+          </Tabs>
+
+          {history.length > 0 && (
+            <div className="mt-6 space-y-2">
+              <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+                <History className="h-3 w-3" />
+                Historique récent ({history.length})
               </div>
-            )}
-          </div>
-        </ScrollArea>
+              {history.map((h, i) => (
+                <details key={i} className="rounded-md border bg-muted/20 p-2 text-xs">
+                  <summary className="cursor-pointer font-medium">
+                    {h.action} — {new Date(h.generatedAt).toLocaleString("fr-FR")}
+                  </summary>
+                  <div className="prose prose-sm dark:prose-invert max-w-none mt-2 whitespace-pre-wrap">
+                    <ReactMarkdown>{h.content}</ReactMarkdown>
+                  </div>
+                </details>
+              ))}
+            </div>
+          )}
+        </div>
       </SheetContent>
     </Sheet>
   );

@@ -22,6 +22,7 @@ interface Generator {
   description: string;
   emoji: string;
   needsExtra?: string;
+  extraMultiline?: boolean;
 }
 
 const PHASES: { key: string; label: string; emoji: string; generators: Generator[] }[] = [

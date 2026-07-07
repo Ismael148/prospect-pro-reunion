@@ -515,20 +515,65 @@ function GmbDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Globe className="h-5 w-5 text-primary" />
             {client?.company_name || "Fiche GMB"}
           </DialogTitle>
+          {client?.gmb_public_token && (
+            <div className="flex items-center gap-2 pt-1">
+              <Link2 className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground truncate">
+                {`${PUBLIC_BASE_URL}/mon-gmb/${client.gmb_public_token}`}
+              </span>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-6 px-2 text-xs"
+                onClick={() => {
+                  navigator.clipboard.writeText(
+                    `${PUBLIC_BASE_URL}/mon-gmb/${client.gmb_public_token}`
+                  );
+                  toast.success("Lien copié");
+                }}
+              >
+                <Copy className="mr-1 h-3 w-3" /> Copier
+              </Button>
+            </div>
+          )}
         </DialogHeader>
 
-        <Tabs defaultValue="checklist">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="checklist">Checklist</TabsTrigger>
-            <TabsTrigger value="info">Infos fiche</TabsTrigger>
-            <TabsTrigger value="stats">Avis & stats</TabsTrigger>
+        <Tabs defaultValue="playbook">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="playbook" className="gap-1">
+              <BookOpen className="h-3 w-3" /> Guide
+            </TabsTrigger>
+            <TabsTrigger value="checklist" className="gap-1">
+              <ListChecks className="h-3 w-3" /> Checklist
+            </TabsTrigger>
+            <TabsTrigger value="goals" className="gap-1">
+              <Target className="h-3 w-3" /> Objectifs
+            </TabsTrigger>
+            <TabsTrigger value="activity" className="gap-1">
+              <MessageSquare className="h-3 w-3" /> Journal
+            </TabsTrigger>
+            <TabsTrigger value="info">Infos</TabsTrigger>
+            <TabsTrigger value="stats">Avis</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="playbook" className="pt-4">
+            <GmbWebmasterPlaybook row={row} />
+          </TabsContent>
+
+          <TabsContent value="goals" className="pt-4">
+            <GmbMonthlyGoals clientGmbId={row.id} clientId={row.client_id} />
+          </TabsContent>
+
+          <TabsContent value="activity" className="pt-4">
+            <GmbActivityTimeline clientGmbId={row.id} clientId={row.client_id} />
+          </TabsContent>
+
 
           <TabsContent value="checklist" className="space-y-4 pt-4">
             {/* Quick actions */}

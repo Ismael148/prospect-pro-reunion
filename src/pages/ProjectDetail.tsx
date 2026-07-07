@@ -531,15 +531,19 @@ export default function ProjectDetail() {
                 const mLinks = (project as any).module_links || {};
                 try {
                   const { generateGmbReport } = await import("@/lib/export-gmb-report");
+                  const now = new Date();
                   generateGmbReport({
                     clientName: (project as any).clients?.company_name || "Client",
-                    projectName: project.name,
-                    tasksDone: doneTasks.map(t => ({
-                      title: t.title,
-                      linkUrl: mLinks["seo"] || undefined,
+                    monthLabel: now.toLocaleDateString("fr-FR", { month: "long", year: "numeric" }),
+                    generatedAt: now.toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" }),
+                    activities: doneTasks.map(t => ({
+                      action_type: "autre",
+                      actionLabel: "Tâche SEO",
+                      description: t.title,
+                      performed_at: (t as any).updated_at || (t as any).created_at || now.toISOString(),
+                      link: mLinks["seo"] || null,
                     })),
-                    tasksTotal: seoTasks.length,
-                    generatedAt: new Date().toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion", day: "2-digit", month: "long", year: "numeric" }),
+                    checklist: seoTasks.map(t => ({ label: t.title, done: t.status === "termine" })),
                   });
                   toast.success("Rapport PDF généré !");
                 } catch (e) {

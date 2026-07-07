@@ -40,6 +40,14 @@ export function ClientCombobox({
 }: Props) {
   const [open, setOpen] = React.useState(false);
   const selected = options.find((o) => o.id === value);
+  const normalizeSearch = (s: string) =>
+    s
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim()
+      .replace(/\s+/g, " ");
   const labelOf = (o: ClientComboboxOption) =>
     `${o.company_name ?? ""}${o.ndi ? ` (${o.ndi})` : ""}${o.city ? ` · ${o.city}` : ""}`.trim();
 
@@ -63,9 +71,7 @@ export function ClientCombobox({
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
         <Command
           filter={(value, search) => {
-            const norm = (s: string) =>
-              s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            return norm(value).includes(norm(search)) ? 1 : 0;
+            return normalizeSearch(value).includes(normalizeSearch(search)) ? 1 : 0;
           }}
         >
           <CommandInput placeholder="Rechercher (nom, NDI, ville)…" />

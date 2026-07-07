@@ -2,6 +2,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+const normalizeSearch = (value: string | null | undefined) =>
+  (value ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+
 export type GmbStatus =
   | "a_creer"
   | "compte_cree"
@@ -105,13 +114,17 @@ export function useClientGmbList(filters?: { status?: GmbStatus | "all"; search?
       if (error) throw error;
       let rows = (data || []) as ClientGmbWithClient[];
       if (filters?.search) {
-        const needle = filters.search.toLowerCase();
+        const needle = normalizeSearch(filters.search);
         rows = rows.filter(
-          (r) =>
-            r.clients?.company_name?.toLowerCase().includes(needle) ||
-            r.clients?.city?.toLowerCase().includes(needle) ||
-            r.clients?.ndi?.toLowerCase().includes(needle) ||
-            r.business_name_on_google?.toLowerCase().includes(needle)
+          (r) => {
+            const searchable = normalizeSearch([
+              r.clients?.company_name,
+              r.clients?.city,
+              r.clients?.ndi,
+              r.business_name_on_google,
+            ].filter(Boolean).join(" "));
+            return searchable.includes(needle);
+          }
         );
       }
       return rows;

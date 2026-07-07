@@ -251,12 +251,15 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
+        // Flash pour les avis (rapide + fluide), Pro pour le reste (qualité SEO)
+        model: (action === "repondre_avis" || action === "avis_avance")
+          ? "google/gemini-2.5-flash"
+          : "google/gemini-2.5-pro",
         messages: [
           { role: "system", content: SYSTEM_BASE },
           { role: "user", content: prompt },
         ],
-        temperature: 0.75,
+        temperature: 0.7,
       }),
     });
 

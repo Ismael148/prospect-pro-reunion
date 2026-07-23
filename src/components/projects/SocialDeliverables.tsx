@@ -215,6 +215,10 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
 
       const subject = `${typeLabel} — ${formatMonthYear(del.month_year)} | ${clientInfo.company_name}`;
 
+      // Attach the file directly via URL (Brevo fetches it). Extract filename from URL.
+      const urlPath = del.file_url.split("?")[0];
+      const fileName = decodeURIComponent(urlPath.split("/").pop() || "livrable");
+
       const { error } = await supabase.functions.invoke("send-brevo-campaign", {
         body: {
           action: "send_client_email",
@@ -224,6 +228,7 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
           htmlContent: fullHtml,
           trigger: "social_deliverable",
           client_id: clientId,
+          attachment: [{ name: fileName, url: del.file_url }],
         },
       });
 

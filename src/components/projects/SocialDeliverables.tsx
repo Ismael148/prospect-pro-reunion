@@ -219,6 +219,20 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
       const urlPath = del.file_url.split("?")[0];
       const fileName = decodeURIComponent(urlPath.split("/").pop() || "livrable");
 
+      // Brevo limits total email (with attachments) to ~10 MB. Check file size and skip attachment if too large.
+      let attachFile = true;
+      try {
+        const head = await fetch(del.file_url, { method: "HEAD" });
+        const len = Number(head.headers.get("content-length") || 0);
+        if (len > 9 * 1024 * 1024) attachFile = false;
+      } catch {
+        attachFile = false;
+      }
+
+      if (!attachFile) {
+        toast.info("Fichier trop volumineux pour être joint — envoi du lien de téléchargement uniquement.");
+      }
+
       const { error } = await supabase.functions.invoke("send-brevo-campaign", {
         body: {
           action: "send_client_email",
@@ -228,11 +242,12 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
           htmlContent: fullHtml,
           trigger: "social_deliverable",
           client_id: clientId,
-          attachment: [{ name: fileName, url: del.file_url }],
+          ...(attachFile ? { attachment: [{ name: fileName, url: del.file_url }] } : {}),
         },
       });
 
       if (error) throw error;
+
 
       // Log the send
       await supabase.from("email_send_log").insert({

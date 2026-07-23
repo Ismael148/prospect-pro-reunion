@@ -1,0 +1,5 @@
+
+CREATE POLICY "Public read email-assets" ON storage.objects FOR SELECT TO anon, authenticated USING (bucket_id = 'email-assets');
+CREATE POLICY "Staff can upload email-assets" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'email-assets' AND (has_role(auth.uid(),'admin'::app_role) OR has_role(auth.uid(),'agent_master'::app_role) OR has_role(auth.uid(),'webmaster'::app_role) OR has_role(auth.uid(),'designer'::app_role) OR has_role(auth.uid(),'agent_support'::app_role)));
+CREATE POLICY "Staff can update email-assets" ON storage.objects FOR UPDATE TO authenticated USING (bucket_id = 'email-assets' AND (has_role(auth.uid(),'admin'::app_role) OR has_role(auth.uid(),'agent_master'::app_role) OR has_role(auth.uid(),'webmaster'::app_role) OR has_role(auth.uid(),'designer'::app_role) OR has_role(auth.uid(),'agent_support'::app_role)));
+CREATE POLICY "Staff can delete email-assets" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'email-assets' AND (has_role(auth.uid(),'admin'::app_role) OR has_role(auth.uid(),'agent_master'::app_role)));

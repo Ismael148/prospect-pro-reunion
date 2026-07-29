@@ -250,22 +250,31 @@ function Step2_CreatePage() {
   );
 }
 
+function Screenshot({ src, caption }: { src: string; caption: string }) {
+  return (
+    <figure className="rounded-xl overflow-hidden border border-zinc-200 bg-white shadow-sm">
+      <img src={src} alt={caption} loading="lazy" className="w-full h-auto" />
+      <figcaption className="text-xs text-zinc-500 px-3 py-2 border-t border-zinc-100">📸 {caption}</figcaption>
+    </figure>
+  );
+}
+
 function Step3_CreateBM() {
   return (
     <div className="space-y-5">
       <div>
         <Badge className="bg-[#ff006e]/10 text-[#ff006e] hover:bg-[#ff006e]/10 border-0">3 min</Badge>
-        <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 mt-2">Créer votre Business Manager</h2>
+        <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 mt-2">Créer votre portefeuille business</h2>
         <p className="mt-2 text-zinc-600">
-          Le Business Manager (BM) est l'espace pro de Facebook qui vous permet de gérer votre page et de
-          déléguer des accès à une agence (nous !) sans donner votre mot de passe.
+          Le <strong>portefeuille business</strong> (Business Manager) est l'espace pro de Facebook qui vous permet
+          de gérer votre page et de déléguer des accès à une agence (nous !) sans jamais donner votre mot de passe.
         </p>
       </div>
 
       <ol className="space-y-3">
         {[
           {
-            t: "Ouvrez Business Manager",
+            t: "Ouvrez Meta Business Suite",
             d: (
               <>
                 Allez sur{" "}
@@ -277,21 +286,25 @@ function Step3_CreateBM() {
                 >
                   business.facebook.com/overview <ExternalLink className="h-3 w-3" />
                 </a>
+                , connecté avec votre compte Facebook personnel.
               </>
             ),
           },
-          { t: "Cliquez « Créer un compte »", d: "Bouton bleu situé en haut à gauche de la page." },
           {
-            t: "Renseignez les infos",
-            d: "Nom de votre entreprise, votre nom, votre email professionnel.",
+            t: "Cliquez sur « Créer un portefeuille business »",
+            d: "En haut à gauche, ouvrez le menu déroulant puis cliquez sur le bouton « + Créer un portefeuille business » tout en bas (voir la capture ci-dessous).",
           },
           {
-            t: "Validez votre email",
-            d: "Facebook vous envoie un lien de confirmation. Cliquez dessus.",
+            t: "Renseignez les informations",
+            d: "Une petite fenêtre s'ouvre : nom du portefeuille business (le nom public de votre entreprise), votre prénom, votre nom et votre adresse e-mail professionnelle. Puis cliquez sur « Créer ».",
+          },
+          {
+            t: "Validez votre e-mail",
+            d: "Facebook envoie un lien de confirmation à l'adresse indiquée. Ouvrez votre boîte mail et cliquez sur ce lien pour confirmer.",
           },
           {
             t: "C'est fait ✅",
-            d: "Vous avez maintenant un Business Manager actif. On va y rattacher votre page à l'étape suivante.",
+            d: "Votre portefeuille business est actif. On va y rattacher votre page à l'étape suivante.",
           },
         ].map((s, i) => (
           <li key={i} className="flex gap-4">
@@ -306,21 +319,15 @@ function Step3_CreateBM() {
         ))}
       </ol>
 
-      <MiniMockup label="business.facebook.com">
-        <div className="flex items-center justify-between mb-3">
-          <button className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-semibold">
-            + Créer un compte
-          </button>
-          <div className="flex items-center gap-2">
-            <Building2 className="h-5 w-5 text-blue-700" />
-            <span className="font-bold text-zinc-800">Meta Business Suite</span>
-          </div>
-        </div>
-        <div className="rounded-lg border-2 border-dashed border-[#ff006e] bg-[#ff006e]/5 p-4 text-center">
-          <p className="text-sm font-semibold text-zinc-800">Bienvenue dans votre BM</p>
-          <p className="text-xs text-zinc-500 mt-1">Aucune page rattachée pour le moment</p>
-        </div>
-      </MiniMockup>
+      <Screenshot
+        src={shotCreerPortefeuille.url}
+        caption="Étape 2 — le bouton « Créer un portefeuille business » se trouve tout en bas du menu déroulant, en haut à gauche."
+      />
+
+      <Screenshot
+        src={shotPopupInfos.url}
+        caption="Étape 3 — la fenêtre « Créer un portefeuille business » : nom de l'entreprise, prénom, nom et e-mail professionnel, puis « Créer »."
+      />
     </div>
   );
 }

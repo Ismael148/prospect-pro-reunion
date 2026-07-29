@@ -536,17 +536,11 @@ function Step5_FindId() {
         ))}
       </ol>
 
-      <div className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm">
-        <p className="text-xs text-zinc-500 mb-2 font-medium">
-          📸 Sur la capture ci-dessous, ce qui est entouré est l'ID de la <strong>Page Facebook</strong> (à NE PAS envoyer).
-          Le bon ID — celui du Business Manager — se trouve au même type d'emplacement, mais dans « Infos sur l'entreprise » du BM.
-        </p>
-        <img
-          src="/tuto/fb-bm-id.png"
-          alt="Capture d'écran Meta Business montrant l'ID de la Page Facebook"
-          className="w-full rounded-lg border border-zinc-200"
-        />
-      </div>
+      <Screenshot
+        src={shotIdPortefeuille.url}
+        caption="Paramètres → « Informations sur l'entreprise » : l'ID du portefeuille business est affiché en haut, à côté du logo. C'est ce numéro qu'il faut nous envoyer."
+      />
+
 
       <MiniMockup label="business.facebook.com → Paramètres → Infos sur l'entreprise">
         <div className="space-y-3">

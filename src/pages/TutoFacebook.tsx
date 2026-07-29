@@ -31,7 +31,12 @@ import { z } from "zod";
 import { useSubmitFbOnboarding, useClientByNdi } from "@/hooks/use-fb-onboarding";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.webp";
-import addPagePopupImg from "@/assets/tuto-fb-add-page-popup.png";
+import shotCreerPortefeuille from "@/assets/fb-creer-portefeuille.png.asset.json";
+import shotPopupInfos from "@/assets/fb-popup1-infos.png.asset.json";
+import shotPopupSelection from "@/assets/fb-popup2-selection-page.png.asset.json";
+import shotPopupPersonnes from "@/assets/fb-popup3-personnes.png.asset.json";
+import shotPopupConfirmer from "@/assets/fb-popup4-confirmer.png.asset.json";
+import shotIdPortefeuille from "@/assets/fb-id-portefeuille.png.asset.json";
 
 
 /* ──────────────────────────────────────────────────────────
@@ -51,8 +56,8 @@ const STEPS: { key: StepKey; label: string; time?: string }[] = [
   { key: "intro", label: "Avez-vous une page FB ?", time: "30 sec" },
   { key: "page", label: "Créer votre page", time: "5 min" },
   { key: "bm", label: "Créer le Business Manager", time: "3 min" },
-  { key: "rattach", label: "Rattacher la page", time: "2 min" },
-  { key: "id", label: "Trouver l'ID du BM", time: "30 sec" },
+  { key: "rattach", label: "Rattacher la page au Business Manager", time: "2 min" },
+  { key: "id", label: "Trouver l'ID du Business Manager", time: "30 sec" },
   { key: "envoi", label: "Envoyer à Adamkom", time: "1 min" },
 ];
 
@@ -244,22 +249,31 @@ function Step2_CreatePage() {
   );
 }
 
+function Screenshot({ src, caption }: { src: string; caption: string }) {
+  return (
+    <figure className="rounded-xl overflow-hidden border border-zinc-200 bg-white shadow-sm">
+      <img src={src} alt={caption} loading="lazy" className="w-full h-auto" />
+      <figcaption className="text-xs text-zinc-500 px-3 py-2 border-t border-zinc-100">📸 {caption}</figcaption>
+    </figure>
+  );
+}
+
 function Step3_CreateBM() {
   return (
     <div className="space-y-5">
       <div>
         <Badge className="bg-[#ff006e]/10 text-[#ff006e] hover:bg-[#ff006e]/10 border-0">3 min</Badge>
-        <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 mt-2">Créer votre Business Manager</h2>
+        <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 mt-2">Créer votre portefeuille business</h2>
         <p className="mt-2 text-zinc-600">
-          Le Business Manager (BM) est l'espace pro de Facebook qui vous permet de gérer votre page et de
-          déléguer des accès à une agence (nous !) sans donner votre mot de passe.
+          Le <strong>portefeuille business</strong> (Business Manager) est l'espace pro de Facebook qui vous permet
+          de gérer votre page et de déléguer des accès à une agence (nous !) sans jamais donner votre mot de passe.
         </p>
       </div>
 
       <ol className="space-y-3">
         {[
           {
-            t: "Ouvrez Business Manager",
+            t: "Ouvrez Meta Business Suite",
             d: (
               <>
                 Allez sur{" "}
@@ -271,21 +285,25 @@ function Step3_CreateBM() {
                 >
                   business.facebook.com/overview <ExternalLink className="h-3 w-3" />
                 </a>
+                , connecté avec votre compte Facebook personnel.
               </>
             ),
           },
-          { t: "Cliquez « Créer un compte »", d: "Bouton bleu situé en haut à gauche de la page." },
           {
-            t: "Renseignez les infos",
-            d: "Nom de votre entreprise, votre nom, votre email professionnel.",
+            t: "Cliquez sur « Créer un portefeuille business »",
+            d: "En haut à gauche, ouvrez le menu déroulant puis cliquez sur le bouton « + Créer un portefeuille business » tout en bas (voir la capture ci-dessous).",
           },
           {
-            t: "Validez votre email",
-            d: "Facebook vous envoie un lien de confirmation. Cliquez dessus.",
+            t: "Renseignez les informations",
+            d: "Une petite fenêtre s'ouvre : nom du portefeuille business (le nom public de votre entreprise), votre prénom, votre nom et votre adresse e-mail professionnelle. Puis cliquez sur « Créer ».",
+          },
+          {
+            t: "Validez votre e-mail",
+            d: "Facebook envoie un lien de confirmation à l'adresse indiquée. Ouvrez votre boîte mail et cliquez sur ce lien pour confirmer.",
           },
           {
             t: "C'est fait ✅",
-            d: "Vous avez maintenant un Business Manager actif. On va y rattacher votre page à l'étape suivante.",
+            d: "Votre portefeuille business est actif. On va y rattacher votre page à l'étape suivante.",
           },
         ].map((s, i) => (
           <li key={i} className="flex gap-4">
@@ -300,21 +318,15 @@ function Step3_CreateBM() {
         ))}
       </ol>
 
-      <MiniMockup label="business.facebook.com">
-        <div className="flex items-center justify-between mb-3">
-          <button className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-semibold">
-            + Créer un compte
-          </button>
-          <div className="flex items-center gap-2">
-            <Building2 className="h-5 w-5 text-blue-700" />
-            <span className="font-bold text-zinc-800">Meta Business Suite</span>
-          </div>
-        </div>
-        <div className="rounded-lg border-2 border-dashed border-[#ff006e] bg-[#ff006e]/5 p-4 text-center">
-          <p className="text-sm font-semibold text-zinc-800">Bienvenue dans votre BM</p>
-          <p className="text-xs text-zinc-500 mt-1">Aucune page rattachée pour le moment</p>
-        </div>
-      </MiniMockup>
+      <Screenshot
+        src={shotCreerPortefeuille.url}
+        caption="Étape 2 — le bouton « Créer un portefeuille business » se trouve tout en bas du menu déroulant, en haut à gauche."
+      />
+
+      <Screenshot
+        src={shotPopupInfos.url}
+        caption="Étape 3 — la fenêtre « Créer un portefeuille business » : nom de l'entreprise, prénom, nom et e-mail professionnel, puis « Créer »."
+      />
     </div>
   );
 }
@@ -324,29 +336,37 @@ function Step4_Attach() {
     <div className="space-y-5">
       <div>
         <Badge className="bg-[#ff006e]/10 text-[#ff006e] hover:bg-[#ff006e]/10 border-0">2 min</Badge>
-        <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 mt-2">Rattacher votre page au BM</h2>
-        <p className="mt-2 text-zinc-600">Maintenant on connecte votre page Facebook à votre Business Manager.</p>
+        <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 mt-2">
+          Rattacher votre page au Business Manager
+        </h2>
+        <p className="mt-2 text-zinc-600">
+          Maintenant on connecte votre page Facebook à votre portefeuille business. Facebook vous guide avec
+          3 fenêtres qui s'ouvrent l'une après l'autre — suivez les captures ci-dessous.
+        </p>
       </div>
 
       <ol className="space-y-3">
         {[
           {
-            t: "Une fenêtre popup s'ouvre toute seule",
-            d: "Pas besoin de chercher un bouton : dès que vous arrivez dans votre Business Manager, Facebook ouvre automatiquement la fenêtre « Que souhaitez-vous ajouter dans ce portefeuille business ? » avec la liste de vos pages.",
+            t: "Une fenêtre s'ouvre toute seule — pas besoin de chercher",
+            d: "Dès que votre portefeuille business est créé, Facebook affiche automatiquement la fenêtre « Que souhaitez-vous ajouter dans ce portefeuille business ? » avec la liste de vos pages.",
           },
           {
             t: "☑️ Cochez la case à GAUCHE de votre page Facebook",
-            d: "Ce n'est PAS un bouton « Ajouter » — c'est une simple case à cocher (☐) à gauche de chaque page. Cochez celle qui correspond à VOTRE entreprise (vous pouvez en cocher plusieurs si vous avez plusieurs pages).",
+            d: "Ce n'est PAS un bouton « Ajouter » : c'est une simple case à cocher (☐) à gauche de chaque page. Cochez celle de VOTRE entreprise, puis cliquez sur le bouton bleu « Suivant » en bas à droite.",
           },
           {
-            t: "Cliquez sur le bouton bleu « Suivant »",
-            d: "Il se trouve en bas à droite du popup, à côté de « Ignorer ».",
+            t: "Fenêtre « Ajoutez des personnes à ce portefeuille business »",
+            d: "Facebook propose d'ajouter un employé via son adresse e-mail. Ce n'est pas nécessaire maintenant : cliquez simplement sur le bouton bleu « Suivant » (ou sur « Ignorer »). On gérera les accès Adamkom plus tard.",
           },
           {
-            t: "⚠️ Étape « Ajouter un employé / des personnes » → cliquez sur « Ignorer »",
-            d: "Juste après, Facebook vous propose d'ajouter un employé ou de partager l'accès. Ce n'est PAS nécessaire pour nous : cliquez simplement sur « Ignorer » (bouton gris en bas à droite). On gérera les accès plus tard.",
+            t: "Fenêtre « Vérifiez et confirmez votre portefeuille business »",
+            d: "Relisez le récapitulatif (votre page doit apparaître), puis cliquez sur le bouton bleu « Confirmer » en bas à droite.",
           },
-          { t: "Confirmez", d: "Votre page est désormais rattachée à votre Business Manager ✅" },
+          {
+            t: "Terminé ✅",
+            d: "Votre page est désormais rattachée à votre portefeuille business.",
+          },
         ].map((s, i) => (
           <li key={i} className="flex gap-4">
             <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gradient-to-br from-[#ff006e] to-[#ff5c8a] text-white font-bold flex items-center justify-center text-sm">
@@ -360,26 +380,28 @@ function Step4_Attach() {
         ))}
       </ol>
 
-      <figure className="rounded-xl overflow-hidden border border-zinc-200 bg-white shadow-sm">
-        <img
-          src={addPagePopupImg}
-          alt="Popup Facebook : ajouter une page"
-          className="w-full h-auto"
-        />
-        <figcaption className="text-xs text-zinc-500 px-3 py-2 border-t border-zinc-100">
-          Aperçu du popup « ajouter une page » qui s'ouvre automatiquement.
-        </figcaption>
-      </figure>
+      <Screenshot
+        src={shotPopupSelection.url}
+        caption="Étape 2 — cochez la case à gauche de votre page, puis cliquez sur le bouton bleu « Suivant »."
+      />
 
+      <Screenshot
+        src={shotPopupPersonnes.url}
+        caption="Étape 3 — « Ajoutez des personnes à ce portefeuille business » : cliquez sur le bouton bleu « Suivant » (rien à remplir)."
+      />
+
+      <Screenshot
+        src={shotPopupConfirmer.url}
+        caption="Étape 4 — vérifiez le récapitulatif puis cliquez sur le bouton bleu « Confirmer »."
+      />
 
       <div className="rounded-xl bg-amber-50 border-2 border-amber-300 p-4 flex gap-3">
         <HelpCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm font-bold text-amber-900">⚠️ Étape suivante : « Ajouter un employé »</p>
+          <p className="text-sm font-bold text-amber-900">Vous ne voyez pas votre page dans la liste ?</p>
           <p className="text-xs text-amber-800 mt-1">
-            Juste après avoir coché la page, Facebook vous proposera d'<strong>ajouter un employé</strong> ou de partager l'accès avec quelqu'un.
-            <br />
-            👉 <strong>Cliquez sur « Ignorer »</strong> (bouton gris en bas). Ce n'est pas nécessaire — on s'occupera des accès plus tard.
+            Vérifiez que vous êtes connecté avec le compte Facebook <strong>administrateur</strong> de la page.
+            Sinon, dites-le nous : on vous aide directement.
           </p>
         </div>
       </div>
@@ -513,17 +535,11 @@ function Step5_FindId() {
         ))}
       </ol>
 
-      <div className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm">
-        <p className="text-xs text-zinc-500 mb-2 font-medium">
-          📸 Sur la capture ci-dessous, ce qui est entouré est l'ID de la <strong>Page Facebook</strong> (à NE PAS envoyer).
-          Le bon ID — celui du Business Manager — se trouve au même type d'emplacement, mais dans « Infos sur l'entreprise » du BM.
-        </p>
-        <img
-          src="/tuto/fb-bm-id.png"
-          alt="Capture d'écran Meta Business montrant l'ID de la Page Facebook"
-          className="w-full rounded-lg border border-zinc-200"
-        />
-      </div>
+      <Screenshot
+        src={shotIdPortefeuille.url}
+        caption="Paramètres → « Informations sur l'entreprise » : l'ID du portefeuille business est affiché en haut, à côté du logo. C'est ce numéro qu'il faut nous envoyer."
+      />
+
 
       <MiniMockup label="business.facebook.com → Paramètres → Infos sur l'entreprise">
         <div className="space-y-3">

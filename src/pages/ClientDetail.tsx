@@ -1290,7 +1290,23 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName }: {
                       </Badge>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button size="sm" variant="ghost" onClick={() => setViewingForm(viewingForm?.id === form.id ? null : form)}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        aria-label="Voir le formulaire"
+                        onClick={() => {
+                          const opening = viewingForm?.id !== form.id;
+                          setViewingForm(opening ? form : null);
+                          if (opening) {
+                            logDataAccess({
+                              action: "view",
+                              resourceType: "client_form",
+                              resourceId: form.id,
+                              resourceLabel: `${companyName} · ${form.form_type}`,
+                            });
+                          }
+                        }}
+                      >
                         <Eye className="w-4 h-4" />
                       </Button>
                       {form.status !== "en_attente" && fd && (

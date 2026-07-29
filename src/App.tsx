@@ -32,6 +32,7 @@ import Campaigns from "./pages/Campaigns";
 import NfcClients from "./pages/NfcClients";
 import DeletedClients from "./pages/DeletedClients";
 import DomainRenewals from "./pages/DomainRenewals";
+import AuditLog from "./pages/AuditLog";
 import Privacy from "./pages/Privacy";
 import LogoValidation from "./pages/LogoValidation";
 import Terms from "./pages/Terms";

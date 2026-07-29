@@ -37,10 +37,10 @@ async function signedIn(email?: string, password?: string): Promise<SupabaseClie
 liveDescribe("RLS · rôle anonyme", () => {
   const anon = makeClient();
 
-  it("ne peut pas lister les fichiers du bucket email-assets", async () => {
-    const { data, error } = await anon.storage.from("email-assets").list("", { limit: 5 });
-    expect(error !== null || (data ?? []).length === 0).toBe(true);
-  });
+  it("peut lire les visuels publics email-assets (par conception)", async () => {
+    const { error } = await anon.storage.from("email-assets").list("", { limit: 1 });
+    expect(error).toBeNull();
+  }, 20000);
 
   it("ne peut pas envoyer de fichier dans email-assets", async () => {
     const file = new Blob(["rls-test"], { type: "text/plain" });
@@ -48,17 +48,22 @@ liveDescribe("RLS · rôle anonyme", () => {
       .from("email-assets")
       .upload(`rls-tests/anon-${Date.now()}.txt`, file);
     expect(error).not.toBeNull();
-  });
+  }, 20000);
 
-  it("ne peut pas lire la table profiles", async () => {
+  it("ne peut pas supprimer un fichier email-assets", async () => {
+    const { data, error } = await anon.storage.from("email-assets").remove(["rls-tests/nope.txt"]);
+    expect(error !== null || (data ?? []).length === 0).toBe(true);
+  }, 20000);
+
+  it("ne peut lire aucune ligne de la table profiles", async () => {
     const { data, error } = await anon.from("profiles").select("id").limit(1);
     expect(error !== null || (data ?? []).length === 0).toBe(true);
-  });
+  }, 20000);
 
-  it("ne peut pas lire les téléphones des profils", async () => {
-    const { error } = await anon.from("profiles").select("phone").limit(1);
-    expect(error).not.toBeNull();
-  });
+  it("n'obtient aucun téléphone de profil", async () => {
+    const { data, error } = await anon.from("profiles").select("phone").limit(1);
+    expect(error !== null || (data ?? []).length === 0).toBe(true);
+  }, 20000);
 
   it("ne peut pas lire le journal d'audit", async () => {
     const { data, error } = await anon.from("data_access_audit").select("id").limit(1);

@@ -260,7 +260,6 @@ export default function SupportForm() {
                 value={form.subject}
                 onChange={(e) => setForm({ ...form, subject: e.target.value })}
                 placeholder="Ex: Mise à jour des horaires sur le site"
-                maxLength={200}
               />
             </div>
 

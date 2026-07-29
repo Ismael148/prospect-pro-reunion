@@ -21,6 +21,7 @@ import {
   Share2,
   Inbox,
   CalendarDays,
+  ShieldCheck,
 } from "lucide-react";
 import logo from "@/assets/logo.webp";
 import {
@@ -73,6 +74,7 @@ const allMenuItems = [
 
 const adminItems = [
   { title: "Équipe", icon: UserCircle, path: "/equipe" },
+  { title: "Journal d'audit", icon: ShieldCheck, path: "/audit" },
   { title: "Corbeille", icon: Trash2, path: "/corbeille" },
   { title: "Paramètres", icon: Settings, path: "/parametres" },
 ];

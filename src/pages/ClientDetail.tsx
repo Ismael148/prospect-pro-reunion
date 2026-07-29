@@ -46,6 +46,7 @@ import RelanceFlagsSection from "@/components/clients/RelanceFlagsSection";
 import { useClientForms, useValidateForm, ClientFormData } from "@/hooks/use-client-forms";
 import { triggerN8nWebhook } from "@/lib/n8n-webhook";
 import { exportClientFormZip } from "@/lib/export-client-form";
+import { logDataAccess } from "@/lib/audit";
 import { motion } from "framer-motion";
 
 type PipelineStatus = Database["public"]["Enums"]["pipeline_status"];
@@ -1290,7 +1291,23 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName }: {
                       </Badge>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button size="sm" variant="ghost" onClick={() => setViewingForm(viewingForm?.id === form.id ? null : form)}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        aria-label="Voir le formulaire"
+                        onClick={() => {
+                          const opening = viewingForm?.id !== form.id;
+                          setViewingForm(opening ? form : null);
+                          if (opening) {
+                            logDataAccess({
+                              action: "view",
+                              resourceType: "client_form",
+                              resourceId: form.id,
+                              resourceLabel: `${companyName} · ${form.form_type}`,
+                            });
+                          }
+                        }}
+                      >
                         <Eye className="w-4 h-4" />
                       </Button>
                       {form.status !== "en_attente" && fd && (
@@ -1308,6 +1325,13 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName }: {
                                 submittedAt: form.submitted_at,
                               });
                               toast.success("Archive téléchargée", { id: `dl-${form.id}` });
+                              logDataAccess({
+                                action: "download",
+                                resourceType: "client_form",
+                                resourceId: form.id,
+                                resourceLabel: `${companyName} · ${form.form_type}`,
+                                details: { format: "zip" },
+                              });
                             } catch (e: any) {
                               toast.error(e?.message || "Erreur export", { id: `dl-${form.id}` });
                             }

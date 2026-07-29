@@ -706,6 +706,42 @@ export type Database = {
           },
         ]
       }
+      data_access_audit: {
+        Row: {
+          action: string
+          actor_email: string | null
+          created_at: string
+          details: Json
+          id: string
+          resource_id: string | null
+          resource_label: string | null
+          resource_type: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          resource_id?: string | null
+          resource_label?: string | null
+          resource_type: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          resource_id?: string | null
+          resource_label?: string | null
+          resource_type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       deleted_clients_log: {
         Row: {
           activities_data: Json | null
@@ -2927,6 +2963,16 @@ export type Database = {
       is_valid_support_token_text: {
         Args: { _token: string }
         Returns: boolean
+      }
+      log_data_access: {
+        Args: {
+          p_action: string
+          p_details?: Json
+          p_resource_id?: string
+          p_resource_label?: string
+          p_resource_type: string
+        }
+        Returns: string
       }
       submit_client_form_public: {
         Args: {

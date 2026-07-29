@@ -29,7 +29,7 @@ export function useCommercials() {
       const userIds = roles.map((r) => r.user_id);
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("user_id, full_name, phone")
+        .select("user_id, full_name")
         .in("user_id", userIds);
       if (profilesError) throw profilesError;
       return (profiles || []) as Commercial[];
@@ -66,7 +66,7 @@ export function useAllCommercials() {
       if (roles?.length) {
         const { data: profiles } = await supabase
           .from("profiles")
-          .select("user_id, full_name, phone")
+          .select("user_id, full_name")
           .in("user_id", roles.map((r) => r.user_id));
         internal = (profiles || []) as Commercial[];
       }
@@ -101,7 +101,7 @@ export function useSalesTeam() {
       const userIds = [...new Set(roles.map((r) => r.user_id))];
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("user_id, full_name, phone")
+        .select("user_id, full_name")
         .in("user_id", userIds);
       if (profilesError) throw profilesError;
 

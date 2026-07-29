@@ -22,7 +22,7 @@ export function useAgents() {
       const userIds = roles.map((r) => r.user_id);
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("user_id, full_name, phone")
+        .select("user_id, full_name")
         .in("user_id", userIds);
       if (profilesError) throw profilesError;
       return (profiles || []) as Agent[];

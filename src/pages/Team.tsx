@@ -89,7 +89,7 @@ export default function Team() {
 
   const fetchMembers = async () => {
     setLoading(true);
-    const { data: profiles } = await supabase.from("profiles").select("*");
+    const { data: profiles } = await supabase.from("profiles").select("id, user_id, full_name, avatar_url, created_at, updated_at");
     const { data: allRoles } = await supabase.from("user_roles").select("*");
 
     // Fetch emails via edge function

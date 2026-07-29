@@ -270,9 +270,8 @@ export default function SupportForm() {
                 onChange={(e) => setForm({ ...form, message: e.target.value })}
                 placeholder="Décrivez votre demande en détail..."
                 rows={5}
-                maxLength={2000}
               />
-              <p className="text-xs text-muted-foreground text-right">{form.message.length}/2000</p>
+              <p className="text-xs text-muted-foreground text-right">{form.message.length} caractères</p>
             </div>
 
             {/* Attachments */}

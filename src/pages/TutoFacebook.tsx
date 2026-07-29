@@ -337,29 +337,37 @@ function Step4_Attach() {
     <div className="space-y-5">
       <div>
         <Badge className="bg-[#ff006e]/10 text-[#ff006e] hover:bg-[#ff006e]/10 border-0">2 min</Badge>
-        <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 mt-2">Rattacher votre page au BM</h2>
-        <p className="mt-2 text-zinc-600">Maintenant on connecte votre page Facebook à votre Business Manager.</p>
+        <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 mt-2">
+          Rattacher votre page au Business Manager
+        </h2>
+        <p className="mt-2 text-zinc-600">
+          Maintenant on connecte votre page Facebook à votre portefeuille business. Facebook vous guide avec
+          3 fenêtres qui s'ouvrent l'une après l'autre — suivez les captures ci-dessous.
+        </p>
       </div>
 
       <ol className="space-y-3">
         {[
           {
-            t: "Une fenêtre popup s'ouvre toute seule",
-            d: "Pas besoin de chercher un bouton : dès que vous arrivez dans votre Business Manager, Facebook ouvre automatiquement la fenêtre « Que souhaitez-vous ajouter dans ce portefeuille business ? » avec la liste de vos pages.",
+            t: "Une fenêtre s'ouvre toute seule — pas besoin de chercher",
+            d: "Dès que votre portefeuille business est créé, Facebook affiche automatiquement la fenêtre « Que souhaitez-vous ajouter dans ce portefeuille business ? » avec la liste de vos pages.",
           },
           {
             t: "☑️ Cochez la case à GAUCHE de votre page Facebook",
-            d: "Ce n'est PAS un bouton « Ajouter » — c'est une simple case à cocher (☐) à gauche de chaque page. Cochez celle qui correspond à VOTRE entreprise (vous pouvez en cocher plusieurs si vous avez plusieurs pages).",
+            d: "Ce n'est PAS un bouton « Ajouter » : c'est une simple case à cocher (☐) à gauche de chaque page. Cochez celle de VOTRE entreprise, puis cliquez sur le bouton bleu « Suivant » en bas à droite.",
           },
           {
-            t: "Cliquez sur le bouton bleu « Suivant »",
-            d: "Il se trouve en bas à droite du popup, à côté de « Ignorer ».",
+            t: "Fenêtre « Ajoutez des personnes à ce portefeuille business »",
+            d: "Facebook propose d'ajouter un employé via son adresse e-mail. Ce n'est pas nécessaire maintenant : cliquez simplement sur le bouton bleu « Suivant » (ou sur « Ignorer »). On gérera les accès Adamkom plus tard.",
           },
           {
-            t: "⚠️ Étape « Ajouter un employé / des personnes » → cliquez sur « Ignorer »",
-            d: "Juste après, Facebook vous propose d'ajouter un employé ou de partager l'accès. Ce n'est PAS nécessaire pour nous : cliquez simplement sur « Ignorer » (bouton gris en bas à droite). On gérera les accès plus tard.",
+            t: "Fenêtre « Vérifiez et confirmez votre portefeuille business »",
+            d: "Relisez le récapitulatif (votre page doit apparaître), puis cliquez sur le bouton bleu « Confirmer » en bas à droite.",
           },
-          { t: "Confirmez", d: "Votre page est désormais rattachée à votre Business Manager ✅" },
+          {
+            t: "Terminé ✅",
+            d: "Votre page est désormais rattachée à votre portefeuille business.",
+          },
         ].map((s, i) => (
           <li key={i} className="flex gap-4">
             <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gradient-to-br from-[#ff006e] to-[#ff5c8a] text-white font-bold flex items-center justify-center text-sm">
@@ -373,26 +381,28 @@ function Step4_Attach() {
         ))}
       </ol>
 
-      <figure className="rounded-xl overflow-hidden border border-zinc-200 bg-white shadow-sm">
-        <img
-          src={addPagePopupImg}
-          alt="Popup Facebook : ajouter une page"
-          className="w-full h-auto"
-        />
-        <figcaption className="text-xs text-zinc-500 px-3 py-2 border-t border-zinc-100">
-          Aperçu du popup « ajouter une page » qui s'ouvre automatiquement.
-        </figcaption>
-      </figure>
+      <Screenshot
+        src={shotPopupSelection.url}
+        caption="Étape 2 — cochez la case à gauche de votre page, puis cliquez sur le bouton bleu « Suivant »."
+      />
 
+      <Screenshot
+        src={shotPopupPersonnes.url}
+        caption="Étape 3 — « Ajoutez des personnes à ce portefeuille business » : cliquez sur le bouton bleu « Suivant » (rien à remplir)."
+      />
+
+      <Screenshot
+        src={shotPopupConfirmer.url}
+        caption="Étape 4 — vérifiez le récapitulatif puis cliquez sur le bouton bleu « Confirmer »."
+      />
 
       <div className="rounded-xl bg-amber-50 border-2 border-amber-300 p-4 flex gap-3">
         <HelpCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm font-bold text-amber-900">⚠️ Étape suivante : « Ajouter un employé »</p>
+          <p className="text-sm font-bold text-amber-900">Vous ne voyez pas votre page dans la liste ?</p>
           <p className="text-xs text-amber-800 mt-1">
-            Juste après avoir coché la page, Facebook vous proposera d'<strong>ajouter un employé</strong> ou de partager l'accès avec quelqu'un.
-            <br />
-            👉 <strong>Cliquez sur « Ignorer »</strong> (bouton gris en bas). Ce n'est pas nécessaire — on s'occupera des accès plus tard.
+            Vérifiez que vous êtes connecté avec le compte Facebook <strong>administrateur</strong> de la page.
+            Sinon, dites-le nous : on vous aide directement.
           </p>
         </div>
       </div>

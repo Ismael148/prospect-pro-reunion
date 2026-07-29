@@ -25,14 +25,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchUserData = async (userId: string) => {
-    const [profileRes, rolesRes] = await Promise.all([
-      supabase.from("profiles").select("*").eq("user_id", userId).single(),
+    const [profileRes, rolesRes, contactsRes] = await Promise.all([
+      supabase.from("profiles").select("id, user_id, full_name, avatar_url, created_at, updated_at").eq("user_id", userId).single(),
       supabase.from("user_roles").select("role").eq("user_id", userId),
+      (supabase as any).rpc("get_team_contacts"),
     ]);
 
-    if (profileRes.data) setProfile(profileRes.data);
+    if (profileRes.data) {
+      const ownPhone = Array.isArray(contactsRes?.data)
+        ? contactsRes.data.find((c: any) => c.user_id === userId)?.phone ?? null
+        : null;
+      setProfile({ ...(profileRes.data as any), phone: ownPhone });
+    }
     if (rolesRes.data) setRoles(rolesRes.data.map((r) => r.role));
   };
+
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(

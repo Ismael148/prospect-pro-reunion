@@ -43,7 +43,7 @@ export default function AgentMasterDashboard() {
       const agentIds = roles.map((r) => r.user_id);
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("user_id, full_name, avatar_url, phone")
+        .select("user_id, full_name, avatar_url")
         .in("user_id", agentIds);
       return profiles || [];
     },

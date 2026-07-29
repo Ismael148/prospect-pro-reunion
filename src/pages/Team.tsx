@@ -89,8 +89,13 @@ export default function Team() {
 
   const fetchMembers = async () => {
     setLoading(true);
-    const { data: profiles } = await supabase.from("profiles").select("*");
+    const { data: profiles } = await supabase.from("profiles").select("id, user_id, full_name, avatar_url, created_at, updated_at");
     const { data: allRoles } = await supabase.from("user_roles").select("*");
+    const { data: contacts } = await (supabase as any).rpc("get_team_contacts");
+    const phoneByUser: Record<string, string | null> = {};
+    if (Array.isArray(contacts)) {
+      for (const c of contacts) phoneByUser[c.user_id] = c.phone ?? null;
+    }
 
     // Fetch emails via edge function
     let userEmails: Record<string, string> = {};
@@ -109,7 +114,7 @@ export default function Team() {
       const mapped: TeamMember[] = profiles.map((p) => ({
         user_id: p.user_id,
         full_name: p.full_name,
-        phone: p.phone,
+        phone: phoneByUser[p.user_id] ?? null,
         avatar_url: p.avatar_url,
         roles: allRoles.filter((r) => r.user_id === p.user_id).map((r) => r.role),
         email: userEmails[p.user_id] || null,

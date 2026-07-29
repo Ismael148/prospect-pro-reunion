@@ -2910,6 +2910,13 @@ export type Database = {
         }[]
       }
       get_public_gmb_dashboard: { Args: { p_token: string }; Returns: Json }
+      get_team_contacts: {
+        Args: never
+        Returns: {
+          phone: string
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

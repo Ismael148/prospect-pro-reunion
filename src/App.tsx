@@ -161,6 +161,10 @@ const App = () => (
               element={<ProtectedRoute><AppLayout><Gmb /></AppLayout></ProtectedRoute>}
             />
             <Route
+              path="/audit"
+              element={<ProtectedRoute><AppLayout><AuditLog /></AppLayout></ProtectedRoute>}
+            />
+            <Route
               path="/onboarding-fb"
               element={<ProtectedRoute><AppLayout><OnboardingInbox /></AppLayout></ProtectedRoute>}
             />

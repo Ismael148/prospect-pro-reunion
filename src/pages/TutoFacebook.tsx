@@ -32,6 +32,12 @@ import { useSubmitFbOnboarding, useClientByNdi } from "@/hooks/use-fb-onboarding
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.webp";
 import addPagePopupImg from "@/assets/tuto-fb-add-page-popup.png";
+import shotCreerPortefeuille from "@/assets/fb-creer-portefeuille.png.asset.json";
+import shotPopupInfos from "@/assets/fb-popup1-infos.png.asset.json";
+import shotPopupSelection from "@/assets/fb-popup2-selection-page.png.asset.json";
+import shotPopupPersonnes from "@/assets/fb-popup3-personnes.png.asset.json";
+import shotPopupConfirmer from "@/assets/fb-popup4-confirmer.png.asset.json";
+import shotIdPortefeuille from "@/assets/fb-id-portefeuille.png.asset.json";
 
 
 /* ──────────────────────────────────────────────────────────

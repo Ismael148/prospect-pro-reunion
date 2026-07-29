@@ -21,6 +21,7 @@ import {
   Share2,
   Inbox,
   CalendarDays,
+  ShieldCheck,
 } from "lucide-react";
 import logo from "@/assets/logo.webp";
 import {

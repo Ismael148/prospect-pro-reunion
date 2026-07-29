@@ -73,6 +73,7 @@ const allMenuItems = [
 
 const adminItems = [
   { title: "Équipe", icon: UserCircle, path: "/equipe" },
+  { title: "Journal d'audit", icon: ShieldCheck, path: "/audit" },
   { title: "Corbeille", icon: Trash2, path: "/corbeille" },
   { title: "Paramètres", icon: Settings, path: "/parametres" },
 ];

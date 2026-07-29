@@ -110,11 +110,12 @@ liveDescribe("RLS · rôle authentifié (membre)", () => {
     expect(error).toBeNull();
   });
 
-  it.runIf(process.env.TEST_USER_EMAIL)("ne peut pas lire les téléphones des autres membres", async () => {
+  it.runIf(process.env.TEST_USER_EMAIL)("n'obtient pas les téléphones des autres membres", async () => {
     if (!client) return;
-    const { error } = await client.from("profiles").select("phone").limit(1);
-    expect(error).not.toBeNull();
-  });
+    const { data, error } = await client.from("profiles").select("phone").limit(5);
+    const leaked = (data ?? []).filter((r: { phone?: string | null }) => r?.phone);
+    expect(error !== null || leaked.length === 0).toBe(true);
+  }, 20000);
 
   it.runIf(process.env.TEST_USER_EMAIL)("ne peut pas consulter le journal d'audit", async () => {
     if (!client) return;

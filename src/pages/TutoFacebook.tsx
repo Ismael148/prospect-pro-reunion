@@ -57,8 +57,8 @@ const STEPS: { key: StepKey; label: string; time?: string }[] = [
   { key: "intro", label: "Avez-vous une page FB ?", time: "30 sec" },
   { key: "page", label: "Créer votre page", time: "5 min" },
   { key: "bm", label: "Créer le Business Manager", time: "3 min" },
-  { key: "rattach", label: "Rattacher la page", time: "2 min" },
-  { key: "id", label: "Trouver l'ID du BM", time: "30 sec" },
+  { key: "rattach", label: "Rattacher la page au Business Manager", time: "2 min" },
+  { key: "id", label: "Trouver l'ID du Business Manager", time: "30 sec" },
   { key: "envoi", label: "Envoyer à Adamkom", time: "1 min" },
 ];
 

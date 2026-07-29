@@ -1325,6 +1325,13 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName }: {
                                 submittedAt: form.submitted_at,
                               });
                               toast.success("Archive téléchargée", { id: `dl-${form.id}` });
+                              logDataAccess({
+                                action: "download",
+                                resourceType: "client_form",
+                                resourceId: form.id,
+                                resourceLabel: `${companyName} · ${form.form_type}`,
+                                details: { format: "zip" },
+                              });
                             } catch (e: any) {
                               toast.error(e?.message || "Erreur export", { id: `dl-${form.id}` });
                             }

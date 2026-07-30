@@ -3046,6 +3046,18 @@ export type Database = {
         }
         Returns: string
       }
+      submit_reservation_ical_public: {
+        Args: {
+          p_airbnb_url?: string
+          p_booking_url?: string
+          p_expedia_url?: string
+          p_gites_url?: string
+          p_notes?: string
+          p_token: string
+          p_vrbo_url?: string
+        }
+        Returns: string
+      }
       validate_logo_with_token: {
         Args: { p_client_id: string; p_token: string }
         Returns: boolean

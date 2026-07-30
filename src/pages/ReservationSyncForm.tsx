@@ -126,16 +126,15 @@ export default function ReservationSyncForm() {
     }
     setSubmitting(true);
     try {
-      const payload = {
-        client_id: client.id,
-        airbnb_url: form.airbnb_url?.trim() || null,
-        booking_url: form.booking_url?.trim() || null,
-        vrbo_url: form.vrbo_url?.trim() || null,
-        gites_url: form.gites_url?.trim() || null,
-        expedia_url: form.expedia_url?.trim() || null,
-        notes: form.notes?.trim() || null,
-      };
-      const { error } = await supabase.from("reservation_ical_submissions").insert(payload);
+      const { error } = await (supabase as any).rpc("submit_reservation_ical_public", {
+        p_token: token,
+        p_airbnb_url: form.airbnb_url?.trim() || null,
+        p_booking_url: form.booking_url?.trim() || null,
+        p_vrbo_url: form.vrbo_url?.trim() || null,
+        p_gites_url: form.gites_url?.trim() || null,
+        p_expedia_url: form.expedia_url?.trim() || null,
+        p_notes: form.notes?.trim() || null,
+      });
       if (error) throw error;
       setSubmitted(true);
       toast.success("Liens envoyés à notre équipe technique !");

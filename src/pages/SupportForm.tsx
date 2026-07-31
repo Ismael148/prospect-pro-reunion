@@ -176,8 +176,8 @@ export default function SupportForm() {
       }
 
       setSubmitted(true);
-    } catch (err) {
-      toast.error("Erreur lors de l'envoi du support");
+    } catch (err: any) {
+      toast.error("Erreur lors de l'envoi du support" + (err?.message ? ` : ${err.message}` : ""));
     } finally {
       setSubmitting(false);
     }

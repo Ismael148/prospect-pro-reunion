@@ -2858,43 +2858,20 @@ export type Database = {
         Args: { p_token: string }
         Returns: boolean
       }
-      create_support_ticket_public:
-        | {
-            Args: {
-              p_attachments?: string[]
-              p_category: string
-              p_message: string
-              p_priority?: string
-              p_subject: string
-              p_token: string
-            }
-            Returns: {
-              id: string
-              ticket_number: string
-            }[]
-          }
-        | {
-            Args: {
-              p_attachments?: string[]
-              p_category: string
-              p_message: string
-              p_priority?: string
-              p_subject: string
-              p_token: string
-            }
-            Returns: {
-              attachments: string[]
-              category: Database["public"]["Enums"]["support_category"]
-              client_id: string
-              created_at: string
-              id: string
-              message: string
-              priority: string
-              status: Database["public"]["Enums"]["ticket_status"]
-              subject: string
-              ticket_number: string
-            }[]
-          }
+      create_support_ticket_public: {
+        Args: {
+          p_attachments?: string[]
+          p_category: string
+          p_message: string
+          p_priority?: string
+          p_subject: string
+          p_token: string
+        }
+        Returns: {
+          id: string
+          ticket_number: string
+        }[]
+      }
       fire_due_client_reminders: { Args: never; Returns: undefined }
       generate_monthly_social_deliverables: { Args: never; Returns: undefined }
       get_client_form_public: {

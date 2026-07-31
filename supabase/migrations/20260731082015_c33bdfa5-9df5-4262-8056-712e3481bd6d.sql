@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.create_support_ticket_public(uuid, text, text, text, text, text[]);

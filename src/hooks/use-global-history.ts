@@ -44,7 +44,7 @@ type Range = { from: string; to: string };
 
 const PER_SOURCE_LIMIT = 400;
 
-async function safe<T>(fn: () => Promise<{ data: any; error: any }>): Promise<any[]> {
+async function safe(fn: () => any): Promise<any[]> {
   try {
     const { data, error } = await fn();
     if (error) return [];

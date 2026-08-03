@@ -38,6 +38,9 @@ export type HistoryEntry = {
   at: string; // ISO timestamp
   link?: string | null;
   actor?: string | null;
+  actorId?: string | null;
+  source?: string;
+  raw?: Record<string, any>;
 };
 
 type Range = { from: string; to: string };
@@ -78,21 +81,21 @@ export function useGlobalHistory(range: Range) {
         events,
         audit,
       ] = await Promise.all([
-        safe(() => inRange(supabase.from("clients").select("id,company_name,ndi,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
-        safe(() => inRange(supabase.from("client_activities").select("id,client_id,activity_type,description,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
-        safe(() => inRange(supabase.from("module_notes").select("id,project_id,module_id,content,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
-        safe(() => inRange(supabase.from("ticket_comments").select("id,ticket_id,content,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
-        safe(() => inRange(supabase.from("project_tasks").select("id,project_id,title,status,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
-        safe(() => inRange(supabase.from("client_reminders").select("id,client_id,title,status,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
-        safe(() => inRange(supabase.from("projects").select("id,name,status,client_id,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
-        safe(() => inRange(supabase.from("support_tickets").select("id,ticket_number,subject,status,priority,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
-        safe(() => inRange(supabase.from("gmb_activities").select("id,client_id,action_type,description,performed_at"), "performed_at").order("performed_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
-        safe(() => inRange(supabase.from("invoices").select("id,invoice_number,total_amount,status,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
+        safe(() => inRange(supabase.from("clients").select("id,company_name,ndi,email,phone,pack_type,status,created_by,assigned_to,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
+        safe(() => inRange(supabase.from("client_activities").select("id,client_id,activity_type,description,user_id,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
+        safe(() => inRange(supabase.from("module_notes").select("id,project_id,module_id,content,user_id,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
+        safe(() => inRange(supabase.from("ticket_comments").select("id,ticket_id,content,user_id,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
+        safe(() => inRange(supabase.from("project_tasks").select("id,project_id,title,status,assigned_to,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
+        safe(() => inRange(supabase.from("client_reminders").select("id,client_id,title,status,created_by,assigned_to,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
+        safe(() => inRange(supabase.from("projects").select("id,name,status,client_id,created_by,assigned_to,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
+        safe(() => inRange(supabase.from("support_tickets").select("id,ticket_number,subject,description,category,status,priority,assigned_to,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
+        safe(() => inRange(supabase.from("gmb_activities").select("id,client_id,action_type,description,performed_by,performed_at"), "performed_at").order("performed_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
+        safe(() => inRange(supabase.from("invoices").select("id,invoice_number,total_amount,status,created_by,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
         safe(() => inRange(supabase.from("email_send_log").select("id,subject,recipient_email,status,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
-        safe(() => inRange(supabase.from("social_publications").select("id,platform,content,status,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
+        safe(() => inRange(supabase.from("social_publications").select("id,platform,content,status,created_by,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
         safe(() => inRange(supabase.from("social_deliverables").select("id,type,status,month_year,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
-        safe(() => inRange(supabase.from("prospects").select("id,business_name,status,city,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
-        safe(() => inRange(supabase.from("calendar_events").select("id,title,event_type,start_at,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
+        safe(() => inRange(supabase.from("prospects").select("id,business_name,status,city,phone,created_by,assigned_to,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
+        safe(() => inRange(supabase.from("calendar_events").select("id,title,event_type,start_at,created_by,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
         safe(() => inRange(supabase.from("data_access_audit").select("id,action,resource_type,resource_label,actor_email,created_at")).order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)),
       ]);
 
@@ -107,6 +110,13 @@ export function useGlobalHistory(range: Range) {
       }
       const withClient = (id?: string | null) => (id && clientNames[id] ? clientNames[id] : null);
 
+      // Resolve actor names from profiles
+      const profileRows = await safe(() => supabase.from("profiles").select("user_id,full_name"));
+      const profileNames: Record<string, string> = Object.fromEntries(
+        profileRows.map((p: any) => [p.user_id, p.full_name || "Utilisateur"])
+      );
+      const who = (id?: string | null) => (id ? profileNames[id] || null : null);
+
       const entries: HistoryEntry[] = [
         ...clients.map((c: any) => ({
           id: `client-${c.id}`,
@@ -115,6 +125,10 @@ export function useGlobalHistory(range: Range) {
           detail: c.ndi,
           at: c.created_at,
           link: `/clients/${c.id}`,
+          actorId: c.created_by,
+          actor: who(c.created_by),
+          source: "clients",
+          raw: c,
         })),
         ...activities.map((a: any) => ({
           id: `act-${a.id}`,
@@ -125,6 +139,10 @@ export function useGlobalHistory(range: Range) {
           detail: a.description,
           at: a.created_at,
           link: a.client_id ? `/clients/${a.client_id}` : null,
+          actorId: a.user_id,
+          actor: who(a.user_id),
+          source: "client_activities",
+          raw: { ...a, client: withClient(a.client_id) },
         })),
         ...moduleNotes.map((n: any) => ({
           id: `mnote-${n.id}`,
@@ -133,6 +151,10 @@ export function useGlobalHistory(range: Range) {
           detail: (n.content || "").slice(0, 200),
           at: n.created_at,
           link: n.project_id ? `/projets/${n.project_id}` : null,
+          actorId: n.user_id,
+          actor: who(n.user_id),
+          source: "module_notes",
+          raw: n,
         })),
         ...ticketComments.map((c: any) => ({
           id: `tcom-${c.id}`,
@@ -141,6 +163,10 @@ export function useGlobalHistory(range: Range) {
           detail: (c.content || "").slice(0, 200),
           at: c.created_at,
           link: "/support",
+          actorId: c.user_id,
+          actor: who(c.user_id),
+          source: "ticket_comments",
+          raw: c,
         })),
         ...tasks.map((t: any) => ({
           id: `task-${t.id}`,
@@ -149,6 +175,10 @@ export function useGlobalHistory(range: Range) {
           detail: t.status,
           at: t.created_at,
           link: t.project_id ? `/projets/${t.project_id}` : null,
+          actorId: t.assigned_to,
+          actor: who(t.assigned_to),
+          source: "project_tasks",
+          raw: t,
         })),
         ...reminders.map((r: any) => ({
           id: `rem-${r.id}`,
@@ -157,6 +187,10 @@ export function useGlobalHistory(range: Range) {
           detail: [withClient(r.client_id), r.status].filter(Boolean).join(" · "),
           at: r.created_at,
           link: r.client_id ? `/clients/${r.client_id}` : null,
+          actorId: r.created_by || r.assigned_to,
+          actor: who(r.created_by || r.assigned_to),
+          source: "client_reminders",
+          raw: { ...r, client: withClient(r.client_id) },
         })),
         ...projects.map((p: any) => ({
           id: `proj-${p.id}`,
@@ -165,6 +199,10 @@ export function useGlobalHistory(range: Range) {
           detail: [withClient(p.client_id), p.status].filter(Boolean).join(" · "),
           at: p.created_at,
           link: `/projets/${p.id}`,
+          actorId: p.created_by || p.assigned_to,
+          actor: who(p.created_by || p.assigned_to),
+          source: "projects",
+          raw: { ...p, client: withClient(p.client_id) },
         })),
         ...tickets.map((t: any) => ({
           id: `tick-${t.id}`,
@@ -173,6 +211,10 @@ export function useGlobalHistory(range: Range) {
           detail: [t.status, t.priority].filter(Boolean).join(" · "),
           at: t.created_at,
           link: "/support",
+          actorId: t.assigned_to,
+          actor: who(t.assigned_to),
+          source: "support_tickets",
+          raw: t,
         })),
         ...gmbActs.map((g: any) => ({
           id: `gmb-${g.id}`,
@@ -181,6 +223,10 @@ export function useGlobalHistory(range: Range) {
           detail: g.description,
           at: g.performed_at,
           link: "/gmb",
+          actorId: g.performed_by,
+          actor: who(g.performed_by),
+          source: "gmb_activities",
+          raw: { ...g, client: withClient(g.client_id) },
         })),
         ...invoices.map((i: any) => ({
           id: `inv-${i.id}`,
@@ -189,6 +235,10 @@ export function useGlobalHistory(range: Range) {
           detail: `${Number(i.total_amount || 0).toFixed(2)} € · ${i.status}`,
           at: i.created_at,
           link: "/facturation",
+          actorId: i.created_by,
+          actor: who(i.created_by),
+          source: "invoices",
+          raw: i,
         })),
         ...emails.map((e: any) => ({
           id: `mail-${e.id}`,
@@ -197,6 +247,8 @@ export function useGlobalHistory(range: Range) {
           detail: [e.recipient_email, e.status].filter(Boolean).join(" · "),
           at: e.created_at,
           link: "/emails",
+          source: "email_send_log",
+          raw: e,
         })),
         ...socialPubs.map((s: any) => ({
           id: `pub-${s.id}`,
@@ -204,6 +256,10 @@ export function useGlobalHistory(range: Range) {
           title: `Publication ${s.platform}`,
           detail: (s.content || "").slice(0, 160),
           at: s.created_at,
+          actorId: s.created_by,
+          actor: who(s.created_by),
+          source: "social_publications",
+          raw: s,
         })),
         ...socialDelivs.map((s: any) => ({
           id: `sdel-${s.id}`,
@@ -211,6 +267,8 @@ export function useGlobalHistory(range: Range) {
           title: `Livrable ${s.type}`,
           detail: [s.month_year, s.status].filter(Boolean).join(" · "),
           at: s.created_at,
+          source: "social_deliverables",
+          raw: s,
         })),
         ...prospects.map((p: any) => ({
           id: `pros-${p.id}`,
@@ -219,6 +277,10 @@ export function useGlobalHistory(range: Range) {
           detail: [p.city, p.status].filter(Boolean).join(" · "),
           at: p.created_at,
           link: "/prospection",
+          actorId: p.created_by || p.assigned_to,
+          actor: who(p.created_by || p.assigned_to),
+          source: "prospects",
+          raw: p,
         })),
         ...events.map((e: any) => ({
           id: `evt-${e.id}`,
@@ -227,6 +289,10 @@ export function useGlobalHistory(range: Range) {
           detail: e.event_type,
           at: e.created_at,
           link: "/calendrier",
+          actorId: e.created_by,
+          actor: who(e.created_by),
+          source: "calendar_events",
+          raw: e,
         })),
         ...audit.map((a: any) => ({
           id: `aud-${a.id}`,
@@ -236,6 +302,8 @@ export function useGlobalHistory(range: Range) {
           at: a.created_at,
           actor: a.actor_email,
           link: "/audit",
+          source: "data_access_audit",
+          raw: a,
         })),
       ].filter((e) => !!e.at);
 

@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Ne jamais déconnecter sur un événement transitoire (refresh de token,
         // onglet en arrière-plan, erreur réseau). Seul un SIGNED_OUT explicite
         // ou une suppression de compte vide la session.
-        if (!session && event !== "SIGNED_OUT" && event !== "USER_DELETED") {
+        if (!session && event !== "SIGNED_OUT") {
           setLoading(false);
           return;
         }

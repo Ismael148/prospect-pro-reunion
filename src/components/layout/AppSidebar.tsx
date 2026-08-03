@@ -22,6 +22,7 @@ import {
   Inbox,
   CalendarDays,
   ShieldCheck,
+  History,
 } from "lucide-react";
 import logo from "@/assets/logo.webp";
 import {

@@ -27,6 +27,7 @@ import {
 } from "@/hooks/use-domain-renewals";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmailBranding } from "@/hooks/use-email-branding";
+import { BRAND_COLOR, wrapInBrandedTemplate } from "@/lib/email-template";
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any }> = {
   a_renouveler: { label: "À renouveler", color: "bg-amber-500/15 text-amber-600 border-amber-500/30", icon: Clock },
@@ -156,26 +157,49 @@ export default function DomainRenewals() {
       toast.error("Le client n'a pas d'email");
       return;
     }
-    const subject = `Rappel renouvellement de votre nom de domaine ${reminderRenewal.domain_name}`;
-    const message = `
-      <p>Bonjour ${client.manager_name || client.company_name},</p>
-      <p>Nous vous rappelons que le renouvellement de votre nom de domaine <strong>${reminderRenewal.domain_name}</strong> arrive à échéance le <strong>${format(parseISO(reminderRenewal.renewal_date), "dd/MM/yyyy")}</strong>.</p>
-      <p>Montant à régler : <strong>${reminderRenewal.amount.toFixed(2)} €</strong></p>
-      <p>Merci de procéder au règlement afin d'éviter toute interruption de service.</p>
-      <p>Pour toute question, ouvrez un ticket support depuis votre espace.</p>
-    `;
+    const subject = `Rappel — renouvellement de votre nom de domaine ${reminderRenewal.domain_name}`;
+    const greetingName = client.manager_name || client.company_name;
+    const body = `<p style="margin:0 0 20px">Bonjour <strong>${greetingName}</strong>,</p>
+<p style="margin:0 0 20px">Nous vous rappelons que le renouvellement de votre nom de domaine arrive à échéance :</p>
+<div style="margin:20px 0;padding:20px;background:#f8f9fa;border-radius:12px;border-left:4px solid ${BRAND_COLOR}">
+  <p style="margin:0 0 8px;font-size:16px;font-weight:700;color:#1a1a2e">🌐 ${reminderRenewal.domain_name}</p>
+  <p style="margin:0 0 8px;font-size:14px;color:#555">Échéance : <strong>${format(parseISO(reminderRenewal.renewal_date), "dd/MM/yyyy")}</strong></p>
+  <p style="margin:0;font-size:22px;font-weight:800;color:${BRAND_COLOR}">${reminderRenewal.amount.toFixed(2)} €</p>
+</div>
+<p style="margin:0 0 20px">Le renouvellement assure la <strong>continuité de la visibilité de votre site en ligne</strong> et évite toute interruption d'accès pour vos visiteurs et clients.</p>
+<p style="margin:0 0 20px">Pour effectuer le virement, vous trouverez <strong>notre RIB en pièce jointe</strong>.</p>
+<p style="margin:0 0 20px">Merci de procéder au règlement dans les meilleurs délais.</p>
+<p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`;
+    const message = wrapInBrandedTemplate(body, undefined, branding || undefined);
 
     try {
+      // RIB en pièce jointe
+      let ribBase64: string | null = null;
+      try {
+        const ribResp = await fetch("/documents/RIB_Adamkom_by_JJP.pdf");
+        const ribBlob = await ribResp.blob();
+        ribBase64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve((reader.result as string).split(",")[1]);
+          reader.readAsDataURL(ribBlob);
+        });
+      } catch (e) {
+        console.warn("Could not load RIB file", e);
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
       const res = await supabase.functions.invoke("send-brevo-campaign", {
         body: {
           action: "send_client_email",
           recipientEmail: client.email,
-          recipientName: client.manager_name || client.company_name,
+          recipientName: greetingName,
           subject,
           htmlContent: message,
           trigger: "domain_renewal_reminder",
           client_id: client.id,
+          attachment: ribBase64
+            ? [{ content: ribBase64, name: "RIB_Adamkom_by_JJP.pdf" }]
+            : undefined,
         },
         headers: { Authorization: `Bearer ${session?.access_token}` },
       });

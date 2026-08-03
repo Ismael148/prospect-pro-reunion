@@ -43,7 +43,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (event, session) => {
+        // Ne jamais déconnecter sur un événement transitoire (refresh de token,
+        // onglet en arrière-plan, erreur réseau). Seul un SIGNED_OUT explicite
+        // ou une suppression de compte vide la session.
+        if (!session && event !== "SIGNED_OUT") {
+          setLoading(false);
+          return;
+        }
+
         setSession(session);
         setUser(session?.user ?? null);
 
@@ -68,6 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
 
   const signOut = async () => {
     await supabase.auth.signOut();

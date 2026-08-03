@@ -27,6 +27,7 @@ import {
 } from "@/hooks/use-domain-renewals";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmailBranding } from "@/hooks/use-email-branding";
+import { BRAND_COLOR, wrapInBrandedTemplate } from "@/lib/email-template";
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: any }> = {
   a_renouveler: { label: "À renouveler", color: "bg-amber-500/15 text-amber-600 border-amber-500/30", icon: Clock },

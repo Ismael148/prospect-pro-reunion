@@ -20,7 +20,8 @@ import type { SavedTemplate } from "@/hooks/use-email-templates";
 
 import { BRAND_COLOR, wrapInBrandedTemplate } from "@/lib/email-template";
 
-function buildEmailBody(greetingName: string, domainName: string, amount: number) {
+function buildEmailBody(greetingName: string, domainName: string, amount: number, invoiceNumber: string) {
+  const transferLabel = `RENOUVELLEMENT NDD ${domainName} - ${invoiceNumber}`;
   return `<p style="margin:0 0 20px">Bonjour <strong>${greetingName}</strong>,</p>
 <p style="margin:0 0 20px">Veuillez trouver ci-jointe la facture de renouvellement de votre nom de domaine :</p>
 <div style="margin:20px 0;padding:20px;background:#f8f9fa;border-radius:12px;border-left:4px solid ${BRAND_COLOR}">
@@ -29,6 +30,13 @@ function buildEmailBody(greetingName: string, domainName: string, amount: number
 </div>
 <p style="margin:0 0 20px">Pour rappel, le renouvellement de votre nom de domaine assure la <strong>continuité de la visibilité de votre site en ligne</strong> et évite toute interruption d'accès pour vos visiteurs et clients.</p>
 <p style="margin:0 0 20px">Pour effectuer le virement, nous vous joignons notre RIB en pièce jointe.</p>
+<div style="margin:20px 0;padding:20px;background:#fff0f6;border-radius:12px;border:1px solid #ffe0ec">
+  <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#b8004a">🏷️ Libellé du virement à indiquer impérativement</p>
+  <p style="margin:0 0 12px;font-size:13px;color:#52525b;line-height:1.6">Afin que nous puissions identifier et suivre votre règlement rapidement, merci de bien vouloir indiquer le libellé suivant sur votre ordre de virement :</p>
+  <div style="padding:12px 16px;background:#ffffff;border-radius:8px;border:1px dashed #ff006e;text-align:center">
+    <p style="margin:0;font-family:'Courier New',monospace;font-size:15px;font-weight:700;color:#1a1a2e;letter-spacing:0.3px">${transferLabel}</p>
+  </div>
+</div>
 <p style="margin:0 0 20px">Merci de procéder au règlement dans les meilleurs délais.</p>
 <p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`;
 }

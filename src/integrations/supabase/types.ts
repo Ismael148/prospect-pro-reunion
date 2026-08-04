@@ -2912,6 +2912,7 @@ export type Database = {
           providers: Database["public"]["Enums"]["payment_provider"][]
         }[]
       }
+      get_profile_phone: { Args: { _user_id: string }; Returns: string }
       get_public_client_by_support_token: {
         Args: { p_token: string }
         Returns: {

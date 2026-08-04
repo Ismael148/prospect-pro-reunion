@@ -131,8 +131,10 @@ export default function DomainRenewalInvoice({ client }: { client: ClientData })
         },
       }, { returnBase64: true });
 
-      // Use the edited body
-      const finalBody = emailBodyOverride;
+      // Rebuild body with real invoice number so the transfer label is accurate
+      const finalBody = emailBodyOverride
+        ? emailBodyOverride.replace(/FACTURE-NDD-XXXX/g, invoice.invoice_number)
+        : buildEmailBody(greetingName, domainName.trim(), amountNum, invoice.invoice_number);
       const htmlContent = wrapInBrandedTemplate(finalBody, undefined, branding || undefined);
 
       // Fetch RIB file as base64

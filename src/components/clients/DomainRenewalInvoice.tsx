@@ -69,7 +69,8 @@ export default function DomainRenewalInvoice({ client }: { client: ClientData })
   const amountNum = Number(amount) || 0;
   const defaultSubject = `Facture renouvellement nom de domaine — ${domainName.trim()}`;
   const greetingName = client.manager_name?.trim() || client.company_name;
-  const defaultBody = buildEmailBody(greetingName, domainName.trim(), amountNum);
+  const invoiceNumberPlaceholder = "FACTURE-NDD-XXXX";
+  const defaultBody = buildEmailBody(greetingName, domainName.trim(), amountNum, invoiceNumberPlaceholder);
 
   const previewHtml = useMemo(() => {
     return wrapInBrandedTemplate(emailBodyOverride || defaultBody, undefined, branding || undefined);

@@ -23,6 +23,7 @@ import {
   CalendarDays,
   ShieldCheck,
   History,
+  Gauge,
 } from "lucide-react";
 import logo from "@/assets/logo.webp";
 import {
@@ -41,8 +42,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useMemo } from "react";
 
 const ROLE_ACCESS: Record<string, string[]> = {
-  admin: ["/", "/historique", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/comptabilite", "/facturation", "/renouvellements-ndd", "/support", "/campagnes", "/emails", "/paiements", "/equipe", "/parametres", "/cartes-nfc", "/corbeille", "/acces-partenaire", "/gmb", "/onboarding-fb", "/calendrier"],
-  agent_master: ["/", "/historique", "/agent-master", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/acces-partenaire", "/gmb", "/onboarding-fb", "/calendrier"],
+  admin: ["/", "/historique", "/performance", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/comptabilite", "/facturation", "/renouvellements-ndd", "/support", "/campagnes", "/emails", "/paiements", "/equipe", "/parametres", "/cartes-nfc", "/corbeille", "/acces-partenaire", "/gmb", "/onboarding-fb", "/calendrier"],
+  agent_master: ["/", "/historique", "/performance", "/agent-master", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/acces-partenaire", "/gmb", "/onboarding-fb", "/calendrier"],
   agent_telephonique: ["/", "/historique", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/onboarding-fb", "/calendrier"],
   agent_support: ["/", "/historique", "/clients", "/support", "/projets", "/cartes-nfc", "/onboarding-fb", "/calendrier"],
   commercial_terrain: ["/", "/historique", "/projets", "/commissions", "/calendrier"],
@@ -60,6 +61,7 @@ const allMenuItems = [
   { title: "Projets", icon: Briefcase, path: "/projets" },
   { title: "Calendrier", icon: CalendarDays, path: "/calendrier" },
   { title: "Historique", icon: History, path: "/historique" },
+  { title: "Suivi équipe", icon: Gauge, path: "/performance" },
   { title: "Commissions", icon: Coins, path: "/commissions" },
   { title: "Comptabilité", icon: Calculator, path: "/comptabilite" },
   { title: "Facturation", icon: FileText, path: "/facturation" },

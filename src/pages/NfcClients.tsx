@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { FileDown, FileText } from "lucide-react";
+import { exportClientsCSV, exportClientsPDF } from "@/lib/export-clients-list";
 
 // CSV aliases for auto-mapping
 const ALIASES: Record<string, string[]> = {
@@ -263,6 +265,14 @@ export default function NfcClients() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" className="gap-2" disabled={!filteredClients.length}
+            onClick={() => { exportClientsCSV(filteredClients, "1.0-nfc"); toast.success("Export CSV généré"); }}>
+            <FileDown className="w-4 h-4" /> CSV
+          </Button>
+          <Button variant="outline" className="gap-2" disabled={!filteredClients.length}
+            onClick={() => { exportClientsPDF(filteredClients, "1.0-nfc", "Clients 1.0 — Cartes NFC"); toast.success("Export PDF généré"); }}>
+            <FileText className="w-4 h-4" /> PDF
+          </Button>
           <Button className="gap-2" onClick={() => setShowNewDialog(true)}>
             <Plus className="w-4 h-4" /> Nouveau client NFC
           </Button>

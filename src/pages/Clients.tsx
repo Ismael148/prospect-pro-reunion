@@ -20,7 +20,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Plus, Search, Building2, MapPin, Loader2, Filter, X, Mail } from "lucide-react";
+import { Plus, Search, Building2, MapPin, Loader2, Filter, X, Mail, FileDown, FileText } from "lucide-react";
+import { exportClientsCSV, exportClientsPDF } from "@/lib/export-clients-list";
 import { motion } from "framer-motion";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -142,6 +143,15 @@ export default function Clients() {
           <h1 className="text-3xl font-bold tracking-tight">Clients</h1>
           <p className="text-muted-foreground text-sm mt-1">{filtered?.length || 0} / {clients?.length || 0} client{(clients?.length || 0) > 1 ? "s" : ""}</p>
         </div>
+        <div className="flex items-center gap-2">
+        <Button variant="outline" className="gap-2" disabled={!filtered?.length}
+          onClick={() => { exportClientsCSV(filtered || [], "2.0"); toast.success("Export CSV généré"); }}>
+          <FileDown className="w-4 h-4" /> CSV
+        </Button>
+        <Button variant="outline" className="gap-2" disabled={!filtered?.length}
+          onClick={() => { exportClientsPDF(filtered || [], "2.0", "Clients 2.0"); toast.success("Export PDF généré"); }}>
+          <FileText className="w-4 h-4" /> PDF
+        </Button>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2 shadow-soft"><Plus className="w-4 h-4" /> Nouveau</Button>
@@ -226,6 +236,7 @@ export default function Clients() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Search + Filter toggle */}

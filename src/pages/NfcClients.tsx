@@ -45,6 +45,8 @@ interface NfcClient {
   address?: string;
   city?: string;
   nfc_quantity: number;
+  created_at?: string;
+  postal_code?: string;
 }
 
 export default function NfcClients() {
@@ -104,7 +106,7 @@ export default function NfcClients() {
     setLoading(true);
     const { data, error } = await supabase
       .from("clients")
-      .select("id, company_name, manager_name, phone, email, address, city, nfc_quantity")
+      .select("id, company_name, manager_name, phone, email, address, city, postal_code, nfc_quantity, created_at")
       .gt("nfc_quantity", 0)
       .order("company_name");
     if (!error && data) {

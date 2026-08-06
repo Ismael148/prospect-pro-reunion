@@ -45,6 +45,8 @@ interface NfcClient {
   address?: string;
   city?: string;
   nfc_quantity: number;
+  created_at?: string;
+  postal_code?: string;
 }
 
 export default function NfcClients() {
@@ -68,6 +70,8 @@ export default function NfcClients() {
   const [filterCity, setFilterCity] = useState<string>("all");
   const [filterQty, setFilterQty] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [sortOrder, setSortOrder] = useState<"recent" | "ancien">("recent");
+  const [filterPeriod, setFilterPeriod] = useState<string>("all");
 
   // New client dialog state
   const [showNewDialog, setShowNewDialog] = useState(false);
@@ -102,7 +106,7 @@ export default function NfcClients() {
     setLoading(true);
     const { data, error } = await supabase
       .from("clients")
-      .select("id, company_name, manager_name, phone, email, address, city, nfc_quantity")
+      .select("id, company_name, manager_name, phone, email, address, city, postal_code, nfc_quantity, created_at")
       .gt("nfc_quantity", 0)
       .order("company_name");
     if (!error && data) {
@@ -221,9 +225,9 @@ export default function NfcClients() {
     return Array.from(set).sort();
   }, [nfcClients]);
 
-  const activeFilterCount = [filterCity, filterQty].filter(f => f !== "all").length;
+  const activeFilterCount = [filterCity, filterQty, filterPeriod].filter(f => f !== "all").length;
 
-  const resetFilters = () => { setFilterCity("all"); setFilterQty("all"); };
+  const resetFilters = () => { setFilterCity("all"); setFilterQty("all"); setFilterPeriod("all"); setSortOrder("recent"); };
 
   const filteredClients = nfcClients.filter((c) => {
     const s = searchFilter.toLowerCase();
@@ -235,7 +239,16 @@ export default function NfcClients() {
       (filterQty === "1" && c.nfc_quantity === 1) ||
       (filterQty === "2-5" && c.nfc_quantity >= 2 && c.nfc_quantity <= 5) ||
       (filterQty === "5+" && c.nfc_quantity > 5);
-    return matchSearch && matchCity && matchQty;
+    let matchPeriod = true;
+    if (filterPeriod !== "all" && c.created_at) {
+      const days = Number(filterPeriod);
+      matchPeriod = new Date(c.created_at).getTime() >= Date.now() - days * 86400000;
+    }
+    return matchSearch && matchCity && matchQty && matchPeriod;
+  }).sort((a, b) => {
+    const da = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const db = b.created_at ? new Date(b.created_at).getTime() : 0;
+    return sortOrder === "recent" ? db - da : da - db;
   });
 
   const totalCards = nfcClients.reduce((sum, c) => sum + (c.nfc_quantity || 1), 0);
@@ -451,6 +464,23 @@ export default function NfcClients() {
               <SelectItem value="1">1 carte</SelectItem>
               <SelectItem value="2-5">2 à 5 cartes</SelectItem>
               <SelectItem value="5+">Plus de 5 cartes</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={filterPeriod} onValueChange={setFilterPeriod}>
+            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Date de création" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes les dates</SelectItem>
+              <SelectItem value="7">7 derniers jours</SelectItem>
+              <SelectItem value="30">30 derniers jours</SelectItem>
+              <SelectItem value="90">3 derniers mois</SelectItem>
+              <SelectItem value="365">12 derniers mois</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as "recent" | "ancien")}>
+            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Trier par" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="recent">Création : plus récent</SelectItem>
+              <SelectItem value="ancien">Création : plus ancien</SelectItem>
             </SelectContent>
           </Select>
         </motion.div>

@@ -41,6 +41,8 @@ export default function Clients() {
   const [filterCity, setFilterCity] = useState<string>("all");
   const [filterAgent, setFilterAgent] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [sortOrder, setSortOrder] = useState<"recent" | "ancien">("recent");
+  const [filterPeriod, setFilterPeriod] = useState<string>("all");
 
   const [form, setForm] = useState({
     company_name: "", manager_name: "", phone: "", email: "", address: "", city: "",
@@ -64,7 +66,7 @@ export default function Clients() {
     return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
   }, [agents, allCommercials]);
 
-  const activeFilterCount = [filterStatus, filterPack, filterCity, filterAgent].filter(f => f !== "all").length;
+  const activeFilterCount = [filterStatus, filterPack, filterCity, filterAgent, filterPeriod].filter(f => f !== "all").length;
 
   // Fetch emails sent per client email
   const { data: emailLogs } = useQuery({
@@ -118,7 +120,7 @@ export default function Clients() {
   };
 
   const resetFilters = () => {
-    setFilterStatus("all"); setFilterPack("all"); setFilterCity("all"); setFilterAgent("all");
+    setFilterStatus("all"); setFilterPack("all"); setFilterCity("all"); setFilterAgent("all"); setFilterPeriod("all"); setSortOrder("recent");
   };
 
   const filtered = clients?.filter((c) => {
@@ -133,7 +135,16 @@ export default function Clients() {
     const matchPack = filterPack === "all" || c.pack_type === filterPack;
     const matchCity = filterCity === "all" || c.city === filterCity;
     const matchAgent = filterAgent === "all" || c.assigned_to === filterAgent || (c as any).signed_by_commercial === filterAgent;
-    return matchSearch && matchStatus && matchPack && matchCity && matchAgent;
+    let matchPeriod = true;
+    if (filterPeriod !== "all" && c.created_at) {
+      const days = Number(filterPeriod);
+      matchPeriod = new Date(c.created_at).getTime() >= Date.now() - days * 86400000;
+    }
+    return matchSearch && matchStatus && matchPack && matchCity && matchAgent && matchPeriod;
+  }).sort((a, b) => {
+    const da = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const db = b.created_at ? new Date(b.created_at).getTime() : 0;
+    return sortOrder === "recent" ? db - da : da - db;
   });
 
   return (
@@ -285,6 +296,23 @@ export default function Clients() {
             <SelectContent>
               <SelectItem value="all">Tous les membres</SelectItem>
               {teamMembers.map(([id, name]) => (<SelectItem key={id} value={id}>{name}</SelectItem>))}
+            </SelectContent>
+          </Select>
+          <Select value={filterPeriod} onValueChange={setFilterPeriod}>
+            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Date de création" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes les dates</SelectItem>
+              <SelectItem value="7">7 derniers jours</SelectItem>
+              <SelectItem value="30">30 derniers jours</SelectItem>
+              <SelectItem value="90">3 derniers mois</SelectItem>
+              <SelectItem value="365">12 derniers mois</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as "recent" | "ancien")}>
+            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Trier par" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="recent">Création : plus récent</SelectItem>
+              <SelectItem value="ancien">Création : plus ancien</SelectItem>
             </SelectContent>
           </Select>
         </motion.div>

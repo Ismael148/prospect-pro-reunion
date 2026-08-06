@@ -34,6 +34,7 @@ import DeletedClients from "./pages/DeletedClients";
 import DomainRenewals from "./pages/DomainRenewals";
 import AuditLog from "./pages/AuditLog";
 import Historique from "./pages/Historique";
+import Performance from "./pages/Performance";
 import Privacy from "./pages/Privacy";
 import LogoValidation from "./pages/LogoValidation";
 import Terms from "./pages/Terms";
@@ -164,6 +165,10 @@ const App = () => (
             <Route
               path="/historique"
               element={<ProtectedRoute><AppLayout><Historique /></AppLayout></ProtectedRoute>}
+            />
+            <Route
+              path="/performance"
+              element={<ProtectedRoute><AppLayout><Performance /></AppLayout></ProtectedRoute>}
             />
             <Route
               path="/audit"

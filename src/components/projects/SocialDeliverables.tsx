@@ -219,15 +219,19 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
       const urlPath = del.file_url.split("?")[0];
       const fileName = decodeURIComponent(urlPath.split("/").pop() || "livrable");
 
-      // Brevo limits total email (with attachments) to ~10 MB. Check file size and skip attachment if too large.
-      let attachFile = true;
-      try {
-        const head = await fetch(del.file_url, { method: "HEAD" });
-        const len = Number(head.headers.get("content-length") || 0);
-        if (len > 9 * 1024 * 1024) attachFile = false;
-      } catch {
-        attachFile = false;
+      // Brevo limits total email (with attachments) to ~10 MB and rejects some formats (webp, avif...).
+      const ext = (fileName.split(".").pop() || "").toLowerCase();
+      let attachFile = !["webp", "avif", "heic", "heif"].includes(ext);
+      if (attachFile) {
+        try {
+          const head = await fetch(del.file_url, { method: "HEAD" });
+          const len = Number(head.headers.get("content-length") || 0);
+          if (len > 9 * 1024 * 1024) attachFile = false;
+        } catch {
+          attachFile = false;
+        }
       }
+
 
       if (!attachFile) {
         toast.info("Fichier trop volumineux pour être joint — envoi du lien de téléchargement uniquement.");

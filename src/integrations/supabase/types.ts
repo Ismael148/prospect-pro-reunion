@@ -2577,6 +2577,48 @@ export type Database = {
         }
         Relationships: []
       }
+      seo_training_progress: {
+        Row: {
+          completed: boolean
+          completed_at: string
+          created_at: string
+          id: string
+          lesson_id: string
+          module_id: string
+          notes: string | null
+          quiz_score: number | null
+          quiz_total: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string
+          created_at?: string
+          id?: string
+          lesson_id: string
+          module_id: string
+          notes?: string | null
+          quiz_score?: number | null
+          quiz_total?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string
+          created_at?: string
+          id?: string
+          lesson_id?: string
+          module_id?: string
+          notes?: string | null
+          quiz_score?: number | null
+          quiz_total?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       social_accounts: {
         Row: {
           access_token: string | null

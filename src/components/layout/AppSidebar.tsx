@@ -24,6 +24,7 @@ import {
   ShieldCheck,
   History,
   Gauge,
+  GraduationCap,
 } from "lucide-react";
 import logo from "@/assets/logo.webp";
 import {
@@ -42,13 +43,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useMemo } from "react";
 
 const ROLE_ACCESS: Record<string, string[]> = {
-  admin: ["/", "/historique", "/performance", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/comptabilite", "/facturation", "/renouvellements-ndd", "/support", "/campagnes", "/emails", "/paiements", "/equipe", "/parametres", "/cartes-nfc", "/corbeille", "/acces-partenaire", "/gmb", "/onboarding-fb", "/calendrier"],
-  agent_master: ["/", "/historique", "/performance", "/agent-master", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/acces-partenaire", "/gmb", "/onboarding-fb", "/calendrier"],
+  admin: ["/", "/historique", "/performance", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/comptabilite", "/facturation", "/renouvellements-ndd", "/support", "/campagnes", "/emails", "/paiements", "/equipe", "/parametres", "/cartes-nfc", "/corbeille", "/acces-partenaire", "/gmb", "/onboarding-fb", "/calendrier", "/formation-seo"],
+  agent_master: ["/", "/historique", "/performance", "/agent-master", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/acces-partenaire", "/gmb", "/onboarding-fb", "/calendrier", "/formation-seo"],
   agent_telephonique: ["/", "/historique", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/onboarding-fb", "/calendrier"],
   agent_support: ["/", "/historique", "/clients", "/support", "/projets", "/cartes-nfc", "/onboarding-fb", "/calendrier"],
   commercial_terrain: ["/", "/historique", "/projets", "/commissions", "/calendrier"],
-  webmaster: ["/", "/historique", "/clients", "/projets", "/webmaster", "/support", "/acces-partenaire", "/gmb", "/onboarding-fb", "/onboarding-clients", "/calendrier"],
-  designer: ["/", "/historique", "/projets", "/webmaster", "/support", "/calendrier"],
+  webmaster: ["/", "/historique", "/clients", "/projets", "/webmaster", "/support", "/acces-partenaire", "/gmb", "/onboarding-fb", "/onboarding-clients", "/calendrier", "/formation-seo"],
+  designer: ["/", "/historique", "/projets", "/webmaster", "/support", "/calendrier", "/formation-seo"],
 };
 
 const allMenuItems = [
@@ -71,6 +72,7 @@ const allMenuItems = [
   { title: "Accès Partenaire", icon: Share2, path: "/acces-partenaire" },
   { title: "Gestion GMB", icon: Globe, path: "/gmb" },
   { title: "Onboarding clients", icon: Inbox, path: "/onboarding-fb" },
+  { title: "Formation SEO", icon: GraduationCap, path: "/formation-seo" },
   { title: "Campagnes", icon: Mail, path: "/campagnes" },
   { title: "Notifications · Emails", icon: Inbox, path: "/emails" },
   { title: "Moyens de paiement", icon: CreditCard, path: "/paiements" },

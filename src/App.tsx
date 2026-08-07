@@ -53,6 +53,7 @@ import TutoMotoPress from "./pages/TutoMotoPress";
 import TutoEmailProGmail from "./pages/TutoEmailProGmail";
 import Calendrier from "./pages/Calendrier";
 import GmbPublic from "./pages/GmbPublic";
+import FormationSeo from "./pages/FormationSeo";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -193,6 +194,10 @@ const App = () => (
             <Route
               path="/calendrier"
               element={<ProtectedRoute><AppLayout><Calendrier /></AppLayout></ProtectedRoute>}
+            />
+            <Route
+              path="/formation-seo"
+              element={<ProtectedRoute><AppLayout><FormationSeo /></AppLayout></ProtectedRoute>}
             />
             {/* Public tutorials */}
             <Route path="/tuto/facebook" element={<TutoFacebook />} />

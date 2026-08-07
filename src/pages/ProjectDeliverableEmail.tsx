@@ -339,6 +339,31 @@ export default function ProjectDeliverableEmail() {
 
   const handleInsertVariable = (varCode: string) => setMessage((prev) => prev + varCode);
 
+  // Brevo n'accepte pas certains formats (webp, avif, heic...) : on les convertit en PNG
+  const UNSUPPORTED_ATTACHMENT_EXT = ["webp", "avif", "heic", "heif"];
+
+  const convertToPng = (file: File): Promise<File> =>
+    new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) { URL.revokeObjectURL(url); reject(new Error("Conversion impossible")); return; }
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob((blob) => {
+          URL.revokeObjectURL(url);
+          if (!blob) { reject(new Error("Conversion impossible")); return; }
+          const newName = file.name.replace(/\.[^.]+$/, "") + ".png";
+          resolve(new File([blob], newName, { type: "image/png" }));
+        }, "image/png");
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Image illisible")); };
+      img.src = url;
+    });
+
   const handleAttachmentChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
@@ -348,7 +373,14 @@ export default function ProjectDeliverableEmail() {
     if (totalCurrentSize + totalNewSize > 60 * 1024 * 1024) { toast.error("La taille totale ne doit pas dépasser 60 Mo"); event.target.value = ""; return; }
     try {
       const newAttachments: UploadedAttachment[] = [];
-      for (const file of newFiles) {
+      let converted = 0;
+      for (const original of newFiles) {
+        const ext = (original.name.split(".").pop() || "").toLowerCase();
+        let file = original;
+        if (UNSUPPORTED_ATTACHMENT_EXT.includes(ext) || original.type === "image/webp" || original.type === "image/avif") {
+          file = await convertToPng(original);
+          converted++;
+        }
         const content = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = () => {
@@ -362,10 +394,11 @@ export default function ProjectDeliverableEmail() {
         newAttachments.push({ content, name: file.name, type: file.type || "application/octet-stream", size: file.size });
       }
       setUploadedAttachments((prev) => [...prev, ...newAttachments]);
-      toast.success(`${newAttachments.length} fichier(s) ajouté(s)`);
+      toast.success(`${newAttachments.length} fichier(s) ajouté(s)${converted ? ` — ${converted} converti(s) en PNG (format non accepté par l'email)` : ""}`);
     } catch (e: any) { toast.error(e.message || "Erreur"); }
     finally { event.target.value = ""; }
   };
+
 
   const handleSend = async () => {
     if (!deliverable) return;

@@ -195,6 +195,10 @@ const App = () => (
               path="/calendrier"
               element={<ProtectedRoute><AppLayout><Calendrier /></AppLayout></ProtectedRoute>}
             />
+            <Route
+              path="/formation-seo"
+              element={<ProtectedRoute><AppLayout><FormationSeo /></AppLayout></ProtectedRoute>}
+            />
             {/* Public tutorials */}
             <Route path="/tuto/facebook" element={<TutoFacebook />} />
             <Route path="/tuto/gmb" element={<TutoGmb />} />

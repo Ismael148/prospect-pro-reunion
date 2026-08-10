@@ -159,6 +159,7 @@ export default function DomainRenewals() {
     }
     const subject = `Rappel — renouvellement de votre nom de domaine ${reminderRenewal.domain_name}`;
     const greetingName = client.manager_name || client.company_name;
+    const transferLabel = `RENOUVELLEMENT NDD ${reminderRenewal.domain_name}`;
     const body = `<p style="margin:0 0 20px">Bonjour <strong>${greetingName}</strong>,</p>
 <p style="margin:0 0 20px">Nous vous rappelons que le renouvellement de votre nom de domaine arrive à échéance :</p>
 <div style="margin:20px 0;padding:20px;background:#f8f9fa;border-radius:12px;border-left:4px solid ${BRAND_COLOR}">
@@ -167,6 +168,13 @@ export default function DomainRenewals() {
   <p style="margin:0;font-size:22px;font-weight:800;color:${BRAND_COLOR}">${reminderRenewal.amount.toFixed(2)} €</p>
 </div>
 <p style="margin:0 0 20px">Le renouvellement assure la <strong>continuité de la visibilité de votre site en ligne</strong> et évite toute interruption d'accès pour vos visiteurs et clients.</p>
+<div style="margin:20px 0;padding:20px;background:#fff5f5;border-radius:12px;border:1px solid #fc8181">
+  <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#c53030">🏷️ Libellé du virement à indiquer impérativement</p>
+  <p style="margin:0 0 12px;font-size:13px;color:#742a2a;line-height:1.6">Afin que nous puissions identifier et suivre votre règlement rapidement, merci de bien vouloir indiquer le libellé suivant sur votre ordre de virement :</p>
+  <div style="padding:12px 16px;background:#ffffff;border-radius:8px;border:1px dashed #e53e3e;text-align:center">
+    <p style="margin:0;font-family:'Courier New',monospace;font-size:15px;font-weight:700;color:#1a1a2e;letter-spacing:0.3px">${transferLabel}</p>
+  </div>
+</div>
 <p style="margin:0 0 20px">Pour effectuer le virement, vous trouverez <strong>notre RIB en pièce jointe</strong>.</p>
 <p style="margin:0 0 20px">Merci de procéder au règlement dans les meilleurs délais.</p>
 <p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`;

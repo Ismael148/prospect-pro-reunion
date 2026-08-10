@@ -28,13 +28,16 @@ export interface SocialPublication {
   updated_at: string;
 }
 
+const SOCIAL_ACCOUNT_COLUMNS =
+  "id, client_id, platform, profile_url, username, page_id, created_at, updated_at";
+
 export function useSocialAccounts(clientId: string) {
   return useQuery({
     queryKey: ["social_accounts", clientId],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("social_accounts")
-        .select("*")
+        .select(SOCIAL_ACCOUNT_COLUMNS)
         .eq("client_id", clientId);
       if (error) throw error;
       return (data || []) as SocialAccount[];
@@ -66,7 +69,7 @@ export function useUpsertSocialAccount() {
       const { data, error } = await (supabase as any)
         .from("social_accounts")
         .upsert(account, { onConflict: "client_id,platform,page_id" })
-        .select()
+        .select(SOCIAL_ACCOUNT_COLUMNS)
         .single();
       if (error) throw error;
       return data as SocialAccount;

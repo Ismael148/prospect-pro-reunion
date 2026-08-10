@@ -174,7 +174,7 @@ Deno.serve(async (req) => {
 
       // If Instagram business account exists, save it too
       if (platform === "facebook" && page.instagram) {
-        await supabase
+        await admin
           .from("social_accounts")
           .upsert(
             {

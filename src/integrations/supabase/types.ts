@@ -2980,6 +2980,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_valid_client_form_upload: { Args: { _name: string }; Returns: boolean }
       is_valid_support_token_text: {
         Args: { _token: string }
         Returns: boolean

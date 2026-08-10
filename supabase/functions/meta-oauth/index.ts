@@ -138,8 +138,15 @@ Deno.serve(async (req) => {
       const { client_id: clientId, page, platform, expires_in } = await req.json();
       const expiresAt = new Date(Date.now() + (expires_in || 5184000) * 1000).toISOString();
 
+      // OAuth tokens are write-restricted: use the service role client server-side only
+      const admin = createClient(
+        SUPABASE_URL,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+        { auth: { persistSession: false } }
+      );
+
       // Upsert the social account (unique on client_id, platform, page_id)
-      const { error: upsertError } = await supabase
+      const { error: upsertError } = await admin
         .from("social_accounts")
         .upsert(
           {
@@ -167,7 +174,7 @@ Deno.serve(async (req) => {
 
       // If Instagram business account exists, save it too
       if (platform === "facebook" && page.instagram) {
-        await supabase
+        await admin
           .from("social_accounts")
           .upsert(
             {

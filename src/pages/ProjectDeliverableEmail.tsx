@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import DOMPurify from "dompurify";
 import { Progress } from "@/components/ui/progress";
-import { uploadFileWithProgress } from "@/lib/upload-with-progress";
+import { uploadFileWithProgress, formatSpeed, formatEta } from "@/lib/upload-with-progress";
 
 // ── Types ──────────────────────────────────────────────
 type UploadedAttachment = { content: string; name: string; type: string; size: number; url?: string };
@@ -420,7 +420,12 @@ export default function ProjectDeliverableEmail() {
     const path = `deliverable-attachments/${deliverableId || "divers"}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     setUploadState({ name: file.name, percent: 0, info: `0 / ${formatBytes(file.size)}` });
     const url = await uploadFileWithProgress("email-assets", path, file, (p) => {
-      setUploadState({ name: file.name, percent: p.percent, info: `${formatBytes(p.loaded)} / ${formatBytes(p.total)}` });
+      const extra = [formatSpeed(p.speed), formatEta(p.eta)].filter(Boolean).join(" · ");
+      setUploadState({
+        name: file.name,
+        percent: p.percent,
+        info: `${formatBytes(p.loaded)} / ${formatBytes(p.total)}${extra ? ` — ${extra}` : ""}`,
+      });
     });
     setUploadState(null);
     return url;

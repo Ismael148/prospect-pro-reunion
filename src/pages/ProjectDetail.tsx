@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   useProject, useProjectTasks, useDeliverables,
   useUpdateProject, useCreateTask, useUpdateTask,
-  useCreateDeliverable, useUpdateDeliverable, useDeleteProjectTasks,
+  useCreateDeliverable, useUpdateDeliverable, useDeleteDeliverable, useDeleteProjectTasks,
 } from "@/hooks/use-projects";
 import {
   PROJECT_STATUS_LABELS, PACK_LABELS,

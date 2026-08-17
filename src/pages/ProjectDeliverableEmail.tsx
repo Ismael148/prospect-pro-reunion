@@ -332,8 +332,20 @@ export default function ProjectDeliverableEmail() {
     if (!deliverable) return "";
     const resolvedBody = replaceVariables(message);
     const sanitizedBody = DOMPurify.sanitize(resolvedBody, { ADD_TAGS: ["style"], ADD_ATTR: ["style"] });
-    return wrapInBrandedTemplate(sanitizedBody, replaceVariables(supportLink), emailBranding || undefined);
-  }, [deliverable, message, replaceVariables, supportLink, emailBranding]);
+    const linkFiles = uploadedAttachments.filter((a) => a.url);
+    const downloadBlock = linkFiles.length
+      ? `<div style="margin:28px 0">
+  <p style="margin:0 0 12px;font-weight:700">📥 Fichiers à télécharger</p>
+  ${linkFiles
+    .map(
+      (a) =>
+        `<div style="margin:0 0 10px"><a href="${a.url}" style="display:inline-block;background:#ff006e;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px">${a.name}</a></div>`,
+    )
+    .join("")}
+</div>`
+      : "";
+    return wrapInBrandedTemplate(sanitizedBody + downloadBlock, replaceVariables(supportLink), emailBranding || undefined);
+  }, [deliverable, message, replaceVariables, supportLink, emailBranding, uploadedAttachments]);
 
   const resolvedSubject = useMemo(() => replaceVariables(subject), [subject, replaceVariables]);
 

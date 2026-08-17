@@ -198,11 +198,22 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
           ? `Nous avons le plaisir de vous envoyer votre <strong>vidéo influenceur</strong> à poster sur vos réseaux sociaux. Elle est optimisée pour Facebook, Instagram & TikTok.`
           : `Votre <strong>${typeLabel}</strong> est prêt ! Vous le trouverez via le lien ci-dessous, configuré pour une diffusion optimale sur vos réseaux sociaux.`;
 
+      const urlPath = del.file_url.split("?")[0];
+      const fileName = decodeURIComponent(urlPath.split("/").pop() || "livrable");
+      const ext = (fileName.split(".").pop() || "").toLowerCase();
+      const isImage = ["jpg", "jpeg", "png", "gif"].includes(ext);
+
+      const previewBlock = isImage
+        ? `<div style="margin:24px 0;text-align:center">
+  <img src="${del.file_url}" alt="${typeLabel}" style="max-width:100%;border-radius:12px;border:1px solid #eeeeee" />
+</div>`
+        : "";
+
       const bodyHtml = `
 <p style="margin:0 0 20px">Bonjour <strong>${greetingName}</strong>,</p>
 
 <p style="margin:0 0 20px">${introLine}</p>
-
+${previewBlock}
 <div style="margin:28px 0;text-align:center">
   <a href="${del.file_url}" style="display:inline-block;background:#ff006e;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;box-shadow:0 4px 12px rgba(255,0,110,0.3)">📥 Télécharger le livrable</a>
 </div>
@@ -215,30 +226,8 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
 
       const subject = `${typeLabel} — ${formatMonthYear(del.month_year)} | ${clientInfo.company_name}`;
 
-      // Attach the file directly via URL (Brevo fetches it). Extract filename from URL.
-      const urlPath = del.file_url.split("?")[0];
-      const fileName = decodeURIComponent(urlPath.split("/").pop() || "livrable");
-
-      // Brevo refuse les vidéos et certains formats (webp, avif...), et limite l'email à ~10 Mo.
-      const ext = (fileName.split(".").pop() || "").toLowerCase();
-      const blockedExt = ["webp", "avif", "heic", "heif", "mp4", "mov", "webm", "avi", "mkv", "m4v"];
-      let attachFile = !blockedExt.includes(ext);
-      if (attachFile) {
-        try {
-          const head = await fetch(del.file_url, { method: "HEAD" });
-          const len = Number(head.headers.get("content-length") || 0);
-          if (len > 9 * 1024 * 1024) attachFile = false;
-        } catch {
-          attachFile = false;
-        }
-      }
-
-
-      if (!attachFile) {
-        toast.info("Envoi du lien de téléchargement (vidéo ou fichier trop volumineux pour être joint).");
-      }
-
-
+      // Envoi 100% fiable : aucun fichier en pièce jointe (Brevo refuse vidéos, webp
+      // et > ~10 Mo). Le visuel est affiché dans le mail + bouton de téléchargement.
       const { error } = await supabase.functions.invoke("send-brevo-campaign", {
         body: {
           action: "send_client_email",
@@ -248,7 +237,6 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
           htmlContent: fullHtml,
           trigger: "social_deliverable",
           client_id: clientId,
-          ...(attachFile ? { attachment: [{ name: fileName, url: del.file_url }] } : {}),
         },
       });
 

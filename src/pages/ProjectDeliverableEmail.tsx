@@ -17,7 +17,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, BookmarkPlus, CheckCircle2, Clock, FolderOpen, Loader2, Mail, MailX, Paperclip, Save, Send, Trash2, TriangleAlert } from "lucide-react";
+import { ArrowLeft, BookmarkPlus, CheckCircle2, Clock, FolderOpen, Loader2, Mail, MailX, Paperclip, Save, Send, Star, Trash2, TriangleAlert } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
@@ -260,15 +260,27 @@ export default function ProjectDeliverableEmail() {
   const [savingTemplate, setSavingTemplate] = useState(false);
 
   useEffect(() => {
-    if (!deliverable || initialized) return;
+    if (!deliverable || initialized || !savedTemplates) return;
     const detected = detectTemplateId(deliverable.name);
+    setLinkUrl(deliverable.file_url || "");
+
+    // Priorité : modèle sauvegardé défini par défaut (même catégorie, sinon global)
+    const defaults = savedTemplates.filter((t: any) => t.is_default);
+    const preferred = defaults.find((t: any) => t.category === detected) || defaults[0];
+    if (preferred) {
+      setSelectedTemplateId("custom_saved");
+      setSubject(preferred.subject);
+      setMessage(preferred.body);
+      setInitialized(true);
+      return;
+    }
+
     setSelectedTemplateId(detected);
     const tpl = EMAIL_TEMPLATES.find((t) => t.id === detected) || EMAIL_TEMPLATES[EMAIL_TEMPLATES.length - 1];
     setSubject(tpl.subject);
     setMessage(tpl.body);
-    setLinkUrl(deliverable.file_url || "");
     setInitialized(true);
-  }, [deliverable, initialized]);
+  }, [deliverable, initialized, savedTemplates]);
 
   useEffect(() => {
     if (clientEmail && !recipientEmail) setRecipientEmail(clientEmail);
@@ -286,6 +298,25 @@ export default function ProjectDeliverableEmail() {
     setMessage(tpl.body);
     toast.success(`Modèle "${tpl.name}" chargé`);
   };
+
+  const handleToggleDefault = async (tpl: any) => {
+    try {
+      if (!tpl.is_default) {
+        await supabase
+          .from("saved_email_templates" as any)
+          .update({ is_default: false } as any)
+          .eq("category", tpl.category);
+      }
+      const { error } = await supabase
+        .from("saved_email_templates" as any)
+        .update({ is_default: !tpl.is_default } as any)
+        .eq("id", tpl.id);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["saved_email_templates"] });
+      toast.success(!tpl.is_default ? `"${tpl.name}" défini par défaut` : `"${tpl.name}" n'est plus par défaut`);
+    } catch (e: any) { toast.error(e.message || "Erreur"); }
+  };
+
 
   const handleSaveTemplate = async () => {
     if (!saveTemplateName.trim()) { toast.error("Donnez un nom au modèle"); return; }
@@ -615,13 +646,20 @@ Site livré : ${linkUrl.trim() || "(lien à vérifier)"}
             {savedTemplates && savedTemplates.length > 0 && (
               <div className="space-y-2">
                 <Label className="flex items-center gap-2"><FolderOpen className="h-4 w-4" />Mes modèles sauvegardés</Label>
-                <div className="grid gap-2 max-h-[160px] overflow-auto pr-1">
+                <p className="text-xs text-muted-foreground">Cliquez sur l'étoile pour définir un modèle par défaut : il sera chargé automatiquement.</p>
+                <div className="grid gap-2 max-h-[200px] overflow-auto pr-1">
                   {savedTemplates.map((tpl: any) => (
                     <div key={tpl.id} className="flex items-center gap-2 rounded-lg border border-border p-2.5 hover:bg-muted/50 transition-colors group">
                       <button type="button" className="flex-1 text-left min-w-0" onClick={() => handleLoadSavedTemplate(tpl)}>
-                        <p className="text-sm font-medium truncate">{tpl.name}</p>
+                        <p className="text-sm font-medium truncate flex items-center gap-1.5">
+                          {tpl.name}
+                          {tpl.is_default && <Badge variant="secondary" className="text-[10px]">Par défaut</Badge>}
+                        </p>
                         <p className="text-xs text-muted-foreground truncate">{tpl.subject}</p>
                       </button>
+                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7" title="Définir par défaut" onClick={() => handleToggleDefault(tpl)}>
+                        <Star className={`h-3.5 w-3.5 ${tpl.is_default ? "fill-primary text-primary" : "text-muted-foreground"}`} />
+                      </Button>
                       <Button type="button" variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive" onClick={() => handleDeleteSavedTemplate(tpl.id, tpl.name)}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>

@@ -131,26 +131,29 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
     }
   };
 
-  const [uploading, setUploading] = useState(false);
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [uploadPct, setUploadPct] = useState(0);
+  const [uploadInfo, setUploadInfo] = useState("");
 
   const handleFileUpload = async (del: SocialDeliverable, file: File) => {
-    if (file.size > 100 * 1024 * 1024) {
-      toast.error("Le fichier ne doit pas dépasser 100 Mo");
+    if (file.size > 500 * 1024 * 1024) {
+      toast.error("Le fichier ne doit pas dépasser 500 Mo");
       return;
     }
-    setUploading(true);
+    setUploadingId(del.id);
+    setUploadPct(0);
+    setUploadInfo(`0 / ${formatBytes(file.size)}`);
     try {
       const ext = file.name.split(".").pop();
       const path = `social-deliverables/${del.id}/${Date.now()}.${ext}`;
-      const { error: uploadError } = await supabase.storage
-        .from("email-assets")
-        .upload(path, file, { upsert: true, contentType: file.type || undefined });
-      if (uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage.from("email-assets").getPublicUrl(path);
+      const publicUrl = await uploadFileWithProgress("email-assets", path, file, (p) => {
+        setUploadPct(p.percent);
+        setUploadInfo(`${formatBytes(p.loaded)} / ${formatBytes(p.total)}`);
+      });
       await updateDeliverable.mutateAsync({
         id: del.id,
         projectId,
-        file_url: urlData.publicUrl,
+        file_url: publicUrl,
         status: "livre",
         delivered_by: user?.id,
         delivered_at: new Date().toISOString(),
@@ -160,7 +163,9 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
       console.error("Upload error:", err);
       toast.error(err?.message || "Erreur lors de l'upload");
     } finally {
-      setUploading(false);
+      setUploadingId(null);
+      setUploadPct(0);
+      setUploadInfo("");
     }
   };
 

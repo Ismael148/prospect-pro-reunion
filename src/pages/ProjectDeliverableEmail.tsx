@@ -17,7 +17,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, BookmarkPlus, CheckCircle2, Clock, FolderOpen, Loader2, Mail, MailX, Paperclip, Save, Send, Trash2, TriangleAlert } from "lucide-react";
+import { ArrowLeft, BookmarkPlus, CheckCircle2, Clock, FolderOpen, Loader2, Mail, MailX, Paperclip, Save, Send, Star, Trash2, TriangleAlert } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";

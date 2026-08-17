@@ -22,6 +22,8 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import DOMPurify from "dompurify";
+import { Progress } from "@/components/ui/progress";
+import { uploadFileWithProgress } from "@/lib/upload-with-progress";
 
 // ── Types ──────────────────────────────────────────────
 type UploadedAttachment = { content: string; name: string; type: string; size: number; url?: string };
@@ -410,22 +412,26 @@ export default function ProjectDeliverableEmail() {
   // Brevo refuse les vidéos et toute pièce jointe > ~9 Mo : on bascule sur un lien de téléchargement
   const MAX_INLINE_ATTACHMENT = 9 * 1024 * 1024;
 
+  const [uploadState, setUploadState] = useState<{ name: string; percent: number; info: string } | null>(null);
+
+
   const uploadToStorage = async (file: File): Promise<string> => {
     const ext = file.name.split(".").pop() || "bin";
     const path = `deliverable-attachments/${deliverableId || "divers"}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const { error } = await supabase.storage
-      .from("email-assets")
-      .upload(path, file, { upsert: true, contentType: file.type || undefined });
-    if (error) throw error;
-    return supabase.storage.from("email-assets").getPublicUrl(path).data.publicUrl;
+    setUploadState({ name: file.name, percent: 0, info: `0 / ${formatBytes(file.size)}` });
+    const url = await uploadFileWithProgress("email-assets", path, file, (p) => {
+      setUploadState({ name: file.name, percent: p.percent, info: `${formatBytes(p.loaded)} / ${formatBytes(p.total)}` });
+    });
+    setUploadState(null);
+    return url;
   };
 
   const handleAttachmentChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
     const newFiles = Array.from(files);
-    if (newFiles.some((f) => f.size > 200 * 1024 * 1024)) {
-      toast.error("Chaque fichier doit faire moins de 200 Mo");
+    if (newFiles.some((f) => f.size > 500 * 1024 * 1024)) {
+      toast.error("Chaque fichier doit faire moins de 500 Mo");
       event.target.value = "";
       return;
     }
@@ -715,6 +721,19 @@ Site livré : ${linkUrl.trim() || "(lien à vérifier)"}
                 </Button>
               </div>
               <input id="attachment-upload" type="file" className="hidden" onChange={handleAttachmentChange} multiple />
+              {uploadState && (
+                <div className="space-y-1.5 rounded-lg border border-primary/30 bg-primary/5 p-3">
+                  <div className="flex items-center gap-2 text-xs font-medium">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                    <span className="truncate">{uploadState.name}</span>
+                  </div>
+                  <Progress value={uploadState.percent} className="h-2" />
+                  <div className="flex justify-between text-[11px] text-muted-foreground">
+                    <span>{uploadState.info}</span>
+                    <span className="font-semibold text-primary">{uploadState.percent}%</span>
+                  </div>
+                </div>
+              )}
               {uploadedAttachments.length > 0 && (
                 <div className="space-y-2">
                   {uploadedAttachments.map((att, idx) => (

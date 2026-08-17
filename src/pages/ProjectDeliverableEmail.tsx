@@ -24,7 +24,7 @@ import {
 import DOMPurify from "dompurify";
 
 // ── Types ──────────────────────────────────────────────
-type UploadedAttachment = { content: string; name: string; type: string; size: number };
+type UploadedAttachment = { content: string; name: string; type: string; size: number; url?: string };
 
 // ── Variables dynamiques ───────────────────────────────
 const VARIABLES = [
@@ -332,8 +332,20 @@ export default function ProjectDeliverableEmail() {
     if (!deliverable) return "";
     const resolvedBody = replaceVariables(message);
     const sanitizedBody = DOMPurify.sanitize(resolvedBody, { ADD_TAGS: ["style"], ADD_ATTR: ["style"] });
-    return wrapInBrandedTemplate(sanitizedBody, replaceVariables(supportLink), emailBranding || undefined);
-  }, [deliverable, message, replaceVariables, supportLink, emailBranding]);
+    const linkFiles = uploadedAttachments.filter((a) => a.url);
+    const downloadBlock = linkFiles.length
+      ? `<div style="margin:28px 0">
+  <p style="margin:0 0 12px;font-weight:700">📥 Fichiers à télécharger</p>
+  ${linkFiles
+    .map(
+      (a) =>
+        `<div style="margin:0 0 10px"><a href="${a.url}" style="display:inline-block;background:#ff006e;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px">${a.name}</a></div>`,
+    )
+    .join("")}
+</div>`
+      : "";
+    return wrapInBrandedTemplate(sanitizedBody + downloadBlock, replaceVariables(supportLink), emailBranding || undefined);
+  }, [deliverable, message, replaceVariables, supportLink, emailBranding, uploadedAttachments]);
 
   const resolvedSubject = useMemo(() => replaceVariables(subject), [subject, replaceVariables]);
 
@@ -364,19 +376,44 @@ export default function ProjectDeliverableEmail() {
       img.src = url;
     });
 
+  // Brevo refuse les vidéos et toute pièce jointe > ~9 Mo : on bascule sur un lien de téléchargement
+  const MAX_INLINE_ATTACHMENT = 9 * 1024 * 1024;
+
+  const uploadToStorage = async (file: File): Promise<string> => {
+    const ext = file.name.split(".").pop() || "bin";
+    const path = `deliverable-attachments/${deliverableId || "divers"}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await supabase.storage
+      .from("email-assets")
+      .upload(path, file, { upsert: true, contentType: file.type || undefined });
+    if (error) throw error;
+    return supabase.storage.from("email-assets").getPublicUrl(path).data.publicUrl;
+  };
+
   const handleAttachmentChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
-    const totalCurrentSize = uploadedAttachments.reduce((sum, a) => sum + a.size, 0);
     const newFiles = Array.from(files);
-    const totalNewSize = newFiles.reduce((sum, f) => sum + f.size, 0);
-    if (totalCurrentSize + totalNewSize > 60 * 1024 * 1024) { toast.error("La taille totale ne doit pas dépasser 60 Mo"); event.target.value = ""; return; }
+    if (newFiles.some((f) => f.size > 200 * 1024 * 1024)) {
+      toast.error("Chaque fichier doit faire moins de 200 Mo");
+      event.target.value = "";
+      return;
+    }
     try {
       const newAttachments: UploadedAttachment[] = [];
       let converted = 0;
+      let linked = 0;
       for (const original of newFiles) {
         const ext = (original.name.split(".").pop() || "").toLowerCase();
         let file = original;
+
+        const isVideo = original.type.startsWith("video/") || ["mp4", "mov", "webm", "avi", "mkv", "m4v"].includes(ext);
+        if (isVideo || original.size > MAX_INLINE_ATTACHMENT) {
+          const url = await uploadToStorage(original);
+          newAttachments.push({ content: "", name: original.name, type: original.type || "application/octet-stream", size: original.size, url });
+          linked++;
+          continue;
+        }
+
         if (UNSUPPORTED_ATTACHMENT_EXT.includes(ext) || original.type === "image/webp" || original.type === "image/avif") {
           file = await convertToPng(original);
           converted++;
@@ -393,11 +430,24 @@ export default function ProjectDeliverableEmail() {
         });
         newAttachments.push({ content, name: file.name, type: file.type || "application/octet-stream", size: file.size });
       }
+      const totalInline = [...uploadedAttachments, ...newAttachments]
+        .filter((a) => !a.url)
+        .reduce((s, a) => s + a.size, 0);
+      if (totalInline > MAX_INLINE_ATTACHMENT) {
+        toast.error("Le total des pièces jointes ne doit pas dépasser 9 Mo (les vidéos passent automatiquement en lien)");
+        event.target.value = "";
+        return;
+      }
       setUploadedAttachments((prev) => [...prev, ...newAttachments]);
-      toast.success(`${newAttachments.length} fichier(s) ajouté(s)${converted ? ` — ${converted} converti(s) en PNG (format non accepté par l'email)` : ""}`);
+      toast.success(
+        `${newAttachments.length} fichier(s) ajouté(s)` +
+          (converted ? ` — ${converted} converti(s) en PNG` : "") +
+          (linked ? ` — ${linked} envoyé(s) en lien de téléchargement (vidéo/fichier lourd)` : ""),
+      );
     } catch (e: any) { toast.error(e.message || "Erreur"); }
     finally { event.target.value = ""; }
   };
+
 
 
   const handleSend = async () => {
@@ -406,7 +456,9 @@ export default function ProjectDeliverableEmail() {
     if (!subject.trim() || !message.trim()) { toast.error("Complétez l'objet et le message"); return; }
     setSending(true);
     try {
-      const attachments = uploadedAttachments.map((a) => ({ content: a.content, name: a.name, type: a.type }));
+      const attachments = uploadedAttachments
+        .filter((a) => !a.url && a.content)
+        .map((a) => ({ content: a.content, name: a.name, type: a.type }));
       const { error } = await supabase.functions.invoke("send-brevo-campaign", {
         body: {
           action: "send_design",
@@ -618,7 +670,7 @@ Site livré : ${linkUrl.trim() || "(lien à vérifier)"}
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-medium">Pièces jointes ({uploadedAttachments.length})</p>
-                  <p className="text-xs text-muted-foreground">Max 60 Mo au total • {formatBytes(uploadedAttachments.reduce((s, a) => s + a.size, 0))} utilisés</p>
+                  <p className="text-xs text-muted-foreground">Pièces jointes max 9 Mo au total • vidéos et fichiers lourds envoyés en lien de téléchargement</p>
                 </div>
                 <Button type="button" variant="outline" asChild>
                   <label htmlFor="attachment-upload" className="cursor-pointer"><Paperclip className="mr-2 h-4 w-4" />Ajouter</label>
@@ -632,7 +684,7 @@ Site livré : ${linkUrl.trim() || "(lien à vérifier)"}
                       <Paperclip className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{att.name}</p>
-                        <p className="text-xs text-muted-foreground">{formatBytes(att.size)}</p>
+                        <p className="text-xs text-muted-foreground">{formatBytes(att.size)}{att.url ? " • lien de téléchargement" : " • pièce jointe"}</p>
                       </div>
                       <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setUploadedAttachments((prev) => prev.filter((_, i) => i !== idx))}>
                         <Trash2 className="h-3.5 w-3.5" />

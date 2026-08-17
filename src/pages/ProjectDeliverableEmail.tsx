@@ -162,6 +162,22 @@ ${makeCta("📒 Voir mon profil", "{{lien_livrable}}")}
 <p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`,
   },
   {
+    id: "design", label: "Livraison de Design", icon: "🎨",
+    subject: "Votre design du mois est arrivé — {{nom_entreprise}}",
+    body: `<p style="margin:0 0 20px">Bonjour <strong>{{nom_entreprise}}</strong>,</p>
+<p style="margin:0 0 20px">Nous avons le plaisir de vous envoyer <strong>votre design du mois</strong>, réalisé par nos équipes Adamkom by JJP. 🎨</p>
+<p style="margin:0 0 20px">Ce visuel est <strong>prêt à être publié sur vos réseaux sociaux</strong> (Facebook, Instagram, LinkedIn...) afin d'augmenter votre visibilité et de renforcer votre image de marque auprès de vos clients.</p>
+<p style="margin:0 0 12px"><strong>Nos conseils pour un maximum d'impact :</strong></p>
+<ul style="padding-left:20px;color:#52525b;margin:0 0 24px;line-height:2">
+  <li>Publiez en début de semaine, entre 11h et 13h ou après 18h</li>
+  <li>Ajoutez une courte légende avec vos coordonnées</li>
+  <li>Utilisez des hashtags locaux (#LaReunion #974)</li>
+  <li>Partagez également en story pour toucher plus de monde</li>
+</ul>
+<p style="margin:0 0 20px">Vous trouverez <strong>votre design en pièce jointe</strong> de cet email.</p>
+<p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom by JJP</strong></p>`,
+  },
+  {
     id: "generique", label: "Générique", icon: "📧",
     subject: "Votre livrable est prêt — {{nom_entreprise}}",
     body: `<p style="margin:0 0 20px">Bonjour <strong>{{nom_entreprise}}</strong>,</p>

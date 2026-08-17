@@ -456,7 +456,9 @@ export default function ProjectDeliverableEmail() {
     if (!subject.trim() || !message.trim()) { toast.error("Complétez l'objet et le message"); return; }
     setSending(true);
     try {
-      const attachments = uploadedAttachments.map((a) => ({ content: a.content, name: a.name, type: a.type }));
+      const attachments = uploadedAttachments
+        .filter((a) => !a.url && a.content)
+        .map((a) => ({ content: a.content, name: a.name, type: a.type }));
       const { error } = await supabase.functions.invoke("send-brevo-campaign", {
         body: {
           action: "send_design",

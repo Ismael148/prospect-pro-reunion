@@ -263,11 +263,12 @@ export default function ProjectDetail() {
   const handleAutoCreateDeliverables = async () => {
     if (!project) return;
     const DESIGN_DELIVERABLE = "Livraison de votre design de chez Adamkom by JJP";
+    const SOCIAL_DELIVERABLE = "Réseaux sociaux & Publications";
     const modules = getPackModules(project.pack_type, siteType, hasGmb);
     const names = modules
       .map((m) => m.name)
       // Retiré : ce livrable est remplacé par la livraison de design
-      .filter((n) => n !== "Réseaux sociaux & Publications");
+      .filter((n) => n !== SOCIAL_DELIVERABLE);
     // Toujours inclure le livrable Vidéo Influenceur Réseaux Sociaux
     if (!names.includes("Vidéo Influenceur Réseaux Sociaux")) {
       names.push("Vidéo Influenceur Réseaux Sociaux");
@@ -276,8 +277,17 @@ export default function ProjectDetail() {
       names.push(DESIGN_DELIVERABLE);
     }
     if (!names.length) { toast.error("Pas de livrables prédéfinis"); return; }
+
+    const existing = deliverables || [];
+    const existingNames = new Set(existing.map((d) => d.name));
+    const toCreate = names.filter((n) => !existingNames.has(n));
+    const toDelete = existing.filter((d) => d.name === SOCIAL_DELIVERABLE);
+
     try {
-      for (const name of names) {
+      for (const d of toDelete) {
+        await deleteDeliverable.mutateAsync({ id: d.id, projectId: id! });
+      }
+      for (const name of toCreate) {
         await createDeliverable.mutateAsync({
           project_id: id!,
           name,
@@ -288,9 +298,14 @@ export default function ProjectDetail() {
             : null,
         });
       }
-      toast.success(`${names.length} livrables créés`);
+      if (!toCreate.length && !toDelete.length) {
+        toast.info("Livrables déjà à jour");
+      } else {
+        toast.success(`${toCreate.length} livrable(s) ajouté(s)${toDelete.length ? `, ${toDelete.length} retiré(s)` : ""}`);
+      }
     } catch { toast.error("Erreur"); }
   };
+
 
   if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
   if (projectError) return <div className="text-center py-12"><p className="text-destructive">Erreur lors du chargement du projet</p><Button variant="outline" className="mt-4" onClick={() => navigate("/projets")}>Retour</Button></div>;

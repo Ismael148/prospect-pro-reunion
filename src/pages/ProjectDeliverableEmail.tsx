@@ -22,6 +22,8 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import DOMPurify from "dompurify";
+import { Progress } from "@/components/ui/progress";
+import { uploadFileWithProgress } from "@/lib/upload-with-progress";
 
 // ── Types ──────────────────────────────────────────────
 type UploadedAttachment = { content: string; name: string; type: string; size: number; url?: string };

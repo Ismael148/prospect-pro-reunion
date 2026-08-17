@@ -670,7 +670,7 @@ Site livré : ${linkUrl.trim() || "(lien à vérifier)"}
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-medium">Pièces jointes ({uploadedAttachments.length})</p>
-                  <p className="text-xs text-muted-foreground">Max 60 Mo au total • {formatBytes(uploadedAttachments.reduce((s, a) => s + a.size, 0))} utilisés</p>
+                  <p className="text-xs text-muted-foreground">Pièces jointes max 9 Mo au total • vidéos et fichiers lourds envoyés en lien de téléchargement</p>
                 </div>
                 <Button type="button" variant="outline" asChild>
                   <label htmlFor="attachment-upload" className="cursor-pointer"><Paperclip className="mr-2 h-4 w-4" />Ajouter</label>

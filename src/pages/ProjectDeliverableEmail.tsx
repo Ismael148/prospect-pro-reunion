@@ -721,6 +721,19 @@ Site livré : ${linkUrl.trim() || "(lien à vérifier)"}
                 </Button>
               </div>
               <input id="attachment-upload" type="file" className="hidden" onChange={handleAttachmentChange} multiple />
+              {uploadState && (
+                <div className="space-y-1.5 rounded-lg border border-primary/30 bg-primary/5 p-3">
+                  <div className="flex items-center gap-2 text-xs font-medium">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                    <span className="truncate">{uploadState.name}</span>
+                  </div>
+                  <Progress value={uploadState.percent} className="h-2" />
+                  <div className="flex justify-between text-[11px] text-muted-foreground">
+                    <span>{uploadState.info}</span>
+                    <span className="font-semibold text-primary">{uploadState.percent}%</span>
+                  </div>
+                </div>
+              )}
               {uploadedAttachments.length > 0 && (
                 <div className="space-y-2">
                   {uploadedAttachments.map((att, idx) => (

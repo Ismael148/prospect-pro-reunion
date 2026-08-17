@@ -219,9 +219,10 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
       const urlPath = del.file_url.split("?")[0];
       const fileName = decodeURIComponent(urlPath.split("/").pop() || "livrable");
 
-      // Brevo limits total email (with attachments) to ~10 MB and rejects some formats (webp, avif...).
+      // Brevo refuse les vidéos et certains formats (webp, avif...), et limite l'email à ~10 Mo.
       const ext = (fileName.split(".").pop() || "").toLowerCase();
-      let attachFile = !["webp", "avif", "heic", "heif"].includes(ext);
+      const blockedExt = ["webp", "avif", "heic", "heif", "mp4", "mov", "webm", "avi", "mkv", "m4v"];
+      let attachFile = !blockedExt.includes(ext);
       if (attachFile) {
         try {
           const head = await fetch(del.file_url, { method: "HEAD" });
@@ -234,8 +235,9 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
 
 
       if (!attachFile) {
-        toast.info("Fichier trop volumineux pour être joint — envoi du lien de téléchargement uniquement.");
+        toast.info("Envoi du lien de téléchargement (vidéo ou fichier trop volumineux pour être joint).");
       }
+
 
       const { error } = await supabase.functions.invoke("send-brevo-campaign", {
         body: {

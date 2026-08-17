@@ -108,11 +108,12 @@ export default function ProjectDeliverables({
               <span className="sm:hidden">Perf</span>
             </Button>
           )}
-          {!deliverables?.length && PACK_DELIVERABLES[packType]?.length > 0 && (
+          {PACK_DELIVERABLES[packType]?.length > 0 && (
             <Button size="sm" variant="outline" onClick={onAutoCreate} disabled={isCreating}>
-              Générer depuis le pack
+              {deliverables?.length ? "Synchroniser les livrables" : "Générer depuis le pack"}
             </Button>
           )}
+
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild><Button size="sm"><Plus className="w-4 h-4 mr-1" />Ajouter</Button></DialogTrigger>
             <DialogContent>

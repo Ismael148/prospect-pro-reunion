@@ -88,6 +88,8 @@ export default function ProjectDetail() {
   const updateTask = useUpdateTask();
   const createDeliverable = useCreateDeliverable();
   const updateDeliverable = useUpdateDeliverable();
+  const deleteDeliverable = useDeleteDeliverable();
+
   const deleteProjectTasks = useDeleteProjectTasks();
   const [isRegenerating, setIsRegenerating] = useState(false);
   const isAdmin = hasRole("admin");

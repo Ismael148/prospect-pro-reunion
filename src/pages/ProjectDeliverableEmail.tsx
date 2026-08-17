@@ -430,8 +430,8 @@ export default function ProjectDeliverableEmail() {
     const files = event.target.files;
     if (!files || files.length === 0) return;
     const newFiles = Array.from(files);
-    if (newFiles.some((f) => f.size > 200 * 1024 * 1024)) {
-      toast.error("Chaque fichier doit faire moins de 200 Mo");
+    if (newFiles.some((f) => f.size > 500 * 1024 * 1024)) {
+      toast.error("Chaque fichier doit faire moins de 500 Mo");
       event.target.value = "";
       return;
     }

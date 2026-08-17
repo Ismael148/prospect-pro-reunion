@@ -420,7 +420,12 @@ export default function ProjectDeliverableEmail() {
     const path = `deliverable-attachments/${deliverableId || "divers"}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     setUploadState({ name: file.name, percent: 0, info: `0 / ${formatBytes(file.size)}` });
     const url = await uploadFileWithProgress("email-assets", path, file, (p) => {
-      setUploadState({ name: file.name, percent: p.percent, info: `${formatBytes(p.loaded)} / ${formatBytes(p.total)}` });
+      const extra = [formatSpeed(p.speed), formatEta(p.eta)].filter(Boolean).join(" · ");
+      setUploadState({
+        name: file.name,
+        percent: p.percent,
+        info: `${formatBytes(p.loaded)} / ${formatBytes(p.total)}${extra ? ` — ${extra}` : ""}`,
+      });
     });
     setUploadState(null);
     return url;

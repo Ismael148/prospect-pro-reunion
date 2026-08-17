@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import {
-  Mail, Send, Loader2, Ticket, FileText, CreditCard, Globe, Eye, Sparkles, Wand2, Star, Facebook, MapPin, KeyRound, Copy, CalendarCheck, AtSign,
+  Mail, Send, Loader2, Ticket, FileText, CreditCard, Globe, Eye, Sparkles, Wand2, Star, Facebook, MapPin, KeyRound, Copy, CalendarCheck, AtSign, MessageCircle,
 } from "lucide-react";
 import EmailTemplateSaver from "@/components/EmailTemplateSaver";
 import type { SavedTemplate } from "@/hooks/use-email-templates";
@@ -169,6 +169,31 @@ ${makeCta('📍 Suivre le tutoriel Google', tutoLink)}
 ${makeCta('📅 Suivre le tutoriel MotoPress', tutoLink)}
 <p style="margin:0 0 20px;font-size:13px;color:#71717a">💡 Vous pouvez gérer MotoPress 100% en autonomie. Et si vous préférez nous déléguer la configuration ou la mise en ligne de vos logements, notre équipe peut s'en charger sur devis.</p>
 <p style="margin:0 0 20px">N'hésitez pas à nous écrire via votre espace support si vous avez la moindre question.</p>
+<p style="margin:0">Très cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`;
+      },
+    },
+    {
+      id: 'tuto_whatsapp',
+      label: 'Tuto WhatsApp Business',
+      icon: <MessageCircle className="w-4 h-4" />,
+      subject: `Recevez les messages de votre site sur WhatsApp — ${client.company_name}`,
+      trigger: 'tuto_whatsapp',
+      bodyFn: () => {
+        const tutoLink = `${PUBLISHED_URL}/tuto/whatsapp-business`;
+        return `<p style="margin:0 0 20px">Bonjour <strong>${greeting}</strong>,</p>
+<p style="margin:0 0 20px">Pour que les messages envoyés depuis le <strong>formulaire de contact de votre site</strong> arrivent directement sur votre <strong>WhatsApp</strong>, il faut créer un compte <strong>WhatsApp Business officiel (Meta)</strong> au nom de votre entreprise.</p>
+<p style="margin:0 0 20px">Seul vous pouvez le créer, car il doit être associé à vos informations légales (nom de l'entreprise, adresse, document officiel, numéro dédié). Rassurez-vous : <strong>nous ne vous demandons aucun mot de passe</strong>.</p>
+<p style="margin:0 0 20px">Nous avons préparé un <strong>tutoriel pas-à-pas ultra-simple</strong> qui vous guide de A à Z :</p>
+<ul style="padding-left:20px;color:#52525b;margin:0 0 24px;line-height:2">
+  <li>🏢 Créer votre compte Meta Business</li>
+  <li>⚙️ Créer l'application et activer WhatsApp</li>
+  <li>📱 Ajouter et vérifier votre numéro professionnel</li>
+  <li>✅ Faire vérifier votre entreprise par Meta</li>
+  <li>🔑 Générer un token d'accès permanent</li>
+</ul>
+${makeCta('💬 Suivre le tutoriel WhatsApp Business', tutoLink)}
+<p style="margin:0 0 20px;font-size:13px;color:#71717a">À la fin, il vous suffit de nous transmettre <strong>3 informations</strong> (Phone Number ID, Access Token permanent et votre numéro WhatsApp Business). Merci de nous les envoyer par un canal sécurisé plutôt que par email en clair.</p>
+<p style="margin:0 0 20px">Dès réception, nous connectons le tout à votre site sous 24h ouvrées et réalisons un test avec vous.</p>
 <p style="margin:0">Très cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`;
       },
     },

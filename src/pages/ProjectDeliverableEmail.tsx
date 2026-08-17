@@ -684,7 +684,7 @@ Site livré : ${linkUrl.trim() || "(lien à vérifier)"}
                       <Paperclip className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{att.name}</p>
-                        <p className="text-xs text-muted-foreground">{formatBytes(att.size)}</p>
+                        <p className="text-xs text-muted-foreground">{formatBytes(att.size)}{att.url ? " • lien de téléchargement" : " • pièce jointe"}</p>
                       </div>
                       <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setUploadedAttachments((prev) => prev.filter((_, i) => i !== idx))}>
                         <Trash2 className="h-3.5 w-3.5" />

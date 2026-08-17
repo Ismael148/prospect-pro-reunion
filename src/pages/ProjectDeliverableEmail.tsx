@@ -24,7 +24,7 @@ import {
 import DOMPurify from "dompurify";
 
 // ── Types ──────────────────────────────────────────────
-type UploadedAttachment = { content: string; name: string; type: string; size: number };
+type UploadedAttachment = { content: string; name: string; type: string; size: number; url?: string };
 
 // ── Variables dynamiques ───────────────────────────────
 const VARIABLES = [

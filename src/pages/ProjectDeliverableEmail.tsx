@@ -260,15 +260,27 @@ export default function ProjectDeliverableEmail() {
   const [savingTemplate, setSavingTemplate] = useState(false);
 
   useEffect(() => {
-    if (!deliverable || initialized) return;
+    if (!deliverable || initialized || !savedTemplates) return;
     const detected = detectTemplateId(deliverable.name);
+    setLinkUrl(deliverable.file_url || "");
+
+    // Priorité : modèle sauvegardé défini par défaut (même catégorie, sinon global)
+    const defaults = savedTemplates.filter((t: any) => t.is_default);
+    const preferred = defaults.find((t: any) => t.category === detected) || defaults[0];
+    if (preferred) {
+      setSelectedTemplateId("custom_saved");
+      setSubject(preferred.subject);
+      setMessage(preferred.body);
+      setInitialized(true);
+      return;
+    }
+
     setSelectedTemplateId(detected);
     const tpl = EMAIL_TEMPLATES.find((t) => t.id === detected) || EMAIL_TEMPLATES[EMAIL_TEMPLATES.length - 1];
     setSubject(tpl.subject);
     setMessage(tpl.body);
-    setLinkUrl(deliverable.file_url || "");
     setInitialized(true);
-  }, [deliverable, initialized]);
+  }, [deliverable, initialized, savedTemplates]);
 
   useEffect(() => {
     if (clientEmail && !recipientEmail) setRecipientEmail(clientEmail);
@@ -286,6 +298,25 @@ export default function ProjectDeliverableEmail() {
     setMessage(tpl.body);
     toast.success(`Modèle "${tpl.name}" chargé`);
   };
+
+  const handleToggleDefault = async (tpl: any) => {
+    try {
+      if (!tpl.is_default) {
+        await supabase
+          .from("saved_email_templates" as any)
+          .update({ is_default: false } as any)
+          .eq("category", tpl.category);
+      }
+      const { error } = await supabase
+        .from("saved_email_templates" as any)
+        .update({ is_default: !tpl.is_default } as any)
+        .eq("id", tpl.id);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["saved_email_templates"] });
+      toast.success(!tpl.is_default ? `"${tpl.name}" défini par défaut` : `"${tpl.name}" n'est plus par défaut`);
+    } catch (e: any) { toast.error(e.message || "Erreur"); }
+  };
+
 
   const handleSaveTemplate = async () => {
     if (!saveTemplateName.trim()) { toast.error("Donnez un nom au modèle"); return; }

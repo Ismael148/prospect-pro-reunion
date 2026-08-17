@@ -412,6 +412,9 @@ export default function ProjectDeliverableEmail() {
   // Brevo refuse les vidéos et toute pièce jointe > ~9 Mo : on bascule sur un lien de téléchargement
   const MAX_INLINE_ATTACHMENT = 9 * 1024 * 1024;
 
+  const [uploadState, setUploadState] = useState<{ name: string; percent: number; info: string } | null>(null);
+
+
   const uploadToStorage = async (file: File): Promise<string> => {
     const ext = file.name.split(".").pop() || "bin";
     const path = `deliverable-attachments/${deliverableId || "divers"}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;

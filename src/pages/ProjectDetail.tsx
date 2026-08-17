@@ -262,11 +262,18 @@ export default function ProjectDetail() {
 
   const handleAutoCreateDeliverables = async () => {
     if (!project) return;
+    const DESIGN_DELIVERABLE = "Livraison de votre design de chez Adamkom by JJP";
     const modules = getPackModules(project.pack_type, siteType, hasGmb);
-    const names = modules.map((m) => m.name);
+    const names = modules
+      .map((m) => m.name)
+      // Retiré : ce livrable est remplacé par la livraison de design
+      .filter((n) => n !== "Réseaux sociaux & Publications");
     // Toujours inclure le livrable Vidéo Influenceur Réseaux Sociaux
     if (!names.includes("Vidéo Influenceur Réseaux Sociaux")) {
       names.push("Vidéo Influenceur Réseaux Sociaux");
+    }
+    if (!names.includes(DESIGN_DELIVERABLE)) {
+      names.push(DESIGN_DELIVERABLE);
     }
     if (!names.length) { toast.error("Pas de livrables prédéfinis"); return; }
     try {
@@ -276,6 +283,8 @@ export default function ProjectDetail() {
           name,
           description: name === "Vidéo Influenceur Réseaux Sociaux"
             ? "Vidéo influenceur prête à poster sur Facebook, Instagram & TikTok"
+            : name === DESIGN_DELIVERABLE
+            ? "Design du mois prêt à publier sur vos réseaux sociaux"
             : null,
         });
       }

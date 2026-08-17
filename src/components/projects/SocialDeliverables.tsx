@@ -150,7 +150,8 @@ export default function SocialDeliverables({ projectId, clientId }: Props) {
       const path = `social-deliverables/${del.id}/${Date.now()}.${ext}`;
       const publicUrl = await uploadFileWithProgress("email-assets", path, file, (p) => {
         setUploadPct(p.percent);
-        setUploadInfo(`${formatBytes(p.loaded)} / ${formatBytes(p.total)}`);
+        const extra = [formatSpeed(p.speed), formatEta(p.eta)].filter(Boolean).join(" · ");
+        setUploadInfo(`${formatBytes(p.loaded)} / ${formatBytes(p.total)}${extra ? ` — ${extra}` : ""}`);
       });
       await updateDeliverable.mutateAsync({
         id: del.id,

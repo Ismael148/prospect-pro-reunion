@@ -202,6 +202,19 @@ export function useUpdateDeliverable() {
   });
 }
 
+export function useDeleteDeliverable() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, projectId }: { id: string; projectId: string }) => {
+      const { error } = await supabase.from("deliverables").delete().eq("id", id);
+      if (error) throw error;
+      return projectId;
+    },
+    onSuccess: (projectId) => queryClient.invalidateQueries({ queryKey: ["deliverables", projectId] }),
+  });
+}
+
+
 export function useDeleteProjectTasks() {
   const queryClient = useQueryClient();
   return useMutation({

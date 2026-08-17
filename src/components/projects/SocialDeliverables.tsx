@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { Camera, Video, CheckCircle2, Clock, Upload, Plus, ChevronLeft, ChevronRight, Mail, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Progress } from "@/components/ui/progress";
-import { uploadFileWithProgress, formatBytes } from "@/lib/upload-with-progress";
+import { uploadFileWithProgress, formatBytes, formatSpeed, formatEta } from "@/lib/upload-with-progress";
 import { useEmailBranding } from "@/hooks/use-email-branding";
 import { wrapInBrandedTemplate } from "@/lib/email-template";
 import { PUBLISHED_URL } from "@/lib/constants";

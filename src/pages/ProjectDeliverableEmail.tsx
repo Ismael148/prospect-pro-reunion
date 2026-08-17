@@ -413,11 +413,12 @@ export default function ProjectDeliverableEmail() {
   const uploadToStorage = async (file: File): Promise<string> => {
     const ext = file.name.split(".").pop() || "bin";
     const path = `deliverable-attachments/${deliverableId || "divers"}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const { error } = await supabase.storage
-      .from("email-assets")
-      .upload(path, file, { upsert: true, contentType: file.type || undefined });
-    if (error) throw error;
-    return supabase.storage.from("email-assets").getPublicUrl(path).data.publicUrl;
+    setUploadState({ name: file.name, percent: 0, info: `0 / ${formatBytes(file.size)}` });
+    const url = await uploadFileWithProgress("email-assets", path, file, (p) => {
+      setUploadState({ name: file.name, percent: p.percent, info: `${formatBytes(p.loaded)} / ${formatBytes(p.total)}` });
+    });
+    setUploadState(null);
+    return url;
   };
 
   const handleAttachmentChange = async (event: ChangeEvent<HTMLInputElement>) => {

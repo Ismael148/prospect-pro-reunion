@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import DOMPurify from "dompurify";
 import { Progress } from "@/components/ui/progress";
-import { uploadFileWithProgress } from "@/lib/upload-with-progress";
+import { uploadFileWithProgress, formatSpeed, formatEta } from "@/lib/upload-with-progress";
 
 // ── Types ──────────────────────────────────────────────
 type UploadedAttachment = { content: string; name: string; type: string; size: number; url?: string };

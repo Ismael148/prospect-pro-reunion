@@ -190,6 +190,7 @@ ${makeCta("📦 Ouvrir {{nom_livrable}}", "{{lien_livrable}}")}
 
 function detectTemplateId(name: string): string {
   const l = name.toLowerCase();
+  if (l.includes("design")) return "design";
   if (l.includes("site") || l.includes("landing") || l.includes("web")) return "site";
   if (l.includes("chatbot") || l.includes("ia") || l.includes("porte-parole")) return "chatbot";
   if (l.includes("nfc") || l.includes("carte") || l.includes("affiche")) return "nfc";

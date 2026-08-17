@@ -357,20 +357,36 @@ ${previewBlock}
 
                     {/* File upload */}
                     {del.status !== "valide" && (
-                      <label className={`flex items-center gap-2 cursor-pointer text-xs text-primary hover:underline ${uploading ? "opacity-50 pointer-events-none" : ""}`}>
-                        <Upload className="w-3.5 h-3.5" />
-                        {uploading ? "Upload en cours..." : del.file_url ? "Remplacer le fichier" : "Uploader le fichier"}
-                        <input
-                          type="file"
-                          className="hidden"
-                          accept="image/*,video/*,.pdf"
-                          onChange={(e) => {
-                            const f = e.target.files?.[0];
-                            if (f) handleFileUpload(del, f);
-                            e.target.value = "";
-                          }}
-                        />
-                      </label>
+                      <div className="space-y-2">
+                        <label className={`flex items-center gap-2 cursor-pointer text-xs text-primary hover:underline ${uploadingId ? "opacity-50 pointer-events-none" : ""}`}>
+                          <Upload className="w-3.5 h-3.5" />
+                          {uploadingId === del.id
+                            ? "Envoi en cours..."
+                            : del.file_url
+                              ? "Remplacer le fichier"
+                              : "Uploader le fichier (jusqu'à 500 Mo)"}
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept="image/*,video/*,.pdf"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f) handleFileUpload(del, f);
+                              e.target.value = "";
+                            }}
+                          />
+                        </label>
+
+                        {uploadingId === del.id && (
+                          <div className="space-y-1">
+                            <Progress value={uploadPct} className="h-2" />
+                            <div className="flex justify-between text-[10px] text-muted-foreground">
+                              <span>{uploadInfo}</span>
+                              <span className="font-semibold text-primary">{uploadPct}%</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     )}
 
                     {/* Send email button - visible when file is uploaded */}

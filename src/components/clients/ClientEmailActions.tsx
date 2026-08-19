@@ -192,7 +192,7 @@ ${makeCta('📅 Suivre le tutoriel MotoPress', tutoLink)}
   <li>🔑 Générer un token d'accès permanent</li>
 </ul>
 ${makeCta('💬 Suivre le tutoriel WhatsApp Business', tutoLink)}
-<p style="margin:0 0 20px;font-size:13px;color:#71717a">À la fin, il vous suffit de nous transmettre <strong>3 informations</strong> (Phone Number ID, Access Token permanent et votre numéro WhatsApp Business). Merci de nous les envoyer par un canal sécurisé plutôt que par email en clair.</p>
+<p style="margin:0 0 20px;font-size:13px;color:#71717a">À la fin du tutoriel, un <strong>formulaire sécurisé</strong> vous permet de nous transmettre en 1 clic vos <strong>3 informations</strong> (Phone Number ID, Access Token permanent et numéro WhatsApp Business). Rien à envoyer par email.</p>
 <p style="margin:0 0 20px">Dès réception, nous connectons le tout à votre site sous 24h ouvrées et réalisons un test avec vous.</p>
 <p style="margin:0">Très cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`;
       },

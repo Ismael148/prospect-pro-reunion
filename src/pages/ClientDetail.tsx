@@ -1258,6 +1258,8 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName }: {
             {[
               { label: "Carte NFC", link: nfcLink!, icon: CreditCard },
               ...(packType !== "star_bizness_nfc" ? [{ label: "Site Internet", link: siteLink!, icon: Globe }] : []),
+              { label: "WhatsApp Business", link: whatsappLink!, icon: MessageCircle },
+
             ].map(({ label, link, icon: Icon }) => (
               <div key={label} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
                 <Icon className="w-5 h-5 text-primary shrink-0" />

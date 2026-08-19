@@ -1,21 +1,11 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle2,
-  ArrowRight,
-  ArrowLeft,
   MessageCircle,
-  Building2,
-  Smartphone,
-  BadgeCheck,
-  KeyRound,
-  ClipboardList,
-  AlertCircle,
   ExternalLink,
-  PartyPopper,
+  Send,
   ShieldCheck,
-  Copy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,202 +13,43 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-
 import { toast } from "sonner";
 import logo from "@/assets/logo.webp";
 
-type StepKey =
-  | "intro"
-  | "prerequis"
-  | "business"
-  | "app"
-  | "numero"
-  | "verif"
-  | "token"
-  | "infos"
-  | "merci";
-
-const STEPS: { key: StepKey; label: string; time?: string }[] = [
-  { key: "intro", label: "Bienvenue", time: "1 min" },
-  { key: "prerequis", label: "Préparer", time: "5 min" },
-  { key: "business", label: "Compte Meta Business", time: "5 min" },
-  { key: "app", label: "Créer l'application", time: "5 min" },
-  { key: "numero", label: "Ajouter le numéro", time: "5 min" },
-  { key: "verif", label: "Vérifier l'entreprise", time: "1-3 jours" },
-  { key: "token", label: "Token permanent", time: "5 min" },
-  { key: "infos", label: "Nous transmettre", time: "2 min" },
+const STEPS: { title: string; desc: React.ReactNode }[] = [
+  {
+    title: "Créez votre compte Meta Business",
+    desc: (
+      <>
+        Rendez-vous sur{" "}
+        <Ext href="https://business.facebook.com/">business.facebook.com</Ext> et créez un compte au
+        nom de votre entreprise (nom légal + adresse).
+      </>
+    ),
+  },
+  {
+    title: "Activez WhatsApp",
+    desc: (
+      <>
+        Dans <strong>Paramètres → Comptes → Comptes WhatsApp</strong>, cliquez sur{" "}
+        <strong>Ajouter</strong> et suivez l'assistant.
+      </>
+    ),
+  },
+  {
+    title: "Ajoutez et vérifiez votre numéro",
+    desc: (
+      <>
+        Utilisez un numéro <strong>qui n'est pas déjà sur WhatsApp</strong>. Vous recevrez un code
+        par SMS ou appel pour le valider.
+      </>
+    ),
+  },
+  {
+    title: "Envoyez-nous vos infos",
+    desc: <>Remplissez le formulaire ci-dessous, on s'occupe de tout le reste.</>,
+  },
 ];
-
-export default function TutoWhatsAppBusiness() {
-  const [step, setStep] = useState<StepKey>("intro");
-
-  const stepIndex = STEPS.findIndex((s) => s.key === step);
-  const progress = ((stepIndex + 1) / STEPS.length) * 100;
-
-  const goNext = () => {
-    const next = STEPS[stepIndex + 1];
-    if (next) setStep(next.key);
-    else setStep("merci");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-  const goPrev = () => {
-    const prev = STEPS[stepIndex - 1];
-    if (prev) setStep(prev.key);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <header className="sticky top-0 z-20 backdrop-blur-xl bg-background/70 border-b border-border/50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
-          <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="Adamkom" className="h-8 w-auto" />
-            <span className="font-display font-bold text-lg hidden sm:inline">Adamkom</span>
-          </Link>
-          <Badge variant="secondary" className="gap-1">
-            <MessageCircle className="h-3 w-3" />
-            WhatsApp Business
-          </Badge>
-        </div>
-        {step !== "merci" && (
-          <div className="h-1 bg-muted">
-            <div
-              className="h-full bg-primary transition-all duration-500"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        )}
-      </header>
-
-      {step !== "merci" && (
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6">
-          <div className="flex flex-wrap gap-2">
-            {STEPS.map((s, i) => (
-              <button
-                key={s.key}
-                onClick={() => {
-                  setStep(s.key);
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
-                className={`text-[11px] rounded-full border px-3 py-1 transition-colors ${
-                  i === stepIndex
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : i < stepIndex
-                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
-                    : "bg-card/50 text-muted-foreground border-border/60 hover:bg-muted"
-                }`}
-              >
-                {i + 1}. {s.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={step}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            {step === "intro" && <IntroStep onNext={goNext} />}
-            {step === "prerequis" && <PrerequisStep onNext={goNext} onPrev={goPrev} />}
-            {step === "business" && <BusinessStep onNext={goNext} onPrev={goPrev} />}
-            {step === "app" && <AppStep onNext={goNext} onPrev={goPrev} />}
-            {step === "numero" && <NumeroStep onNext={goNext} onPrev={goPrev} />}
-            {step === "verif" && <VerifStep onNext={goNext} onPrev={goPrev} />}
-            {step === "token" && <TokenStep onNext={goNext} onPrev={goPrev} />}
-            {step === "infos" && <InfosStep onNext={goNext} onPrev={goPrev} />}
-            {step === "merci" && <MerciStep />}
-          </motion.div>
-        </AnimatePresence>
-      </main>
-
-      <footer className="max-w-4xl mx-auto px-4 sm:px-6 py-8 text-center text-sm text-muted-foreground">
-        <p>
-          Besoin d'aide ? Contactez-nous à{" "}
-          <a href="mailto:contact@adamkom.com" className="text-primary hover:underline">
-            contact@adamkom.com
-          </a>
-        </p>
-      </footer>
-    </div>
-  );
-}
-
-/* ---------- Reusable bits ---------- */
-
-function StepHeader({
-  icon: Icon,
-  title,
-  subtitle,
-  time,
-}: {
-  icon: any;
-  title: string;
-  subtitle?: string;
-  time?: string;
-}) {
-  return (
-    <div className="mb-8 text-center">
-      <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-4">
-        <Icon className="h-7 w-7" />
-      </div>
-      <h1 className="text-3xl sm:text-4xl font-display font-bold tracking-tight">{title}</h1>
-      {subtitle && <p className="mt-2 text-muted-foreground max-w-xl mx-auto">{subtitle}</p>}
-      {time && (
-        <Badge variant="outline" className="mt-3">
-          ⏱ {time}
-        </Badge>
-      )}
-    </div>
-  );
-}
-
-function InfoBox({
-  variant = "info",
-  children,
-}: {
-  variant?: "info" | "warning" | "success";
-  children: React.ReactNode;
-}) {
-  const styles = {
-    info: "bg-blue-500/10 border-blue-500/30 text-blue-700 dark:text-blue-300",
-    warning: "bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300",
-    success: "bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300",
-  }[variant];
-  const Icon = variant === "success" ? CheckCircle2 : AlertCircle;
-  return (
-    <div className={`flex gap-3 rounded-xl border p-4 ${styles}`}>
-      <Icon className="h-5 w-5 shrink-0 mt-0.5" />
-      <div className="text-sm leading-relaxed">{children}</div>
-    </div>
-  );
-}
-
-function NumberedList({ items }: { items: { title: string; desc: React.ReactNode }[] }) {
-  return (
-    <ol className="space-y-4">
-      {items.map((it, i) => (
-        <li
-          key={i}
-          className="flex gap-4 rounded-2xl border border-border/60 bg-card/50 backdrop-blur p-4 sm:p-5"
-        >
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-sm">
-            {i + 1}
-          </div>
-          <div className="min-w-0">
-            <h3 className="font-semibold mb-1">{it.title}</h3>
-            <div className="text-sm text-muted-foreground leading-relaxed">{it.desc}</div>
-          </div>
-        </li>
-      ))}
-    </ol>
-  );
-}
 
 function Ext({ href, children }: { href: string; children: React.ReactNode }) {
   return (
@@ -233,534 +64,217 @@ function Ext({ href, children }: { href: string; children: React.ReactNode }) {
   );
 }
 
-function NavButtons({
-  onNext,
-  onPrev,
-  nextLabel = "Continuer",
-}: {
-  onNext: () => void;
-  onPrev?: () => void;
-  nextLabel?: string;
-}) {
-  return (
-    <div className="mt-8 flex flex-col-reverse sm:flex-row sm:justify-between gap-3">
-      {onPrev ? (
-        <Button variant="ghost" onClick={onPrev} className="gap-2">
-          <ArrowLeft className="h-4 w-4" /> Précédent
-        </Button>
-      ) : (
-        <span />
-      )}
-      <Button onClick={onNext} size="lg" className="gap-2">
-        {nextLabel} <ArrowRight className="h-4 w-4" />
-      </Button>
-    </div>
-  );
-}
-
-/* ---------- Steps ---------- */
-
-function IntroStep({ onNext }: { onNext: () => void }) {
-  return (
-    <div>
-      <StepHeader
-        icon={MessageCircle}
-        title="Créez votre compte WhatsApp Business"
-        subtitle="On vous guide pas-à-pas pour que les messages envoyés depuis votre site arrivent directement sur votre WhatsApp."
-      />
-      <div className="grid sm:grid-cols-3 gap-3 mb-8">
-        <div className="rounded-2xl border bg-card/50 p-5 text-center">
-          <Building2 className="h-6 w-6 text-primary mx-auto mb-2" />
-          <h3 className="font-semibold text-sm">1. Votre compte Meta</h3>
-          <p className="text-xs text-muted-foreground mt-1">Au nom de votre entreprise</p>
-        </div>
-        <div className="rounded-2xl border bg-card/50 p-5 text-center">
-          <Smartphone className="h-6 w-6 text-primary mx-auto mb-2" />
-          <h3 className="font-semibold text-sm">2. Votre numéro</h3>
-          <p className="text-xs text-muted-foreground mt-1">Vérifié par SMS ou appel</p>
-        </div>
-        <div className="rounded-2xl border bg-card/50 p-5 text-center">
-          <CheckCircle2 className="h-6 w-6 text-emerald-500 mx-auto mb-2" />
-          <h3 className="font-semibold text-sm">3. Nous envoyer 3 infos</h3>
-          <p className="text-xs text-muted-foreground mt-1">On branche tout sur votre site</p>
-        </div>
-      </div>
-      <InfoBox variant="info">
-        <strong>Pourquoi devez-vous le faire vous-même ?</strong> Le compte WhatsApp Business doit
-        être associé à votre entreprise (nom légal, numéro de téléphone, documents officiels). Seul
-        le dirigeant peut le créer. Ensuite, vous nous transmettez 3 informations et{" "}
-        <strong>nous nous occupons du reste</strong>.
-      </InfoBox>
-      <NavButtons onNext={onNext} nextLabel="C'est parti" />
-    </div>
-  );
-}
-
-function PrerequisStep({ onNext, onPrev }: { onNext: () => void; onPrev: () => void }) {
-  const items = [
-    "Un compte Facebook personnel (pour créer le compte Meta Business)",
-    "Le nom légal de votre entreprise et son adresse",
-    "Un document officiel : registre de commerce, Kbis, statuts…",
-    "Un numéro de téléphone dédié, capable de recevoir un SMS ou un appel",
-  ];
-  return (
-    <div>
-      <StepHeader
-        icon={ClipboardList}
-        title="Ce dont vous aurez besoin"
-        subtitle="Préparez ces 4 éléments avant de commencer, vous gagnerez du temps."
-        time="5 min de préparation"
-      />
-      <ul className="space-y-3 mb-6">
-        {items.map((it, i) => (
-          <li
-            key={i}
-            className="flex gap-3 rounded-xl border border-border/60 bg-card/50 p-4 text-sm"
-          >
-            <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-500" />
-            <span>{it}</span>
-          </li>
-        ))}
-      </ul>
-      <InfoBox variant="warning">
-        <strong>Très important :</strong> le numéro que vous allez utiliser ne doit{" "}
-        <strong>pas déjà être utilisé</strong> sur WhatsApp classique ni sur l'application WhatsApp
-        Business. Idéalement, prenez une nouvelle carte SIM dédiée à votre entreprise.
-      </InfoBox>
-      <NavButtons onNext={onNext} onPrev={onPrev} nextLabel="J'ai tout préparé" />
-    </div>
-  );
-}
-
-function BusinessStep({ onNext, onPrev }: { onNext: () => void; onPrev: () => void }) {
-  return (
-    <div>
-      <StepHeader
-        icon={Building2}
-        title="Étape 1 — Créer un compte Meta Business"
-        subtitle="C'est l'espace officiel de Meta qui regroupe vos outils professionnels."
-        time="5 min"
-      />
-      <NumberedList
-        items={[
-          {
-            title: "Ouvrez Meta Business",
-            desc: (
-              <>
-                Rendez-vous sur <Ext href="https://business.facebook.com">business.facebook.com</Ext>{" "}
-                et connectez-vous avec votre compte Facebook personnel.
-              </>
-            ),
-          },
-          {
-            title: "Créez le compte au nom de votre entreprise",
-            desc: (
-              <>
-                Cliquez sur <strong>« Créer un compte »</strong>, puis renseignez le{" "}
-                <strong>nom exact de votre entreprise</strong>, votre nom et votre email
-                professionnel.
-              </>
-            ),
-          },
-          {
-            title: "Vous avez déjà un Business Manager ?",
-            desc: <>Parfait, passez directement à l'étape suivante — pas besoin d'en créer un second.</>,
-          },
-        ]}
-      />
-      <div className="mt-6">
-        <InfoBox variant="info">
-          Votre compte Facebook personnel reste privé : Meta l'utilise uniquement pour vous
-          identifier comme administrateur.
-        </InfoBox>
-      </div>
-      <NavButtons onNext={onNext} onPrev={onPrev} />
-    </div>
-  );
-}
-
-function AppStep({ onNext, onPrev }: { onNext: () => void; onPrev: () => void }) {
-  return (
-    <div>
-      <StepHeader
-        icon={KeyRound}
-        title="Étape 2 — Créer votre application"
-        subtitle="L'application est le « connecteur » entre votre site et WhatsApp."
-        time="5 min"
-      />
-      <NumberedList
-        items={[
-          {
-            title: "Allez sur Meta for Developers",
-            desc: (
-              <>
-                Ouvrez{" "}
-                <Ext href="https://developers.facebook.com/apps">developers.facebook.com/apps</Ext>{" "}
-                (connecté avec le même compte Facebook).
-              </>
-            ),
-          },
-          {
-            title: "Cliquez sur « Créer une application »",
-            desc: (
-              <>
-                Choisissez le type <strong>« Entreprise » / « Business »</strong>, donnez un nom
-                (ex : « WhatsApp – Nom de votre société ») et validez.
-              </>
-            ),
-          },
-          {
-            title: "Ajoutez le produit WhatsApp",
-            desc: (
-              <>
-                Depuis le tableau de bord de l'application, trouvez la carte{" "}
-                <strong>WhatsApp</strong> et cliquez sur <strong>« Configurer »</strong>.
-              </>
-            ),
-          },
-        ]}
-      />
-      <NavButtons onNext={onNext} onPrev={onPrev} />
-    </div>
-  );
-}
-
-function NumeroStep({ onNext, onPrev }: { onNext: () => void; onPrev: () => void }) {
-  return (
-    <div>
-      <StepHeader
-        icon={Smartphone}
-        title="Étape 3 — Ajouter et vérifier votre numéro"
-        subtitle="C'est le numéro qui recevra les messages de vos clients."
-        time="5 min"
-      />
-      <NumberedList
-        items={[
-          {
-            title: "Ouvrez « Configuration de l'API »",
-            desc: (
-              <>
-                Dans le menu de gauche : <strong>WhatsApp → Configuration de l'API</strong> (API
-                Setup), puis suivez <strong>« Étape 2 : Configuration de la production »</strong>.
-              </>
-            ),
-          },
-          {
-            title: "Ajoutez votre numéro professionnel",
-            desc: (
-              <>
-                Saisissez le numéro <strong>dédié</strong> à votre entreprise, au format
-                international (ex : +262 692 XX XX XX).
-              </>
-            ),
-          },
-          {
-            title: "Saisissez le code reçu",
-            desc: (
-              <>
-                Meta vous envoie un code par <strong>SMS ou appel</strong>. Entrez-le pour valider
-                le numéro.
-              </>
-            ),
-          },
-        ]}
-      />
-      <div className="mt-6">
-        <InfoBox variant="warning">
-          Une fois validé, ce numéro devient votre <strong>numéro WhatsApp Business officiel</strong>{" "}
-          : il ne doit plus être utilisé avec l'application WhatsApp classique.
-        </InfoBox>
-      </div>
-      <NavButtons onNext={onNext} onPrev={onPrev} nextLabel="Mon numéro est validé" />
-    </div>
-  );
-}
-
-function VerifStep({ onNext, onPrev }: { onNext: () => void; onPrev: () => void }) {
-  return (
-    <div>
-      <StepHeader
-        icon={BadgeCheck}
-        title="Étape 4 — Vérifier votre entreprise"
-        subtitle="Meta doit confirmer que votre entreprise existe légalement."
-        time="quelques heures à quelques jours"
-      />
-      <NumberedList
-        items={[
-          {
-            title: "Suivez « Étape 3 : Vérification de l'entreprise »",
-            desc: <>Toujours dans le parcours guidé de la page Configuration de l'API.</>,
-          },
-          {
-            title: "Renseignez vos informations légales",
-            desc: (
-              <>
-                Nom légal, adresse, site internet et téléphone — ils doivent être{" "}
-                <strong>identiques</strong> à ceux de votre document officiel.
-              </>
-            ),
-          },
-          {
-            title: "Importez le document officiel",
-            desc: <>Registre de commerce, Kbis, statuts ou équivalent, en PDF ou photo bien lisible.</>,
-          },
-        ]}
-      />
-      <div className="mt-6 space-y-4">
-        <InfoBox variant="info">
-          Le délai de validation dépend de Meta : de <strong>quelques heures à quelques jours</strong>.
-          Vous recevrez un email dès que c'est validé.
-        </InfoBox>
-        <InfoBox variant="warning">
-          <strong>Refusé ?</strong> C'est presque toujours une différence entre l'adresse saisie et
-          celle du document. Corrigez et re-soumettez — c'est possible plusieurs fois.
-        </InfoBox>
-      </div>
-      <NavButtons onNext={onNext} onPrev={onPrev} />
-    </div>
-  );
-}
-
-function TokenStep({ onNext, onPrev }: { onNext: () => void; onPrev: () => void }) {
-  return (
-    <div>
-      <StepHeader
-        icon={ShieldCheck}
-        title="Étape 5 — Générer un token permanent"
-        subtitle="Le token affiché par défaut expire au bout de 24h : il en faut un qui n'expire jamais."
-        time="5 min"
-      />
-      <NumberedList
-        items={[
-          {
-            title: "Ouvrez les Utilisateurs système",
-            desc: (
-              <>
-                Dans <strong>Meta Business Suite</strong> :{" "}
-                <Ext href="https://business.facebook.com/settings/system-users">
-                  Paramètres de l'entreprise → Utilisateurs système
-                </Ext>
-                .
-              </>
-            ),
-          },
-          {
-            title: "Créez un nouvel utilisateur système",
-            desc: (
-              <>
-                Cliquez sur <strong>« Ajouter »</strong>, nommez-le (ex : « API WhatsApp ») et
-                choisissez le rôle <strong>Admin</strong>.
-              </>
-            ),
-          },
-          {
-            title: "Assignez votre application WhatsApp",
-            desc: (
-              <>
-                Bouton <strong>« Ajouter des actifs »</strong> → sélectionnez votre application et
-                activez la permission <strong>whatsapp_business_messaging</strong>.
-              </>
-            ),
-          },
-          {
-            title: "Générez le token",
-            desc: (
-              <>
-                Cliquez sur <strong>« Générer un nouveau token »</strong>, choisissez votre
-                application, cochez les permissions puis validez.{" "}
-                <strong>Copiez-le immédiatement</strong> : il ne sera plus affiché ensuite.
-              </>
-            ),
-          },
-        ]}
-      />
-      <div className="mt-6">
-        <InfoBox variant="warning">
-          Ce token est une <strong>clé sensible</strong>, comme un mot de passe. Ne le publiez jamais
-          et ne l'envoyez pas dans une conversation publique.
-        </InfoBox>
-      </div>
-      <NavButtons onNext={onNext} onPrev={onPrev} />
-    </div>
-  );
-}
-
-function InfosStep({ onNext, onPrev }: { onNext: () => void; onPrev: () => void }) {
+export default function TutoWhatsAppBusiness() {
   const [params] = useSearchParams();
-  const token = params.get("token") || "";
+  const clientId = params.get("client_id") || undefined;
 
+  const [companyName, setCompanyName] = useState("");
+  const [email, setEmail] = useState("");
+  const [waNumber, setWaNumber] = useState("");
   const [phoneNumberId, setPhoneNumberId] = useState("");
   const [accessToken, setAccessToken] = useState("");
-  const [waNumber, setWaNumber] = useState("");
   const [notes, setNotes] = useState("");
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
 
-  const submit = async () => {
-    if (!phoneNumberId.trim() || !accessToken.trim() || !waNumber.trim()) {
-      toast.error("Merci de remplir les 3 informations obligatoires");
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!companyName.trim() || !email.trim()) {
+      toast.error("Le nom de votre société et votre email sont obligatoires");
       return;
     }
-    if (phoneNumberId.trim().length > 100 || accessToken.trim().length > 1000 || waNumber.trim().length > 30 || notes.length > 1000) {
-      toast.error("Une des valeurs saisies est trop longue");
-      return;
-    }
-    if (!token) {
-      toast.error("Lien invalide : demandez-nous votre lien personnalisé");
-      return;
-    }
-    setSending(true);
+    setLoading(true);
     try {
-      const { error } = await (supabase as any).rpc("submit_client_form_public", {
-        p_token: token,
-        p_form_type: "whatsapp",
-        p_form_data: {
-          phone_number_id: phoneNumberId.trim(),
-          access_token: accessToken.trim(),
-          whatsapp_number: waNumber.trim(),
-          notes: notes.trim() || null,
-        },
+      const { error } = await (supabase as any).rpc("submit_whatsapp_onboarding_public", {
+        p_company_name: companyName.trim(),
+        p_contact_email: email.trim(),
+        p_whatsapp_number: waNumber.trim() || null,
+        p_phone_number_id: phoneNumberId.trim() || null,
+        p_access_token: accessToken.trim() || null,
+        p_notes: notes.trim() || null,
+        p_client_id: clientId || null,
       });
       if (error) throw error;
-      setSent(true);
-      toast.success("Informations reçues, merci !");
-      onNext();
-    } catch (e: any) {
-      toast.error(e?.message || "Erreur lors de l'envoi");
+      setDone(true);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      toast.success("Merci ! Vos informations nous sont bien parvenues.");
+    } catch (err: any) {
+      toast.error(err?.message || "Erreur lors de l'envoi");
     } finally {
-      setSending(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div>
-      <StepHeader
-        icon={ClipboardList}
-        title="Transmettez-nous vos 3 informations"
-        subtitle="Remplissez simplement ce formulaire : nous les recevons directement et en sécurité."
-        time="2 min"
-      />
-
-      <div className="space-y-4 mb-6">
-        <div>
-          <Label htmlFor="wa-phone-id">Phone Number ID *</Label>
-          <Input
-            id="wa-phone-id"
-            value={phoneNumberId}
-            onChange={(e) => setPhoneNumberId(e.target.value)}
-            placeholder="Ex : 1029384756574839"
-            maxLength={100}
-          />
-          <p className="text-xs text-muted-foreground mt-1">
-            WhatsApp → Configuration de l'API : le nombre affiché juste sous votre numéro vérifié.
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      <header className="sticky top-0 z-20 backdrop-blur-xl bg-background/70 border-b border-border/50">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+          <Link to="/" className="flex items-center gap-2">
+            <img src={logo} alt="Adamkom" className="h-8 w-auto" />
+            <span className="font-display font-bold text-lg hidden sm:inline">Adamkom</span>
+          </Link>
+          <Badge variant="secondary" className="gap-1">
+            <MessageCircle className="h-3 w-3" />
+            WhatsApp Business
+          </Badge>
         </div>
+      </header>
 
-        <div>
-          <Label htmlFor="wa-token">Access Token permanent *</Label>
-          <Textarea
-            id="wa-token"
-            value={accessToken}
-            onChange={(e) => setAccessToken(e.target.value)}
-            placeholder="EAAG..."
-            rows={3}
-            maxLength={1000}
-            className="font-mono text-xs"
-          />
-          <p className="text-xs text-muted-foreground mt-1">
-            Celui créé via l'Utilisateur système (Étape 5 de ce guide).
-          </p>
-        </div>
-
-        <div>
-          <Label htmlFor="wa-number">Numéro WhatsApp Business *</Label>
-          <Input
-            id="wa-number"
-            value={waNumber}
-            onChange={(e) => setWaNumber(e.target.value)}
-            placeholder="Ex : +262 692 00 00 00"
-            maxLength={30}
-          />
-          <p className="text-xs text-muted-foreground mt-1">
-            Le numéro ajouté et vérifié à l'Étape 3.
-          </p>
-        </div>
-
-        <div>
-          <Label htmlFor="wa-notes">Remarques (facultatif)</Label>
-          <Textarea
-            id="wa-notes"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Une précision à nous transmettre ?"
-            rows={2}
-            maxLength={1000}
-          />
-        </div>
-      </div>
-
-      {!token && (
-        <div className="mb-6">
-          <InfoBox variant="warning">
-            Ce formulaire doit être ouvert depuis <strong>le lien personnalisé</strong> que nous vous
-            avons envoyé. Contactez-nous pour le recevoir à nouveau.
-          </InfoBox>
-        </div>
-      )}
-
-      <div className="mb-6">
-        <InfoBox variant="success">
-          <ShieldCheck className="inline h-4 w-4 mr-1" />
-          Vos informations sont transmises de façon sécurisée directement à votre fiche client :
-          aucun email, aucun transfert externe.
-        </InfoBox>
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-3">
-        <Button variant="outline" onClick={onPrev} className="gap-2">
-          <ArrowLeft className="h-4 w-4" /> Retour
-        </Button>
-        <Button onClick={submit} disabled={sending || sent} className="gap-2 flex-1">
-          {sending ? "Envoi en cours…" : sent ? "Envoyé ✓" : "Envoyer mes informations"}
-          <ArrowRight className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-
-function MerciStep() {
-  return (
-    <div className="text-center">
-      <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-500 mb-5">
-        <PartyPopper className="h-8 w-8" />
-      </div>
-      <h1 className="text-3xl sm:text-4xl font-display font-bold tracking-tight mb-3">
-        Bravo, tout est prêt !
-      </h1>
-      <p className="text-muted-foreground max-w-xl mx-auto mb-8">
-        Dès réception de vos 3 informations, notre équipe connecte WhatsApp à votre site sous 24h
-        ouvrées et effectue un test d'envoi avec vous.
-      </p>
-      <div className="grid sm:grid-cols-3 gap-3 text-left mb-8">
-        {[
-          { t: "Connexion", d: "Nous branchons l'API sur votre formulaire de contact" },
-          { t: "Test", d: "Nous vous envoyons un message de test à valider" },
-          { t: "En ligne", d: "Vos clients vous écrivent directement sur WhatsApp" },
-        ].map((c, i) => (
-          <div key={i} className="rounded-2xl border bg-card/50 p-5">
-            <CheckCircle2 className="h-5 w-5 text-emerald-500 mb-2" />
-            <h3 className="font-semibold text-sm">{c.t}</h3>
-            <p className="text-xs text-muted-foreground mt-1">{c.d}</p>
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+        {done ? (
+          <div className="text-center py-16">
+            <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-500 mb-4">
+              <CheckCircle2 className="h-8 w-8" />
+            </div>
+            <h1 className="text-3xl font-display font-bold">Merci !</h1>
+            <p className="mt-3 text-muted-foreground">
+              Nous avons bien reçu vos informations. Notre équipe revient vers vous très vite.
+            </p>
           </div>
-        ))}
-      </div>
-      <Button asChild size="lg" className="gap-2">
-        <a href="mailto:contact@adamkom.com">
-          <MessageCircle className="h-4 w-4" /> Nous contacter
-        </a>
-      </Button>
+        ) : (
+          <>
+            <div className="text-center mb-10">
+              <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-4">
+                <MessageCircle className="h-7 w-7" />
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-display font-bold tracking-tight">
+                WhatsApp Business en 4 étapes
+              </h1>
+              <p className="mt-2 text-muted-foreground max-w-xl mx-auto">
+                Simple et rapide : créez votre compte, puis envoyez-nous vos informations juste en
+                dessous.
+              </p>
+            </div>
+
+            <ol className="space-y-3 mb-10">
+              {STEPS.map((s, i) => (
+                <li
+                  key={i}
+                  className="flex gap-4 rounded-2xl border border-border/60 bg-card/50 backdrop-blur p-4 sm:p-5"
+                >
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-sm">
+                    {i + 1}
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="font-semibold mb-1">{s.title}</h2>
+                    <div className="text-sm text-muted-foreground leading-relaxed">{s.desc}</div>
+                  </div>
+                </li>
+              ))}
+            </ol>
+
+            <form
+              onSubmit={submit}
+              className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur p-5 sm:p-7 space-y-4"
+            >
+              <div>
+                <h2 className="text-xl font-display font-bold">Vos informations</h2>
+                <p className="text-sm text-muted-foreground">
+                  Remplissez au minimum votre société et votre email. Les champs techniques sont
+                  facultatifs — si vous ne les avez pas, laissez-les vides, nous vous aiderons.
+                </p>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="wa-company">Nom de votre société *</Label>
+                  <Input
+                    id="wa-company"
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    placeholder="Ex : Boutique Réunion"
+                    maxLength={150}
+                    required
+                    className="mt-1.5"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="wa-email">Votre email *</Label>
+                  <Input
+                    id="wa-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="contact@masociete.com"
+                    maxLength={255}
+                    required
+                    className="mt-1.5"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="wa-number">Numéro WhatsApp Business</Label>
+                <Input
+                  id="wa-number"
+                  value={waNumber}
+                  onChange={(e) => setWaNumber(e.target.value)}
+                  placeholder="+262 692 00 00 00"
+                  maxLength={40}
+                  className="mt-1.5"
+                />
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="wa-pnid">Phone Number ID (si vous l'avez)</Label>
+                  <Input
+                    id="wa-pnid"
+                    value={phoneNumberId}
+                    onChange={(e) => setPhoneNumberId(e.target.value)}
+                    placeholder="Facultatif"
+                    maxLength={120}
+                    className="mt-1.5"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="wa-token">Access Token (si vous l'avez)</Label>
+                  <Input
+                    id="wa-token"
+                    value={accessToken}
+                    onChange={(e) => setAccessToken(e.target.value)}
+                    placeholder="Facultatif"
+                    maxLength={500}
+                    className="mt-1.5"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="wa-notes">Remarques</Label>
+                <Textarea
+                  id="wa-notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Une question, un blocage ?"
+                  maxLength={1000}
+                  className="mt-1.5"
+                />
+              </div>
+
+              <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-500" />
+                Vos informations sont transmises de manière sécurisée et utilisées uniquement pour
+                configurer votre WhatsApp Business.
+              </div>
+
+              <Button type="submit" size="lg" className="w-full gap-2" disabled={loading}>
+                <Send className="h-4 w-4" />
+                {loading ? "Envoi en cours…" : "Envoyer mes informations"}
+              </Button>
+            </form>
+          </>
+        )}
+      </main>
+
+      <footer className="max-w-3xl mx-auto px-4 sm:px-6 py-8 text-center text-sm text-muted-foreground">
+        <p>
+          Besoin d'aide ? Contactez-nous à{" "}
+          <a href="mailto:contact@adamkom.com" className="text-primary hover:underline">
+            contact@adamkom.com
+          </a>
+        </p>
+      </footer>
     </div>
   );
 }

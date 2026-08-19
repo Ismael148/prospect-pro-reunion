@@ -425,8 +425,10 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
 
   const actions = getEmailActions(client).filter(a => !a.condition || a.condition(client));
 
-  const handlePreview = (action: EmailAction) => {
+  const handlePreview = (action: EmailAction, edit = false) => {
     setCustomSubject(action.subject);
+    setCustomBody(null);
+    setEditMode(edit);
     setPreviewAction(action);
   };
 
@@ -435,8 +437,11 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
     setSendingAction(action.id);
     try {
       const supportLink = client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined;
-      const bodyHtml = action.bodyFn(client);
+      const bodyHtml = (customBody !== null && previewAction?.id === action.id)
+        ? customBody
+        : action.bodyFn(client);
       const htmlContent = wrapInBrandedTemplate(bodyHtml, supportLink, branding || undefined);
+
       const subject = customSubject || action.subject;
 
       const { error } = await supabase.functions.invoke("send-brevo-campaign", {

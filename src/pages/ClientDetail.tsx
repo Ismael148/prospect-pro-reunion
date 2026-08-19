@@ -1171,7 +1171,7 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
 }
 
 // ============ Client Forms Section ============
-function ClientFormsSection({ clientId, supportToken, packType, companyName }: { clientId: string; supportToken?: string; packType?: string; companyName: string }) {
+function ClientFormsSection({ clientId, supportToken, packType, companyName, clientEmail }: { clientId: string; supportToken?: string; packType?: string; companyName: string; clientEmail?: string }) {
   const { user, hasRole } = useAuth();
   const { data: forms, isLoading } = useClientForms(clientId);
   const validateForm = useValidateForm();
@@ -1222,17 +1222,21 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName }: {
   const whatsappLink = `${PUBLISHED_URL}/tuto/whatsapp-business?client_id=${clientId}`;
 
   const { data: waSubmissions } = useQuery({
-    queryKey: ["whatsapp-onboarding", clientId],
+    queryKey: ["whatsapp-onboarding", clientId, clientEmail, companyName],
     queryFn: async () => {
+      const filters = [`client_id.eq.${clientId}`];
+      if (clientEmail) filters.push(`contact_email.ilike.${clientEmail}`);
+      if (companyName) filters.push(`company_name.ilike.${companyName}`);
       const { data, error } = await supabase
         .from("whatsapp_onboarding_submissions")
         .select("*")
-        .eq("client_id", clientId)
+        .or(filters.join(","))
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
   });
+
 
 
 
@@ -1739,7 +1743,7 @@ export default function ClientDetail() {
       }} />
       <SupportTicketsSection clientId={id!} />
       <ClientEmailHistory clientId={id!} clientEmail={client.email} />
-      <ClientFormsSection clientId={id!} supportToken={(client as any).support_token} packType={client.pack_type ?? undefined} companyName={(client as any).company_name} />
+      <ClientFormsSection clientId={id!} supportToken={(client as any).support_token} packType={client.pack_type ?? undefined} companyName={(client as any).company_name} clientEmail={(client as any).email} />
       {client.pack_type !== "star_bizness_nfc" && <SocialMediaSection clientId={id!} clientNdi={(client as any).ndi} clientEmail={(client as any).email} clientCompany={(client as any).company_name} clientManager={(client as any).manager_name} />}
       {/* {client.pack_type !== "star_bizness_nfc" && <ChatbotConfigSection clientId={id!} clientCompany={(client as any).company_name} />} */}
       {client.pack_type !== "star_bizness_nfc" && <PaymentTutoSection clientId={id!} clientNdi={(client as any).ndi} clientEmail={(client as any).email} clientCompany={(client as any).company_name} clientManager={(client as any).manager_name} />}

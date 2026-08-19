@@ -1219,7 +1219,21 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName }: {
 
   const nfcLink = supportToken ? `${PUBLISHED_URL}/f/${supportToken}/nfc` : null;
   const siteLink = supportToken ? `${PUBLISHED_URL}/f/${supportToken}/site` : null;
-  const whatsappLink = supportToken ? `${PUBLISHED_URL}/tuto/whatsapp-business?token=${supportToken}` : null;
+  const whatsappLink = `${PUBLISHED_URL}/tuto/whatsapp-business?client_id=${clientId}`;
+
+  const { data: waSubmissions } = useQuery({
+    queryKey: ["whatsapp-onboarding", clientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("whatsapp_onboarding_submissions")
+        .select("*")
+        .eq("client_id", clientId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
 
 
   const copyLink = (link: string, label: string) => {

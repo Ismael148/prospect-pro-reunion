@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import {
-  Mail, Send, Loader2, Ticket, FileText, CreditCard, Globe, Eye, Sparkles, Wand2, Star, Facebook, MapPin, KeyRound, Copy, CalendarCheck, AtSign, MessageCircle,
+  Mail, Send, Loader2, Ticket, FileText, CreditCard, Globe, Eye, Sparkles, Wand2, Star, Facebook, MapPin, KeyRound, Copy, CalendarCheck, AtSign, MessageCircle, Pencil, RotateCcw,
 } from "lucide-react";
 import EmailTemplateSaver from "@/components/EmailTemplateSaver";
 import type { SavedTemplate } from "@/hooks/use-email-templates";
@@ -219,6 +219,9 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
   const [sendingAction, setSendingAction] = useState<string | null>(null);
   const [previewAction, setPreviewAction] = useState<EmailAction | null>(null);
   const [customSubject, setCustomSubject] = useState("");
+  const [customBody, setCustomBody] = useState<string | null>(null);
+  const [editMode, setEditMode] = useState(false);
+
   const { data: branding } = useEmailBranding();
 
   // AI Generation state
@@ -422,8 +425,10 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
 
   const actions = getEmailActions(client).filter(a => !a.condition || a.condition(client));
 
-  const handlePreview = (action: EmailAction) => {
+  const handlePreview = (action: EmailAction, edit = false) => {
     setCustomSubject(action.subject);
+    setCustomBody(null);
+    setEditMode(edit);
     setPreviewAction(action);
   };
 
@@ -432,8 +437,11 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
     setSendingAction(action.id);
     try {
       const supportLink = client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined;
-      const bodyHtml = action.bodyFn(client);
+      const bodyHtml = (customBody !== null && previewAction?.id === action.id)
+        ? customBody
+        : action.bodyFn(client);
       const htmlContent = wrapInBrandedTemplate(bodyHtml, supportLink, branding || undefined);
+
       const subject = customSubject || action.subject;
 
       const { error } = await supabase.functions.invoke("send-brevo-campaign", {
@@ -544,13 +552,18 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
     }
   };
 
+  const previewBody = previewAction
+    ? (customBody !== null ? customBody : previewAction.bodyFn(client))
+    : "";
+
   const previewHtml = previewAction
     ? wrapInBrandedTemplate(
-        previewAction.bodyFn(client),
+        previewBody,
         client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined,
         branding || undefined
       )
     : "";
+
 
   return (
     <>
@@ -599,15 +612,19 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
                   {action.icon}
                   <span className="text-sm font-medium">{action.label}</span>
                 </div>
-                <div className="flex gap-2 mt-auto">
-                  <Button size="sm" variant="outline" className="flex-1" onClick={() => handlePreview(action)}>
+                <div className="flex gap-1.5 mt-auto">
+                  <Button size="sm" variant="outline" className="flex-1 px-2" onClick={() => handlePreview(action)}>
                     <Eye className="w-3.5 h-3.5 mr-1" /> Aperçu
                   </Button>
-                  <Button size="sm" className="flex-1" onClick={() => handleSend(action)} disabled={sendingAction === action.id}>
+                  <Button size="sm" variant="outline" className="flex-1 px-2" onClick={() => handlePreview(action, true)}>
+                    <Pencil className="w-3.5 h-3.5 mr-1" /> Modifier
+                  </Button>
+                  <Button size="sm" className="flex-1 px-2" onClick={() => handleSend(action)} disabled={sendingAction === action.id}>
                     {sendingAction === action.id ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Send className="w-3.5 h-3.5 mr-1" />}
                     Envoyer
                   </Button>
                 </div>
+
               </div>
             ))}
           </div>
@@ -631,10 +648,11 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
               <Label>Objet</Label>
               <EmailTemplateSaver
                 subject={customSubject || previewAction?.subject || ""}
-                body={previewAction?.bodyFn(client) || ""}
+                body={previewBody}
                 category="client_email"
                 onLoad={(tpl: SavedTemplate) => {
                   setCustomSubject(tpl.subject);
+                  setCustomBody(tpl.body);
                   // For loaded templates, create a custom action
                   setPreviewAction({
                     ...previewAction!,
@@ -647,10 +665,32 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
             </div>
             <Input value={customSubject || previewAction?.subject || ""} onChange={(e) => setCustomSubject(e.target.value)} />
             <div className="space-y-2">
-              <Label>Aperçu de l'email</Label>
-              <div className="border border-border rounded-lg overflow-hidden bg-white" dangerouslySetInnerHTML={{ __html: previewHtml }} />
+              <div className="flex items-center justify-between">
+                <Label>{editMode ? "Contenu de l'email (HTML)" : "Aperçu de l'email"}</Label>
+                <div className="flex gap-1.5">
+                  {editMode && customBody !== null && (
+                    <Button size="sm" variant="ghost" className="text-xs" onClick={() => setCustomBody(null)}>
+                      <RotateCcw className="w-3.5 h-3.5 mr-1" /> Réinitialiser
+                    </Button>
+                  )}
+                  <Button size="sm" variant="outline" className="text-xs" onClick={() => setEditMode(!editMode)}>
+                    {editMode ? <><Eye className="w-3.5 h-3.5 mr-1" /> Aperçu</> : <><Pencil className="w-3.5 h-3.5 mr-1" /> Modifier</>}
+                  </Button>
+                </div>
+              </div>
+              {editMode ? (
+                <Textarea
+                  value={previewBody}
+                  onChange={(e) => setCustomBody(e.target.value)}
+                  rows={16}
+                  className="font-mono text-xs"
+                />
+              ) : (
+                <div className="border border-border rounded-lg overflow-hidden bg-white" dangerouslySetInnerHTML={{ __html: previewHtml }} />
+              )}
             </div>
           </div>
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setPreviewAction(null)}>Annuler</Button>
             <Button onClick={() => previewAction && handleSend(previewAction)} disabled={!!sendingAction}>

@@ -612,15 +612,19 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
                   {action.icon}
                   <span className="text-sm font-medium">{action.label}</span>
                 </div>
-                <div className="flex gap-2 mt-auto">
-                  <Button size="sm" variant="outline" className="flex-1" onClick={() => handlePreview(action)}>
+                <div className="flex gap-1.5 mt-auto">
+                  <Button size="sm" variant="outline" className="flex-1 px-2" onClick={() => handlePreview(action)}>
                     <Eye className="w-3.5 h-3.5 mr-1" /> Aperçu
                   </Button>
-                  <Button size="sm" className="flex-1" onClick={() => handleSend(action)} disabled={sendingAction === action.id}>
+                  <Button size="sm" variant="outline" className="flex-1 px-2" onClick={() => handlePreview(action, true)}>
+                    <Pencil className="w-3.5 h-3.5 mr-1" /> Modifier
+                  </Button>
+                  <Button size="sm" className="flex-1 px-2" onClick={() => handleSend(action)} disabled={sendingAction === action.id}>
                     {sendingAction === action.id ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Send className="w-3.5 h-3.5 mr-1" />}
                     Envoyer
                   </Button>
                 </div>
+
               </div>
             ))}
           </div>

@@ -1219,7 +1219,21 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName }: {
 
   const nfcLink = supportToken ? `${PUBLISHED_URL}/f/${supportToken}/nfc` : null;
   const siteLink = supportToken ? `${PUBLISHED_URL}/f/${supportToken}/site` : null;
-  const whatsappLink = supportToken ? `${PUBLISHED_URL}/tuto/whatsapp-business?token=${supportToken}` : null;
+  const whatsappLink = `${PUBLISHED_URL}/tuto/whatsapp-business?client_id=${clientId}`;
+
+  const { data: waSubmissions } = useQuery({
+    queryKey: ["whatsapp-onboarding", clientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("whatsapp_onboarding_submissions")
+        .select("*")
+        .eq("client_id", clientId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
 
 
   const copyLink = (link: string, label: string) => {
@@ -1274,6 +1288,32 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName }: {
             ))}
           </div>
         )}
+
+        {!!waSubmissions?.length && (
+          <div className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              💬 Infos WhatsApp Business reçues
+            </p>
+            {waSubmissions.map((s) => (
+              <div key={s.id} className="p-4 rounded-xl border border-emerald-300 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-800 space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-semibold text-sm">{s.company_name}</span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {new Date(s.created_at).toLocaleString("fr-FR")}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                  <p><span className="text-muted-foreground">Email :</span> {s.contact_email}</p>
+                  {s.whatsapp_number && <p><span className="text-muted-foreground">Numéro WhatsApp :</span> {s.whatsapp_number}</p>}
+                  {s.phone_number_id && <p className="break-all"><span className="text-muted-foreground">Phone Number ID :</span> {s.phone_number_id}</p>}
+                  {s.access_token && <p className="break-all"><span className="text-muted-foreground">Token :</span> {s.access_token}</p>}
+                </div>
+                {s.notes && <p className="text-xs italic text-muted-foreground">{s.notes}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+
 
         {isLoading ? (
           <Loader2 className="w-5 h-5 animate-spin mx-auto" />

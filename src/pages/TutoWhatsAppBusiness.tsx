@@ -581,83 +581,149 @@ function TokenStep({ onNext, onPrev }: { onNext: () => void; onPrev: () => void 
 }
 
 function InfosStep({ onNext, onPrev }: { onNext: () => void; onPrev: () => void }) {
-  const rows = [
-    {
-      label: "Phone Number ID",
-      where: "WhatsApp → Configuration de l'API : le nombre affiché juste en dessous de votre numéro vérifié",
-    },
-    {
-      label: "Access Token permanent",
-      where: "Créé via l'Utilisateur système (Étape 5 de ce guide)",
-    },
-    {
-      label: "Numéro WhatsApp Business",
-      where: "Le numéro que vous avez ajouté et vérifié à l'Étape 3",
-    },
-  ];
+  const [params] = useSearchParams();
+  const token = params.get("token") || "";
 
-  const template = `Bonjour,
+  const [phoneNumberId, setPhoneNumberId] = useState("");
+  const [accessToken, setAccessToken] = useState("");
+  const [waNumber, setWaNumber] = useState("");
+  const [notes, setNotes] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
 
-Voici mes informations WhatsApp Business :
-
-- Phone Number ID : 
-- Access Token permanent : 
-- Numéro WhatsApp Business : 
-
-Merci !`;
+  const submit = async () => {
+    if (!phoneNumberId.trim() || !accessToken.trim() || !waNumber.trim()) {
+      toast.error("Merci de remplir les 3 informations obligatoires");
+      return;
+    }
+    if (phoneNumberId.trim().length > 100 || accessToken.trim().length > 1000 || waNumber.trim().length > 30 || notes.length > 1000) {
+      toast.error("Une des valeurs saisies est trop longue");
+      return;
+    }
+    if (!token) {
+      toast.error("Lien invalide : demandez-nous votre lien personnalisé");
+      return;
+    }
+    setSending(true);
+    try {
+      const { error } = await (supabase as any).rpc("submit_client_form_public", {
+        p_token: token,
+        p_form_type: "whatsapp",
+        p_form_data: {
+          phone_number_id: phoneNumberId.trim(),
+          access_token: accessToken.trim(),
+          whatsapp_number: waNumber.trim(),
+          notes: notes.trim() || null,
+        },
+      });
+      if (error) throw error;
+      setSent(true);
+      toast.success("Informations reçues, merci !");
+      onNext();
+    } catch (e: any) {
+      toast.error(e?.message || "Erreur lors de l'envoi");
+    } finally {
+      setSending(false);
+    }
+  };
 
   return (
     <div>
       <StepHeader
         icon={ClipboardList}
-        title="Les 3 informations à nous transmettre"
-        subtitle="Dernière ligne droite : envoyez-nous ces 3 éléments et nous branchons tout sur votre site."
+        title="Transmettez-nous vos 3 informations"
+        subtitle="Remplissez simplement ce formulaire : nous les recevons directement et en sécurité."
         time="2 min"
       />
-      <div className="space-y-3 mb-6">
-        {rows.map((r, i) => (
-          <div key={i} className="rounded-2xl border border-border/60 bg-card/50 p-4 sm:p-5">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
-                {i + 1}
-              </span>
-              <h3 className="font-semibold">{r.label}</h3>
-            </div>
-            <p className="text-sm text-muted-foreground sm:pl-9">{r.where}</p>
-          </div>
-        ))}
-      </div>
 
-      <div className="rounded-2xl border border-border/60 bg-muted/40 p-4 mb-6">
-        <div className="flex items-center justify-between gap-3 mb-2">
-          <h3 className="font-semibold text-sm">Modèle de message prêt à copier</h3>
-          <Button
-            size="sm"
-            variant="outline"
-            className="gap-2"
-            onClick={() => {
-              navigator.clipboard.writeText(template);
-              toast.success("Modèle copié !");
-            }}
-          >
-            <Copy className="h-3.5 w-3.5" /> Copier
-          </Button>
+      <div className="space-y-4 mb-6">
+        <div>
+          <Label htmlFor="wa-phone-id">Phone Number ID *</Label>
+          <Input
+            id="wa-phone-id"
+            value={phoneNumberId}
+            onChange={(e) => setPhoneNumberId(e.target.value)}
+            placeholder="Ex : 1029384756574839"
+            maxLength={100}
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            WhatsApp → Configuration de l'API : le nombre affiché juste sous votre numéro vérifié.
+          </p>
         </div>
-        <pre className="whitespace-pre-wrap text-xs text-muted-foreground leading-relaxed">
-          {template}
-        </pre>
+
+        <div>
+          <Label htmlFor="wa-token">Access Token permanent *</Label>
+          <Textarea
+            id="wa-token"
+            value={accessToken}
+            onChange={(e) => setAccessToken(e.target.value)}
+            placeholder="EAAG..."
+            rows={3}
+            maxLength={1000}
+            className="font-mono text-xs"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Celui créé via l'Utilisateur système (Étape 5 de ce guide).
+          </p>
+        </div>
+
+        <div>
+          <Label htmlFor="wa-number">Numéro WhatsApp Business *</Label>
+          <Input
+            id="wa-number"
+            value={waNumber}
+            onChange={(e) => setWaNumber(e.target.value)}
+            placeholder="Ex : +262 692 00 00 00"
+            maxLength={30}
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Le numéro ajouté et vérifié à l'Étape 3.
+          </p>
+        </div>
+
+        <div>
+          <Label htmlFor="wa-notes">Remarques (facultatif)</Label>
+          <Textarea
+            id="wa-notes"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Une précision à nous transmettre ?"
+            rows={2}
+            maxLength={1000}
+          />
+        </div>
       </div>
 
-      <InfoBox variant="warning">
-        Merci de nous transmettre ces informations par un <strong>canal sécurisé</strong> (appel,
-        message privé), et si possible <strong>pas par email en clair</strong>. Nous les intégrons
-        ensuite directement dans les réglages de votre site.
-      </InfoBox>
+      {!token && (
+        <div className="mb-6">
+          <InfoBox variant="warning">
+            Ce formulaire doit être ouvert depuis <strong>le lien personnalisé</strong> que nous vous
+            avons envoyé. Contactez-nous pour le recevoir à nouveau.
+          </InfoBox>
+        </div>
+      )}
 
-      <NavButtons onNext={onNext} onPrev={onPrev} nextLabel="J'ai tout envoyé" />
+      <div className="mb-6">
+        <InfoBox variant="success">
+          <ShieldCheck className="inline h-4 w-4 mr-1" />
+          Vos informations sont transmises de façon sécurisée directement à votre fiche client :
+          aucun email, aucun transfert externe.
+        </InfoBox>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-3">
+        <Button variant="outline" onClick={onPrev} className="gap-2">
+          <ArrowLeft className="h-4 w-4" /> Retour
+        </Button>
+        <Button onClick={submit} disabled={sending || sent} className="gap-2 flex-1">
+          {sending ? "Envoi en cours…" : sent ? "Envoyé ✓" : "Envoyer mes informations"}
+          <ArrowRight className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 }
+
 
 function MerciStep() {
   return (

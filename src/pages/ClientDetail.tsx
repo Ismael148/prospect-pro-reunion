@@ -26,7 +26,7 @@ import {
   ArrowLeft, Plus, User, Phone, Mail, Briefcase, Building2, Loader2, Clock,
   Globe, MapPin, CreditCard, FileText, MessageSquare, Send, FolderKanban, Hash, UserCheck,
   ClipboardCopy, CheckCircle2, Eye, Download, Pencil, CreditCard as NfcIcon, Ticket, Trash2,
-  LifeBuoy,
+  LifeBuoy, MessageCircle,
 } from "lucide-react";
 import { exportClientPDF } from "@/lib/export-client-pdf";
 import { useState } from "react";
@@ -1206,7 +1206,9 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName }: {
   const FORM_TYPE_LABELS: Record<string, { label: string; icon: string }> = {
     nfc: { label: "Carte NFC", icon: "💳" },
     site: { label: "Site Internet", icon: "🌐" },
+    whatsapp: { label: "WhatsApp Business", icon: "💬" },
   };
+
   const STATUS_LABELS: Record<string, string> = { en_attente: "En attente", soumis: "Soumis", valide: "Validé" };
   const STATUS_COLORS: Record<string, string> = {
     en_attente: "bg-muted text-muted-foreground border-border",
@@ -1217,6 +1219,8 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName }: {
 
   const nfcLink = supportToken ? `${PUBLISHED_URL}/f/${supportToken}/nfc` : null;
   const siteLink = supportToken ? `${PUBLISHED_URL}/f/${supportToken}/site` : null;
+  const whatsappLink = supportToken ? `${PUBLISHED_URL}/tuto/whatsapp-business?token=${supportToken}` : null;
+
 
   const copyLink = (link: string, label: string) => {
     navigator.clipboard.writeText(link);
@@ -1254,6 +1258,8 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName }: {
             {[
               { label: "Carte NFC", link: nfcLink!, icon: CreditCard },
               ...(packType !== "star_bizness_nfc" ? [{ label: "Site Internet", link: siteLink!, icon: Globe }] : []),
+              { label: "WhatsApp Business", link: whatsappLink!, icon: MessageCircle },
+
             ].map(({ label, link, icon: Icon }) => (
               <div key={label} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
                 <Icon className="w-5 h-5 text-primary shrink-0" />

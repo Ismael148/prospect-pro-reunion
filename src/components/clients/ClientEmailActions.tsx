@@ -179,7 +179,7 @@ ${makeCta('📅 Suivre le tutoriel MotoPress', tutoLink)}
       subject: `Recevez les messages de votre site sur WhatsApp — ${client.company_name}`,
       trigger: 'tuto_whatsapp',
       bodyFn: () => {
-        const tutoLink = `${PUBLISHED_URL}/tuto/whatsapp-business`;
+        const tutoLink = `${PUBLISHED_URL}/tuto/whatsapp-business${client.support_token ? `?token=${client.support_token}` : ''}`;
         return `<p style="margin:0 0 20px">Bonjour <strong>${greeting}</strong>,</p>
 <p style="margin:0 0 20px">Pour que les messages envoyés depuis le <strong>formulaire de contact de votre site</strong> arrivent directement sur votre <strong>WhatsApp</strong>, il faut créer un compte <strong>WhatsApp Business officiel (Meta)</strong> au nom de votre entreprise.</p>
 <p style="margin:0 0 20px">Seul vous pouvez le créer, car il doit être associé à vos informations légales (nom de l'entreprise, adresse, document officiel, numéro dédié). Rassurez-vous : <strong>nous ne vous demandons aucun mot de passe</strong>.</p>
@@ -192,7 +192,7 @@ ${makeCta('📅 Suivre le tutoriel MotoPress', tutoLink)}
   <li>🔑 Générer un token d'accès permanent</li>
 </ul>
 ${makeCta('💬 Suivre le tutoriel WhatsApp Business', tutoLink)}
-<p style="margin:0 0 20px;font-size:13px;color:#71717a">À la fin, il vous suffit de nous transmettre <strong>3 informations</strong> (Phone Number ID, Access Token permanent et votre numéro WhatsApp Business). Merci de nous les envoyer par un canal sécurisé plutôt que par email en clair.</p>
+<p style="margin:0 0 20px;font-size:13px;color:#71717a">À la fin du tutoriel, un <strong>formulaire sécurisé</strong> vous permet de nous transmettre en 1 clic vos <strong>3 informations</strong> (Phone Number ID, Access Token permanent et numéro WhatsApp Business). Rien à envoyer par email.</p>
 <p style="margin:0 0 20px">Dès réception, nous connectons le tout à votre site sous 24h ouvrées et réalisons un test avec vous.</p>
 <p style="margin:0">Très cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`;
       },

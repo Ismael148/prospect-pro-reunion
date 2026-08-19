@@ -1206,7 +1206,9 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName }: {
   const FORM_TYPE_LABELS: Record<string, { label: string; icon: string }> = {
     nfc: { label: "Carte NFC", icon: "💳" },
     site: { label: "Site Internet", icon: "🌐" },
+    whatsapp: { label: "WhatsApp Business", icon: "💬" },
   };
+
   const STATUS_LABELS: Record<string, string> = { en_attente: "En attente", soumis: "Soumis", valide: "Validé" };
   const STATUS_COLORS: Record<string, string> = {
     en_attente: "bg-muted text-muted-foreground border-border",

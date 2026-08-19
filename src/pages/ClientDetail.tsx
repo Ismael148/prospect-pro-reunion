@@ -1219,6 +1219,8 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName }: {
 
   const nfcLink = supportToken ? `${PUBLISHED_URL}/f/${supportToken}/nfc` : null;
   const siteLink = supportToken ? `${PUBLISHED_URL}/f/${supportToken}/site` : null;
+  const whatsappLink = supportToken ? `${PUBLISHED_URL}/tuto/whatsapp-business?token=${supportToken}` : null;
+
 
   const copyLink = (link: string, label: string) => {
     navigator.clipboard.writeText(link);

@@ -1222,17 +1222,21 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName, cli
   const whatsappLink = `${PUBLISHED_URL}/tuto/whatsapp-business?client_id=${clientId}`;
 
   const { data: waSubmissions } = useQuery({
-    queryKey: ["whatsapp-onboarding", clientId],
+    queryKey: ["whatsapp-onboarding", clientId, clientEmail, companyName],
     queryFn: async () => {
+      const filters = [`client_id.eq.${clientId}`];
+      if (clientEmail) filters.push(`contact_email.ilike.${clientEmail}`);
+      if (companyName) filters.push(`company_name.ilike.${companyName}`);
       const { data, error } = await supabase
         .from("whatsapp_onboarding_submissions")
         .select("*")
-        .eq("client_id", clientId)
+        .or(filters.join(","))
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
   });
+
 
 
 

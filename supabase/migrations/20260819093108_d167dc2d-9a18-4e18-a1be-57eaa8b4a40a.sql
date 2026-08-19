@@ -1,0 +1,1 @@
+ALTER TYPE public.client_form_type ADD VALUE IF NOT EXISTS 'whatsapp';

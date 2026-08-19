@@ -179,7 +179,7 @@ ${makeCta('📅 Suivre le tutoriel MotoPress', tutoLink)}
       subject: `Recevez les messages de votre site sur WhatsApp — ${client.company_name}`,
       trigger: 'tuto_whatsapp',
       bodyFn: () => {
-        const tutoLink = `${PUBLISHED_URL}/tuto/whatsapp-business`;
+        const tutoLink = `${PUBLISHED_URL}/tuto/whatsapp-business${client.support_token ? `?token=${client.support_token}` : ''}`;
         return `<p style="margin:0 0 20px">Bonjour <strong>${greeting}</strong>,</p>
 <p style="margin:0 0 20px">Pour que les messages envoyés depuis le <strong>formulaire de contact de votre site</strong> arrivent directement sur votre <strong>WhatsApp</strong>, il faut créer un compte <strong>WhatsApp Business officiel (Meta)</strong> au nom de votre entreprise.</p>
 <p style="margin:0 0 20px">Seul vous pouvez le créer, car il doit être associé à vos informations légales (nom de l'entreprise, adresse, document officiel, numéro dédié). Rassurez-vous : <strong>nous ne vous demandons aucun mot de passe</strong>.</p>

@@ -648,10 +648,11 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
               <Label>Objet</Label>
               <EmailTemplateSaver
                 subject={customSubject || previewAction?.subject || ""}
-                body={previewAction?.bodyFn(client) || ""}
+                body={previewBody}
                 category="client_email"
                 onLoad={(tpl: SavedTemplate) => {
                   setCustomSubject(tpl.subject);
+                  setCustomBody(tpl.body);
                   // For loaded templates, create a custom action
                   setPreviewAction({
                     ...previewAction!,
@@ -664,10 +665,32 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
             </div>
             <Input value={customSubject || previewAction?.subject || ""} onChange={(e) => setCustomSubject(e.target.value)} />
             <div className="space-y-2">
-              <Label>Aperçu de l'email</Label>
-              <div className="border border-border rounded-lg overflow-hidden bg-white" dangerouslySetInnerHTML={{ __html: previewHtml }} />
+              <div className="flex items-center justify-between">
+                <Label>{editMode ? "Contenu de l'email (HTML)" : "Aperçu de l'email"}</Label>
+                <div className="flex gap-1.5">
+                  {editMode && customBody !== null && (
+                    <Button size="sm" variant="ghost" className="text-xs" onClick={() => setCustomBody(null)}>
+                      <RotateCcw className="w-3.5 h-3.5 mr-1" /> Réinitialiser
+                    </Button>
+                  )}
+                  <Button size="sm" variant="outline" className="text-xs" onClick={() => setEditMode(!editMode)}>
+                    {editMode ? <><Eye className="w-3.5 h-3.5 mr-1" /> Aperçu</> : <><Pencil className="w-3.5 h-3.5 mr-1" /> Modifier</>}
+                  </Button>
+                </div>
+              </div>
+              {editMode ? (
+                <Textarea
+                  value={previewBody}
+                  onChange={(e) => setCustomBody(e.target.value)}
+                  rows={16}
+                  className="font-mono text-xs"
+                />
+              ) : (
+                <div className="border border-border rounded-lg overflow-hidden bg-white" dangerouslySetInnerHTML={{ __html: previewHtml }} />
+              )}
             </div>
           </div>
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setPreviewAction(null)}>Annuler</Button>
             <Button onClick={() => previewAction && handleSend(previewAction)} disabled={!!sendingAction}>

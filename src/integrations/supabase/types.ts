@@ -2894,6 +2894,56 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_onboarding_submissions: {
+        Row: {
+          access_token: string | null
+          client_id: string | null
+          company_name: string
+          contact_email: string
+          created_at: string
+          id: string
+          notes: string | null
+          phone_number_id: string | null
+          status: string
+          updated_at: string
+          whatsapp_number: string | null
+        }
+        Insert: {
+          access_token?: string | null
+          client_id?: string | null
+          company_name: string
+          contact_email: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          phone_number_id?: string | null
+          status?: string
+          updated_at?: string
+          whatsapp_number?: string | null
+        }
+        Update: {
+          access_token?: string | null
+          client_id?: string | null
+          company_name?: string
+          contact_email?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          phone_number_id?: string | null
+          status?: string
+          updated_at?: string
+          whatsapp_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_onboarding_submissions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -3079,6 +3129,18 @@ export type Database = {
           p_notes?: string
           p_token: string
           p_vrbo_url?: string
+        }
+        Returns: string
+      }
+      submit_whatsapp_onboarding_public: {
+        Args: {
+          p_access_token?: string
+          p_client_id?: string
+          p_company_name: string
+          p_contact_email: string
+          p_notes?: string
+          p_phone_number_id?: string
+          p_whatsapp_number?: string
         }
         Returns: string
       }

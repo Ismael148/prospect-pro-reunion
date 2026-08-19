@@ -544,13 +544,18 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
     }
   };
 
+  const previewBody = previewAction
+    ? (customBody !== null ? customBody : previewAction.bodyFn(client))
+    : "";
+
   const previewHtml = previewAction
     ? wrapInBrandedTemplate(
-        previewAction.bodyFn(client),
+        previewBody,
         client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined,
         branding || undefined
       )
     : "";
+
 
   return (
     <>

@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import {
-  Mail, Send, Loader2, Ticket, FileText, CreditCard, Globe, Eye, Sparkles, Wand2, Star, Facebook, MapPin, KeyRound, Copy, CalendarCheck, AtSign, MessageCircle,
+  Mail, Send, Loader2, Ticket, FileText, CreditCard, Globe, Eye, Sparkles, Wand2, Star, Facebook, MapPin, KeyRound, Copy, CalendarCheck, AtSign, MessageCircle, Pencil, RotateCcw,
 } from "lucide-react";
 import EmailTemplateSaver from "@/components/EmailTemplateSaver";
 import type { SavedTemplate } from "@/hooks/use-email-templates";

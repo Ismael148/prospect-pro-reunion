@@ -1207,6 +1207,7 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName, cli
     nfc: { label: "Carte NFC", icon: "💳" },
     site: { label: "Site Internet", icon: "🌐" },
     whatsapp: { label: "WhatsApp Business", icon: "💬" },
+    conversion: { label: "Page de conversion", icon: "🎯" },
   };
 
   const STATUS_LABELS: Record<string, string> = { en_attente: "En attente", soumis: "Soumis", valide: "Validé" };
@@ -1219,7 +1220,9 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName, cli
 
   const nfcLink = supportToken ? `${PUBLISHED_URL}/f/${supportToken}/nfc` : null;
   const siteLink = supportToken ? `${PUBLISHED_URL}/f/${supportToken}/site` : null;
+  const conversionLink = supportToken ? `${PUBLISHED_URL}/f/${supportToken}/conversion` : null;
   const whatsappLink = `${PUBLISHED_URL}/tuto/whatsapp-business?client_id=${clientId}`;
+
 
   const { data: waSubmissions } = useQuery({
     queryKey: ["whatsapp-onboarding", clientId, clientEmail, companyName],

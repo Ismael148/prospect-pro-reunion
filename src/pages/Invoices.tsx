@@ -37,12 +37,26 @@ const PAYMENT_OPTIONS: { value: string; label: string }[] = [
   { value: "especes", label: "Espèces" },
 ];
 
+const CLIENT_CATEGORIES: { value: string; label: string }[] = [
+  { value: "all", label: "Tous les clients" },
+  { value: "1.0", label: "Client 1.0 (NFC)" },
+  { value: "2.0", label: "Client 2.0 (Numérik)" },
+  { value: "tuning", label: "Client Tuning" },
+];
+
+function getClientCategory(packType?: string | null): string {
+  if (packType === "star_bizness_nfc") return "1.0";
+  if (packType === "star_bizness_tuning") return "tuning";
+  return "2.0";
+}
+
 const STATUS_LABELS: Record<string, string> = {
   brouillon: "Brouillon",
   envoyee: "Envoyée",
   payee: "Payée",
   annulee: "Annulée",
 };
+
 
 const STATUS_COLORS: Record<string, string> = {
   brouillon: "bg-muted text-muted-foreground",
@@ -62,6 +76,7 @@ export default function Invoices() {
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [clientCategory, setClientCategory] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState("");
   const [taxRate, setTaxRate] = useState("0");
@@ -86,9 +101,11 @@ export default function Invoices() {
         inv.invoice_number.toLowerCase().includes(search.toLowerCase()) ||
         (client?.company_name || "").toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === "all" || inv.status === statusFilter;
-      return matchSearch && matchStatus;
+      const matchCategory = clientCategory === "all" || getClientCategory(client?.pack_type) === clientCategory;
+      return matchSearch && matchStatus && matchCategory;
     });
-  }, [invoices, search, statusFilter, clientMap]);
+  }, [invoices, search, statusFilter, clientCategory, clientMap]);
+
 
   const updateItemRow = (index: number, field: keyof InvoiceItem, value: any) => {
     const updated = [...items];
@@ -213,8 +230,11 @@ export default function Invoices() {
   }, [invoices]);
 
   const signedClients = useMemo(() => {
-    return (clients || []).filter((c) => c.pipeline_status === "contrat_signe");
-  }, [clients]);
+    return (clients || [])
+      .filter((c) => c.pipeline_status === "contrat_signe")
+      .filter((c) => clientCategory === "all" || getClientCategory(c.pack_type) === clientCategory);
+  }, [clients, clientCategory]);
+
 
   return (
     <motion.div className="space-y-6" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
@@ -250,8 +270,16 @@ export default function Invoices() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-3">
-        <div className="relative flex-1">
+      <div className="flex flex-wrap gap-3">
+        <Select value={clientCategory} onValueChange={setClientCategory}>
+          <SelectTrigger className="w-52"><SelectValue placeholder="Catégorie de client" /></SelectTrigger>
+          <SelectContent>
+            {CLIENT_CATEGORIES.map((c) => (
+              <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="Rechercher une facture..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
@@ -265,6 +293,7 @@ export default function Invoices() {
           </SelectContent>
         </Select>
       </div>
+
 
       {/* Table */}
       {isLoading ? (
@@ -353,16 +382,31 @@ export default function Invoices() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
+              <Label>Catégorie de client</Label>
+              <Select value={clientCategory} onValueChange={(v) => { setClientCategory(v); setSelectedClientId(""); }}>
+                <SelectTrigger><SelectValue placeholder="Catégorie" /></SelectTrigger>
+                <SelectContent>
+                  {CLIENT_CATEGORIES.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
               <Label>Client *</Label>
               <Select value={selectedClientId} onValueChange={handleClientChange}>
                 <SelectTrigger><SelectValue placeholder="Sélectionner un client" /></SelectTrigger>
                 <SelectContent>
                   {signedClients.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.company_name}
+                      {c.pack_type === "star_bizness_tuning" ? " — TUNING" : c.pack_type === "star_bizness_nfc" ? " — NFC" : ""}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">

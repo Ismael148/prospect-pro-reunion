@@ -30,11 +30,37 @@ export interface ClientFormData {
   competitors?: string;
   preferred_style?: string;
   additional_pages?: string;
+  // Page de conversion (Pack Tuning)
+  activity_type?: string;
+  main_offer?: string;
+  service_list?: string;
+  prices?: string;
+  guarantees?: string;
+  service_area?: string;
+  usp?: string;
+  promo_offer?: string;
+  cta_preference?: string;
+  contact_phone?: string;
+  whatsapp_number?: string;
+  booking_url?: string;
+  google_reviews_url?: string;
+  reviews_examples?: string;
+  faq?: string;
+  certifications?: string;
+  team_presentation?: string;
+  payment_options?: string;
+  emergency_service?: string;
+  brands_handled?: string;
+  photos_note?: string;
+  video_url?: string;
+  logo_note?: string;
+  domain_name?: string;
+  tracking_note?: string;
   // Multi-card
   extra_cards?: { full_name?: string; position?: string; phone?: string; email?: string; address?: string }[];
 }
 
-export function useClientFormByToken(token: string, formType: "nfc" | "site") {
+export function useClientFormByToken(token: string, formType: "nfc" | "site" | "conversion") {
   return useQuery({
     queryKey: ["client-form", token, formType],
     queryFn: async () => {
@@ -78,7 +104,7 @@ export function useSubmitClientForm() {
       formData,
     }: {
       token: string;
-      formType: "nfc" | "site";
+      formType: "nfc" | "site" | "conversion";
       formData: ClientFormData;
     }) => {
       const { data, error } = await (supabase as any).rpc("submit_client_form_public", {

@@ -1207,6 +1207,7 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName, cli
     nfc: { label: "Carte NFC", icon: "💳" },
     site: { label: "Site Internet", icon: "🌐" },
     whatsapp: { label: "WhatsApp Business", icon: "💬" },
+    conversion: { label: "Page de conversion", icon: "🎯" },
   };
 
   const STATUS_LABELS: Record<string, string> = { en_attente: "En attente", soumis: "Soumis", valide: "Validé" };
@@ -1219,7 +1220,9 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName, cli
 
   const nfcLink = supportToken ? `${PUBLISHED_URL}/f/${supportToken}/nfc` : null;
   const siteLink = supportToken ? `${PUBLISHED_URL}/f/${supportToken}/site` : null;
+  const conversionLink = supportToken ? `${PUBLISHED_URL}/f/${supportToken}/conversion` : null;
   const whatsappLink = `${PUBLISHED_URL}/tuto/whatsapp-business?client_id=${clientId}`;
+
 
   const { data: waSubmissions } = useQuery({
     queryKey: ["whatsapp-onboarding", clientId, clientEmail, companyName],
@@ -1275,8 +1278,11 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName, cli
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[
               { label: "Carte NFC", link: nfcLink!, icon: CreditCard },
-              ...(packType !== "star_bizness_nfc" ? [{ label: "Site Internet", link: siteLink!, icon: Globe }] : []),
+              ...(packType !== "star_bizness_nfc" && packType !== "star_bizness_tuning" ? [{ label: "Site Internet", link: siteLink!, icon: Globe }] : []),
+              ...(packType === "star_bizness_tuning" ? [{ label: "Page de conversion", link: conversionLink!, icon: Globe }] : []),
               { label: "WhatsApp Business", link: whatsappLink!, icon: MessageCircle },
+
+
 
             ].map(({ label, link, icon: Icon }) => (
               <div key={label} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
@@ -1613,10 +1619,12 @@ export default function ClientDetail() {
                 <SelectValue placeholder="Changer de pack" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="star_bizness_tuning">✨ PACK TUNING</SelectItem>
                 <SelectItem value="star_bizness_numerik">STAR BIZNESS NUMERIK</SelectItem>
                 <SelectItem value="star_bizness_nfc">STAR BIZNESS NFC</SelectItem>
                 <SelectItem value="autre">Autre</SelectItem>
               </SelectContent>
+
             </Select>
           )}
           <EditClientDialog client={client} onSave={handleEditSave} salesTeam={salesTeam} />
@@ -1746,8 +1754,9 @@ export default function ClientDetail() {
       <ClientFormsSection clientId={id!} supportToken={(client as any).support_token} packType={client.pack_type ?? undefined} companyName={(client as any).company_name} clientEmail={(client as any).email} />
       {client.pack_type !== "star_bizness_nfc" && <SocialMediaSection clientId={id!} clientNdi={(client as any).ndi} clientEmail={(client as any).email} clientCompany={(client as any).company_name} clientManager={(client as any).manager_name} />}
       {/* {client.pack_type !== "star_bizness_nfc" && <ChatbotConfigSection clientId={id!} clientCompany={(client as any).company_name} />} */}
-      {client.pack_type !== "star_bizness_nfc" && <PaymentTutoSection clientId={id!} clientNdi={(client as any).ndi} clientEmail={(client as any).email} clientCompany={(client as any).company_name} clientManager={(client as any).manager_name} />}
-      {client.pack_type !== "star_bizness_nfc" && <ReservationSyncSection clientId={id!} clientEmail={(client as any).email} clientCompany={(client as any).company_name} clientManager={(client as any).manager_name} clientToken={(client as any).support_token} />}
+      {client.pack_type !== "star_bizness_nfc" && client.pack_type !== "star_bizness_tuning" && <PaymentTutoSection clientId={id!} clientNdi={(client as any).ndi} clientEmail={(client as any).email} clientCompany={(client as any).company_name} clientManager={(client as any).manager_name} />}
+      {client.pack_type !== "star_bizness_nfc" && client.pack_type !== "star_bizness_tuning" && <ReservationSyncSection clientId={id!} clientEmail={(client as any).email} clientCompany={(client as any).company_name} clientManager={(client as any).manager_name} clientToken={(client as any).support_token} />}
+
       <NotesSection clientId={id!} activities={activities} />
     </div>
   );

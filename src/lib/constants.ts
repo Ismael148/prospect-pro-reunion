@@ -43,13 +43,23 @@ export const PIPELINE_ORDER: PipelineStatus[] = [
 export const PACK_LABELS: Record<PackType, string> = {
   star_bizness_numerik: "STAR BIZNESS NUMERIK",
   star_bizness_nfc: "STAR BIZNESS NFC",
+  star_bizness_tuning: "Adamkom by JJP - PACK TUNING",
   autre: "Autre",
 };
 
 export const PACK_PRICES: Record<string, number> = {
   star_bizness_numerik: 1490,
   star_bizness_nfc: 279.90,
+  star_bizness_tuning: 790,
 };
+
+// Abonnement de continuité de service à partir de la 2e année (sans engagement)
+export const PACK_RENEWAL_PRICES: Record<string, number> = {
+  star_bizness_tuning: 90,
+};
+
+export const PACK_RENEWAL_NOTE =
+  "À partir de la 2ᵉ année : abonnement de 90 € / an, sans engagement — assure la continuité de service (hébergement, maintenance et suivi).";
 
 export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
   en_attente: "En attente",

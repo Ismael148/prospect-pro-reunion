@@ -76,6 +76,7 @@ export default function Invoices() {
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [clientCategory, setClientCategory] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState("");
   const [taxRate, setTaxRate] = useState("0");
@@ -100,9 +101,11 @@ export default function Invoices() {
         inv.invoice_number.toLowerCase().includes(search.toLowerCase()) ||
         (client?.company_name || "").toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === "all" || inv.status === statusFilter;
-      return matchSearch && matchStatus;
+      const matchCategory = clientCategory === "all" || getClientCategory(client?.pack_type) === clientCategory;
+      return matchSearch && matchStatus && matchCategory;
     });
-  }, [invoices, search, statusFilter, clientMap]);
+  }, [invoices, search, statusFilter, clientCategory, clientMap]);
+
 
   const updateItemRow = (index: number, field: keyof InvoiceItem, value: any) => {
     const updated = [...items];

@@ -213,8 +213,11 @@ export default function Invoices() {
   }, [invoices]);
 
   const signedClients = useMemo(() => {
-    return (clients || []).filter((c) => c.pipeline_status === "contrat_signe");
-  }, [clients]);
+    return (clients || [])
+      .filter((c) => c.pipeline_status === "contrat_signe")
+      .filter((c) => clientCategory === "all" || getClientCategory(c.pack_type) === clientCategory);
+  }, [clients, clientCategory]);
+
 
   return (
     <motion.div className="space-y-6" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>

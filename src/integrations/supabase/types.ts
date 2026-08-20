@@ -435,10 +435,14 @@ export type Database = {
           assigned_to: string | null
           city: string | null
           company_name: string
+          conversion_page_created: boolean
+          conversion_page_created_at: string | null
+          conversion_page_url: string | null
           created_at: string
           created_by: string
           email: string | null
           gmb_public_token: string | null
+          google_reviews_url: string | null
           has_gmb: boolean | null
           id: string
           logo_created: boolean
@@ -470,6 +474,7 @@ export type Database = {
           relance_gmb_by: string | null
           relance_gmb_needed: boolean
           relance_gmb_note: string | null
+          search_console_url: string | null
           sector: string | null
           signature_date: string | null
           signed_by: string | null
@@ -486,10 +491,14 @@ export type Database = {
           assigned_to?: string | null
           city?: string | null
           company_name: string
+          conversion_page_created?: boolean
+          conversion_page_created_at?: string | null
+          conversion_page_url?: string | null
           created_at?: string
           created_by: string
           email?: string | null
           gmb_public_token?: string | null
+          google_reviews_url?: string | null
           has_gmb?: boolean | null
           id?: string
           logo_created?: boolean
@@ -521,6 +530,7 @@ export type Database = {
           relance_gmb_by?: string | null
           relance_gmb_needed?: boolean
           relance_gmb_note?: string | null
+          search_console_url?: string | null
           sector?: string | null
           signature_date?: string | null
           signed_by?: string | null
@@ -537,10 +547,14 @@ export type Database = {
           assigned_to?: string | null
           city?: string | null
           company_name?: string
+          conversion_page_created?: boolean
+          conversion_page_created_at?: string | null
+          conversion_page_url?: string | null
           created_at?: string
           created_by?: string
           email?: string | null
           gmb_public_token?: string | null
+          google_reviews_url?: string | null
           has_gmb?: boolean | null
           id?: string
           logo_created?: boolean
@@ -572,6 +586,7 @@ export type Database = {
           relance_gmb_by?: string | null
           relance_gmb_needed?: boolean
           relance_gmb_note?: string | null
+          search_console_url?: string | null
           sector?: string | null
           signature_date?: string | null
           signed_by?: string | null
@@ -3200,7 +3215,11 @@ export type Database = {
         | "active"
         | "suspendue"
         | "non_applicable"
-      pack_type: "star_bizness_numerik" | "star_bizness_nfc" | "autre"
+      pack_type:
+        | "star_bizness_numerik"
+        | "star_bizness_nfc"
+        | "autre"
+        | "star_bizness_tuning"
       partner_access_role:
         | "admin"
         | "editor"
@@ -3464,7 +3483,12 @@ export const Constants = {
         "suspendue",
         "non_applicable",
       ],
-      pack_type: ["star_bizness_numerik", "star_bizness_nfc", "autre"],
+      pack_type: [
+        "star_bizness_numerik",
+        "star_bizness_nfc",
+        "autre",
+        "star_bizness_tuning",
+      ],
       partner_access_role: [
         "admin",
         "editor",

@@ -25,6 +25,7 @@ import {
   History,
   Gauge,
   GraduationCap,
+  Sparkles,
 } from "lucide-react";
 import logo from "@/assets/logo.webp";
 import {
@@ -43,10 +44,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useMemo } from "react";
 
 const ROLE_ACCESS: Record<string, string[]> = {
-  admin: ["/", "/historique", "/performance", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/comptabilite", "/facturation", "/renouvellements-ndd", "/support", "/campagnes", "/emails", "/paiements", "/equipe", "/parametres", "/cartes-nfc", "/corbeille", "/acces-partenaire", "/gmb", "/onboarding-fb", "/calendrier", "/formation-seo"],
-  agent_master: ["/", "/historique", "/performance", "/agent-master", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/acces-partenaire", "/gmb", "/onboarding-fb", "/calendrier", "/formation-seo"],
-  agent_telephonique: ["/", "/historique", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/onboarding-fb", "/calendrier"],
-  agent_support: ["/", "/historique", "/clients", "/support", "/projets", "/cartes-nfc", "/onboarding-fb", "/calendrier"],
+  admin: ["/", "/historique", "/performance", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/comptabilite", "/facturation", "/renouvellements-ndd", "/support", "/campagnes", "/emails", "/paiements", "/equipe", "/parametres", "/cartes-nfc", "/clients-tuning", "/corbeille", "/acces-partenaire", "/gmb", "/onboarding-fb", "/calendrier", "/formation-seo"],
+  agent_master: ["/", "/historique", "/performance", "/agent-master", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/clients-tuning", "/acces-partenaire", "/gmb", "/onboarding-fb", "/calendrier", "/formation-seo"],
+  agent_telephonique: ["/", "/historique", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/clients-tuning", "/onboarding-fb", "/calendrier"],
+  agent_support: ["/", "/historique", "/clients", "/support", "/projets", "/cartes-nfc", "/clients-tuning", "/onboarding-fb", "/calendrier"],
   commercial_terrain: ["/", "/historique", "/projets", "/commissions", "/calendrier"],
   webmaster: ["/", "/historique", "/clients", "/projets", "/webmaster", "/support", "/acces-partenaire", "/gmb", "/onboarding-fb", "/onboarding-clients", "/calendrier", "/formation-seo"],
   designer: ["/", "/historique", "/projets", "/webmaster", "/support", "/calendrier", "/formation-seo"],
@@ -57,6 +58,7 @@ const allMenuItems = [
   { title: "Agent Master", icon: Users, path: "/agent-master" },
   { title: "Clients 2.0", icon: Users, path: "/clients" },
   { title: "Clients 1.0", icon: CreditCard, path: "/cartes-nfc" },
+  { title: "Clients Tuning", icon: Sparkles, path: "/clients-tuning" },
   { title: "Prospection", icon: Search, path: "/prospection" },
   { title: "Pipeline", icon: FolderKanban, path: "/pipeline" },
   { title: "Projets", icon: Briefcase, path: "/projets" },

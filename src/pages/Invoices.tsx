@@ -3,7 +3,7 @@ import { useInvoices, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, type
 import { useClients } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";
 import { exportInvoicePDF } from "@/lib/export-invoice-pdf";
-import { PACK_LABELS, PACK_PRICES } from "@/lib/constants";
+import { PACK_LABELS, PACK_PRICES, PACK_RENEWAL_PRICES, PACK_RENEWAL_NOTE } from "@/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -120,6 +120,9 @@ export default function Invoices() {
           ...prev,
           { description: `Cartes NFC supplémentaires (x${client.nfc_quantity - 1})`, quantity: client.nfc_quantity - 1, unit_price: 15, total: (client.nfc_quantity - 1) * 15 },
         ]);
+      }
+      if (PACK_RENEWAL_PRICES[client.pack_type]) {
+        setNotes(PACK_RENEWAL_NOTE);
       }
     }
   };

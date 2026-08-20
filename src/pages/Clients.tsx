@@ -126,6 +126,8 @@ export default function Clients() {
   const filtered = clients?.filter((c) => {
     // Exclude NFC-only clients from this page
     if (c.pack_type === "star_bizness_nfc") return false;
+    // Les clients Tuning ont leur propre page dédiée
+    if (c.pack_type === "star_bizness_tuning") return false;
     const s = search.toLowerCase();
     const matchSearch = !s || c.company_name.toLowerCase().includes(s) ||
       c.city?.toLowerCase().includes(s) || c.sector?.toLowerCase().includes(s) ||

@@ -270,6 +270,92 @@ const GMB_TASKS_EXISTING: ModuleTask[] = [
   { title: "Générer le rapport PDF de preuve de travail GMB", priority: "haute", description: "Rapport avant/après à envoyer au client" },
 ];
 
+// ============ PACK TUNING (Adamkom by JJP) ============
+export const TUNING_MODULES: ProjectModule[] = [
+  {
+    id: "page_conversion",
+    name: "Page de conversion",
+    icon: "🎯",
+    deadlineDays: 5,
+    tasks: [
+      { title: "Récupérer les infos client (logo, textes, photos, coordonnées)", priority: "urgente" },
+      { title: "Créer la page de conversion", priority: "urgente" },
+      { title: "Intégrer les boutons d'action (appel, WhatsApp, itinéraire, avis)", priority: "haute" },
+      { title: "Optimiser la page pour mobile", priority: "haute" },
+      { title: "Renseigner le lien de la page de conversion sur la fiche client", priority: "urgente" },
+      { title: "Valider la page avec le client", priority: "haute" },
+    ],
+  },
+  {
+    id: "carte_business",
+    name: "Carte business NFC",
+    icon: "💳",
+    deadlineDays: 10,
+    tasks: [
+      { title: "Création du design de la carte business", priority: "haute" },
+      { title: "Validation du design avec le client", priority: "haute" },
+      { title: "Programmer la carte NFC vers la page de conversion", priority: "haute" },
+      { title: "Tester le scan NFC et le QR Code", priority: "haute" },
+      { title: "Livrer la carte au client", priority: "urgente" },
+    ],
+  },
+  {
+    id: "annuaire",
+    name: "Intégration Annuaire entreprises974",
+    icon: "📒",
+    deadlineDays: 7,
+    tasks: [
+      { title: "Ajout des informations de base du client", priority: "haute" },
+      { title: "Ajout de la description", priority: "haute" },
+      { title: "Ajout des photos", priority: "haute" },
+      { title: "Ajout des FAQ", priority: "moyenne" },
+      { title: "Ajout des avis sur les entreprises974", priority: "moyenne" },
+    ],
+  },
+  {
+    id: "video_short",
+    name: "Vidéo short de présentation",
+    icon: "🎬",
+    deadlineDays: 12,
+    tasks: [
+      { title: "Rédiger le script de la vidéo short", priority: "haute" },
+      { title: "Collecter les rushes / visuels du client", priority: "haute" },
+      { title: "Montage de la vidéo short (format vertical 9:16)", priority: "haute" },
+      { title: "Contrôle qualité (son, sous-titres, image, durée)", priority: "urgente" },
+      { title: "Validation interne avant livraison", priority: "haute" },
+      { title: "Livraison de la vidéo au client", priority: "urgente" },
+    ],
+  },
+  {
+    id: "visuels_gmb",
+    name: "Visuels fiche Google My Business",
+    icon: "🖼️",
+    deadlineDays: 12,
+    tasks: [
+      { title: "Créer les visuels adaptés à la fiche Google (format carré/paysage)", priority: "haute" },
+      { title: "Respecter la charte graphique du client", priority: "haute" },
+      { title: "Contrôle qualité des visuels", priority: "haute" },
+      { title: "Publier les visuels sur la fiche Google My Business", priority: "urgente" },
+      { title: "Livrer les visuels au client", priority: "haute" },
+    ],
+  },
+  {
+    id: "referencement_reseaux",
+    name: "Référencement réseaux sociaux & avis Google",
+    icon: "⭐",
+    deadlineDays: 15,
+    tasks: [
+      { title: "Ajouter le site / la page à la Google Search Console", priority: "urgente" },
+      { title: "Vérifier la propriété du domaine sur la Search Console", priority: "haute" },
+      { title: "Récupérer et intégrer les liens des réseaux sociaux du client", priority: "haute" },
+      { title: "Ajouter les liens réseaux sociaux sur la fiche Google et la page de conversion", priority: "haute" },
+      { title: "Générer le lien de collecte d'avis Google", priority: "haute" },
+      { title: "Publier / relayer les avis Google du client", priority: "haute" },
+      { title: "Contrôler l'indexation et les étoiles affichées sur Google", priority: "haute" },
+    ],
+  },
+];
+
 export function getPackModules(packType: string, siteType?: string, hasGmb?: boolean): ProjectModule[] {
   if (packType === "star_bizness_nfc") {
     return PACK_MODULES.star_bizness_nfc;

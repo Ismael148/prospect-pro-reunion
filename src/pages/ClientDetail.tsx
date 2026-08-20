@@ -1278,8 +1278,11 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName, cli
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[
               { label: "Carte NFC", link: nfcLink!, icon: CreditCard },
-              ...(packType !== "star_bizness_nfc" ? [{ label: "Site Internet", link: siteLink!, icon: Globe }] : []),
+              ...(packType !== "star_bizness_nfc" && packType !== "star_bizness_tuning" ? [{ label: "Site Internet", link: siteLink!, icon: Globe }] : []),
+              ...(packType === "star_bizness_tuning" ? [{ label: "Page de conversion", link: conversionLink!, icon: Globe }] : []),
               { label: "WhatsApp Business", link: whatsappLink!, icon: MessageCircle },
+
+
 
             ].map(({ label, link, icon: Icon }) => (
               <div key={label} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">

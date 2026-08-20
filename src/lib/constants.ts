@@ -138,6 +138,14 @@ export const PACK_DELIVERABLES: Record<string, string[]> = {
     "Intégration réseaux sociaux",
     "Formation utilisation NFC",
   ],
+  star_bizness_tuning: [
+    "Page de conversion",
+    "Carte business NFC",
+    "Inscription annuaire entreprises974",
+    "Vidéo short de présentation",
+    "Visuels pour la fiche Google My Business",
+    "Référencement réseaux sociaux & avis Google",
+  ],
   autre: [],
 };
 

@@ -1613,10 +1613,12 @@ export default function ClientDetail() {
                 <SelectValue placeholder="Changer de pack" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="star_bizness_tuning">✨ PACK TUNING</SelectItem>
                 <SelectItem value="star_bizness_numerik">STAR BIZNESS NUMERIK</SelectItem>
                 <SelectItem value="star_bizness_nfc">STAR BIZNESS NFC</SelectItem>
                 <SelectItem value="autre">Autre</SelectItem>
               </SelectContent>
+
             </Select>
           )}
           <EditClientDialog client={client} onSave={handleEditSave} salesTeam={salesTeam} />

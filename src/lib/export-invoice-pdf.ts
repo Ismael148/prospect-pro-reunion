@@ -26,8 +26,8 @@ interface InvoicePDFData {
   };
 }
 
-const NAVY = [30, 58, 95] as const;    // #1E3A5F
-const GOLD = [218, 165, 32] as const;  // #DAA520
+const NAVY = [13, 13, 13] as const;    // Noir Adamkom #0D0D0D
+const GOLD = [255, 0, 110] as const;   // Rose Adamkom #FF006E
 const WHITE = [255, 255, 255] as const;
 const GRAY = [120, 120, 120] as const;
 
@@ -43,7 +43,7 @@ export function exportInvoicePDF(data: InvoicePDFData, options?: { returnBase64?
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
 
-  // === TOP HEADER BAR (navy) ===
+  // === TOP HEADER BAR (noir Adamkom) ===
   doc.setFillColor(...NAVY);
   doc.rect(0, 0, pw, 45, "F");
 
@@ -139,7 +139,7 @@ export function exportInvoicePDF(data: InvoicePDFData, options?: { returnBase64?
       textColor: [50, 50, 50],
     },
     alternateRowStyles: {
-      fillColor: [245, 247, 250],
+      fillColor: [250, 245, 248],
     },
     columnStyles: {
       0: { cellWidth: "auto" },
@@ -212,7 +212,7 @@ export function exportInvoicePDF(data: InvoicePDFData, options?: { returnBase64?
     doc.text(noteLines, 15, notesY + 5);
   }
 
-  // === BOTTOM FOOTER (navy + gold) ===
+  // === BOTTOM FOOTER (noir + rose Adamkom) ===
   doc.setFillColor(...NAVY);
   doc.rect(0, ph - 25, pw, 25, "F");
 

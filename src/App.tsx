@@ -30,6 +30,7 @@ import ReservationSyncForm from "./pages/ReservationSyncForm";
 import ImportCSV from "./pages/ImportCSV";
 import Campaigns from "./pages/Campaigns";
 import NfcClients from "./pages/NfcClients";
+import ClientsTuning from "./pages/ClientsTuning";
 import DeletedClients from "./pages/DeletedClients";
 import DomainRenewals from "./pages/DomainRenewals";
 import AuditLog from "./pages/AuditLog";
@@ -139,6 +140,10 @@ const App = () => (
             <Route
               path="/campagnes"
               element={<ProtectedRoute><AppLayout><Campaigns /></AppLayout></ProtectedRoute>}
+            />
+            <Route
+              path="/clients-tuning"
+              element={<ProtectedRoute><AppLayout><ClientsTuning /></AppLayout></ProtectedRoute>}
             />
             <Route
               path="/cartes-nfc"

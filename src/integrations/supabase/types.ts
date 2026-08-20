@@ -3174,7 +3174,7 @@ export type Database = {
         | "agent_master"
         | "agent_support"
       client_form_status: "en_attente" | "soumis" | "valide"
-      client_form_type: "nfc" | "site" | "whatsapp"
+      client_form_type: "nfc" | "site" | "whatsapp" | "conversion"
       deliverable_status:
         | "en_attente"
         | "en_cours"
@@ -3437,7 +3437,7 @@ export const Constants = {
         "agent_support",
       ],
       client_form_status: ["en_attente", "soumis", "valide"],
-      client_form_type: ["nfc", "site", "whatsapp"],
+      client_form_type: ["nfc", "site", "whatsapp", "conversion"],
       deliverable_status: [
         "en_attente",
         "en_cours",

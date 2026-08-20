@@ -270,8 +270,16 @@ export default function Invoices() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-3">
-        <div className="relative flex-1">
+      <div className="flex flex-wrap gap-3">
+        <Select value={clientCategory} onValueChange={setClientCategory}>
+          <SelectTrigger className="w-52"><SelectValue placeholder="Catégorie de client" /></SelectTrigger>
+          <SelectContent>
+            {CLIENT_CATEGORIES.map((c) => (
+              <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="Rechercher une facture..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
@@ -285,6 +293,7 @@ export default function Invoices() {
           </SelectContent>
         </Select>
       </div>
+
 
       {/* Table */}
       {isLoading ? (

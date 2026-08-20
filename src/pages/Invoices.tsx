@@ -121,6 +121,9 @@ export default function Invoices() {
           { description: `Cartes NFC supplémentaires (x${client.nfc_quantity - 1})`, quantity: client.nfc_quantity - 1, unit_price: 15, total: (client.nfc_quantity - 1) * 15 },
         ]);
       }
+      if (PACK_RENEWAL_PRICES[client.pack_type]) {
+        setNotes(PACK_RENEWAL_NOTE);
+      }
     }
   };
 

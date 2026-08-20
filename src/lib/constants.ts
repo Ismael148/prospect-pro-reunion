@@ -599,6 +599,7 @@ export const PACK_MODULES: Record<string, ProjectModule[]> = {
       ],
     },
   ],
+  star_bizness_tuning: TUNING_MODULES,
   autre: [],
 };
 
@@ -606,5 +607,6 @@ export const PACK_MODULES: Record<string, ProjectModule[]> = {
 export const PACK_DEADLINE_DAYS: Record<string, number> = {
   star_bizness_numerik: 15,
   star_bizness_nfc: 7,
+  star_bizness_tuning: 15,
   autre: 30,
 };

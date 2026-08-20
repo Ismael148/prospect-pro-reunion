@@ -203,13 +203,26 @@ export function exportInvoicePDF(data: InvoicePDFData, options?: { returnBase64?
 
   // === NOTES ===
   if (data.notes) {
-    const notesY = Math.max(y + 15, ttcY + 20);
+    const notesY = Math.max(y + 18, ttcY + 24);
+    const boxW = pw - 30;
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(...GRAY);
-    doc.text("Notes :", 15, notesY);
-    const noteLines = doc.splitTextToSize(data.notes, pw - 30);
-    doc.text(noteLines, 15, notesY + 5);
+    const noteLines = doc.splitTextToSize(data.notes.replace(/[—–]/g, "-"), boxW - 12);
+    const boxH = 14 + noteLines.length * 5;
+
+    doc.setFillColor(250, 245, 248);
+    doc.setDrawColor(...GOLD);
+    doc.setLineWidth(0.4);
+    doc.roundedRect(15, notesY, boxW, boxH, 2, 2, "FD");
+
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...NAVY);
+    doc.text("NOTES", 21, notesY + 7);
+
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(90, 90, 90);
+    doc.text(noteLines, 21, notesY + 14, { lineHeightFactor: 1.35 });
   }
 
   // === BOTTOM FOOTER (noir + rose Adamkom) ===

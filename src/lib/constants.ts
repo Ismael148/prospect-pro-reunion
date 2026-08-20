@@ -59,7 +59,7 @@ export const PACK_RENEWAL_PRICES: Record<string, number> = {
 };
 
 export const PACK_RENEWAL_NOTE =
-  "À partir de la 2ᵉ année : abonnement de 90 € / an, sans engagement — assure la continuité de service (hébergement, maintenance et suivi).";
+  "À partir de la 2e année : abonnement de 90 € par an, sans engagement. Il assure la continuité de service : hébergement, maintenance et suivi.";
 
 export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
   en_attente: "En attente",
@@ -599,6 +599,7 @@ export const PACK_MODULES: Record<string, ProjectModule[]> = {
       ],
     },
   ],
+  star_bizness_tuning: TUNING_MODULES,
   autre: [],
 };
 
@@ -606,5 +607,6 @@ export const PACK_MODULES: Record<string, ProjectModule[]> = {
 export const PACK_DEADLINE_DAYS: Record<string, number> = {
   star_bizness_numerik: 15,
   star_bizness_nfc: 7,
+  star_bizness_tuning: 15,
   autre: 30,
 };

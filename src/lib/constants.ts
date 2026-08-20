@@ -59,7 +59,7 @@ export const PACK_RENEWAL_PRICES: Record<string, number> = {
 };
 
 export const PACK_RENEWAL_NOTE =
-  "A partir de la 2e annee : abonnement de 90 EUR par an, sans engagement. Il assure la continuite de service : hebergement, maintenance et suivi.";
+  "À partir de la 2e année : abonnement de 90 € par an, sans engagement. Il assure la continuité de service : hébergement, maintenance et suivi.";
 
 export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
   en_attente: "En attente",

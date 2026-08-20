@@ -382,16 +382,31 @@ export default function Invoices() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
+              <Label>Catégorie de client</Label>
+              <Select value={clientCategory} onValueChange={(v) => { setClientCategory(v); setSelectedClientId(""); }}>
+                <SelectTrigger><SelectValue placeholder="Catégorie" /></SelectTrigger>
+                <SelectContent>
+                  {CLIENT_CATEGORIES.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
               <Label>Client *</Label>
               <Select value={selectedClientId} onValueChange={handleClientChange}>
                 <SelectTrigger><SelectValue placeholder="Sélectionner un client" /></SelectTrigger>
                 <SelectContent>
                   {signedClients.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.company_name}
+                      {c.pack_type === "star_bizness_tuning" ? " — TUNING" : c.pack_type === "star_bizness_nfc" ? " — NFC" : ""}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">

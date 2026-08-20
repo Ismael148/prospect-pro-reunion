@@ -37,12 +37,26 @@ const PAYMENT_OPTIONS: { value: string; label: string }[] = [
   { value: "especes", label: "Espèces" },
 ];
 
+const CLIENT_CATEGORIES: { value: string; label: string }[] = [
+  { value: "all", label: "Tous les clients" },
+  { value: "1.0", label: "Client 1.0 (NFC)" },
+  { value: "2.0", label: "Client 2.0 (Numérik)" },
+  { value: "tuning", label: "Client Tuning" },
+];
+
+function getClientCategory(packType?: string | null): string {
+  if (packType === "star_bizness_nfc") return "1.0";
+  if (packType === "star_bizness_tuning") return "tuning";
+  return "2.0";
+}
+
 const STATUS_LABELS: Record<string, string> = {
   brouillon: "Brouillon",
   envoyee: "Envoyée",
   payee: "Payée",
   annulee: "Annulée",
 };
+
 
 const STATUS_COLORS: Record<string, string> = {
   brouillon: "bg-muted text-muted-foreground",

@@ -274,6 +274,9 @@ export function getPackModules(packType: string, siteType?: string, hasGmb?: boo
   if (packType === "star_bizness_nfc") {
     return PACK_MODULES.star_bizness_nfc;
   }
+  if (packType === "star_bizness_tuning") {
+    return TUNING_MODULES;
+  }
   if (packType === "star_bizness_numerik") {
     const siteTasks = siteType === "ecommerce" ? ECOMMERCE_SITE_TASKS : VITRINE_SITE_TASKS;
     const gmbTasks = hasGmb ? GMB_TASKS_EXISTING : GMB_TASKS_NEW;

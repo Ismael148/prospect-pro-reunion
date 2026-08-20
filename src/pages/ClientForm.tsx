@@ -55,6 +55,45 @@ const SITE_FIELDS: { key: keyof ClientFormData; label: string; type?: string; pl
   { key: "additional_pages", label: "Pages supplémentaires souhaitées", placeholder: "Galerie, Témoignages, FAQ...", multiline: true },
 ];
 
+const CONVERSION_FIELDS: { key: keyof ClientFormData; label: string; type?: string; placeholder?: string; required?: boolean; multiline?: boolean }[] = [
+  { key: "company_name", label: "Nom de l'entreprise", placeholder: "Ex: Garage du Sud" },
+  { key: "activity_type", label: "Votre activité / métier", placeholder: "Ex: Garage automobile, mécanique générale" },
+  { key: "slogan", label: "Slogan / phrase d'accroche", placeholder: "Ex: Votre auto entre de bonnes mains" },
+  { key: "main_offer", label: "Offre principale à mettre en avant", placeholder: "Ex: Diagnostic offert, vidange à partir de 49 €", multiline: true },
+  { key: "service_list", label: "Liste de vos prestations", placeholder: "Ex: Vidange, freins, embrayage, distribution, climatisation...", multiline: true },
+  { key: "prices", label: "Tarifs à afficher (si souhaité)", placeholder: "Ex: Vidange 49 €, Diagnostic 39 €...", multiline: true },
+  { key: "emergency_service", label: "Urgences / dépannage", placeholder: "Ex: Dépannage 7j/7, intervention sous 1h" },
+  { key: "brands_handled", label: "Marques / spécialités traitées", placeholder: "Ex: Toutes marques, spécialiste Renault / Peugeot" },
+  { key: "guarantees", label: "Garanties proposées", placeholder: "Ex: Pièces garanties 1 an, devis gratuit" },
+  { key: "usp", label: "Pourquoi vous choisir ? (points forts)", placeholder: "Ex: 15 ans d'expérience, prix transparents, rapidité", multiline: true },
+  { key: "promo_offer", label: "Promotion en cours", placeholder: "Ex: -10 % sur le premier passage" },
+  { key: "target_audience", label: "Clients ciblés", placeholder: "Ex: Particuliers, flottes d'entreprise" },
+  { key: "service_area", label: "Zone d'intervention", placeholder: "Ex: Saint-Pierre et alentours, tout le Sud" },
+  { key: "address", label: "Adresse", placeholder: "12 rue des Flamboyants, 97410 Saint-Pierre" },
+  { key: "contact_phone", label: "Téléphone à afficher", placeholder: "0692 XX XX XX" },
+  { key: "whatsapp_number", label: "Numéro WhatsApp", placeholder: "+262692XXXXXX" },
+  { key: "email", label: "Email de contact", type: "email", placeholder: "contact@entreprise.re" },
+  { key: "opening_hours", label: "Horaires d'ouverture", placeholder: "Lundi-Vendredi 8h-17h, Samedi 8h-12h", multiline: true },
+  { key: "cta_preference", label: "Action souhaitée du visiteur", placeholder: "Ex: Appeler, écrire sur WhatsApp, demander un devis" },
+  { key: "booking_url", label: "Lien de réservation / prise de RDV", placeholder: "https://..." },
+  { key: "google_maps_url", label: "Lien Google Maps", placeholder: "https://maps.google.com/..." },
+  { key: "google_reviews_url", label: "Lien vers vos avis Google", placeholder: "https://g.page/..." },
+  { key: "reviews_examples", label: "Avis clients à afficher", placeholder: "Copiez 2 ou 3 avis de vos clients", multiline: true },
+  { key: "certifications", label: "Certifications / labels", placeholder: "Ex: Agréé assurances, RGE..." },
+  { key: "team_presentation", label: "Présentation de l'équipe", placeholder: "Ex: Une équipe de 4 mécaniciens qualifiés", multiline: true },
+  { key: "payment_options", label: "Moyens de paiement acceptés", placeholder: "Ex: CB, espèces, chèque, paiement en 3 fois" },
+  { key: "faq", label: "Questions fréquentes de vos clients", placeholder: "Ex: Faites-vous les véhicules utilitaires ?", multiline: true },
+  { key: "facebook", label: "Facebook (URL)", placeholder: "https://facebook.com/..." },
+  { key: "instagram", label: "Instagram (URL)", placeholder: "https://instagram.com/..." },
+  { key: "tiktok", label: "TikTok (URL)", placeholder: "https://tiktok.com/@..." },
+  { key: "video_url", label: "Lien d'une vidéo à intégrer", placeholder: "https://youtube.com/..." },
+  { key: "preferred_style", label: "Style souhaité", placeholder: "Ex: Moderne, sombre, dynamique" },
+  { key: "preferred_color", label: "Couleurs préférées", placeholder: "#FF006E, noir..." },
+  { key: "domain_name", label: "Nom de domaine souhaité", placeholder: "Ex: garage-du-sud.re" },
+  { key: "photos_note", label: "Photos disponibles (précisez)", placeholder: "Ex: photos de l'atelier, de l'équipe, avant/après", multiline: true },
+  { key: "notes", label: "Informations complémentaires", placeholder: "Tout ce que vous souhaitez nous préciser", multiline: true },
+];
+
 // Fields for additional NFC cards (steps 2+)
 const EXTRA_CARD_FIELDS: { key: keyof CardEntry; label: string; type?: string; placeholder?: string; required?: boolean }[] = [
   { key: "full_name", label: "Nom complet", placeholder: "Nom du porteur de la carte", required: true },
@@ -66,7 +105,7 @@ const EXTRA_CARD_FIELDS: { key: keyof CardEntry; label: string; type?: string; p
 
 export default function ClientForm() {
   const { token, type } = useParams<{ token: string; type: string }>();
-  const formType = type === "nfc" ? "nfc" : "site";
+  const formType: "nfc" | "site" | "conversion" = type === "nfc" ? "nfc" : type === "conversion" ? "conversion" : "site";
   const { data, isLoading, error } = useClientFormByToken(token!, formType);
   const submitForm = useSubmitClientForm();
   const [formData, setFormData] = useState<ClientFormData>({});
@@ -142,9 +181,11 @@ export default function ClientForm() {
     );
   }
 
-  const fields = formType === "nfc" ? NFC_FIELDS : SITE_FIELDS;
-  const title = formType === "nfc" ? "Informations Carte NFC" : "Informations Site Internet";
-  const description = formType === "nfc"
+  const fields = formType === "nfc" ? NFC_FIELDS : formType === "conversion" ? CONVERSION_FIELDS : SITE_FIELDS;
+  const title = formType === "nfc" ? "Informations Carte NFC" : formType === "conversion" ? "Informations Page de conversion" : "Informations Site Internet";
+  const description = formType === "conversion"
+    ? "Remplissez librement les champs utiles : ces informations nous servent à créer votre page de conversion."
+    : formType === "nfc"
     ? totalSteps > 1
       ? `Remplissez ce formulaire pour personnaliser vos ${totalSteps} cartes NFC`
       : "Remplissez ce formulaire pour personnaliser votre carte de visite NFC"

@@ -90,9 +90,12 @@ export function useCreateInvoice() {
         if (!client) return;
 
         const { PUBLISHED_URL: publishedUrl } = await import("@/lib/constants");
+        const { PACK_LABELS } = await import("@/lib/constants");
+        const packLabel = (PACK_LABELS as Record<string, string>)[client.pack_type as string] || null;
         const supportLink = client.support_token ? `${publishedUrl}/s/${client.support_token}` : null;
         const formNfcLink = client.support_token ? `${publishedUrl}/f/${client.support_token}/nfc` : null;
         const formSiteLink = client.support_token ? `${publishedUrl}/f/${client.support_token}/site` : null;
+
 
         // Generate PDF as base64
         const pdfBase64 = exportInvoicePDF({
@@ -132,6 +135,7 @@ export function useCreateInvoice() {
           form_nfc_link: formNfcLink,
           form_site_link: formSiteLink,
           pack_type: client.pack_type,
+          pack_label: packLabel,
           pdf_base64: pdfBase64,
           pdf_filename: `Facture_${data.invoice_number}.pdf`,
         });

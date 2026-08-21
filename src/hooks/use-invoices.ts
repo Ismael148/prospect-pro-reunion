@@ -135,6 +135,8 @@ export function useCreateInvoice() {
           form_nfc_link: formNfcLink,
           form_site_link: formSiteLink,
           pack_type: client.pack_type,
+          pack_label: packLabel,
+
           pdf_base64: pdfBase64,
           pdf_filename: `Facture_${data.invoice_number}.pdf`,
         });

@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useClient, useClientContacts, useClientActivities, useUpdateClient, useDeleteClient, useCreateContact, useCreateActivity } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSalesTeam } from "@/hooks/use-commercials";
-import { PIPELINE_LABELS, PIPELINE_COLORS, PIPELINE_ORDER, PACK_LABELS, PROJECT_STATUS_LABELS, PUBLISHED_URL } from "@/lib/constants";
+import { PIPELINE_LABELS, PIPELINE_COLORS, PIPELINE_ORDER, PACK_LABELS, PUBLISHED_URL } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,6 +48,8 @@ import { triggerN8nWebhook } from "@/lib/n8n-webhook";
 import { exportClientFormZip } from "@/lib/export-client-form";
 import { logDataAccess } from "@/lib/audit";
 import { motion } from "framer-motion";
+import { useUpsertClientGmb, GMB_STATUS_LABELS, GMB_STATUS_COLORS } from "@/hooks/use-client-gmb";
+
 
 type PipelineStatus = Database["public"]["Enums"]["pipeline_status"];
 type PackType = Database["public"]["Enums"]["pack_type"];

@@ -49,7 +49,7 @@ const ROLE_ACCESS: Record<string, string[]> = {
   agent_telephonique: ["/", "/historique", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/clients-tuning", "/onboarding-fb", "/calendrier"],
   agent_support: ["/", "/historique", "/clients", "/support", "/projets", "/cartes-nfc", "/clients-tuning", "/onboarding-fb", "/calendrier"],
   commercial_terrain: ["/", "/historique", "/projets", "/commissions", "/calendrier"],
-  webmaster: ["/", "/historique", "/clients", "/projets", "/webmaster", "/support", "/acces-partenaire", "/gmb", "/onboarding-fb", "/onboarding-clients", "/calendrier", "/formation-seo"],
+  webmaster: ["/", "/historique", "/clients", "/clients-tuning", "/cartes-nfc", "/projets", "/webmaster", "/support", "/acces-partenaire", "/gmb", "/onboarding-fb", "/onboarding-clients", "/calendrier", "/formation-seo"],
   designer: ["/", "/historique", "/projets", "/webmaster", "/support", "/calendrier", "/formation-seo"],
 };
 

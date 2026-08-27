@@ -193,15 +193,18 @@ export default function TutoEmailProGmail() {
   const password = params.get("password") || "";
   const label = params.get("label") || "Pro";
   const customConfig = params.get("config") || "";
+  const webmail = params.get("webmail") || (presetDomain ? `https://mail.${presetDomain}/` : "");
+  const altServer = params.get("alt_server") || "";
 
   const cfg = useMemo(
     () => ({
       email: presetEmail || "contact@votresite.fr",
       domain: presetDomain || "[votredomaine]",
-      popServer, popPort, smtpServer, smtpPort, password, label,
+      popServer, popPort, smtpServer, smtpPort, password, label, webmail, altServer,
     }),
-    [presetEmail, presetDomain, popServer, popPort, smtpServer, smtpPort, password, label]
+    [presetEmail, presetDomain, popServer, popPort, smtpServer, smtpPort, password, label, webmail, altServer]
   );
+
 
   // Stockage local par adresse email
   const storageKey = `tuto-email-gmail:${cfg.email}`;
@@ -379,14 +382,23 @@ export default function TutoEmailProGmail() {
                       subtitle="Gardez cette page ouverte. Vous allez recopier ces infos dans Gmail."
                     />
                     <div className="grid sm:grid-cols-2 gap-3">
-                      <CopyRow label="Email pro" value={cfg.email} />
+                      <CopyRow label="Email pro à relier" value={cfg.email} />
                       <CopyRow label="Mot de passe" value={cfg.password || "(celui de votre webmail)"} />
+                      {cfg.webmail && <CopyRow label="Accès webmail" value={cfg.webmail} />}
                       <CopyRow label="Serveur de réception (POP)" value={cfg.popServer} />
                       <CopyRow label="Port POP" value={`${cfg.popPort} (SSL)`} />
                       <CopyRow label="Serveur d'envoi (SMTP)" value={cfg.smtpServer} />
                       <CopyRow label="Port SMTP" value={`${cfg.smtpPort} (SSL)`} />
+                      {cfg.altServer && <CopyRow label="Serveur alternatif" value={cfg.altServer} />}
                       <CopyRow label="Libellé Gmail" value={cfg.label} />
                     </div>
+                    {cfg.altServer && (
+                      <p className="text-sm text-zinc-600">
+                        Si <span className="font-mono">{cfg.smtpServer}</span> ne fonctionne pas, utilisez{" "}
+                        <span className="font-mono">{cfg.altServer}</span> (mêmes ports, même mot de passe).
+                      </p>
+                    )}
+
                     {customConfig && (
                       <div className="rounded-xl border-2 border-amber-300 bg-amber-50 p-4">
                         <div className="flex items-start gap-3">

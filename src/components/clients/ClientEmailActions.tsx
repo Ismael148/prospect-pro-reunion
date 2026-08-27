@@ -248,10 +248,13 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
   const [gmailPopPort, setGmailPopPort] = useState("995");
   const [gmailSmtpServer, setGmailSmtpServer] = useState(initialDomain ? `mail.${initialDomain}` : "");
   const [gmailSmtpPort, setGmailSmtpPort] = useState("465");
+  const [gmailWebmail, setGmailWebmail] = useState(initialDomain ? `https://mail.${initialDomain}/` : "");
+  const [gmailAltServer, setGmailAltServer] = useState("");
   const [gmailPassword, setGmailPassword] = useState("");
   const [gmailLabel, setGmailLabel] = useState("Pro");
   const [gmailExtraConfig, setGmailExtraConfig] = useState("");
   const [gmailSending, setGmailSending] = useState(false);
+
 
   const greeting = client.manager_name?.trim() || client.company_name;
 
@@ -323,6 +326,8 @@ ${proLoginUrl ? makeCta('🔐 Se connecter à mon espace', proLoginUrl) : ''}
     if (gmailPopPort.trim()) params.set("pop_port", gmailPopPort.trim());
     if (gmailSmtpServer.trim()) params.set("smtp_server", gmailSmtpServer.trim());
     if (gmailSmtpPort.trim()) params.set("smtp_port", gmailSmtpPort.trim());
+    if (gmailWebmail.trim()) params.set("webmail", gmailWebmail.trim());
+    if (gmailAltServer.trim()) params.set("alt_server", gmailAltServer.trim());
     if (gmailPassword.trim()) params.set("password", gmailPassword.trim());
     if (gmailLabel.trim()) params.set("label", gmailLabel.trim());
     if (gmailExtraConfig.trim()) params.set("config", gmailExtraConfig.trim());
@@ -336,14 +341,17 @@ ${proLoginUrl ? makeCta('🔐 Se connecter à mon espace', proLoginUrl) : ''}
 
     const credentialsTable = `
 <table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;margin:0 0 16px">
-  ${row('📧 Email pro', gmailProEmail.trim())}
+  ${row('📧 Email pro à relier', gmailProEmail.trim())}
   ${row('🔑 Mot de passe', gmailPassword.trim() || '(celui de votre webmail)')}
+  ${gmailWebmail.trim() ? row('🌍 Webmail', gmailWebmail.trim()) : ''}
   ${row('📥 Serveur POP', gmailPopServer.trim())}
   ${row('📥 Port POP', `${gmailPopPort.trim()} (SSL)`)}
   ${row('📤 Serveur SMTP', gmailSmtpServer.trim())}
   ${row('📤 Port SMTP', `${gmailSmtpPort.trim()} (SSL)`)}
+  ${gmailAltServer.trim() ? row('🔁 Serveur alternatif', gmailAltServer.trim()) : ''}
   ${row('🏷️ Libellé Gmail', gmailLabel.trim() || 'Pro')}
 </table>`;
+
 
     const extraBlock = gmailExtraConfig.trim()
       ? `<div style="margin:18px 0;padding:14px 18px;background:#fffbeb;border:1px solid #fde68a;border-left:4px solid #f59e0b;border-radius:8px">
@@ -352,8 +360,9 @@ ${proLoginUrl ? makeCta('🔐 Se connecter à mon espace', proLoginUrl) : ''}
 </div>`
       : "";
     return `<p style="margin:0 0 20px">Bonjour <strong>${greeting}</strong>,</p>
-<p style="margin:0 0 20px">Plutôt que de jongler entre votre webmail pro et Gmail, vous pouvez <strong>centraliser vos emails pros dans votre compte Gmail habituel</strong> — sur ordinateur ET sur téléphone.</p>
-<p style="margin:0 0 16px">Voici <strong>vos informations de configuration</strong> à utiliser dans Gmail (gardez cet email sous la main pendant la procédure) :</p>
+<p style="margin:0 0 20px">Plutôt que de jongler entre votre webmail pro et Gmail, vous pouvez <strong>recevoir et envoyer les emails de <span style="color:${BRAND_COLOR}">${gmailProEmail.trim() || 'votre adresse pro'}</span> directement depuis votre compte Gmail habituel</strong> — sur ordinateur ET sur téléphone.</p>
+<p style="margin:0 0 16px">Voici <strong>les informations de configuration de cette adresse</strong> à utiliser dans Gmail (gardez cet email sous la main pendant la procédure) :</p>
+
 ${credentialsTable}
 ${extraBlock}
 <p style="margin:0 0 20px">Nous avons préparé un <strong>tutoriel pas-à-pas (10 minutes)</strong> qui suit la <strong>procédure officielle Gmail</strong>, avec captures d'écran et toutes les valeurs ci-dessus déjà pré-remplies pour <strong>${domain}</strong>.</p>
@@ -896,6 +905,8 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
                       setGmailDomain(d);
                       setGmailPopServer(`mail.${d}`);
                       setGmailSmtpServer(`mail.${d}`);
+                      setGmailWebmail(`https://mail.${d}/`);
+
                     }
                   }}
                 />
@@ -912,6 +923,8 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
                     if (d) {
                       setGmailPopServer(`mail.${d}`);
                       setGmailSmtpServer(`mail.${d}`);
+                      setGmailWebmail(`https://mail.${d}/`);
+
                     }
                   }}
                 />
@@ -972,6 +985,31 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
                 />
               </div>
             </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>🌍 Lien webmail</Label>
+                <Input
+                  type="text"
+                  placeholder="https://mail.votresite.fr/"
+                  value={gmailWebmail}
+                  onChange={(e) => setGmailWebmail(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>🔁 Serveur alternatif (optionnel)</Label>
+                <Input
+                  type="text"
+                  placeholder="mail92.lwspanel.com"
+                  value={gmailAltServer}
+                  onChange={(e) => setGmailAltServer(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  À utiliser si le serveur principal ne répond pas (hébergeur LWS).
+                </p>
+              </div>
+            </div>
+
 
             <div className="space-y-2">
               <Label>🏷️ Libellé Gmail (pour ranger les emails entrants)</Label>

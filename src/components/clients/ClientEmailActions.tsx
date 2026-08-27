@@ -248,10 +248,13 @@ export default function ClientEmailActions({ client }: ClientEmailActionsProps) 
   const [gmailPopPort, setGmailPopPort] = useState("995");
   const [gmailSmtpServer, setGmailSmtpServer] = useState(initialDomain ? `mail.${initialDomain}` : "");
   const [gmailSmtpPort, setGmailSmtpPort] = useState("465");
+  const [gmailWebmail, setGmailWebmail] = useState(initialDomain ? `https://mail.${initialDomain}/` : "");
+  const [gmailAltServer, setGmailAltServer] = useState("");
   const [gmailPassword, setGmailPassword] = useState("");
   const [gmailLabel, setGmailLabel] = useState("Pro");
   const [gmailExtraConfig, setGmailExtraConfig] = useState("");
   const [gmailSending, setGmailSending] = useState(false);
+
 
   const greeting = client.manager_name?.trim() || client.company_name;
 

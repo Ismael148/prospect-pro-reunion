@@ -326,6 +326,8 @@ ${proLoginUrl ? makeCta('🔐 Se connecter à mon espace', proLoginUrl) : ''}
     if (gmailPopPort.trim()) params.set("pop_port", gmailPopPort.trim());
     if (gmailSmtpServer.trim()) params.set("smtp_server", gmailSmtpServer.trim());
     if (gmailSmtpPort.trim()) params.set("smtp_port", gmailSmtpPort.trim());
+    if (gmailWebmail.trim()) params.set("webmail", gmailWebmail.trim());
+    if (gmailAltServer.trim()) params.set("alt_server", gmailAltServer.trim());
     if (gmailPassword.trim()) params.set("password", gmailPassword.trim());
     if (gmailLabel.trim()) params.set("label", gmailLabel.trim());
     if (gmailExtraConfig.trim()) params.set("config", gmailExtraConfig.trim());
@@ -339,14 +341,17 @@ ${proLoginUrl ? makeCta('🔐 Se connecter à mon espace', proLoginUrl) : ''}
 
     const credentialsTable = `
 <table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;margin:0 0 16px">
-  ${row('📧 Email pro', gmailProEmail.trim())}
+  ${row('📧 Email pro à relier', gmailProEmail.trim())}
   ${row('🔑 Mot de passe', gmailPassword.trim() || '(celui de votre webmail)')}
+  ${gmailWebmail.trim() ? row('🌍 Webmail', gmailWebmail.trim()) : ''}
   ${row('📥 Serveur POP', gmailPopServer.trim())}
   ${row('📥 Port POP', `${gmailPopPort.trim()} (SSL)`)}
   ${row('📤 Serveur SMTP', gmailSmtpServer.trim())}
   ${row('📤 Port SMTP', `${gmailSmtpPort.trim()} (SSL)`)}
+  ${gmailAltServer.trim() ? row('🔁 Serveur alternatif', gmailAltServer.trim()) : ''}
   ${row('🏷️ Libellé Gmail', gmailLabel.trim() || 'Pro')}
 </table>`;
+
 
     const extraBlock = gmailExtraConfig.trim()
       ? `<div style="margin:18px 0;padding:14px 18px;background:#fffbeb;border:1px solid #fde68a;border-left:4px solid #f59e0b;border-radius:8px">

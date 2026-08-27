@@ -193,15 +193,18 @@ export default function TutoEmailProGmail() {
   const password = params.get("password") || "";
   const label = params.get("label") || "Pro";
   const customConfig = params.get("config") || "";
+  const webmail = params.get("webmail") || (presetDomain ? `https://mail.${presetDomain}/` : "");
+  const altServer = params.get("alt_server") || "";
 
   const cfg = useMemo(
     () => ({
       email: presetEmail || "contact@votresite.fr",
       domain: presetDomain || "[votredomaine]",
-      popServer, popPort, smtpServer, smtpPort, password, label,
+      popServer, popPort, smtpServer, smtpPort, password, label, webmail, altServer,
     }),
-    [presetEmail, presetDomain, popServer, popPort, smtpServer, smtpPort, password, label]
+    [presetEmail, presetDomain, popServer, popPort, smtpServer, smtpPort, password, label, webmail, altServer]
   );
+
 
   // Stockage local par adresse email
   const storageKey = `tuto-email-gmail:${cfg.email}`;

@@ -360,8 +360,9 @@ ${proLoginUrl ? makeCta('🔐 Se connecter à mon espace', proLoginUrl) : ''}
 </div>`
       : "";
     return `<p style="margin:0 0 20px">Bonjour <strong>${greeting}</strong>,</p>
-<p style="margin:0 0 20px">Plutôt que de jongler entre votre webmail pro et Gmail, vous pouvez <strong>centraliser vos emails pros dans votre compte Gmail habituel</strong> — sur ordinateur ET sur téléphone.</p>
-<p style="margin:0 0 16px">Voici <strong>vos informations de configuration</strong> à utiliser dans Gmail (gardez cet email sous la main pendant la procédure) :</p>
+<p style="margin:0 0 20px">Plutôt que de jongler entre votre webmail pro et Gmail, vous pouvez <strong>recevoir et envoyer les emails de <span style="color:${BRAND_COLOR}">${gmailProEmail.trim() || 'votre adresse pro'}</span> directement depuis votre compte Gmail habituel</strong> — sur ordinateur ET sur téléphone.</p>
+<p style="margin:0 0 16px">Voici <strong>les informations de configuration de cette adresse</strong> à utiliser dans Gmail (gardez cet email sous la main pendant la procédure) :</p>
+
 ${credentialsTable}
 ${extraBlock}
 <p style="margin:0 0 20px">Nous avons préparé un <strong>tutoriel pas-à-pas (10 minutes)</strong> qui suit la <strong>procédure officielle Gmail</strong>, avec captures d'écran et toutes les valeurs ci-dessus déjà pré-remplies pour <strong>${domain}</strong>.</p>

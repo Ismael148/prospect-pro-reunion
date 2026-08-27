@@ -313,42 +313,47 @@ export default function ModuleNotes({ projectId, moduleId, moduleName, teamMembe
         content: content.trim(),
       });
 
-      const mentionRegex = /@(\w[\w\s]*?)(?=\s@|$|\s[^@])/g;
-      const mentions = [...content.matchAll(mentionRegex)].map((m) => m[1].trim().toLowerCase());
+      try {
+        const mentionRegex = /@(\w[\w\s]*?)(?=\s@|$|\s[^@])/g;
+        const mentions = [...content.matchAll(mentionRegex)].map((m) => m[1].trim().toLowerCase());
 
-      if (mentions.length > 0) {
-        for (const member of teamMembers) {
-          const name = (member.full_name || "").toLowerCase();
-          if (mentions.some((m) => name.includes(m)) && member.user_id !== user.id) {
+        if (mentions.length > 0) {
+          for (const member of teamMembers) {
+            const name = (member.full_name || "").toLowerCase();
+            if (mentions.some((m) => name.includes(m)) && member.user_id !== user.id) {
+              await supabase.from("notifications").insert({
+                user_id: member.user_id,
+                title: `💬 Mention sur le module "${moduleName}"`,
+                message: content.trim().slice(0, 200),
+                type: "module_note",
+                link: `/projets/${projectId}`,
+              });
+            }
+          }
+        }
+
+        const { data: admins } = await supabase.from("user_roles").select("user_id").eq("role", "admin");
+        for (const admin of admins || []) {
+          if (
+            admin.user_id !== user.id &&
+            !mentions.some((m) => {
+              const member = teamMembers.find((tm) => tm.user_id === admin.user_id);
+              return member && (member.full_name || "").toLowerCase().includes(m);
+            })
+          ) {
             await supabase.from("notifications").insert({
-              user_id: member.user_id,
-              title: `💬 Mention sur le module "${moduleName}"`,
+              user_id: admin.user_id,
+              title: `📝 Note sur le module "${moduleName}"`,
               message: content.trim().slice(0, 200),
               type: "module_note",
               link: `/projets/${projectId}`,
             });
           }
         }
+      } catch (notifyError) {
+        console.warn("Notification non envoyée (note enregistrée)", notifyError);
       }
 
-      const { data: admins } = await supabase.from("user_roles").select("user_id").eq("role", "admin");
-      for (const admin of admins || []) {
-        if (
-          admin.user_id !== user.id &&
-          !mentions.some((m) => {
-            const member = teamMembers.find((tm) => tm.user_id === admin.user_id);
-            return member && (member.full_name || "").toLowerCase().includes(m);
-          })
-        ) {
-          await supabase.from("notifications").insert({
-            user_id: admin.user_id,
-            title: `📝 Note sur le module "${moduleName}"`,
-            message: content.trim().slice(0, 200),
-            type: "module_note",
-            link: `/projets/${projectId}`,
-          });
-        }
-      }
 
       setContent("");
       toast.success("Note ajoutée");

@@ -905,6 +905,8 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
                       setGmailDomain(d);
                       setGmailPopServer(`mail.${d}`);
                       setGmailSmtpServer(`mail.${d}`);
+                      setGmailWebmail(`https://mail.${d}/`);
+
                     }
                   }}
                 />

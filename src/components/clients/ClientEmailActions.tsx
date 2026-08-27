@@ -627,7 +627,20 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
 
               </div>
             ))}
+            {/* Tuto Email Pro → Gmail (configuration personnalisée) */}
+            <div className="flex flex-col gap-2 p-3 rounded-lg bg-muted/30">
+              <div className="flex items-center gap-2">
+                <AtSign className="w-4 h-4" />
+                <span className="text-sm font-medium">Recevez vos emails pro dans Gmail</span>
+              </div>
+              <div className="flex gap-1.5 mt-auto">
+                <Button size="sm" className="flex-1 px-2" onClick={() => setShowGmailDialog(true)}>
+                  <Send className="w-3.5 h-3.5 mr-1" /> Configurer &amp; envoyer
+                </Button>
+              </div>
+            </div>
           </div>
+
           <p className="text-xs text-muted-foreground mt-3">
             📧 Destinataire : <strong>{client.email}</strong>
           </p>

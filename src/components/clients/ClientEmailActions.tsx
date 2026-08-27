@@ -982,6 +982,31 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
               </div>
             </div>
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>🌍 Lien webmail</Label>
+                <Input
+                  type="text"
+                  placeholder="https://mail.votresite.fr/"
+                  value={gmailWebmail}
+                  onChange={(e) => setGmailWebmail(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>🔁 Serveur alternatif (optionnel)</Label>
+                <Input
+                  type="text"
+                  placeholder="mail92.lwspanel.com"
+                  value={gmailAltServer}
+                  onChange={(e) => setGmailAltServer(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  À utiliser si le serveur principal ne répond pas (hébergeur LWS).
+                </p>
+              </div>
+            </div>
+
+
             <div className="space-y-2">
               <Label>🏷️ Libellé Gmail (pour ranger les emails entrants)</Label>
               <Input

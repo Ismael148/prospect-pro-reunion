@@ -531,6 +531,9 @@ export default function ProjectDetail() {
           startDate={project.start_date}
           isAdmin={isAdmin}
           teamMembers={teamMembers || []}
+          siteType={siteType}
+          hasGmb={hasGmb}
+          tuningWebsiteAddon={tuningWebsiteAddon}
           onTaskStatusChange={handleTaskStatusChange}
           onAddTask={handleAddTask}
           onAssignModule={handleAssignModule}

@@ -4,7 +4,7 @@ import { useClients, useCreateClient } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { PACK_LABELS, PACK_PRICES, PACK_RENEWAL_PRICES, PACK_RENEWAL_NOTE } from "@/lib/constants";
+import { PACK_LABELS, PACK_PRICES, PACK_RENEWAL_PRICES, PACK_RENEWAL_NOTE, TUNING_WEBSITE_ADDON_PRICE } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,7 +22,6 @@ import {
 import { exportClientsCSV, exportClientsPDF } from "@/lib/export-clients-list";
 
 const TUNING_PACK = "star_bizness_tuning";
-const TUNING_WEBSITE_ADDON_PRICE = 990;
 
 export default function ClientsTuning() {
   const navigate = useNavigate();
@@ -261,6 +260,7 @@ export default function ClientsTuning() {
                     </TableCell>
                     <TableCell className="text-right font-mono text-sm">
                       {Number(c.pack_amount || PACK_PRICES[TUNING_PACK]).toFixed(2)} €
+                      {c.tuning_website_addon && <div className="text-[10px] text-primary">Tuning + site</div>}
                     </TableCell>
                   </TableRow>
                 ))}

@@ -53,6 +53,8 @@ export const PACK_PRICES: Record<string, number> = {
   star_bizness_tuning: 790,
 };
 
+export const TUNING_WEBSITE_ADDON_PRICE = 990;
+
 // Abonnement de continuité de service à partir de la 2e année (sans engagement)
 export const PACK_RENEWAL_PRICES: Record<string, number> = {
   star_bizness_tuning: 90,
@@ -356,12 +358,22 @@ export const TUNING_MODULES: ProjectModule[] = [
   },
 ];
 
-export function getPackModules(packType: string, siteType?: string, hasGmb?: boolean): ProjectModule[] {
+export function getPackModules(packType: string, siteType?: string, hasGmb?: boolean, tuningWebsiteAddon = false): ProjectModule[] {
   if (packType === "star_bizness_nfc") {
     return PACK_MODULES.star_bizness_nfc;
   }
   if (packType === "star_bizness_tuning") {
-    return TUNING_MODULES;
+    if (!tuningWebsiteAddon) return TUNING_MODULES;
+    return [
+      ...TUNING_MODULES,
+      {
+        id: "site_internet",
+        name: "Création de site internet",
+        icon: "🌐",
+        deadlineDays: 15,
+        tasks: VITRINE_SITE_TASKS,
+      },
+    ];
   }
   if (packType === "star_bizness_numerik") {
     const siteTasks = siteType === "ecommerce" ? ECOMMERCE_SITE_TASKS : VITRINE_SITE_TASKS;

@@ -194,10 +194,10 @@ export default function Invoices() {
     } catch { toast.error("Erreur"); }
   };
 
-  const handleDownload = (inv: any) => {
+  const buildPdfData = (inv: any) => {
     const client = clientMap.get(inv.client_id);
-    if (!client) return;
-    exportInvoicePDF({
+    if (!client) return null;
+    return {
       ...inv,
       client: {
         company_name: client.company_name,
@@ -209,8 +209,55 @@ export default function Invoices() {
         siret: client.siret,
         payment_method: client.payment_method,
       },
-    });
+    };
   };
+
+  // Download only — never sends anything to the client
+  const handleDownload = (inv: any) => {
+    const data = buildPdfData(inv);
+    if (!data) return;
+    exportInvoicePDF(data);
+  };
+
+  const handlePreview = (inv: any) => {
+    const data = buildPdfData(inv);
+    if (!data) return;
+    const base64 = exportInvoicePDF(data, { returnBase64: true });
+    if (base64) setPreviewUrl(`data:application/pdf;base64,${base64}`);
+  };
+
+  // Preview of the invoice being created (not saved yet)
+  const handlePreviewDraft = () => {
+    if (!selectedClientId) { toast.error("Sélectionnez un client"); return; }
+    const draft = {
+      invoice_number: "APERÇU",
+      issued_date: new Date().toISOString().slice(0, 10),
+      due_date: dueDate || null,
+      status: "brouillon",
+      amount: subtotal,
+      tax_rate: parseFloat(taxRate) || 0,
+      tax_amount: tax,
+      total_amount: total,
+      notes: notes || null,
+      items,
+      payment_methods: paymentMethods.length > 0 ? paymentMethods : null,
+      client_id: selectedClientId,
+    };
+    const data = buildPdfData(draft);
+    if (!data) return;
+    const base64 = exportInvoicePDF(data, { returnBase64: true });
+    if (base64) setPreviewUrl(`data:application/pdf;base64,${base64}`);
+  };
+
+  const handleSend = async (inv: any) => {
+    try {
+      await sendInvoice.mutateAsync(inv);
+      toast.success("Facture envoyée au client");
+    } catch (e: any) {
+      toast.error(e?.message || "Erreur lors de l'envoi");
+    }
+  };
+
 
   const handleDelete = async (id: string) => {
     try {

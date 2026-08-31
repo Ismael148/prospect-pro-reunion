@@ -1,0 +1,1 @@
+ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS tuning_website_addon boolean NOT NULL DEFAULT false;

@@ -85,9 +85,10 @@ export function useCreateInvoice() {
 export async function sendInvoiceEmail(data: Invoice) {
   const { data: client } = await supabase
     .from("clients")
-    .select("company_name, manager_name, address, postal_code, city, email, phone, siret, support_token, payment_method, pack_type, tuning_website_addon")
+    .select("company_name, manager_name, address, postal_code, city, email, phone, siret, vat_number, ndi, support_token, payment_method, pack_type, tuning_website_addon")
     .eq("id", data.client_id)
     .single();
+
 
   if (!client) throw new Error("Client introuvable");
   if (!client.email) throw new Error("Ce client n'a pas d'adresse email");

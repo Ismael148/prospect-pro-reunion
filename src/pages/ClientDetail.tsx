@@ -1764,7 +1764,21 @@ export default function ClientDetail() {
         siret: client.siret,
         payment_method: client.payment_method,
       }} />
+      <ClientInvoicesSection client={{
+        id: client.id,
+        company_name: client.company_name,
+        address: client.address,
+        postal_code: client.postal_code,
+        city: client.city,
+        email: client.email,
+        phone: client.phone,
+        siret: client.siret,
+        vat_number: (client as any).vat_number,
+        ndi: (client as any).ndi,
+        payment_method: client.payment_method,
+      }} />
       <SupportTicketsSection clientId={id!} />
+
       <ClientEmailHistory clientId={id!} clientEmail={client.email} />
       <ClientFormsSection clientId={id!} supportToken={(client as any).support_token} packType={client.pack_type ?? undefined} companyName={(client as any).company_name} clientEmail={(client as any).email} />
       {client.pack_type !== "star_bizness_nfc" && <SocialMediaSection clientId={id!} clientNdi={(client as any).ndi} clientEmail={(client as any).email} clientCompany={(client as any).company_name} clientManager={(client as any).manager_name} />}

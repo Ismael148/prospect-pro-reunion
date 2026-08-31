@@ -119,6 +119,8 @@ export async function sendInvoiceEmail(data: Invoice) {
       email: client.email,
       phone: client.phone,
       siret: client.siret,
+      vat_number: (client as any).vat_number,
+      ndi: (client as any).ndi,
       payment_method: client.payment_method,
     },
   }, { returnBase64: true });
@@ -140,7 +142,23 @@ export async function sendInvoiceEmail(data: Invoice) {
     pdf_base64: pdfBase64,
     pdf_filename: `Facture_${data.invoice_number}.pdf`,
   });
+
+  // Journal des emails : trace date + statut par facture
+  await supabase.from("email_send_log").insert({
+    recipient_email: client.email,
+    recipient_name: client.manager_name || client.company_name,
+    subject: `Facture n° ${data.invoice_number}`,
+    template_name: "invoice",
+    status: "sent",
+    metadata: {
+      invoice_id: data.id,
+      invoice_number: data.invoice_number,
+      client_id: data.client_id,
+      total_amount: data.total_amount,
+    } as any,
+  } as any);
 }
+
 
 export function useSendInvoice() {
   const qc = useQueryClient();

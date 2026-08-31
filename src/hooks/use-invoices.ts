@@ -148,6 +148,7 @@ export async function sendInvoiceEmail(data: Invoice) {
     recipient_email: client.email,
     recipient_name: client.manager_name || client.company_name,
     subject: `Facture n° ${data.invoice_number}`,
+    message_id: `invoice-${data.id}-${Date.now()}`,
     template_name: "invoice",
     status: "sent",
     metadata: {

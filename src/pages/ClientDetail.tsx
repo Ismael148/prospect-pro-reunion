@@ -280,6 +280,8 @@ function ClientInfoSection({ client, salesTeam }: { client: any; salesTeam?: { a
     { label: "NDI Client", value: client.ndi, icon: Hash },
     { label: "Gérant", value: (client as any).manager_name, icon: User },
     { label: "SIRET", value: client.siret, icon: FileText },
+    { label: "N° TVA", value: (client as any).vat_number, icon: FileText },
+
     { label: "Secteur", value: client.sector, icon: Briefcase },
     { label: "Téléphone", value: client.phone, icon: Phone },
     { label: "Email", value: client.email, icon: Mail },

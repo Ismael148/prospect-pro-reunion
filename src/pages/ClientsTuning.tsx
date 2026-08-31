@@ -22,6 +22,7 @@ import {
 import { exportClientsCSV, exportClientsPDF } from "@/lib/export-clients-list";
 
 const TUNING_PACK = "star_bizness_tuning";
+const TUNING_WEBSITE_ADDON_PRICE = 990;
 
 export default function ClientsTuning() {
   const navigate = useNavigate();
@@ -36,7 +37,7 @@ export default function ClientsTuning() {
   const [form, setForm] = useState({
     company_name: "", manager_name: "", phone: "", email: "", address: "", city: "",
     postal_code: "", sector: "", website: "", notes: "", pack_amount: String(PACK_PRICES[TUNING_PACK]),
-    signature_date: "", conversion_page_url: "",
+    signature_date: "", conversion_page_url: "", tuning_website_addon: false,
   });
 
   const tuningClients = useMemo(() => {
@@ -51,6 +52,8 @@ export default function ClientsTuning() {
 
   const handleCreate = async () => {
     if (!form.company_name.trim()) { toast.error("Le nom de l'entreprise est requis"); return; }
+    const basePrice = PACK_PRICES[TUNING_PACK];
+    const totalPrice = basePrice + (form.tuning_website_addon ? TUNING_WEBSITE_ADDON_PRICE : 0);
     try {
       await createClient.mutateAsync({
         company_name: form.company_name.trim(),
@@ -65,7 +68,8 @@ export default function ClientsTuning() {
         notes: form.notes.trim() || null,
         conversion_page_url: form.conversion_page_url.trim() || null,
         pack_type: TUNING_PACK,
-        pack_amount: parseFloat(form.pack_amount) || PACK_PRICES[TUNING_PACK],
+        pack_amount: totalPrice,
+        tuning_website_addon: form.tuning_website_addon,
         signature_date: form.signature_date || null,
         assigned_to: user!.id,
         created_by: user!.id,
@@ -75,7 +79,7 @@ export default function ClientsTuning() {
       setForm({
         company_name: "", manager_name: "", phone: "", email: "", address: "", city: "",
         postal_code: "", sector: "", website: "", notes: "", pack_amount: String(PACK_PRICES[TUNING_PACK]),
-        signature_date: "", conversion_page_url: "",
+        signature_date: "", conversion_page_url: "", tuning_website_addon: false,
       });
     } catch (e: any) { toast.error("Erreur : " + (e?.message || "création impossible")); }
   };
@@ -139,12 +143,30 @@ export default function ClientsTuning() {
                   <div className="space-y-2"><Label>Ville</Label><Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="Saint-Denis" /></div>
                   <div className="space-y-2"><Label>Code postal</Label><Input value={form.postal_code} onChange={(e) => setForm({ ...form, postal_code: e.target.value })} placeholder="97400" /></div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Montant du pack (€)</Label>
-                    <Input type="number" step="0.01" value={form.pack_amount} onChange={(e) => setForm({ ...form, pack_amount: e.target.value })} />
+                <div className="space-y-3 rounded-lg border border-border/60 bg-muted/20 p-4">
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      id="tuning-website-addon"
+                      checked={form.tuning_website_addon}
+                      onCheckedChange={(checked) => setForm({
+                        ...form,
+                        tuning_website_addon: checked === true,
+                        pack_amount: String(PACK_PRICES[TUNING_PACK] + (checked === true ? TUNING_WEBSITE_ADDON_PRICE : 0)),
+                      })}
+                    />
+                    <div className="space-y-1">
+                      <Label htmlFor="tuning-website-addon" className="cursor-pointer">+ Création de site internet</Label>
+                      <p className="text-xs text-muted-foreground">Supplément de {TUNING_WEBSITE_ADDON_PRICE} € et ajout du module site au projet.</p>
+                    </div>
                   </div>
+                  <div className="flex items-center justify-between border-t border-border/60 pt-3 text-sm">
+                    <span className="text-muted-foreground">Total de la prestation</span>
+                    <span className="font-semibold text-primary">{Number(form.pack_amount).toFixed(2)} €</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2"><Label>Date de signature</Label><Input type="date" value={form.signature_date} onChange={(e) => setForm({ ...form, signature_date: e.target.value })} /></div>
+                  <div className="space-y-2"><Label>Pack de base</Label><Input value={`${PACK_PRICES[TUNING_PACK].toFixed(2)} €`} readOnly /></div>
                 </div>
                 <div className="space-y-2">
                   <Label>Lien de la page de conversion</Label>

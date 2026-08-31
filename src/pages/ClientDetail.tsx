@@ -95,6 +95,8 @@ function EditClientDialog({ client, onSave, salesTeam }: { client: any; onSave: 
       if (form.postal_code !== undefined) updates.postal_code = form.postal_code.trim() || null;
       if (form.sector !== undefined) updates.sector = form.sector.trim() || null;
       if (form.siret !== undefined) updates.siret = form.siret.trim() || null;
+      if (form.vat_number !== undefined) updates.vat_number = form.vat_number.trim() || null;
+
       if (form.notes !== undefined) updates.notes = form.notes.trim() || null;
       if (form.site_type !== undefined) updates.site_type = form.site_type || null;
       if (form.has_gmb !== undefined) updates.has_gmb = form.has_gmb;

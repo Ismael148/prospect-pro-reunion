@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { PACK_MODULES, TASK_PRIORITY_LABELS } from "@/lib/constants";
+import { getPackModules, TASK_PRIORITY_LABELS } from "@/lib/constants";
 import { ChevronDown, ChevronRight, Clock, AlertTriangle, ExternalLink, Link2, Plus, UserCircle, Check, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -35,13 +35,16 @@ interface Props {
   teamMembers?: TeamMember[];
   moduleLinks?: Record<string, string>;
   projectStatus?: string | null;
+  siteType?: string;
+  hasGmb?: boolean;
+  tuningWebsiteAddon?: boolean;
   onTaskStatusChange: (taskId: string, status: TaskStatus) => Promise<void>;
   onAddTask?: (task: TablesInsert<"project_tasks">) => Promise<void>;
   onAssignModule?: (moduleId: string, userId: string | null) => Promise<void>;
   onModuleLinkUpdate?: (moduleId: string, linkUrl: string) => Promise<void>;
 }
 
-export default function ProjectModules({ packType, tasks, projectId, startDate, isAdmin, teamMembers = [], moduleLinks = {}, projectStatus, onTaskStatusChange, onAddTask, onAssignModule, onModuleLinkUpdate }: Props) {
+export default function ProjectModules({ packType, tasks, projectId, startDate, isAdmin, teamMembers = [], moduleLinks = {}, projectStatus, siteType, hasGmb, tuningWebsiteAddon, onTaskStatusChange, onAddTask, onAssignModule, onModuleLinkUpdate }: Props) {
   const [checkingAll, setCheckingAll] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [addDialogOpen, setAddDialogOpen] = useState<string | null>(null);
@@ -50,7 +53,7 @@ export default function ProjectModules({ packType, tasks, projectId, startDate, 
   const [newTaskPriority, setNewTaskPriority] = useState<TaskPriority>("moyenne");
   const [editingModuleLink, setEditingModuleLink] = useState<string | null>(null);
   const [moduleLinkValue, setModuleLinkValue] = useState("");
-  const modules = PACK_MODULES[packType] || [];
+  const modules = getPackModules(packType, siteType, hasGmb, tuningWebsiteAddon);
 
   // Group tasks by module id
   const tasksByModule = useMemo(() => {

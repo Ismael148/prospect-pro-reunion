@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useInvoices, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, type InvoiceItem } from "@/hooks/use-invoices";
+import { useInvoices, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, useSendInvoice, type InvoiceItem } from "@/hooks/use-invoices";
 import { useClients } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";
 import { exportInvoicePDF } from "@/lib/export-invoice-pdf";
@@ -26,7 +26,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import {
-  FileText, Plus, Trash2, Download, Loader2, Search, Eye, CheckCircle,
+  FileText, Plus, Trash2, Download, Loader2, Search, Eye, CheckCircle, Send,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -73,6 +73,7 @@ export default function Invoices() {
   const createInvoice = useCreateInvoice();
   const updateInvoice = useUpdateInvoice();
   const deleteInvoice = useDeleteInvoice();
+  const sendInvoice = useSendInvoice();
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -86,6 +87,7 @@ export default function Invoices() {
     { description: "", quantity: 1, unit_price: 0, total: 0 },
   ]);
   const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const clientMap = useMemo(() => {
     const map = new Map<string, any>();
@@ -168,7 +170,7 @@ export default function Invoices() {
         status: "brouillon",
         payment_methods: paymentMethods.length > 0 ? paymentMethods : null,
       } as any);
-      toast.success("Facture créée");
+      toast.success("Facture créée en brouillon — vérifiez puis cliquez sur Envoyer");
       setDialogOpen(false);
       resetForm();
     } catch { toast.error("Erreur lors de la création"); }
@@ -194,10 +196,10 @@ export default function Invoices() {
     } catch { toast.error("Erreur"); }
   };
 
-  const handleDownload = (inv: any) => {
+  const buildPdfData = (inv: any) => {
     const client = clientMap.get(inv.client_id);
-    if (!client) return;
-    exportInvoicePDF({
+    if (!client) return null;
+    return {
       ...inv,
       client: {
         company_name: client.company_name,
@@ -209,8 +211,55 @@ export default function Invoices() {
         siret: client.siret,
         payment_method: client.payment_method,
       },
-    });
+    };
   };
+
+  // Download only — never sends anything to the client
+  const handleDownload = (inv: any) => {
+    const data = buildPdfData(inv);
+    if (!data) return;
+    exportInvoicePDF(data);
+  };
+
+  const handlePreview = (inv: any) => {
+    const data = buildPdfData(inv);
+    if (!data) return;
+    const base64 = exportInvoicePDF(data, { returnBase64: true });
+    if (base64) setPreviewUrl(`data:application/pdf;base64,${base64}`);
+  };
+
+  // Preview of the invoice being created (not saved yet)
+  const handlePreviewDraft = () => {
+    if (!selectedClientId) { toast.error("Sélectionnez un client"); return; }
+    const draft = {
+      invoice_number: "APERÇU",
+      issued_date: new Date().toISOString().slice(0, 10),
+      due_date: dueDate || null,
+      status: "brouillon",
+      amount: subtotal,
+      tax_rate: parseFloat(taxRate) || 0,
+      tax_amount: tax,
+      total_amount: total,
+      notes: notes || null,
+      items,
+      payment_methods: paymentMethods.length > 0 ? paymentMethods : null,
+      client_id: selectedClientId,
+    };
+    const data = buildPdfData(draft);
+    if (!data) return;
+    const base64 = exportInvoicePDF(data, { returnBase64: true });
+    if (base64) setPreviewUrl(`data:application/pdf;base64,${base64}`);
+  };
+
+  const handleSend = async (inv: any) => {
+    try {
+      await sendInvoice.mutateAsync(inv);
+      toast.success("Facture envoyée au client");
+    } catch (e: any) {
+      toast.error(e?.message || "Erreur lors de l'envoi");
+    }
+  };
+
 
   const handleDelete = async (id: string) => {
     try {
@@ -335,12 +384,15 @@ export default function Invoices() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <Button size="icon" variant="ghost" onClick={() => handleDownload(inv)} title="Télécharger PDF">
+                        <Button size="icon" variant="ghost" onClick={() => handlePreview(inv)} title="Aperçu de la facture">
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button size="icon" variant="ghost" onClick={() => handleDownload(inv)} title="Télécharger PDF (aucun envoi)">
                           <Download className="w-4 h-4" />
                         </Button>
                         {isAdmin && inv.status === "brouillon" && (
-                          <Button size="icon" variant="ghost" onClick={() => handleStatusChange(inv.id, "envoyee")} title="Marquer comme envoyée">
-                            <Eye className="w-4 h-4" />
+                          <Button size="icon" variant="ghost" onClick={() => handleSend(inv)} disabled={sendInvoice.isPending} title="Envoyer la facture au client">
+                            {sendInvoice.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4 text-primary" />}
                           </Button>
                         )}
                         {isAdmin && inv.status === "envoyee" && (
@@ -505,13 +557,35 @@ export default function Invoices() {
               <Textarea placeholder="Conditions de paiement, mentions..." value={notes} onChange={(e) => setNotes(e.target.value)} />
             </div>
 
-            <Button onClick={handleCreate} disabled={createInvoice.isPending} className="w-full">
-              {createInvoice.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <FileText className="w-4 h-4 mr-2" />}
-              Créer la facture
-            </Button>
+            <div className="rounded-lg border border-border/50 bg-muted/20 p-3 text-xs text-muted-foreground">
+              Aucun email n'est envoyé à la création. Vérifiez l'aperçu, créez la facture en brouillon, puis cliquez sur « Envoyer » dans la liste.
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" onClick={handlePreviewDraft} className="gap-2">
+                <Eye className="w-4 h-4" /> Aperçu
+              </Button>
+              <Button onClick={handleCreate} disabled={createInvoice.isPending} className="gap-2">
+                {createInvoice.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
+                Créer (brouillon)
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* PDF Preview Dialog */}
+      <Dialog open={!!previewUrl} onOpenChange={(o) => { if (!o) setPreviewUrl(null); }}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Aperçu de la facture</DialogTitle>
+          </DialogHeader>
+          {previewUrl && (
+            <iframe title="Aperçu facture" src={previewUrl} className="w-full h-[70vh] rounded-md border border-border/50" />
+          )}
+        </DialogContent>
+      </Dialog>
+
     </motion.div>
   );
 }

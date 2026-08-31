@@ -81,22 +81,29 @@ export function exportInvoicePDF(data: InvoicePDFData, options?: { returnBase64?
     doc.text(`ÉCHÉANCE : ${new Date(data.due_date).toLocaleDateString("fr-FR")}`, pw - 15, 33, { align: "right" });
   }
 
+  // === LOGO ===
+  try {
+    doc.addImage(INVOICE_LOGO_PNG, "PNG", 15, 52, 24, 24);
+  } catch { /* logo optionnel */ }
+
   let y = 65;
+  const infoX = 44;
 
   // === COMPANY INFO (left) ===
   doc.setTextColor(...NAVY);
-  doc.setFontSize(26);
+  doc.setFontSize(22);
   doc.setFont("helvetica", "bold");
-  doc.text("JJ Pothin", 15, y);
-  y += 10;
+  doc.text(ISSUER.name, infoX, y);
+  y += 8;
 
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(...GRAY);
-  doc.text("73 RUE DU GÉNÉRAL AILLERET TAMPON", 15, y); y += 5;
-  doc.text("GSM : 0693 802 201", 15, y); y += 5;
-  doc.text("SIRET : 413 851 338 00041", 15, y); y += 5;
-  doc.text("contact@adamkom.com", 15, y); y += 5;
+  doc.text(ISSUER.address, infoX, y); y += 5;
+  doc.text(`GSM : ${ISSUER.phone}`, infoX, y); y += 5;
+  doc.text(`SIRET : ${ISSUER.siret}`, infoX, y); y += 5;
+  doc.text(`N° TVA : ${ISSUER.vat}`, infoX, y); y += 5;
+  doc.text(ISSUER.email, infoX, y); y += 5;
 
   // === CLIENT INFO (right) ===
   const clientX = pw / 2 + 10;
@@ -123,16 +130,20 @@ export function exportInvoicePDF(data: InvoicePDFData, options?: { returnBase64?
   }
   if (data.client.phone) { doc.text(data.client.phone, clientX, cy); cy += 5; }
   if (data.client.email) { doc.text(data.client.email, clientX, cy); cy += 5; }
+  if (data.client.ndi) { doc.text(`N° client : ${data.client.ndi}`, clientX, cy); cy += 5; }
   if (data.client.siret) { doc.text(`SIRET : ${data.client.siret}`, clientX, cy); cy += 5; }
+  if (data.client.vat_number) { doc.text(`N° TVA : ${data.client.vat_number}`, clientX, cy); cy += 5; }
 
   y = Math.max(y, cy) + 12;
 
   // === ITEMS TABLE ===
-  const tableBody = data.items.map((item) => [
+  const tableBody = data.items.map((item, i) => [
+    String(i + 1).padStart(2, "0"),
     item.description,
     item.quantity.toString(),
     `${item.unit_price.toFixed(2)} €`,
     `${item.total.toFixed(2)} €`,
+
   ]);
 
   autoTable(doc, {

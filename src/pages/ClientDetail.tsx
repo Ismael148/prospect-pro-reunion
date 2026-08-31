@@ -68,6 +68,8 @@ function EditClientDialog({ client, onSave, salesTeam }: { client: any; onSave: 
     postal_code: client.postal_code || "",
     sector: client.sector || "",
     siret: client.siret || "",
+    vat_number: (client as any).vat_number || "",
+
     notes: client.notes || "",
     nfc_quantity: String((client as any).nfc_quantity || 1),
     pack_amount: client.pack_amount != null ? String(client.pack_amount) : "",

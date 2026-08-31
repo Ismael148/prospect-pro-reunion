@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useInvoices, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, type InvoiceItem } from "@/hooks/use-invoices";
+import { useInvoices, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, useSendInvoice, type InvoiceItem } from "@/hooks/use-invoices";
 import { useClients } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";
 import { exportInvoicePDF } from "@/lib/export-invoice-pdf";
@@ -26,7 +26,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import {
-  FileText, Plus, Trash2, Download, Loader2, Search, Eye, CheckCircle,
+  FileText, Plus, Trash2, Download, Loader2, Search, Eye, CheckCircle, Send,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -73,6 +73,7 @@ export default function Invoices() {
   const createInvoice = useCreateInvoice();
   const updateInvoice = useUpdateInvoice();
   const deleteInvoice = useDeleteInvoice();
+  const sendInvoice = useSendInvoice();
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -86,6 +87,7 @@ export default function Invoices() {
     { description: "", quantity: 1, unit_price: 0, total: 0 },
   ]);
   const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const clientMap = useMemo(() => {
     const map = new Map<string, any>();
@@ -168,7 +170,7 @@ export default function Invoices() {
         status: "brouillon",
         payment_methods: paymentMethods.length > 0 ? paymentMethods : null,
       } as any);
-      toast.success("Facture créée");
+      toast.success("Facture créée en brouillon — vérifiez puis cliquez sur Envoyer");
       setDialogOpen(false);
       resetForm();
     } catch { toast.error("Erreur lors de la création"); }
@@ -382,12 +384,15 @@ export default function Invoices() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <Button size="icon" variant="ghost" onClick={() => handleDownload(inv)} title="Télécharger PDF">
+                        <Button size="icon" variant="ghost" onClick={() => handlePreview(inv)} title="Aperçu de la facture">
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button size="icon" variant="ghost" onClick={() => handleDownload(inv)} title="Télécharger PDF (aucun envoi)">
                           <Download className="w-4 h-4" />
                         </Button>
                         {isAdmin && inv.status === "brouillon" && (
-                          <Button size="icon" variant="ghost" onClick={() => handleStatusChange(inv.id, "envoyee")} title="Marquer comme envoyée">
-                            <Eye className="w-4 h-4" />
+                          <Button size="icon" variant="ghost" onClick={() => handleSend(inv)} disabled={sendInvoice.isPending} title="Envoyer la facture au client">
+                            {sendInvoice.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4 text-primary" />}
                           </Button>
                         )}
                         {isAdmin && inv.status === "envoyee" && (

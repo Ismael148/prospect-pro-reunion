@@ -505,13 +505,35 @@ export default function Invoices() {
               <Textarea placeholder="Conditions de paiement, mentions..." value={notes} onChange={(e) => setNotes(e.target.value)} />
             </div>
 
-            <Button onClick={handleCreate} disabled={createInvoice.isPending} className="w-full">
-              {createInvoice.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <FileText className="w-4 h-4 mr-2" />}
-              Créer la facture
-            </Button>
+            <div className="rounded-lg border border-border/50 bg-muted/20 p-3 text-xs text-muted-foreground">
+              Aucun email n'est envoyé à la création. Vérifiez l'aperçu, créez la facture en brouillon, puis cliquez sur « Envoyer » dans la liste.
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" onClick={handlePreviewDraft} className="gap-2">
+                <Eye className="w-4 h-4" /> Aperçu
+              </Button>
+              <Button onClick={handleCreate} disabled={createInvoice.isPending} className="gap-2">
+                {createInvoice.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
+                Créer (brouillon)
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* PDF Preview Dialog */}
+      <Dialog open={!!previewUrl} onOpenChange={(o) => { if (!o) setPreviewUrl(null); }}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Aperçu de la facture</DialogTitle>
+          </DialogHeader>
+          {previewUrl && (
+            <iframe title="Aperçu facture" src={previewUrl} className="w-full h-[70vh] rounded-md border border-border/50" />
+          )}
+        </DialogContent>
+      </Dialog>
+
     </motion.div>
   );
 }

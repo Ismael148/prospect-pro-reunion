@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { InvoiceItem } from "@/hooks/use-invoices";
+import { INVOICE_LOGO_PNG } from "@/lib/invoice-logo";
 
 interface InvoicePDFData {
   invoice_number: string;
@@ -22,14 +23,27 @@ interface InvoicePDFData {
     email?: string | null;
     phone?: string | null;
     siret?: string | null;
+    vat_number?: string | null;
+    ndi?: string | null;
     payment_method?: string | null;
   };
 }
+
+// Identifiants légaux de l'émetteur
+export const ISSUER = {
+  name: "JJ Pothin",
+  address: "73 RUE DU GÉNÉRAL AILLERET TAMPON",
+  phone: "0693 802 201",
+  email: "contact@adamkom.com",
+  siret: "413 851 338 00041",
+  vat: "FR04 413 851 338",
+};
 
 const NAVY = [13, 13, 13] as const;    // Noir Adamkom #0D0D0D
 const GOLD = [255, 0, 110] as const;   // Rose Adamkom #FF006E
 const WHITE = [255, 255, 255] as const;
 const GRAY = [120, 120, 120] as const;
+
 
 const PAYMENT_LABELS: Record<string, string> = {
   virement: "Virement bancaire",

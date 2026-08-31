@@ -85,9 +85,10 @@ export function useCreateInvoice() {
 export async function sendInvoiceEmail(data: Invoice) {
   const { data: client } = await supabase
     .from("clients")
-    .select("company_name, manager_name, address, postal_code, city, email, phone, siret, support_token, payment_method, pack_type, tuning_website_addon")
+    .select("company_name, manager_name, address, postal_code, city, email, phone, siret, vat_number, ndi, support_token, payment_method, pack_type, tuning_website_addon")
     .eq("id", data.client_id)
     .single();
+
 
   if (!client) throw new Error("Client introuvable");
   if (!client.email) throw new Error("Ce client n'a pas d'adresse email");
@@ -118,6 +119,8 @@ export async function sendInvoiceEmail(data: Invoice) {
       email: client.email,
       phone: client.phone,
       siret: client.siret,
+      vat_number: (client as any).vat_number,
+      ndi: (client as any).ndi,
       payment_method: client.payment_method,
     },
   }, { returnBase64: true });
@@ -139,7 +142,23 @@ export async function sendInvoiceEmail(data: Invoice) {
     pdf_base64: pdfBase64,
     pdf_filename: `Facture_${data.invoice_number}.pdf`,
   });
+
+  // Journal des emails : trace date + statut par facture
+  await supabase.from("email_send_log").insert({
+    recipient_email: client.email,
+    recipient_name: client.manager_name || client.company_name,
+    subject: `Facture n° ${data.invoice_number}`,
+    template_name: "invoice",
+    status: "sent",
+    metadata: {
+      invoice_id: data.id,
+      invoice_number: data.invoice_number,
+      client_id: data.client_id,
+      total_amount: data.total_amount,
+    } as any,
+  } as any);
 }
+
 
 export function useSendInvoice() {
   const qc = useQueryClient();
@@ -152,7 +171,12 @@ export function useSendInvoice() {
         .eq("id", invoice.id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["invoices"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["invoices"] });
+      qc.invalidateQueries({ queryKey: ["client-invoice-emails"] });
+      qc.invalidateQueries({ queryKey: ["client-email-history"] });
+    },
+
   });
 }
 

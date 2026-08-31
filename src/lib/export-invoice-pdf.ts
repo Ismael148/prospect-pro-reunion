@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { InvoiceItem } from "@/hooks/use-invoices";
+import { INVOICE_LOGO_PNG } from "@/lib/invoice-logo";
 
 interface InvoicePDFData {
   invoice_number: string;
@@ -22,14 +23,27 @@ interface InvoicePDFData {
     email?: string | null;
     phone?: string | null;
     siret?: string | null;
+    vat_number?: string | null;
+    ndi?: string | null;
     payment_method?: string | null;
   };
 }
+
+// Identifiants légaux de l'émetteur
+export const ISSUER = {
+  name: "JJ Pothin",
+  address: "73 RUE DU GÉNÉRAL AILLERET TAMPON",
+  phone: "0693 802 201",
+  email: "contact@adamkom.com",
+  siret: "413 851 338 00041",
+  vat: "FR04 413 851 338",
+};
 
 const NAVY = [13, 13, 13] as const;    // Noir Adamkom #0D0D0D
 const GOLD = [255, 0, 110] as const;   // Rose Adamkom #FF006E
 const WHITE = [255, 255, 255] as const;
 const GRAY = [120, 120, 120] as const;
+
 
 const PAYMENT_LABELS: Record<string, string> = {
   virement: "Virement bancaire",
@@ -67,22 +81,29 @@ export function exportInvoicePDF(data: InvoicePDFData, options?: { returnBase64?
     doc.text(`ÉCHÉANCE : ${new Date(data.due_date).toLocaleDateString("fr-FR")}`, pw - 15, 33, { align: "right" });
   }
 
+  // === LOGO ===
+  try {
+    doc.addImage(INVOICE_LOGO_PNG, "PNG", 15, 52, 24, 24);
+  } catch { /* logo optionnel */ }
+
   let y = 65;
+  const infoX = 44;
 
   // === COMPANY INFO (left) ===
   doc.setTextColor(...NAVY);
-  doc.setFontSize(26);
+  doc.setFontSize(22);
   doc.setFont("helvetica", "bold");
-  doc.text("JJ Pothin", 15, y);
-  y += 10;
+  doc.text(ISSUER.name, infoX, y);
+  y += 8;
 
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(...GRAY);
-  doc.text("73 RUE DU GÉNÉRAL AILLERET TAMPON", 15, y); y += 5;
-  doc.text("GSM : 0693 802 201", 15, y); y += 5;
-  doc.text("SIRET : 413 851 338 00041", 15, y); y += 5;
-  doc.text("contact@adamkom.com", 15, y); y += 5;
+  doc.text(ISSUER.address, infoX, y); y += 5;
+  doc.text(`GSM : ${ISSUER.phone}`, infoX, y); y += 5;
+  doc.text(`SIRET : ${ISSUER.siret}`, infoX, y); y += 5;
+  doc.text(`N° TVA : ${ISSUER.vat}`, infoX, y); y += 5;
+  doc.text(ISSUER.email, infoX, y); y += 5;
 
   // === CLIENT INFO (right) ===
   const clientX = pw / 2 + 10;
@@ -109,21 +130,25 @@ export function exportInvoicePDF(data: InvoicePDFData, options?: { returnBase64?
   }
   if (data.client.phone) { doc.text(data.client.phone, clientX, cy); cy += 5; }
   if (data.client.email) { doc.text(data.client.email, clientX, cy); cy += 5; }
+  if (data.client.ndi) { doc.text(`N° client : ${data.client.ndi}`, clientX, cy); cy += 5; }
   if (data.client.siret) { doc.text(`SIRET : ${data.client.siret}`, clientX, cy); cy += 5; }
+  if (data.client.vat_number) { doc.text(`N° TVA : ${data.client.vat_number}`, clientX, cy); cy += 5; }
 
   y = Math.max(y, cy) + 12;
 
   // === ITEMS TABLE ===
-  const tableBody = data.items.map((item) => [
+  const tableBody = data.items.map((item, i) => [
+    String(i + 1).padStart(2, "0"),
     item.description,
     item.quantity.toString(),
     `${item.unit_price.toFixed(2)} €`,
     `${item.total.toFixed(2)} €`,
+
   ]);
 
   autoTable(doc, {
     startY: y,
-    head: [["DESCRIPTION", "QTÉ", "PRIX", "TOTAL"]],
+    head: [["N°", "DESCRIPTION", "QTÉ", "PRIX", "TOTAL"]],
     body: tableBody,
     theme: "plain",
     headStyles: {
@@ -142,11 +167,13 @@ export function exportInvoicePDF(data: InvoicePDFData, options?: { returnBase64?
       fillColor: [250, 245, 248],
     },
     columnStyles: {
-      0: { cellWidth: "auto" },
-      1: { cellWidth: 25, halign: "center" },
-      2: { cellWidth: 35, halign: "right" },
-      3: { cellWidth: 35, halign: "right" },
+      0: { cellWidth: 14, halign: "center" },
+      1: { cellWidth: "auto" },
+      2: { cellWidth: 20, halign: "center" },
+      3: { cellWidth: 32, halign: "right" },
+      4: { cellWidth: 32, halign: "right" },
     },
+
     margin: { left: 15, right: 15 },
   });
 

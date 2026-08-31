@@ -41,6 +41,8 @@ import ReservationSyncSection from "@/components/clients/ReservationSyncSection"
 import ClientEmailActions from "@/components/clients/ClientEmailActions";
 import DomainRenewalInvoice from "@/components/clients/DomainRenewalInvoice";
 import ClientEmailHistory from "@/components/clients/ClientEmailHistory";
+import ClientInvoicesSection from "@/components/clients/ClientInvoicesSection";
+
 import ClientRemindersSection from "@/components/clients/ClientRemindersSection";
 import RelanceFlagsSection from "@/components/clients/RelanceFlagsSection";
 import { useClientForms, useValidateForm, ClientFormData } from "@/hooks/use-client-forms";
@@ -68,6 +70,8 @@ function EditClientDialog({ client, onSave, salesTeam }: { client: any; onSave: 
     postal_code: client.postal_code || "",
     sector: client.sector || "",
     siret: client.siret || "",
+    vat_number: (client as any).vat_number || "",
+
     notes: client.notes || "",
     nfc_quantity: String((client as any).nfc_quantity || 1),
     pack_amount: client.pack_amount != null ? String(client.pack_amount) : "",
@@ -93,6 +97,8 @@ function EditClientDialog({ client, onSave, salesTeam }: { client: any; onSave: 
       if (form.postal_code !== undefined) updates.postal_code = form.postal_code.trim() || null;
       if (form.sector !== undefined) updates.sector = form.sector.trim() || null;
       if (form.siret !== undefined) updates.siret = form.siret.trim() || null;
+      if (form.vat_number !== undefined) updates.vat_number = form.vat_number.trim() || null;
+
       if (form.notes !== undefined) updates.notes = form.notes.trim() || null;
       if (form.site_type !== undefined) updates.site_type = form.site_type || null;
       if (form.has_gmb !== undefined) updates.has_gmb = form.has_gmb;
@@ -131,10 +137,17 @@ function EditClientDialog({ client, onSave, salesTeam }: { client: any; onSave: 
               <Input value={form.manager_name} onChange={(e) => setForm({ ...form, manager_name: e.target.value })} placeholder="Ex: Jean Dupont" />
             </div>
           </div>
-          <div className="space-y-1.5">
-            <Label>SIRET</Label>
-            <Input value={form.siret} onChange={(e) => setForm({ ...form, siret: e.target.value })} />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>SIRET</Label>
+              <Input value={form.siret} onChange={(e) => setForm({ ...form, siret: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>N° TVA intracommunautaire</Label>
+              <Input value={form.vat_number} onChange={(e) => setForm({ ...form, vat_number: e.target.value })} placeholder="FR00 000 000 000" />
+            </div>
           </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Téléphone</Label>
@@ -269,6 +282,8 @@ function ClientInfoSection({ client, salesTeam }: { client: any; salesTeam?: { a
     { label: "NDI Client", value: client.ndi, icon: Hash },
     { label: "Gérant", value: (client as any).manager_name, icon: User },
     { label: "SIRET", value: client.siret, icon: FileText },
+    { label: "N° TVA", value: (client as any).vat_number, icon: FileText },
+
     { label: "Secteur", value: client.sector, icon: Briefcase },
     { label: "Téléphone", value: client.phone, icon: Phone },
     { label: "Email", value: client.email, icon: Mail },
@@ -1751,7 +1766,21 @@ export default function ClientDetail() {
         siret: client.siret,
         payment_method: client.payment_method,
       }} />
+      <ClientInvoicesSection client={{
+        id: client.id,
+        company_name: client.company_name,
+        address: client.address,
+        postal_code: client.postal_code,
+        city: client.city,
+        email: client.email,
+        phone: client.phone,
+        siret: client.siret,
+        vat_number: (client as any).vat_number,
+        ndi: (client as any).ndi,
+        payment_method: client.payment_method,
+      }} />
       <SupportTicketsSection clientId={id!} />
+
       <ClientEmailHistory clientId={id!} clientEmail={client.email} />
       <ClientFormsSection clientId={id!} supportToken={(client as any).support_token} packType={client.pack_type ?? undefined} companyName={(client as any).company_name} clientEmail={(client as any).email} />
       {client.pack_type !== "star_bizness_nfc" && <SocialMediaSection clientId={id!} clientNdi={(client as any).ndi} clientEmail={(client as any).email} clientCompany={(client as any).company_name} clientManager={(client as any).manager_name} />}

@@ -209,6 +209,8 @@ export default function Invoices() {
         email: client.email,
         phone: client.phone,
         siret: client.siret,
+        vat_number: (client as any).vat_number,
+        ndi: (client as any).ndi,
         payment_method: client.payment_method,
       },
     };

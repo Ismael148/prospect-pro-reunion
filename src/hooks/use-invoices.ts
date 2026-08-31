@@ -171,7 +171,12 @@ export function useSendInvoice() {
         .eq("id", invoice.id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["invoices"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["invoices"] });
+      qc.invalidateQueries({ queryKey: ["client-invoice-emails"] });
+      qc.invalidateQueries({ queryKey: ["client-email-history"] });
+    },
+
   });
 }
 

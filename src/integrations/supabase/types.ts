@@ -483,6 +483,7 @@ export type Database = {
           site_ical_url: string | null
           site_type: string | null
           support_token: string | null
+          tuning_website_addon: boolean
           updated_at: string
           website: string | null
         }
@@ -539,6 +540,7 @@ export type Database = {
           site_ical_url?: string | null
           site_type?: string | null
           support_token?: string | null
+          tuning_website_addon?: boolean
           updated_at?: string
           website?: string | null
         }
@@ -595,6 +597,7 @@ export type Database = {
           site_ical_url?: string | null
           site_type?: string | null
           support_token?: string | null
+          tuning_website_addon?: boolean
           updated_at?: string
           website?: string | null
         }

@@ -3,7 +3,7 @@ import { useInvoices, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, type
 import { useClients } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";
 import { exportInvoicePDF } from "@/lib/export-invoice-pdf";
-import { PACK_LABELS, PACK_PRICES, PACK_RENEWAL_PRICES, PACK_RENEWAL_NOTE } from "@/lib/constants";
+import { PACK_LABELS, PACK_PRICES, PACK_RENEWAL_PRICES, PACK_RENEWAL_NOTE, TUNING_WEBSITE_ADDON_PRICE } from "@/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -130,14 +130,15 @@ export default function Invoices() {
     }
     if (client?.pack_type && PACK_PRICES[client.pack_type]) {
       const packLabel = PACK_LABELS[client.pack_type as keyof typeof PACK_LABELS] || client.pack_type;
-      const price = client.pack_amount || PACK_PRICES[client.pack_type];
-      setItems([{ description: `Pack ${packLabel}`, quantity: 1, unit_price: price, total: price }]);
-      if (client.nfc_quantity > 1) {
-        setItems((prev) => [
-          ...prev,
-          { description: `Cartes NFC supplémentaires (x${client.nfc_quantity - 1})`, quantity: client.nfc_quantity - 1, unit_price: 15, total: (client.nfc_quantity - 1) * 15 },
-        ]);
+      const basePrice = client.pack_type === "star_bizness_tuning" ? PACK_PRICES[client.pack_type] : (client.pack_amount || PACK_PRICES[client.pack_type]);
+      const invoiceItems: InvoiceItem[] = [{ description: `Pack ${packLabel}`, quantity: 1, unit_price: basePrice, total: basePrice }];
+      if (client.pack_type === "star_bizness_tuning" && client.tuning_website_addon) {
+        invoiceItems.push({ description: "Création de site internet", quantity: 1, unit_price: TUNING_WEBSITE_ADDON_PRICE, total: TUNING_WEBSITE_ADDON_PRICE });
       }
+      if (client.nfc_quantity > 1) {
+        invoiceItems.push({ description: `Cartes NFC supplémentaires (x${client.nfc_quantity - 1})`, quantity: client.nfc_quantity - 1, unit_price: 15, total: (client.nfc_quantity - 1) * 15 });
+      }
+      setItems(invoiceItems);
       if (PACK_RENEWAL_PRICES[client.pack_type]) {
         setNotes(PACK_RENEWAL_NOTE);
       }

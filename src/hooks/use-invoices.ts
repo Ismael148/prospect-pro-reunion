@@ -83,7 +83,7 @@ export function useCreateInvoice() {
       try {
         const { data: client } = await supabase
           .from("clients")
-          .select("company_name, manager_name, address, postal_code, city, email, phone, siret, support_token, payment_method, pack_type")
+          .select("company_name, manager_name, address, postal_code, city, email, phone, siret, support_token, payment_method, pack_type, tuning_website_addon")
           .eq("id", data.client_id)
           .single();
 
@@ -135,7 +135,7 @@ export function useCreateInvoice() {
           form_nfc_link: formNfcLink,
           form_site_link: formSiteLink,
           pack_type: client.pack_type,
-          pack_label: packLabel,
+          pack_label: client.tuning_website_addon ? `${packLabel} + Création site internet` : packLabel,
           pdf_base64: pdfBase64,
           pdf_filename: `Facture_${data.invoice_number}.pdf`,
         });

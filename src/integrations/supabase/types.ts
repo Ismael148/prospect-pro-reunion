@@ -485,6 +485,7 @@ export type Database = {
           support_token: string | null
           tuning_website_addon: boolean
           updated_at: string
+          vat_number: string | null
           website: string | null
         }
         Insert: {
@@ -542,6 +543,7 @@ export type Database = {
           support_token?: string | null
           tuning_website_addon?: boolean
           updated_at?: string
+          vat_number?: string | null
           website?: string | null
         }
         Update: {
@@ -599,6 +601,7 @@ export type Database = {
           support_token?: string | null
           tuning_website_addon?: boolean
           updated_at?: string
+          vat_number?: string | null
           website?: string | null
         }
         Relationships: [

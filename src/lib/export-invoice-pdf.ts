@@ -148,7 +148,7 @@ export function exportInvoicePDF(data: InvoicePDFData, options?: { returnBase64?
 
   autoTable(doc, {
     startY: y,
-    head: [["DESCRIPTION", "QTÉ", "PRIX", "TOTAL"]],
+    head: [["N°", "DESCRIPTION", "QTÉ", "PRIX", "TOTAL"]],
     body: tableBody,
     theme: "plain",
     headStyles: {
@@ -167,11 +167,13 @@ export function exportInvoicePDF(data: InvoicePDFData, options?: { returnBase64?
       fillColor: [250, 245, 248],
     },
     columnStyles: {
-      0: { cellWidth: "auto" },
-      1: { cellWidth: 25, halign: "center" },
-      2: { cellWidth: 35, halign: "right" },
-      3: { cellWidth: 35, halign: "right" },
+      0: { cellWidth: 14, halign: "center" },
+      1: { cellWidth: "auto" },
+      2: { cellWidth: 20, halign: "center" },
+      3: { cellWidth: 32, halign: "right" },
+      4: { cellWidth: 32, halign: "right" },
     },
+
     margin: { left: 15, right: 15 },
   });
 

@@ -10,7 +10,7 @@ import {
 } from "@/hooks/use-projects";
 import {
   PROJECT_STATUS_LABELS, PACK_LABELS,
-  PACK_MODULES, PACK_DEADLINE_DAYS, getPackModules,
+  PACK_DEADLINE_DAYS, getPackModules,
 } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

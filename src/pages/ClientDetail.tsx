@@ -131,10 +131,17 @@ function EditClientDialog({ client, onSave, salesTeam }: { client: any; onSave: 
               <Input value={form.manager_name} onChange={(e) => setForm({ ...form, manager_name: e.target.value })} placeholder="Ex: Jean Dupont" />
             </div>
           </div>
-          <div className="space-y-1.5">
-            <Label>SIRET</Label>
-            <Input value={form.siret} onChange={(e) => setForm({ ...form, siret: e.target.value })} />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>SIRET</Label>
+              <Input value={form.siret} onChange={(e) => setForm({ ...form, siret: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>N° TVA intracommunautaire</Label>
+              <Input value={form.vat_number} onChange={(e) => setForm({ ...form, vat_number: e.target.value })} placeholder="FR00 000 000 000" />
+            </div>
           </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Téléphone</Label>

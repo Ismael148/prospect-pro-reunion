@@ -23,6 +23,21 @@ function htmlToText(html: string): string {
     .trim();
 }
 
+// Nettoie une adresse email : caractères invisibles, espaces, séparateurs multiples
+function sanitizeEmail(raw: unknown): string {
+  if (typeof raw !== 'string') return '';
+  let v = raw
+    .replace(/[\u200B-\u200F\u202A-\u202E\u2060\uFEFF]/g, '')
+    .replace(/\u00A0/g, ' ')
+    .trim();
+  // Si plusieurs adresses (virgule, point-virgule, slash, " et "), on garde la première
+  const first = v.split(/[,;/]| et /i)[0].trim();
+  v = first.replace(/^<|>$/g, '').trim();
+  return v;
+}
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
+
 async function sendBrevoEmail(apiKey: string, payload: Record<string, unknown>) {
   return await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
@@ -157,10 +172,11 @@ Deno.serve(async (req) => {
     // ACTION: send_design (single deliverable email)
     // ═══════════════════════════════════════════
     if (action === 'send_design') {
-      const { recipientEmail, recipientName, clientName, designUrl, designName, subject, htmlContent: customHtmlContent, attachment, deliverable_id, project_id, template_name: tplName } = body;
+      const { recipientEmail: rawDesignRecipient, recipientName, clientName, designUrl, designName, subject, htmlContent: customHtmlContent, attachment, deliverable_id, project_id, template_name: tplName } = body;
+      const recipientEmail = sanitizeEmail(rawDesignRecipient);
 
-      if (!recipientEmail) {
-        return new Response(JSON.stringify({ error: 'Champs manquants' }), { status: 400, headers: corsHeaders });
+      if (!recipientEmail || !EMAIL_RE.test(recipientEmail)) {
+        return new Response(JSON.stringify({ error: `Adresse email destinataire invalide : "${String(rawDesignRecipient ?? '')}"` }), { status: 400, headers: corsHeaders });
       }
 
       const htmlContent = customHtmlContent || `
@@ -246,10 +262,14 @@ Deno.serve(async (req) => {
     // ACTION: send_client_email (per-client actions: support, form reminders, custom)
     // ═══════════════════════════════════════════
     if (action === 'send_client_email') {
-      const { recipientEmail, recipientName, subject, htmlContent, trigger, client_id, attachment } = body;
+      const { recipientEmail: rawRecipient, recipientName, subject, htmlContent, trigger, client_id, attachment } = body;
+      const recipientEmail = sanitizeEmail(rawRecipient);
 
       if (!recipientEmail || !subject || !htmlContent) {
         return new Response(JSON.stringify({ error: 'Champs manquants: recipientEmail, subject, htmlContent' }), { status: 400, headers: corsHeaders });
+      }
+      if (!EMAIL_RE.test(recipientEmail)) {
+        return new Response(JSON.stringify({ error: `Adresse email destinataire invalide : "${String(rawRecipient)}". Corrigez l'email du client.` }), { status: 400, headers: corsHeaders });
       }
 
       const textContent = htmlToText(htmlContent);

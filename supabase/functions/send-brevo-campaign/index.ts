@@ -172,10 +172,11 @@ Deno.serve(async (req) => {
     // ACTION: send_design (single deliverable email)
     // ═══════════════════════════════════════════
     if (action === 'send_design') {
-      const { recipientEmail, recipientName, clientName, designUrl, designName, subject, htmlContent: customHtmlContent, attachment, deliverable_id, project_id, template_name: tplName } = body;
+      const { recipientEmail: rawDesignRecipient, recipientName, clientName, designUrl, designName, subject, htmlContent: customHtmlContent, attachment, deliverable_id, project_id, template_name: tplName } = body;
+      const recipientEmail = sanitizeEmail(rawDesignRecipient);
 
-      if (!recipientEmail) {
-        return new Response(JSON.stringify({ error: 'Champs manquants' }), { status: 400, headers: corsHeaders });
+      if (!recipientEmail || !EMAIL_RE.test(recipientEmail)) {
+        return new Response(JSON.stringify({ error: `Adresse email destinataire invalide : "${String(rawDesignRecipient ?? '')}"` }), { status: 400, headers: corsHeaders });
       }
 
       const htmlContent = customHtmlContent || `

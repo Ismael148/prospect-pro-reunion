@@ -261,10 +261,14 @@ Deno.serve(async (req) => {
     // ACTION: send_client_email (per-client actions: support, form reminders, custom)
     // ═══════════════════════════════════════════
     if (action === 'send_client_email') {
-      const { recipientEmail, recipientName, subject, htmlContent, trigger, client_id, attachment } = body;
+      const { recipientEmail: rawRecipient, recipientName, subject, htmlContent, trigger, client_id, attachment } = body;
+      const recipientEmail = sanitizeEmail(rawRecipient);
 
       if (!recipientEmail || !subject || !htmlContent) {
         return new Response(JSON.stringify({ error: 'Champs manquants: recipientEmail, subject, htmlContent' }), { status: 400, headers: corsHeaders });
+      }
+      if (!EMAIL_RE.test(recipientEmail)) {
+        return new Response(JSON.stringify({ error: `Adresse email destinataire invalide : "${String(rawRecipient)}". Corrigez l'email du client.` }), { status: 400, headers: corsHeaders });
       }
 
       const textContent = htmlToText(htmlContent);

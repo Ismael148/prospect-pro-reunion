@@ -214,6 +214,30 @@ export default function Comptabilite() {
     return clients.filter((c) => c.signature_date?.substring(0, 7) === selectedMonth).length;
   }, [clients, selectedMonth]);
 
+  // Chiffre d'affaires par année : factures payées + facturations hors plateforme
+  const yearlyRevenue = useMemo(() => {
+    const map = new Map<string, { platform: number; offline: number; count: number }>();
+    const bump = (year: string, key: "platform" | "offline", amount: number) => {
+      const row = map.get(year) || { platform: 0, offline: 0, count: 0 };
+      row[key] += amount;
+      row.count += 1;
+      map.set(year, row);
+    };
+    (invoices || []).forEach((inv: any) => {
+      if (inv.status !== "payee") return;
+      const year = String(inv.paid_date || inv.issued_date || "").substring(0, 4);
+      if (year) bump(year, "platform", Number(inv.total_amount) || 0);
+    });
+    (clients || []).forEach((c: any) => {
+      if (!c.billing_year) return;
+      bump(String(c.billing_year), "offline", Number(c.billing_amount) || 0);
+    });
+    return Array.from(map.entries())
+      .map(([year, v]) => ({ year, ...v, total: v.platform + v.offline }))
+      .sort((a, b) => b.year.localeCompare(a.year));
+  }, [invoices, clients]);
+
+
   return (
     <motion.div className="space-y-6" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <div className="flex items-center justify-between">
@@ -310,6 +334,36 @@ export default function Comptabilite() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Chiffre d'affaires par année */}
+          <Card className="border-0 shadow-soft">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <TrendingUp className="w-4 h-4" /> Chiffre d'affaires par année
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {yearlyRevenue.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Aucune donnée de facturation.</p>
+              ) : (
+                <div className="space-y-2">
+                  {yearlyRevenue.map((row) => (
+                    <div key={row.year} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/60 p-3">
+                      <div>
+                        <p className="font-semibold">{row.year}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Plateforme {row.platform.toFixed(2)} € · Hors plateforme {row.offline.toFixed(2)} € · {row.count} facturation{row.count > 1 ? "s" : ""}
+                        </p>
+                      </div>
+                      <p className="text-lg font-bold text-success">{row.total.toFixed(2)} €</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+
 
           {/* Fiscal charge config */}
           {isAdmin && (

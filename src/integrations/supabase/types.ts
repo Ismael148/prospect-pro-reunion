@@ -433,6 +433,7 @@ export type Database = {
         Row: {
           address: string | null
           assigned_to: string | null
+          billing_amount: number | null
           billing_year: number | null
           city: string | null
           company_name: string
@@ -493,6 +494,7 @@ export type Database = {
         Insert: {
           address?: string | null
           assigned_to?: string | null
+          billing_amount?: number | null
           billing_year?: number | null
           city?: string | null
           company_name: string
@@ -553,6 +555,7 @@ export type Database = {
         Update: {
           address?: string | null
           assigned_to?: string | null
+          billing_amount?: number | null
           billing_year?: number | null
           city?: string | null
           company_name?: string

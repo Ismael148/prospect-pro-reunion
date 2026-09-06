@@ -6,6 +6,7 @@ import { exportInvoicePDF } from "@/lib/export-invoice-pdf";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { FileText, Eye, Download, Send, Loader2, Mail } from "lucide-react";
@@ -49,6 +50,8 @@ interface ClientInvoicesSectionProps {
     vat_number?: string | null;
     ndi?: string | null;
     payment_method?: string | null;
+    billing_year?: number | null;
+    invoiced_offline?: boolean | null;
   };
 }
 
@@ -57,6 +60,27 @@ export default function ClientInvoicesSection({ client }: ClientInvoicesSectionP
   const sendInvoice = useSendInvoice();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [sendingId, setSendingId] = useState<string | null>(null);
+  const [billingYear, setBillingYear] = useState<string>(client.billing_year ? String(client.billing_year) : "");
+  const [offline, setOffline] = useState<boolean>(!!client.invoiced_offline);
+  const [savingBilling, setSavingBilling] = useState(false);
+
+  const saveBilling = async () => {
+    setSavingBilling(true);
+    const year = billingYear.trim() ? parseInt(billingYear, 10) : null;
+    if (year !== null && (isNaN(year) || year < 2000 || year > 2100)) {
+      toast.error("Année invalide");
+      setSavingBilling(false);
+      return;
+    }
+    const { error } = await supabase
+      .from("clients")
+      .update({ billing_year: year, invoiced_offline: offline } as any)
+      .eq("id", client.id);
+    setSavingBilling(false);
+    if (error) toast.error("Enregistrement impossible");
+    else toast.success("Suivi de facturation enregistré");
+  };
+
 
   const { data: emailLogs } = useQuery({
     queryKey: ["client-invoice-emails", client.id],
@@ -122,6 +146,36 @@ export default function ClientInvoicesSection({ client }: ClientInvoicesSectionP
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
+        <div className="rounded-lg border border-border/60 bg-muted/30 p-3 space-y-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Suivi de facturation hors plateforme
+          </p>
+          <div className="flex flex-wrap items-end gap-3">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={offline}
+                onChange={(e) => setOffline(e.target.checked)}
+                className="h-4 w-4 accent-primary"
+              />
+              Facturé hors plateforme
+            </label>
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-muted-foreground">Année de facturation</span>
+              <Input
+                type="number"
+                placeholder="2025"
+                value={billingYear}
+                onChange={(e) => setBillingYear(e.target.value)}
+                className="w-28 h-9"
+              />
+            </div>
+            <Button size="sm" onClick={saveBilling} disabled={savingBilling} className="gap-1.5">
+              {savingBilling && <Loader2 className="w-3.5 h-3.5 animate-spin" />} Enregistrer
+            </Button>
+          </div>
+        </div>
+
         {isLoading ? (
           <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>
         ) : !invoices || invoices.length === 0 ? (

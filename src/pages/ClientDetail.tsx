@@ -1778,7 +1778,10 @@ export default function ClientDetail() {
         vat_number: (client as any).vat_number,
         ndi: (client as any).ndi,
         payment_method: client.payment_method,
+        billing_year: (client as any).billing_year,
+        invoiced_offline: (client as any).invoiced_offline,
       }} />
+
       <SupportTicketsSection clientId={id!} />
 
       <ClientEmailHistory clientId={id!} clientEmail={client.email} />

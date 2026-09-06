@@ -6,6 +6,7 @@ import { exportInvoicePDF } from "@/lib/export-invoice-pdf";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { FileText, Eye, Download, Send, Loader2, Mail } from "lucide-react";

@@ -49,6 +49,8 @@ interface ClientInvoicesSectionProps {
     vat_number?: string | null;
     ndi?: string | null;
     payment_method?: string | null;
+    billing_year?: number | null;
+    invoiced_offline?: boolean | null;
   };
 }
 
@@ -57,6 +59,27 @@ export default function ClientInvoicesSection({ client }: ClientInvoicesSectionP
   const sendInvoice = useSendInvoice();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [sendingId, setSendingId] = useState<string | null>(null);
+  const [billingYear, setBillingYear] = useState<string>(client.billing_year ? String(client.billing_year) : "");
+  const [offline, setOffline] = useState<boolean>(!!client.invoiced_offline);
+  const [savingBilling, setSavingBilling] = useState(false);
+
+  const saveBilling = async () => {
+    setSavingBilling(true);
+    const year = billingYear.trim() ? parseInt(billingYear, 10) : null;
+    if (year !== null && (isNaN(year) || year < 2000 || year > 2100)) {
+      toast.error("Année invalide");
+      setSavingBilling(false);
+      return;
+    }
+    const { error } = await supabase
+      .from("clients")
+      .update({ billing_year: year, invoiced_offline: offline } as any)
+      .eq("id", client.id);
+    setSavingBilling(false);
+    if (error) toast.error("Enregistrement impossible");
+    else toast.success("Suivi de facturation enregistré");
+  };
+
 
   const { data: emailLogs } = useQuery({
     queryKey: ["client-invoice-emails", client.id],

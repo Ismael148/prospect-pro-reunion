@@ -145,6 +145,36 @@ export default function ClientInvoicesSection({ client }: ClientInvoicesSectionP
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
+        <div className="rounded-lg border border-border/60 bg-muted/30 p-3 space-y-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Suivi de facturation hors plateforme
+          </p>
+          <div className="flex flex-wrap items-end gap-3">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={offline}
+                onChange={(e) => setOffline(e.target.checked)}
+                className="h-4 w-4 accent-primary"
+              />
+              Facturé hors plateforme
+            </label>
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-muted-foreground">Année de facturation</span>
+              <Input
+                type="number"
+                placeholder="2025"
+                value={billingYear}
+                onChange={(e) => setBillingYear(e.target.value)}
+                className="w-28 h-9"
+              />
+            </div>
+            <Button size="sm" onClick={saveBilling} disabled={savingBilling} className="gap-1.5">
+              {savingBilling && <Loader2 className="w-3.5 h-3.5 animate-spin" />} Enregistrer
+            </Button>
+          </div>
+        </div>
+
         {isLoading ? (
           <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>
         ) : !invoices || invoices.length === 0 ? (

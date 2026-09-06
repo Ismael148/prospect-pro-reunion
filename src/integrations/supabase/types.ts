@@ -433,6 +433,7 @@ export type Database = {
         Row: {
           address: string | null
           assigned_to: string | null
+          billing_year: number | null
           city: string | null
           company_name: string
           conversion_page_created: boolean
@@ -445,6 +446,7 @@ export type Database = {
           google_reviews_url: string | null
           has_gmb: boolean | null
           id: string
+          invoiced_offline: boolean
           logo_created: boolean
           logo_created_at: string | null
           logo_drive_url: string | null
@@ -491,6 +493,7 @@ export type Database = {
         Insert: {
           address?: string | null
           assigned_to?: string | null
+          billing_year?: number | null
           city?: string | null
           company_name: string
           conversion_page_created?: boolean
@@ -503,6 +506,7 @@ export type Database = {
           google_reviews_url?: string | null
           has_gmb?: boolean | null
           id?: string
+          invoiced_offline?: boolean
           logo_created?: boolean
           logo_created_at?: string | null
           logo_drive_url?: string | null
@@ -549,6 +553,7 @@ export type Database = {
         Update: {
           address?: string | null
           assigned_to?: string | null
+          billing_year?: number | null
           city?: string | null
           company_name?: string
           conversion_page_created?: boolean
@@ -561,6 +566,7 @@ export type Database = {
           google_reviews_url?: string | null
           has_gmb?: boolean | null
           id?: string
+          invoiced_offline?: boolean
           logo_created?: boolean
           logo_created_at?: string | null
           logo_drive_url?: string | null

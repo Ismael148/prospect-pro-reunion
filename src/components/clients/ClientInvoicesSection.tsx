@@ -181,6 +181,18 @@ export default function ClientInvoicesSection({ client }: ClientInvoicesSectionP
                 className="w-28 h-9"
               />
             </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-muted-foreground">Montant facturé (€)</span>
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="1490"
+                value={billingAmount}
+                onChange={(e) => setBillingAmount(e.target.value)}
+                className="w-32 h-9"
+              />
+            </div>
+
             <Button size="sm" onClick={saveBilling} disabled={savingBilling} className="gap-1.5">
               {savingBilling && <Loader2 className="w-3.5 h-3.5 animate-spin" />} Enregistrer
             </Button>

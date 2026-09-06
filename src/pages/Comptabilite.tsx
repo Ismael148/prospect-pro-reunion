@@ -335,6 +335,36 @@ export default function Comptabilite() {
             </Card>
           </div>
 
+          {/* Chiffre d'affaires par année */}
+          <Card className="border-0 shadow-soft">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <TrendingUp className="w-4 h-4" /> Chiffre d'affaires par année
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {yearlyRevenue.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Aucune donnée de facturation.</p>
+              ) : (
+                <div className="space-y-2">
+                  {yearlyRevenue.map((row) => (
+                    <div key={row.year} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/60 p-3">
+                      <div>
+                        <p className="font-semibold">{row.year}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Plateforme {row.platform.toFixed(2)} € · Hors plateforme {row.offline.toFixed(2)} € · {row.count} facturation{row.count > 1 ? "s" : ""}
+                        </p>
+                      </div>
+                      <p className="text-lg font-bold text-success">{row.total.toFixed(2)} €</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+
+
           {/* Fiscal charge config */}
           {isAdmin && (
             <Card className="border-0 shadow-soft">

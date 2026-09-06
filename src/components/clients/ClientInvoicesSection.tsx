@@ -52,6 +52,7 @@ interface ClientInvoicesSectionProps {
     payment_method?: string | null;
     billing_year?: number | null;
     invoiced_offline?: boolean | null;
+    billing_amount?: number | null;
   };
 }
 
@@ -62,6 +63,9 @@ export default function ClientInvoicesSection({ client }: ClientInvoicesSectionP
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [billingYear, setBillingYear] = useState<string>(client.billing_year ? String(client.billing_year) : "");
   const [offline, setOffline] = useState<boolean>(!!client.invoiced_offline);
+  const [billingAmount, setBillingAmount] = useState<string>(
+    client.billing_amount != null ? String(client.billing_amount) : "",
+  );
   const [savingBilling, setSavingBilling] = useState(false);
 
   const saveBilling = async () => {
@@ -72,14 +76,21 @@ export default function ClientInvoicesSection({ client }: ClientInvoicesSectionP
       setSavingBilling(false);
       return;
     }
+    const amount = billingAmount.trim() ? Number(billingAmount.replace(",", ".")) : null;
+    if (amount !== null && isNaN(amount)) {
+      toast.error("Montant invalide");
+      setSavingBilling(false);
+      return;
+    }
     const { error } = await supabase
       .from("clients")
-      .update({ billing_year: year, invoiced_offline: offline } as any)
+      .update({ billing_year: year, invoiced_offline: offline, billing_amount: amount } as any)
       .eq("id", client.id);
     setSavingBilling(false);
     if (error) toast.error("Enregistrement impossible");
     else toast.success("Suivi de facturation enregistré");
   };
+
 
 
   const { data: emailLogs } = useQuery({

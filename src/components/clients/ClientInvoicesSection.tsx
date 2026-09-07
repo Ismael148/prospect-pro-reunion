@@ -193,9 +193,16 @@ export default function ClientInvoicesSection({ client }: ClientInvoicesSectionP
               />
             </div>
 
-            <Button size="sm" onClick={saveBilling} disabled={savingBilling} className="gap-1.5">
+            <Button size="sm" variant="outline" onClick={saveBilling} disabled={savingBilling} className="gap-1.5">
               {savingBilling && <Loader2 className="w-3.5 h-3.5 animate-spin" />} Enregistrer
             </Button>
+
+            {offline && (
+              <Button size="sm" onClick={generateAndSendPaidInvoice} disabled={generating} className="gap-1.5">
+                {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                Générer et envoyer la facture acquittée
+              </Button>
+            )}
           </div>
         </div>
 

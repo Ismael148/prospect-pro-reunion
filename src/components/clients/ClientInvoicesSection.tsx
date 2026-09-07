@@ -67,6 +67,50 @@ export default function ClientInvoicesSection({ client }: ClientInvoicesSectionP
     client.billing_amount != null ? String(client.billing_amount) : "",
   );
   const [savingBilling, setSavingBilling] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const createInvoice = useCreateInvoice();
+
+  /** Crée une facture déjà payée (facturation hors plateforme) puis l'envoie au client. */
+  const generateAndSendPaidInvoice = async () => {
+    const amount = billingAmount.trim() ? Number(billingAmount.replace(",", ".")) : null;
+    if (!amount || isNaN(amount) || amount <= 0) {
+      toast.error("Renseignez le montant facturé avant l'envoi");
+      return;
+    }
+    if (!client.email) {
+      toast.error("Ce client n'a pas d'adresse email");
+      return;
+    }
+    setGenerating(true);
+    try {
+      await saveBilling();
+      const { data: auth } = await supabase.auth.getUser();
+      const year = billingYear.trim() ? parseInt(billingYear, 10) : new Date().getFullYear();
+      const issued = `${year}-12-31`;
+      const created = await createInvoice.mutateAsync({
+        client_id: client.id,
+        amount,
+        tax_rate: 0,
+        tax_amount: 0,
+        total_amount: amount,
+        status: "payee",
+        issued_date: issued,
+        paid_date: issued,
+        notes: "Facture acquittée — règlement déjà reçu, aucun paiement complémentaire n'est attendu.",
+        items: [
+          { description: `Prestations Adamkom by JJP ${year}`, quantity: 1, unit_price: amount, total: amount },
+        ],
+        created_by: auth.user?.id,
+        payment_methods: client.payment_method ? [client.payment_method] : null,
+      } as any);
+      await sendInvoice.mutateAsync(created);
+      toast.success("Facture acquittée générée et envoyée au client");
+    } catch (e: any) {
+      toast.error(e?.message || "Erreur lors de la génération de la facture");
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const saveBilling = async () => {
     setSavingBilling(true);

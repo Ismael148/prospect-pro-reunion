@@ -176,11 +176,14 @@ export function useSendInvoice() {
   return useMutation({
     mutationFn: async (invoice: Invoice) => {
       await sendInvoiceEmail(invoice);
-      const { error } = await supabase
-        .from("invoices" as any)
-        .update({ status: "envoyee" } as any)
-        .eq("id", invoice.id);
-      if (error) throw error;
+      // Une facture déjà payée garde son statut : on ne fait que renvoyer le document.
+      if (invoice.status !== "payee") {
+        const { error } = await supabase
+          .from("invoices" as any)
+          .update({ status: "envoyee" } as any)
+          .eq("id", invoice.id);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["invoices"] });

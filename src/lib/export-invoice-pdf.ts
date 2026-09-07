@@ -76,9 +76,8 @@ export function exportInvoicePDF(data: InvoicePDFData, options?: { returnBase64?
   doc.text(`FACTURE N° ${data.invoice_number}`, pw - 15, 18, { align: "right" });
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
-  doc.text(`DATE D'ÉMISSION : ${new Date(data.issued_date).toLocaleDateString("fr-FR")}`, pw - 15, 26, { align: "right" });
   if (data.due_date) {
-    doc.text(`ÉCHÉANCE : ${new Date(data.due_date).toLocaleDateString("fr-FR")}`, pw - 15, 33, { align: "right" });
+    doc.text(`ÉCHÉANCE : ${new Date(data.due_date).toLocaleDateString("fr-FR")}`, pw - 15, 26, { align: "right" });
   }
 
   // === LOGO ===

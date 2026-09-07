@@ -5,7 +5,6 @@ import { INVOICE_LOGO_PNG } from "@/lib/invoice-logo";
 
 interface InvoicePDFData {
   invoice_number: string;
-  issued_date: string;
   due_date?: string | null;
   status: string;
   amount: number;

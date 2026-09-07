@@ -228,10 +228,16 @@ export default function ClientInvoicesSection({ client }: ClientInvoicesSectionP
                     <Button size="sm" variant="outline" onClick={() => exportInvoicePDF(buildPdfData(inv))} className="gap-1.5">
                       <Download className="w-3.5 h-3.5" /> PDF
                     </Button>
-                    {inv.status === "brouillon" && (
-                      <Button size="sm" onClick={() => handleSend(inv)} disabled={sendingId === inv.id} className="gap-1.5">
+                    {(inv.status === "brouillon" || inv.status === "payee" || inv.status === "envoyee") && (
+                      <Button
+                        size="sm"
+                        variant={inv.status === "brouillon" ? "default" : "outline"}
+                        onClick={() => handleSend(inv)}
+                        disabled={sendingId === inv.id}
+                        className="gap-1.5"
+                      >
                         {sendingId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-                        Envoyer
+                        {inv.status === "brouillon" ? "Envoyer" : inv.status === "payee" ? "Envoyer la facture acquittée" : "Renvoyer"}
                       </Button>
                     )}
                   </div>

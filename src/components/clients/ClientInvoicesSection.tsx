@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useInvoicesByClient, useSendInvoice, type Invoice } from "@/hooks/use-invoices";
+import { useInvoicesByClient, useSendInvoice, useCreateInvoice, type Invoice } from "@/hooks/use-invoices";
 import { exportInvoicePDF } from "@/lib/export-invoice-pdf";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

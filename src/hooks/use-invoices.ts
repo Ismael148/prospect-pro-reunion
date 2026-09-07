@@ -101,7 +101,6 @@ export async function sendInvoiceEmail(data: Invoice) {
 
   const pdfBase64 = exportInvoicePDF({
     invoice_number: data.invoice_number,
-    issued_date: data.issued_date,
     due_date: data.due_date,
     status: data.status,
     amount: data.amount,

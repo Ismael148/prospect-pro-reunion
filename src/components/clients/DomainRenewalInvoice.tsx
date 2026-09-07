@@ -110,7 +110,6 @@ export default function DomainRenewalInvoice({ client }: { client: ClientData })
 
       const pdfBase64 = exportInvoicePDF({
         invoice_number: invoice.invoice_number,
-        issued_date: invoice.issued_date,
         due_date: invoice.due_date,
         status: invoice.status,
         amount: amountNum,

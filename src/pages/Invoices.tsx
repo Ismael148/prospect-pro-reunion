@@ -392,8 +392,8 @@ export default function Invoices() {
                         <Button size="icon" variant="ghost" onClick={() => handleDownload(inv)} title="Télécharger PDF (aucun envoi)">
                           <Download className="w-4 h-4" />
                         </Button>
-                        {isAdmin && inv.status === "brouillon" && (
-                          <Button size="icon" variant="ghost" onClick={() => handleSend(inv)} disabled={sendInvoice.isPending} title="Envoyer la facture au client">
+                        {isAdmin && (inv.status === "brouillon" || inv.status === "payee") && (
+                          <Button size="icon" variant="ghost" onClick={() => handleSend(inv)} disabled={sendInvoice.isPending} title={inv.status === "payee" ? "Envoyer la facture acquittée au client" : "Envoyer la facture au client"}>
                             {sendInvoice.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4 text-primary" />}
                           </Button>
                         )}

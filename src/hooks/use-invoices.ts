@@ -125,10 +125,20 @@ export async function sendInvoiceEmail(data: Invoice) {
     },
   }, { returnBase64: true });
 
+  const isPaid = data.status === "payee";
   await triggerN8nWebhook('invoice.created', {
     invoice_number: data.invoice_number,
     total_amount: data.total_amount,
     due_date: data.due_date,
+    is_paid: isPaid,
+    paid_date: data.paid_date,
+    payment_status_label: isPaid ? "Payée" : "En attente de règlement",
+    payment_methods: data.payment_methods || null,
+    payment_method: client.payment_method || null,
+    payment_reference: `Facture ${data.invoice_number}`,
+    payment_note: isPaid
+      ? `Cette facture est soldée${data.paid_date ? ` (paiement reçu le ${new Date(data.paid_date).toLocaleDateString("fr-FR")})` : ""}. Aucun règlement complémentaire n'est attendu.`
+      : `Merci d'indiquer la référence « Facture ${data.invoice_number} » lors de votre règlement.`,
     client_id: data.client_id,
     client_email: client.email,
     company_name: client.company_name,
@@ -166,11 +176,14 @@ export function useSendInvoice() {
   return useMutation({
     mutationFn: async (invoice: Invoice) => {
       await sendInvoiceEmail(invoice);
-      const { error } = await supabase
-        .from("invoices" as any)
-        .update({ status: "envoyee" } as any)
-        .eq("id", invoice.id);
-      if (error) throw error;
+      // Une facture déjà payée garde son statut : on ne fait que renvoyer le document.
+      if (invoice.status !== "payee") {
+        const { error } = await supabase
+          .from("invoices" as any)
+          .update({ status: "envoyee" } as any)
+          .eq("id", invoice.id);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["invoices"] });

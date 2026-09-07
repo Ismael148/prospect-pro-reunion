@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useInvoicesByClient, useSendInvoice, type Invoice } from "@/hooks/use-invoices";
+import { useInvoicesByClient, useSendInvoice, useCreateInvoice, type Invoice } from "@/hooks/use-invoices";
 import { exportInvoicePDF } from "@/lib/export-invoice-pdf";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -67,6 +67,50 @@ export default function ClientInvoicesSection({ client }: ClientInvoicesSectionP
     client.billing_amount != null ? String(client.billing_amount) : "",
   );
   const [savingBilling, setSavingBilling] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const createInvoice = useCreateInvoice();
+
+  /** Crée une facture déjà payée (facturation hors plateforme) puis l'envoie au client. */
+  const generateAndSendPaidInvoice = async () => {
+    const amount = billingAmount.trim() ? Number(billingAmount.replace(",", ".")) : null;
+    if (!amount || isNaN(amount) || amount <= 0) {
+      toast.error("Renseignez le montant facturé avant l'envoi");
+      return;
+    }
+    if (!client.email) {
+      toast.error("Ce client n'a pas d'adresse email");
+      return;
+    }
+    setGenerating(true);
+    try {
+      await saveBilling();
+      const { data: auth } = await supabase.auth.getUser();
+      const year = billingYear.trim() ? parseInt(billingYear, 10) : new Date().getFullYear();
+      const issued = `${year}-12-31`;
+      const created = await createInvoice.mutateAsync({
+        client_id: client.id,
+        amount,
+        tax_rate: 0,
+        tax_amount: 0,
+        total_amount: amount,
+        status: "payee",
+        issued_date: issued,
+        paid_date: issued,
+        notes: "Facture acquittée — règlement déjà reçu, aucun paiement complémentaire n'est attendu.",
+        items: [
+          { description: `Prestations Adamkom by JJP ${year}`, quantity: 1, unit_price: amount, total: amount },
+        ],
+        created_by: auth.user?.id,
+        payment_methods: client.payment_method ? [client.payment_method] : null,
+      } as any);
+      await sendInvoice.mutateAsync(created);
+      toast.success("Facture acquittée générée et envoyée au client");
+    } catch (e: any) {
+      toast.error(e?.message || "Erreur lors de la génération de la facture");
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const saveBilling = async () => {
     setSavingBilling(true);
@@ -193,9 +237,16 @@ export default function ClientInvoicesSection({ client }: ClientInvoicesSectionP
               />
             </div>
 
-            <Button size="sm" onClick={saveBilling} disabled={savingBilling} className="gap-1.5">
+            <Button size="sm" variant="outline" onClick={saveBilling} disabled={savingBilling} className="gap-1.5">
               {savingBilling && <Loader2 className="w-3.5 h-3.5 animate-spin" />} Enregistrer
             </Button>
+
+            {offline && (
+              <Button size="sm" onClick={generateAndSendPaidInvoice} disabled={generating} className="gap-1.5">
+                {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                Générer et envoyer la facture acquittée
+              </Button>
+            )}
           </div>
         </div>
 
@@ -228,10 +279,16 @@ export default function ClientInvoicesSection({ client }: ClientInvoicesSectionP
                     <Button size="sm" variant="outline" onClick={() => exportInvoicePDF(buildPdfData(inv))} className="gap-1.5">
                       <Download className="w-3.5 h-3.5" /> PDF
                     </Button>
-                    {inv.status === "brouillon" && (
-                      <Button size="sm" onClick={() => handleSend(inv)} disabled={sendingId === inv.id} className="gap-1.5">
+                    {(inv.status === "brouillon" || inv.status === "payee" || inv.status === "envoyee") && (
+                      <Button
+                        size="sm"
+                        variant={inv.status === "brouillon" ? "default" : "outline"}
+                        onClick={() => handleSend(inv)}
+                        disabled={sendingId === inv.id}
+                        className="gap-1.5"
+                      >
                         {sendingId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-                        Envoyer
+                        {inv.status === "brouillon" ? "Envoyer" : inv.status === "payee" ? "Envoyer la facture acquittée" : "Renvoyer"}
                       </Button>
                     )}
                   </div>

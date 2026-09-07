@@ -81,7 +81,7 @@ function buildReportHtml(url: string, clientName: string, data: any): string {
   </div>
   
   <div style="background:#1E3A5F;padding:16px;text-align:center;border-radius:0 0 12px 12px">
-    <p style="color:#fff;margin:0;font-size:12px">ADAMKOM by JJP — contact@adamkom.com — 0693 802 201</p>
+    <p style="color:#fff;margin:0;font-size:12px">ADAMKOM by JJP — contact@adamkom.com — 0262 66 68 76</p>
   </div>
 </div>`;
 }

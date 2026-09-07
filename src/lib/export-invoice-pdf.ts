@@ -33,7 +33,7 @@ interface InvoicePDFData {
 export const ISSUER = {
   name: "JJ Pothin",
   address: "73 RUE DU GÉNÉRAL AILLERET TAMPON",
-  phone: "0693 802 201",
+  phone: "0262 66 68 76",
   email: "contact@adamkom.com",
   siret: "413 851 338 00041",
   vat: "FR04 413 851 338",
@@ -266,7 +266,7 @@ export function exportInvoicePDF(data: InvoicePDFData, options?: { returnBase64?
 
   doc.setTextColor(...WHITE);
   doc.setFontSize(8);
-  doc.text("ADAMKOM by JJP — Solutions digitales pour entreprises | contact@adamkom.com | 0693 802 201", pw / 2, ph - 10, { align: "center" });
+  doc.text("ADAMKOM by JJP — Solutions digitales pour entreprises | contact@adamkom.com | 0262 66 68 76", pw / 2, ph - 10, { align: "center" });
 
   if (options?.returnBase64) {
     return doc.output("datauristring").split(",")[1];

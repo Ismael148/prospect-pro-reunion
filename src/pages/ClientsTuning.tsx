@@ -241,24 +241,12 @@ export default function ClientsTuning() {
                       </label>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Link2 className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                        <Input
-                          className="h-8 text-xs"
-                          defaultValue={c.conversion_page_url || ""}
-                          placeholder="https://..."
-                          onBlur={(e) => {
-                            const v = e.target.value.trim();
-                            if (v !== (c.conversion_page_url || "")) updateClient(c.id, { conversion_page_url: v || null });
-                          }}
-                        />
-                        {c.conversion_page_url && (
-                          <a href={c.conversion_page_url} target="_blank" rel="noreferrer" className="text-primary shrink-0">
-                            <ExternalLink className="w-4 h-4" />
-                          </a>
-                        )}
-                      </div>
+                      <ConversionUrlInput
+                        value={c.conversion_page_url || ""}
+                        onSave={(v) => updateClient(c.id, { conversion_page_url: v || null }, { silent: true })}
+                      />
                     </TableCell>
+
                     <TableCell className="text-right font-mono text-sm">
                       {Number(c.pack_amount || PACK_PRICES[TUNING_PACK]).toFixed(2)} €
                       {c.tuning_website_addon && <div className="text-[10px] text-primary">Tuning + site</div>}

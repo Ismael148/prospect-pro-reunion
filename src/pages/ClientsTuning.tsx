@@ -265,3 +265,62 @@ export default function ClientsTuning() {
     </motion.div>
   );
 }
+
+function ConversionUrlInput({ value, onSave }: { value: string; onSave: (v: string) => Promise<void> }) {
+  const [local, setLocal] = useState(value);
+  const [state, setState] = useState<"idle" | "saving" | "saved">("idle");
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSaved = useRef(value);
+
+  useEffect(() => {
+    if (value !== lastSaved.current) {
+      lastSaved.current = value;
+      setLocal(value);
+    }
+  }, [value]);
+
+  const save = async (v: string) => {
+    if (v === lastSaved.current) return;
+    setState("saving");
+    try {
+      await onSave(v);
+      lastSaved.current = v;
+      setState("saved");
+      setTimeout(() => setState("idle"), 1500);
+    } catch {
+      setState("idle");
+    }
+  };
+
+  const handleChange = (v: string) => {
+    setLocal(v);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => save(v.trim()), 800);
+  };
+
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+
+  return (
+    <div className="flex items-center gap-2">
+      <Link2 className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+      <Input
+        className="h-8 text-xs"
+        value={local}
+        placeholder="https://..."
+        onChange={(e) => handleChange(e.target.value)}
+        onBlur={() => { if (timer.current) clearTimeout(timer.current); save(local.trim()); }}
+        onKeyDown={(e) => { if (e.key === "Enter") { if (timer.current) clearTimeout(timer.current); save(local.trim()); } }}
+      />
+      <span className="w-4 shrink-0 flex items-center justify-center">
+        {state === "saving" && <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />}
+        {state === "saved" && <Check className="w-3.5 h-3.5 text-emerald-500" />}
+      </span>
+      {lastSaved.current && state !== "saving" && (
+        <a href={lastSaved.current} target="_blank" rel="noreferrer" className="text-primary shrink-0">
+          <ExternalLink className="w-4 h-4" />
+        </a>
+      )}
+    </div>
+  );
+}
+

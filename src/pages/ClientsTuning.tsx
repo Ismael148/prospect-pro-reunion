@@ -83,14 +83,15 @@ export default function ClientsTuning() {
     } catch (e: any) { toast.error("Erreur : " + (e?.message || "création impossible")); }
   };
 
-  const updateClient = async (id: string, patch: Record<string, unknown>) => {
+  const updateClient = async (id: string, patch: Record<string, unknown>, opts?: { silent?: boolean }) => {
     setSavingId(id);
     const { error } = await supabase.from("clients").update(patch as any).eq("id", id);
     setSavingId(null);
-    if (error) { toast.error("Erreur : " + error.message); return; }
+    if (error) { toast.error("Erreur : " + error.message); throw error; }
     queryClient.invalidateQueries({ queryKey: ["clients"] });
-    toast.success("Mis à jour");
+    if (!opts?.silent) toast.success("Mis à jour");
   };
+
 
   const created = tuningClients.filter((c: any) => c.conversion_page_created).length;
 

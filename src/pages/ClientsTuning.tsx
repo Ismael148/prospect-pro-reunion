@@ -17,8 +17,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import {
-  Plus, Search, Loader2, Sparkles, ExternalLink, Building2, MapPin, FileDown, FileText, Link2,
+  Plus, Search, Loader2, Sparkles, ExternalLink, Building2, MapPin, FileDown, FileText, Link2, Check,
 } from "lucide-react";
+
 import { exportClientsCSV, exportClientsPDF } from "@/lib/export-clients-list";
 
 const TUNING_PACK = "star_bizness_tuning";

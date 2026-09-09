@@ -55,13 +55,13 @@ export const PACK_PRICES: Record<string, number> = {
 
 export const TUNING_WEBSITE_ADDON_PRICE = 990;
 
-// Abonnement de continuité de service à partir de la 2e année (sans engagement)
+// Abonnement de maintenance à partir de la 2e année (sans engagement)
 export const PACK_RENEWAL_PRICES: Record<string, number> = {
-  star_bizness_tuning: 90,
+  star_bizness_tuning: 149,
 };
 
 export const PACK_RENEWAL_NOTE =
-  "À partir de la 2e année : abonnement de 90 € par an, sans engagement. Il assure la continuité de service : hébergement, maintenance et suivi.";
+  "À partir de la 2e année : abonnement de 149 € par an, sans engagement. Il couvre la maintenance, les mises à jour, l'hébergement et le suivi technique.";
 
 export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
   en_attente: "En attente",

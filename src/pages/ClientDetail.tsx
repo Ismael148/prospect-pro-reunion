@@ -42,6 +42,7 @@ import ClientEmailActions from "@/components/clients/ClientEmailActions";
 import DomainRenewalInvoice from "@/components/clients/DomainRenewalInvoice";
 import ClientEmailHistory from "@/components/clients/ClientEmailHistory";
 import ClientInvoicesSection from "@/components/clients/ClientInvoicesSection";
+import ConversionFormSection from "@/components/clients/ConversionFormSection";
 
 import ClientRemindersSection from "@/components/clients/ClientRemindersSection";
 import RelanceFlagsSection from "@/components/clients/RelanceFlagsSection";

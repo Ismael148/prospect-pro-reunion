@@ -1237,7 +1237,7 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName, cli
 
   const nfcLink = supportToken ? `${PUBLISHED_URL}/f/${supportToken}/nfc` : null;
   const siteLink = supportToken ? `${PUBLISHED_URL}/f/${supportToken}/site` : null;
-  const conversionLink = supportToken ? `${PUBLISHED_URL}/f/${supportToken}/conversion` : null;
+  
   const whatsappLink = `${PUBLISHED_URL}/tuto/whatsapp-business?client_id=${clientId}`;
 
 

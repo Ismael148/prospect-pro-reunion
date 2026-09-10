@@ -14,14 +14,15 @@ export interface UploadProgress {
 }
 
 /** Au-delà de ce seuil on bascule sur l'upload repris (tus) par tranches. */
-const RESUMABLE_THRESHOLD = 20 * 1024 * 1024; // 20 Mo
-const CHUNK_SIZE = 6 * 1024 * 1024; // imposé par Supabase Storage
+const RESUMABLE_THRESHOLD = 80 * 1024 * 1024; // 80 Mo : en dessous, un seul POST direct (plus rapide)
+const CHUNK_SIZE = 12 * 1024 * 1024; // tranches plus grosses = moins d'allers-retours
 
 function createSpeedTracker(onProgress?: (p: UploadProgress) => void) {
   const start = Date.now();
   let lastLoaded = 0;
   let lastTime = start;
   let speed = 0;
+  let lastEmit = 0;
 
   return (loaded: number, total: number) => {
     const now = Date.now();
@@ -33,6 +34,11 @@ function createSpeedTracker(onProgress?: (p: UploadProgress) => void) {
       lastLoaded = loaded;
       lastTime = now;
     }
+    // On limite les mises à jour de l'interface (sinon l'app se fige sur les gros fichiers)
+    const done = loaded >= total;
+    if (!done && now - lastEmit < 400) return;
+    lastEmit = now;
+
     const avg = (loaded / Math.max(1, now - start)) * 1000;
     const effective = speed || avg;
     onProgress?.({

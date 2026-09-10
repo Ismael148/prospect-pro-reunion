@@ -42,6 +42,7 @@ import ClientEmailActions from "@/components/clients/ClientEmailActions";
 import DomainRenewalInvoice from "@/components/clients/DomainRenewalInvoice";
 import ClientEmailHistory from "@/components/clients/ClientEmailHistory";
 import ClientInvoicesSection from "@/components/clients/ClientInvoicesSection";
+import ConversionFormSection from "@/components/clients/ConversionFormSection";
 
 import ClientRemindersSection from "@/components/clients/ClientRemindersSection";
 import RelanceFlagsSection from "@/components/clients/RelanceFlagsSection";
@@ -1237,7 +1238,7 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName, cli
 
   const nfcLink = supportToken ? `${PUBLISHED_URL}/f/${supportToken}/nfc` : null;
   const siteLink = supportToken ? `${PUBLISHED_URL}/f/${supportToken}/site` : null;
-  const conversionLink = supportToken ? `${PUBLISHED_URL}/f/${supportToken}/conversion` : null;
+  
   const whatsappLink = `${PUBLISHED_URL}/tuto/whatsapp-business?client_id=${clientId}`;
 
 
@@ -1296,7 +1297,7 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName, cli
             {[
               { label: "Carte NFC", link: nfcLink!, icon: CreditCard },
               ...(packType !== "star_bizness_nfc" && packType !== "star_bizness_tuning" ? [{ label: "Site Internet", link: siteLink!, icon: Globe }] : []),
-              ...(packType === "star_bizness_tuning" ? [{ label: "Page de conversion", link: conversionLink!, icon: Globe }] : []),
+              
               { label: "WhatsApp Business", link: whatsappLink!, icon: MessageCircle },
 
 
@@ -1785,6 +1786,15 @@ export default function ClientDetail() {
       <SupportTicketsSection clientId={id!} />
 
       <ClientEmailHistory clientId={id!} clientEmail={client.email} />
+      {client.pack_type === "star_bizness_tuning" && (
+        <ConversionFormSection
+          clientId={id!}
+          companyName={(client as any).company_name}
+          managerName={(client as any).manager_name}
+          email={(client as any).email}
+          supportToken={(client as any).support_token}
+        />
+      )}
       <ClientFormsSection clientId={id!} supportToken={(client as any).support_token} packType={client.pack_type ?? undefined} companyName={(client as any).company_name} clientEmail={(client as any).email} />
       {client.pack_type !== "star_bizness_nfc" && <SocialMediaSection clientId={id!} clientNdi={(client as any).ndi} clientEmail={(client as any).email} clientCompany={(client as any).company_name} clientManager={(client as any).manager_name} />}
       {/* {client.pack_type !== "star_bizness_nfc" && <ChatbotConfigSection clientId={id!} clientCompany={(client as any).company_name} />} */}

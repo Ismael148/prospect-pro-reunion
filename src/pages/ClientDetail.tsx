@@ -1296,7 +1296,7 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName, cli
             {[
               { label: "Carte NFC", link: nfcLink!, icon: CreditCard },
               ...(packType !== "star_bizness_nfc" && packType !== "star_bizness_tuning" ? [{ label: "Site Internet", link: siteLink!, icon: Globe }] : []),
-              ...(packType === "star_bizness_tuning" ? [{ label: "Page de conversion", link: conversionLink!, icon: Globe }] : []),
+              
               { label: "WhatsApp Business", link: whatsappLink!, icon: MessageCircle },
 
 

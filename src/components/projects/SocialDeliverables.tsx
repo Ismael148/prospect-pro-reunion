@@ -336,7 +336,13 @@ ${previewBlock}
                         {del.file_url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
                           <img src={del.file_url} alt={config.label} className="w-full h-32 object-cover rounded-lg border" />
                         ) : del.file_url.match(/\.(mp4|webm|mov)$/i) ? (
-                          <video src={del.file_url} className="w-full h-32 object-cover rounded-lg border" controls />
+                          <video
+                            src={del.file_url}
+                            className="w-full h-32 object-cover rounded-lg border"
+                            controls
+                            preload="metadata"
+                            playsInline
+                          />
                         ) : (
                           <div className="w-full h-16 rounded-lg border flex items-center justify-center text-xs text-muted-foreground">
                             📎 Voir le fichier

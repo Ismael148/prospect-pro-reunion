@@ -80,6 +80,21 @@ export default function Invoices() {
   const [clientCategory, setClientCategory] = useState("all");
   const [packFilter, setPackFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedClientId, setSelectedClientId] = useState("");
+  const [taxRate, setTaxRate] = useState("0");
+  const [notes, setNotes] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [items, setItems] = useState<InvoiceItem[]>([
+    { description: "", quantity: 1, unit_price: 0, total: 0 },
+  ]);
+  const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const clientMap = useMemo(() => {
+    const map = new Map<string, any>();
+    (clients || []).forEach((c) => map.set(c.id, c));
+    return map;
+  }, [clients]);
 
   const filteredInvoices = useMemo(() => {
     if (!invoices) return [];

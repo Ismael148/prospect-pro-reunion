@@ -81,8 +81,6 @@ export default function Invoices() {
   const [packFilter, setPackFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  ...
-
   const filteredInvoices = useMemo(() => {
     if (!invoices) return [];
     return invoices.filter((inv) => {

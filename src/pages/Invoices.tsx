@@ -78,35 +78,29 @@ export default function Invoices() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [clientCategory, setClientCategory] = useState("all");
+  const [packFilter, setPackFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedClientId, setSelectedClientId] = useState("");
-  const [taxRate, setTaxRate] = useState("0");
-  const [notes, setNotes] = useState("");
-  const [dueDate, setDueDate] = useState("");
-  const [items, setItems] = useState<InvoiceItem[]>([
-    { description: "", quantity: 1, unit_price: 0, total: 0 },
-  ]);
-  const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const clientMap = useMemo(() => {
-    const map = new Map<string, any>();
-    (clients || []).forEach((c) => map.set(c.id, c));
-    return map;
-  }, [clients]);
+  ...
 
   const filteredInvoices = useMemo(() => {
     if (!invoices) return [];
     return invoices.filter((inv) => {
       const client = clientMap.get(inv.client_id);
-      const matchSearch = !search || 
-        inv.invoice_number.toLowerCase().includes(search.toLowerCase()) ||
-        (client?.company_name || "").toLowerCase().includes(search.toLowerCase());
+      const packLabel = (PACK_LABELS as Record<string, string>)[client?.pack_type as string] || "";
+      const categoryLabel = (CLIENT_CATEGORIES.find((c) => c.value === getClientCategory(client?.pack_type))?.label) || "";
+      const term = search.toLowerCase();
+      const matchSearch = !search ||
+        inv.invoice_number.toLowerCase().includes(term) ||
+        (client?.company_name || "").toLowerCase().includes(term) ||
+        packLabel.toLowerCase().includes(term) ||
+        categoryLabel.toLowerCase().includes(term);
       const matchStatus = statusFilter === "all" || inv.status === statusFilter;
       const matchCategory = clientCategory === "all" || getClientCategory(client?.pack_type) === clientCategory;
-      return matchSearch && matchStatus && matchCategory;
+      const matchPack = packFilter === "all" || client?.pack_type === packFilter;
+      return matchSearch && matchStatus && matchCategory && matchPack;
     });
-  }, [invoices, search, statusFilter, clientCategory, clientMap]);
+  }, [invoices, search, statusFilter, clientCategory, packFilter, clientMap]);
 
 
   const updateItemRow = (index: number, field: keyof InvoiceItem, value: any) => {

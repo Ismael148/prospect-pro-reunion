@@ -78,6 +78,7 @@ export default function Invoices() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [clientCategory, setClientCategory] = useState("all");
+  const [packFilter, setPackFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState("");
   const [taxRate, setTaxRate] = useState("0");
@@ -99,14 +100,20 @@ export default function Invoices() {
     if (!invoices) return [];
     return invoices.filter((inv) => {
       const client = clientMap.get(inv.client_id);
-      const matchSearch = !search || 
-        inv.invoice_number.toLowerCase().includes(search.toLowerCase()) ||
-        (client?.company_name || "").toLowerCase().includes(search.toLowerCase());
+      const packLabel = (PACK_LABELS as Record<string, string>)[client?.pack_type as string] || "";
+      const categoryLabel = (CLIENT_CATEGORIES.find((c) => c.value === getClientCategory(client?.pack_type))?.label) || "";
+      const term = search.toLowerCase();
+      const matchSearch = !search ||
+        inv.invoice_number.toLowerCase().includes(term) ||
+        (client?.company_name || "").toLowerCase().includes(term) ||
+        packLabel.toLowerCase().includes(term) ||
+        categoryLabel.toLowerCase().includes(term);
       const matchStatus = statusFilter === "all" || inv.status === statusFilter;
       const matchCategory = clientCategory === "all" || getClientCategory(client?.pack_type) === clientCategory;
-      return matchSearch && matchStatus && matchCategory;
+      const matchPack = packFilter === "all" || client?.pack_type === packFilter;
+      return matchSearch && matchStatus && matchCategory && matchPack;
     });
-  }, [invoices, search, statusFilter, clientCategory, clientMap]);
+  }, [invoices, search, statusFilter, clientCategory, packFilter, clientMap]);
 
 
   const updateItemRow = (index: number, field: keyof InvoiceItem, value: any) => {
@@ -331,9 +338,18 @@ export default function Invoices() {
             ))}
           </SelectContent>
         </Select>
+        <Select value={packFilter} onValueChange={setPackFilter}>
+          <SelectTrigger className="w-56"><SelectValue placeholder="Pack" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les packs</SelectItem>
+            {Object.entries(PACK_LABELS).map(([value, label]) => (
+              <SelectItem key={value} value={value}>{label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Rechercher une facture..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input placeholder="Rechercher par n°, nom, catégorie ou pack..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-40"><SelectValue placeholder="Statut" /></SelectTrigger>

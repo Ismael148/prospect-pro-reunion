@@ -18,6 +18,7 @@ export interface Invoice {
   tax_rate: number;
   tax_amount: number;
   total_amount: number;
+  discount_amount?: number | null;
   status: string;
   issued_date: string;
   due_date: string | null;
@@ -107,6 +108,7 @@ export async function sendInvoiceEmail(data: Invoice) {
     tax_rate: data.tax_rate,
     tax_amount: data.tax_amount,
     total_amount: data.total_amount,
+    discount_amount: (data as any).discount_amount ?? 0,
     notes: data.notes,
     items: data.items,
     payment_methods: data.payment_methods,
@@ -128,6 +130,7 @@ export async function sendInvoiceEmail(data: Invoice) {
   await triggerN8nWebhook('invoice.created', {
     invoice_number: data.invoice_number,
     total_amount: data.total_amount,
+    discount_amount: (data as any).discount_amount ?? 0,
     due_date: data.due_date,
     is_paid: isPaid,
     paid_date: data.paid_date,

@@ -82,6 +82,7 @@ export default function Invoices() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState("");
   const [taxRate, setTaxRate] = useState("0");
+  const [discount, setDiscount] = useState("");
   const [notes, setNotes] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [items, setItems] = useState<InvoiceItem[]>([
@@ -127,8 +128,10 @@ export default function Invoices() {
   const removeItem = (i: number) => setItems(items.filter((_, idx) => idx !== i));
 
   const subtotal = items.reduce((s, item) => s + item.total, 0);
-  const tax = subtotal * (parseFloat(taxRate) || 0) / 100;
-  const total = subtotal + tax;
+  const discountAmount = Math.min(Math.max(parseFloat(discount) || 0, 0), subtotal);
+  const netSubtotal = subtotal - discountAmount;
+  const tax = netSubtotal * (parseFloat(taxRate) || 0) / 100;
+  const total = netSubtotal + tax;
 
   // Auto-fill items from client pack
   const handleClientChange = (clientId: string) => {
@@ -166,10 +169,11 @@ export default function Invoices() {
     try {
       await createInvoice.mutateAsync({
         client_id: selectedClientId,
-        amount: subtotal,
+        amount: netSubtotal,
         tax_rate: parseFloat(taxRate) || 0,
         tax_amount: tax,
         total_amount: total,
+        discount_amount: discountAmount,
         items: items as any,
         notes: notes || null,
         due_date: dueDate || null,
@@ -186,6 +190,7 @@ export default function Invoices() {
   const resetForm = () => {
     setSelectedClientId("");
     setTaxRate("0");
+    setDiscount("");
     setNotes("");
     setDueDate("");
     setItems([{ description: "", quantity: 1, unit_price: 0, total: 0 }]);
@@ -245,10 +250,11 @@ export default function Invoices() {
       issued_date: new Date().toISOString().slice(0, 10),
       due_date: dueDate || null,
       status: "brouillon",
-      amount: subtotal,
+      amount: netSubtotal,
       tax_rate: parseFloat(taxRate) || 0,
       tax_amount: tax,
       total_amount: total,
+      discount_amount: discountAmount,
       notes: notes || null,
       items,
       payment_methods: paymentMethods.length > 0 ? paymentMethods : null,
@@ -479,10 +485,14 @@ export default function Invoices() {
             </div>
 
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>Taux TVA (%)</Label>
                 <Input type="number" min="0" max="100" step="0.1" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Remise (€)</Label>
+                <Input type="number" min="0" step="0.01" placeholder="0.00" value={discount} onChange={(e) => setDiscount(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label>Date d'échéance</Label>
@@ -557,6 +567,12 @@ export default function Invoices() {
                   <span>Sous-total HT</span>
                   <span className="font-mono">{subtotal.toFixed(2)} €</span>
                 </div>
+                {discountAmount > 0 && (
+                  <div className="flex justify-between text-sm text-primary">
+                    <span>Remise</span>
+                    <span className="font-mono">-{discountAmount.toFixed(2)} €</span>
+                  </div>
+                )}
                 {parseFloat(taxRate) > 0 && (
                   <div className="flex justify-between text-sm">
                     <span>TVA ({taxRate}%)</span>

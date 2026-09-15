@@ -11,6 +11,7 @@ interface InvoicePDFData {
   tax_rate: number;
   tax_amount: number;
   total_amount: number;
+  discount_amount?: number | null;
   notes?: string | null;
   items: InvoiceItem[];
   payment_methods?: string[] | null;
@@ -204,19 +205,35 @@ export function exportInvoicePDF(data: InvoicePDFData, options?: { returnBase64?
   const totalsBoxY = y - 12;
 
   // Subtotal
+  const discount = Number(data.discount_amount || 0);
+  const gross = data.amount + discount;
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(...GRAY);
-  doc.text("Sous-total HT :", totalsBoxX, totalsBoxY);
-  doc.text(`${data.amount.toFixed(2)} €`, pw - 15, totalsBoxY, { align: "right" });
+  let ty = totalsBoxY;
+  if (discount > 0) {
+    doc.text("Sous-total HT :", totalsBoxX, ty);
+    doc.text(`${gross.toFixed(2)} €`, pw - 15, ty, { align: "right" });
+    ty += 6;
+    doc.setTextColor(...GOLD);
+    doc.text("Remise :", totalsBoxX, ty);
+    doc.text(`-${discount.toFixed(2)} €`, pw - 15, ty, { align: "right" });
+    ty += 6;
+    doc.setTextColor(...GRAY);
+    doc.text("Total HT net :", totalsBoxX, ty);
+    doc.text(`${data.amount.toFixed(2)} €`, pw - 15, ty, { align: "right" });
+  } else {
+    doc.text("Sous-total HT :", totalsBoxX, ty);
+    doc.text(`${data.amount.toFixed(2)} €`, pw - 15, ty, { align: "right" });
+  }
 
   if (data.tax_rate > 0) {
-    doc.text(`TVA (${data.tax_rate}%) :`, totalsBoxX, totalsBoxY + 6);
-    doc.text(`${data.tax_amount.toFixed(2)} €`, pw - 15, totalsBoxY + 6, { align: "right" });
+    doc.text(`TVA (${data.tax_rate}%) :`, totalsBoxX, ty + 6);
+    doc.text(`${data.tax_amount.toFixed(2)} €`, pw - 15, ty + 6, { align: "right" });
   }
 
   // Total TTC box
-  const ttcY = totalsBoxY + (data.tax_rate > 0 ? 14 : 8);
+  const ttcY = ty + (data.tax_rate > 0 ? 14 : 8);
   doc.setFillColor(...NAVY);
   doc.roundedRect(totalsBoxX - 5, ttcY - 5, pw - totalsBoxX + 5 - 10, 14, 2, 2, "F");
   doc.setFontSize(11);

@@ -358,14 +358,17 @@ export const TUNING_MODULES: ProjectModule[] = [
   },
 ];
 
-export function getPackModules(packType: string, siteType?: string, hasGmb?: boolean, tuningWebsiteAddon = false): ProjectModule[] {
+export function getPackModules(packType: string, siteType?: string, hasGmb?: boolean, tuningWebsiteAddon = false, skipTuningCard = false): ProjectModule[] {
   if (packType === "star_bizness_nfc") {
     return PACK_MODULES.star_bizness_nfc;
   }
   if (packType === "star_bizness_tuning") {
-    if (!tuningWebsiteAddon) return TUNING_MODULES;
+    const baseModules = skipTuningCard
+      ? TUNING_MODULES.filter((m) => m.id !== "carte_business")
+      : TUNING_MODULES;
+    if (!tuningWebsiteAddon) return baseModules;
     return [
-      ...TUNING_MODULES,
+      ...baseModules,
       {
         id: "site_internet",
         name: "Création de site internet",

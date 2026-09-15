@@ -38,13 +38,14 @@ interface Props {
   siteType?: string;
   hasGmb?: boolean;
   tuningWebsiteAddon?: boolean;
+  skipTuningCard?: boolean;
   onTaskStatusChange: (taskId: string, status: TaskStatus) => Promise<void>;
   onAddTask?: (task: TablesInsert<"project_tasks">) => Promise<void>;
   onAssignModule?: (moduleId: string, userId: string | null) => Promise<void>;
   onModuleLinkUpdate?: (moduleId: string, linkUrl: string) => Promise<void>;
 }
 
-export default function ProjectModules({ packType, tasks, projectId, startDate, isAdmin, teamMembers = [], moduleLinks = {}, projectStatus, siteType, hasGmb, tuningWebsiteAddon, onTaskStatusChange, onAddTask, onAssignModule, onModuleLinkUpdate }: Props) {
+export default function ProjectModules({ packType, tasks, projectId, startDate, isAdmin, teamMembers = [], moduleLinks = {}, projectStatus, siteType, hasGmb, tuningWebsiteAddon, skipTuningCard, onTaskStatusChange, onAddTask, onAssignModule, onModuleLinkUpdate }: Props) {
   const [checkingAll, setCheckingAll] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [addDialogOpen, setAddDialogOpen] = useState<string | null>(null);
@@ -53,7 +54,7 @@ export default function ProjectModules({ packType, tasks, projectId, startDate, 
   const [newTaskPriority, setNewTaskPriority] = useState<TaskPriority>("moyenne");
   const [editingModuleLink, setEditingModuleLink] = useState<string | null>(null);
   const [moduleLinkValue, setModuleLinkValue] = useState("");
-  const modules = getPackModules(packType, siteType, hasGmb, tuningWebsiteAddon);
+  const modules = getPackModules(packType, siteType, hasGmb, tuningWebsiteAddon, skipTuningCard);
 
   // Group tasks by module id
   const tasksByModule = useMemo(() => {

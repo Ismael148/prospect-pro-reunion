@@ -1623,12 +1623,21 @@ export default function ClientDetail() {
               value={client.pack_type || ""}
               onValueChange={async (val) => {
                 try {
-                  await updateClient.mutateAsync({ id: client.id, pack_type: val as any });
+                  const wasNfc = client.pack_type === "star_bizness_nfc";
+                  const isTuningNow = val === "star_bizness_tuning";
+                  const payload: any = { id: client.id, pack_type: val as any };
+                  // Client 1.0 (NFC) converti en Pack Tuning : la carte business est déjà livrée
+                  if (wasNfc && isTuningNow) payload.tuning_skip_card = true;
+                  await updateClient.mutateAsync(payload);
                   await createActivity.mutateAsync({
                     client_id: client.id, user_id: user!.id, activity_type: "pack_change",
-                    description: `Pack changé en "${PACK_LABELS[val as PackType] || val}"`,
+                    description: `Pack changé en "${PACK_LABELS[val as PackType] || val}"${wasNfc && isTuningNow ? " (carte business déjà livrée : module retiré des tâches)" : ""}`,
                   });
-                  toast.success(`Pack changé en ${PACK_LABELS[val as PackType] || val}`);
+                  toast.success(
+                    wasNfc && isTuningNow
+                      ? "Converti en Pack Tuning — tâches sans la création de carte"
+                      : `Pack changé en ${PACK_LABELS[val as PackType] || val}`
+                  );
                 } catch { toast.error("Erreur lors du changement de pack"); }
               }}
             >

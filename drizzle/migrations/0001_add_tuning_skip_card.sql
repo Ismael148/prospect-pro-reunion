@@ -1,0 +1,1 @@
+ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS tuning_skip_card BOOLEAN NOT NULL DEFAULT false;

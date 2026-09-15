@@ -11,6 +11,7 @@ interface InvoicePDFData {
   tax_rate: number;
   tax_amount: number;
   total_amount: number;
+  discount_amount?: number | null;
   notes?: string | null;
   items: InvoiceItem[];
   payment_methods?: string[] | null;

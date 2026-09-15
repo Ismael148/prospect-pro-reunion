@@ -485,10 +485,14 @@ export default function Invoices() {
             </div>
 
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>Taux TVA (%)</Label>
                 <Input type="number" min="0" max="100" step="0.1" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Remise (€)</Label>
+                <Input type="number" min="0" step="0.01" placeholder="0.00" value={discount} onChange={(e) => setDiscount(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label>Date d'échéance</Label>
@@ -563,6 +567,12 @@ export default function Invoices() {
                   <span>Sous-total HT</span>
                   <span className="font-mono">{subtotal.toFixed(2)} €</span>
                 </div>
+                {discountAmount > 0 && (
+                  <div className="flex justify-between text-sm text-primary">
+                    <span>Remise</span>
+                    <span className="font-mono">-{discountAmount.toFixed(2)} €</span>
+                  </div>
+                )}
                 {parseFloat(taxRate) > 0 && (
                   <div className="flex justify-between text-sm">
                     <span>TVA ({taxRate}%)</span>

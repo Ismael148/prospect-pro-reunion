@@ -18,6 +18,7 @@ export interface Invoice {
   tax_rate: number;
   tax_amount: number;
   total_amount: number;
+  discount_amount?: number | null;
   status: string;
   issued_date: string;
   due_date: string | null;

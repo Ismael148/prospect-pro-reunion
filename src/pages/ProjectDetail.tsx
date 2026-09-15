@@ -55,7 +55,7 @@ export default function ProjectDetail() {
   const { data: clientData } = useQuery({
     queryKey: ["client-config", clientId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("clients").select("has_gmb, site_type, tuning_website_addon").eq("id", clientId!).single();
+      const { data, error } = await supabase.from("clients").select("has_gmb, site_type, tuning_website_addon, tuning_skip_card").eq("id", clientId!).single();
       if (error) throw error;
       return data as any;
     },
@@ -97,6 +97,7 @@ export default function ProjectDetail() {
   const siteType = (project as any)?.site_type || "vitrine";
   const hasGmb = clientData?.has_gmb || false;
   const tuningWebsiteAddon = clientData?.tuning_website_addon || false;
+  const skipTuningCard = (clientData as any)?.tuning_skip_card || false;
 
   const handleStatusChange = async (status: ProjectStatus) => {
     if (!project) return;
@@ -142,7 +143,7 @@ export default function ProjectDetail() {
           const moduleTasks = tasks.filter(t => t.description?.match(/\[(.*?)\]/)?.[1] === moduleId);
           const allOthersDone = moduleTasks.every(t => t.id === taskId || t.status === "termine");
           if (allOthersDone && moduleTasks.length > 0) {
-            const modules = getPackModules(project?.pack_type || "", siteType, hasGmb, tuningWebsiteAddon);
+            const modules = getPackModules(project?.pack_type || "", siteType, hasGmb, tuningWebsiteAddon, skipTuningCard);
             const mod = modules.find(m => m.id === moduleId);
             const moduleName = mod?.name || moduleId;
 
@@ -174,7 +175,7 @@ export default function ProjectDetail() {
 
   const handleAutoGenerateModules = async () => {
     if (!project) return;
-    const modules = getPackModules(project.pack_type, siteType, hasGmb, tuningWebsiteAddon);
+    const modules = getPackModules(project.pack_type, siteType, hasGmb, tuningWebsiteAddon, skipTuningCard);
     if (!modules.length) { toast.error("Pas de modules pour ce pack"); return; }
     try {
       let sortIndex = 0;
@@ -200,7 +201,7 @@ export default function ProjectDetail() {
 
   const handleRegenerateModules = async () => {
     if (!project || !id) return;
-    const modules = getPackModules(project.pack_type, siteType, hasGmb, tuningWebsiteAddon);
+    const modules = getPackModules(project.pack_type, siteType, hasGmb, tuningWebsiteAddon, skipTuningCard);
     if (!modules.length) { toast.error("Pas de modules pour ce pack"); return; }
     setIsRegenerating(true);
     try {
@@ -267,7 +268,7 @@ export default function ProjectDetail() {
     if (!project) return;
     const DESIGN_DELIVERABLE = "Livraison de votre design de chez Adamkom by JJP";
     const SOCIAL_DELIVERABLE = "Réseaux sociaux & Publications";
-    const modules = getPackModules(project.pack_type, siteType, hasGmb, tuningWebsiteAddon);
+    const modules = getPackModules(project.pack_type, siteType, hasGmb, tuningWebsiteAddon, skipTuningCard);
     const names = modules
       .map((m) => m.name)
       // Retiré : ce livrable est remplacé par la livraison de design
@@ -315,7 +316,7 @@ export default function ProjectDetail() {
   if (!project) return <p className="text-muted-foreground">Projet introuvable</p>;
 
   const hasTasks = tasks && tasks.length > 0;
-  const hasModules = getPackModules(project.pack_type, siteType, hasGmb, tuningWebsiteAddon).length > 0;
+  const hasModules = getPackModules(project.pack_type, siteType, hasGmb, tuningWebsiteAddon, skipTuningCard).length > 0;
   const daysLeft = daysUntil(project.due_date);
   const projectClosed = project.status === "termine" || project.status === "annule";
   const isOverdue = !projectClosed && daysLeft !== null && daysLeft < 0;
@@ -534,6 +535,7 @@ export default function ProjectDetail() {
           siteType={siteType}
           hasGmb={hasGmb}
           tuningWebsiteAddon={tuningWebsiteAddon}
+          skipTuningCard={skipTuningCard}
           onTaskStatusChange={handleTaskStatusChange}
           onAddTask={handleAddTask}
           onAssignModule={handleAssignModule}

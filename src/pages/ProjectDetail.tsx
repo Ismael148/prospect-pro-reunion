@@ -441,6 +441,35 @@ export default function ProjectDetail() {
         </Card>
       )}
 
+      {/* Config Pack Tuning : client 1.0 converti (carte business déjà livrée) */}
+      {isAdmin && isTuning && (
+        <Card className="border-0 shadow-md shadow-primary/5">
+          <CardContent className="pt-6 space-y-3">
+            <p className="text-sm font-semibold text-foreground">⚙️ Configuration Pack Tuning</p>
+            <div className="space-y-2 max-w-md">
+              <label className="text-sm font-medium">Carte business NFC</label>
+              <Select value={skipTuningCard ? "oui" : "non"} onValueChange={handleSkipCardToggle}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="non">💳 À créer (client neuf)</SelectItem>
+                  <SelectItem value="oui">✅ Déjà livrée (client 1.0 converti)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {skipTuningCard
+                  ? "Le module « Carte business NFC » est retiré des tâches générées."
+                  : "Toutes les tâches du Pack Tuning sont générées, carte incluse."}
+              </p>
+              {hasTasks && (
+                <p className="text-xs text-primary">
+                  Des tâches existent déjà : utilisez « Regénérer les tâches » pour appliquer ce changement.
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Info cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="border-0 shadow-md shadow-primary/5">

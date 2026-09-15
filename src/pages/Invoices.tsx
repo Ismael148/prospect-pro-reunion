@@ -82,6 +82,7 @@ export default function Invoices() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState("");
   const [taxRate, setTaxRate] = useState("0");
+  const [discount, setDiscount] = useState("");
   const [notes, setNotes] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [items, setItems] = useState<InvoiceItem[]>([
@@ -127,8 +128,10 @@ export default function Invoices() {
   const removeItem = (i: number) => setItems(items.filter((_, idx) => idx !== i));
 
   const subtotal = items.reduce((s, item) => s + item.total, 0);
-  const tax = subtotal * (parseFloat(taxRate) || 0) / 100;
-  const total = subtotal + tax;
+  const discountAmount = Math.min(Math.max(parseFloat(discount) || 0, 0), subtotal);
+  const netSubtotal = subtotal - discountAmount;
+  const tax = netSubtotal * (parseFloat(taxRate) || 0) / 100;
+  const total = netSubtotal + tax;
 
   // Auto-fill items from client pack
   const handleClientChange = (clientId: string) => {

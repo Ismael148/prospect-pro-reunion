@@ -169,10 +169,11 @@ export default function Invoices() {
     try {
       await createInvoice.mutateAsync({
         client_id: selectedClientId,
-        amount: subtotal,
+        amount: netSubtotal,
         tax_rate: parseFloat(taxRate) || 0,
         tax_amount: tax,
         total_amount: total,
+        discount_amount: discountAmount,
         items: items as any,
         notes: notes || null,
         due_date: dueDate || null,
@@ -189,6 +190,7 @@ export default function Invoices() {
   const resetForm = () => {
     setSelectedClientId("");
     setTaxRate("0");
+    setDiscount("");
     setNotes("");
     setDueDate("");
     setItems([{ description: "", quantity: 1, unit_price: 0, total: 0 }]);
@@ -248,10 +250,11 @@ export default function Invoices() {
       issued_date: new Date().toISOString().slice(0, 10),
       due_date: dueDate || null,
       status: "brouillon",
-      amount: subtotal,
+      amount: netSubtotal,
       tax_rate: parseFloat(taxRate) || 0,
       tax_amount: tax,
       total_amount: total,
+      discount_amount: discountAmount,
       notes: notes || null,
       items,
       payment_methods: paymentMethods.length > 0 ? paymentMethods : null,

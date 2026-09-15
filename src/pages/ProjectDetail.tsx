@@ -331,6 +331,7 @@ export default function ProjectDetail() {
   const isOverdue = !projectClosed && daysLeft !== null && daysLeft < 0;
   const isUrgent = !projectClosed && daysLeft !== null && daysLeft >= 0 && daysLeft <= 3;
   const isNumerik = project.pack_type === "star_bizness_numerik";
+  const isTuning = project.pack_type === "star_bizness_tuning";
 
   return (
     <div className="space-y-6">

@@ -126,6 +126,15 @@ export default function ProjectDetail() {
     } catch { toast.error("Erreur"); }
   };
 
+  const handleSkipCardToggle = async (value: string) => {
+    if (!clientId) return;
+    try {
+      await supabase.from("clients").update({ tuning_skip_card: value === "oui" } as any).eq("id", clientId);
+      toast.success(value === "oui" ? "Carte business déjà livrée : module retiré" : "Module carte business inclus");
+      window.location.reload();
+    } catch { toast.error("Erreur"); }
+  };
+
   const queryClient = useQueryClient();
 
   const handleTaskStatusChange = async (taskId: string, status: TaskStatus) => {

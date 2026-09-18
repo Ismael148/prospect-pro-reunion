@@ -55,7 +55,7 @@ export default function ProjectDetail() {
   const { data: clientData } = useQuery({
     queryKey: ["client-config", clientId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("clients").select("has_gmb, site_type, tuning_website_addon, tuning_skip_card").eq("id", clientId!).single();
+      const { data, error } = await supabase.from("clients").select("has_gmb, site_type, tuning_website_addon, tuning_skip_card, pack_type").eq("id", clientId!).single();
       if (error) throw error;
       return data as any;
     },
@@ -93,6 +93,11 @@ export default function ProjectDetail() {
   const deleteProjectTasks = useDeleteProjectTasks();
   const [isRegenerating, setIsRegenerating] = useState(false);
   const isAdmin = hasRole("admin");
+
+  const effectivePackType =
+    project?.pack_type && project.pack_type !== "autre"
+      ? project.pack_type
+      : ((clientData?.pack_type as any) || project?.pack_type || "autre");
 
   const siteType = (project as any)?.site_type || "vitrine";
   const hasGmb = clientData?.has_gmb || false;
@@ -152,7 +157,7 @@ export default function ProjectDetail() {
           const moduleTasks = tasks.filter(t => t.description?.match(/\[(.*?)\]/)?.[1] === moduleId);
           const allOthersDone = moduleTasks.every(t => t.id === taskId || t.status === "termine");
           if (allOthersDone && moduleTasks.length > 0) {
-            const modules = getPackModules(project?.pack_type || "", siteType, hasGmb, tuningWebsiteAddon, skipTuningCard);
+            const modules = getPackModules(effectivePackType, siteType, hasGmb, tuningWebsiteAddon, skipTuningCard);
             const mod = modules.find(m => m.id === moduleId);
             const moduleName = mod?.name || moduleId;
 
@@ -184,7 +189,7 @@ export default function ProjectDetail() {
 
   const handleAutoGenerateModules = async () => {
     if (!project) return;
-    const modules = getPackModules(project.pack_type, siteType, hasGmb, tuningWebsiteAddon, skipTuningCard);
+    const modules = getPackModules(effectivePackType, siteType, hasGmb, tuningWebsiteAddon, skipTuningCard);
     if (!modules.length) { toast.error("Pas de modules pour ce pack"); return; }
     try {
       let sortIndex = 0;
@@ -210,7 +215,7 @@ export default function ProjectDetail() {
 
   const handleRegenerateModules = async () => {
     if (!project || !id) return;
-    const modules = getPackModules(project.pack_type, siteType, hasGmb, tuningWebsiteAddon, skipTuningCard);
+    const modules = getPackModules(effectivePackType, siteType, hasGmb, tuningWebsiteAddon, skipTuningCard);
     if (!modules.length) { toast.error("Pas de modules pour ce pack"); return; }
     setIsRegenerating(true);
     try {
@@ -277,7 +282,7 @@ export default function ProjectDetail() {
     if (!project) return;
     const DESIGN_DELIVERABLE = "Livraison de votre design de chez Adamkom by JJP";
     const SOCIAL_DELIVERABLE = "Réseaux sociaux & Publications";
-    const modules = getPackModules(project.pack_type, siteType, hasGmb, tuningWebsiteAddon, skipTuningCard);
+    const modules = getPackModules(effectivePackType, siteType, hasGmb, tuningWebsiteAddon, skipTuningCard);
     const names = modules
       .map((m) => m.name)
       // Retiré : ce livrable est remplacé par la livraison de design
@@ -325,13 +330,13 @@ export default function ProjectDetail() {
   if (!project) return <p className="text-muted-foreground">Projet introuvable</p>;
 
   const hasTasks = tasks && tasks.length > 0;
-  const hasModules = getPackModules(project.pack_type, siteType, hasGmb, tuningWebsiteAddon, skipTuningCard).length > 0;
+  const hasModules = getPackModules(effectivePackType, siteType, hasGmb, tuningWebsiteAddon, skipTuningCard).length > 0;
   const daysLeft = daysUntil(project.due_date);
   const projectClosed = project.status === "termine" || project.status === "annule";
   const isOverdue = !projectClosed && daysLeft !== null && daysLeft < 0;
   const isUrgent = !projectClosed && daysLeft !== null && daysLeft >= 0 && daysLeft <= 3;
-  const isNumerik = project.pack_type === "star_bizness_numerik";
-  const isTuning = project.pack_type === "star_bizness_tuning";
+  const isNumerik = effectivePackType === "star_bizness_numerik";
+  const isTuning = effectivePackType === "star_bizness_tuning";
 
   return (
     <div className="space-y-6">
@@ -344,7 +349,7 @@ export default function ProjectDetail() {
             <Building2 className="w-3.5 h-3.5" />
             {(project as any).clients?.company_name}
             <span>•</span>
-            <Badge variant="secondary" className="text-xs">{PACK_LABELS[project.pack_type]}</Badge>
+            <Badge variant="secondary" className="text-xs">{PACK_LABELS[effectivePackType as keyof typeof PACK_LABELS] || PACK_LABELS[project.pack_type]}</Badge>
             {isNumerik && (
               <Badge variant="outline" className="text-xs gap-1">
                 {siteType === "ecommerce" ? <><ShoppingCart className="w-3 h-3" /> E-commerce</> : <><Globe className="w-3 h-3" /> Vitrine</>}
@@ -565,7 +570,7 @@ export default function ProjectDetail() {
       {/* Modules with checkable tasks */}
       {hasTasks && (
         <ProjectModules
-          packType={project.pack_type}
+          packType={effectivePackType}
           tasks={tasks}
           projectId={id!}
           startDate={project.start_date}
@@ -637,7 +642,7 @@ export default function ProjectDetail() {
       {/* Deliverables */}
       <ProjectDeliverables
         projectId={id!}
-        packType={project.pack_type}
+        packType={effectivePackType}
         deliverables={deliverables}
         clientEmail={(project as any).clients?.email}
         clientName={(project as any).clients?.company_name}

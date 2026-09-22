@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import logo from "@/assets/logo.webp";
-import TutoFAQ, { type FAQItem } from "@/components/tuto/TutoFAQ";
+import { TutoFAQ, type FAQItem } from "@/components/tuto/TutoFAQ";
 
 function Ext({ href, children }: { href: string; children: React.ReactNode }) {
   return (

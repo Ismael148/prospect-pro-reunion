@@ -53,6 +53,7 @@ import TutoPaiements from "./pages/TutoPaiements";
 import TutoMotoPress from "./pages/TutoMotoPress";
 import TutoWhatsAppBusiness from "./pages/TutoWhatsAppBusiness";
 import TutoEmailProGmail from "./pages/TutoEmailProGmail";
+import TutoGoogleAnalytics from "./pages/TutoGoogleAnalytics";
 import Calendrier from "./pages/Calendrier";
 import GmbPublic from "./pages/GmbPublic";
 import FormationSeo from "./pages/FormationSeo";
@@ -214,6 +215,7 @@ const App = () => (
             <Route path="/tuto/motopress" element={<TutoMotoPress />} />
             <Route path="/tuto/whatsapp-business" element={<TutoWhatsAppBusiness />} />
             <Route path="/tuto/email-pro-gmail" element={<TutoEmailProGmail />} />
+            <Route path="/tuto/google-analytics" element={<TutoGoogleAnalytics />} />
             {/* Public routes */}
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />

@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import {
-  Mail, Send, Loader2, Ticket, FileText, CreditCard, Globe, Eye, Sparkles, Wand2, Star, Facebook, MapPin, KeyRound, Copy, CalendarCheck, AtSign, MessageCircle, Pencil, RotateCcw,
+  Mail, Send, Loader2, Ticket, FileText, CreditCard, Globe, Eye, Sparkles, Wand2, Star, Facebook, MapPin, KeyRound, Copy, CalendarCheck, AtSign, MessageCircle, Pencil, RotateCcw, BarChart3,
 } from "lucide-react";
 import EmailTemplateSaver from "@/components/EmailTemplateSaver";
 import type { SavedTemplate } from "@/hooks/use-email-templates";
@@ -103,6 +103,29 @@ ${makeCta('🌐 Remplir le formulaire site', siteFormLink)}
 ${makeCta('⭐ Laisser un avis Google', reviewLink)}
 <p style="margin:0 0 20px;font-size:13px;color:#71717a;text-align:center">Ou copiez ce lien dans votre navigateur :<br><a href="${reviewLink}" style="color:${BRAND_COLOR};word-break:break-all">${reviewLink}</a></p>
 <p style="margin:0">Avec toute notre gratitude,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`;
+      },
+    },
+    {
+      id: 'tuto_google_analytics',
+      label: 'Tuto Google Analytics',
+      icon: <BarChart3 className="w-4 h-4" />,
+      subject: `Suivez les visites de votre site — ${client.company_name}`,
+      trigger: 'tuto_google_analytics',
+      bodyFn: () => {
+        const params = new URLSearchParams();
+        params.set('company', client.company_name);
+        const tutoLink = `${PUBLISHED_URL}/tuto/google-analytics?${params.toString()}`;
+        return `<p style="margin:0 0 20px">Bonjour <strong>${greeting}</strong>,</p>
+<p style="margin:0 0 20px">Savoir <strong>combien de personnes visitent votre site</strong>, d'où elles viennent (Google, Facebook, Instagram…) et quelles pages les intéressent, c'est essentiel pour développer votre activité.</p>
+<p style="margin:0 0 20px">Pour cela, il existe un outil <strong>100% gratuit de Google : Google Analytics</strong>. Bonne nouvelle : il se connecte <strong>directement avec votre adresse Gmail habituelle</strong>, vous restez donc le seul propriétaire de vos statistiques et vous y accédez quand vous voulez, même depuis votre téléphone.</p>
+<p style="margin:0 0 20px">Nous avons préparé un <strong>tutoriel pas-à-pas (10 minutes)</strong>, écrit simplement, pour créer votre compte vous-même :</p>
+${makeCta('📊 Suivre le tutoriel Google Analytics', tutoLink)}
+<div style="margin:24px 0;padding:18px 20px;background:#fff7fb;border:1px solid #ffd1e3;border-left:4px solid ${BRAND_COLOR};border-radius:8px">
+  <p style="margin:0 0 8px;font-weight:700;color:#18181b">📩 Une seule information à nous renvoyer</p>
+  <p style="margin:0;font-size:14px;color:#3f3f46;line-height:1.6">À la fin, Google vous donne un identifiant de mesure du type <strong>G-XXXXXXXXXX</strong>. Renvoyez-le nous par simple réponse à cet email : nous l'installons sur votre site et vos statistiques démarrent immédiatement.</p>
+</div>
+<p style="margin:0 0 20px;font-size:13px;color:#71717a">Nous ne vous demandons <strong>jamais</strong> votre mot de passe Gmail. Si vous souhaitez qu'on suive vos chiffres avec vous, il suffit de nous ajouter comme utilisateur — et vous pouvez nous retirer à tout moment.</p>
+<p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`;
       },
     },
     {

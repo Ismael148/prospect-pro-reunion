@@ -378,6 +378,45 @@ export default function FormationSeo() {
 
         {/* --------------------------- COURS --------------------------- */}
         <TabsContent value="cours" className="mt-4 space-y-4">
+          {/* Tutoriels à envoyer aux clients */}
+          <Card className="border-primary/20 bg-primary/5">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <BookOpen className="h-4 w-4 text-primary" /> Tutoriels clients
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Guides pas-à-pas à envoyer aux clients depuis « Actions Email Client » sur leur fiche.
+              </p>
+              <div className="rounded-xl border border-border bg-background p-4">
+                <p className="font-medium">Configurer Google Analytics avec son compte Gmail</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Le client crée lui-même son compte Analytics (gratuit, relié à son Gmail) et nous
+                  renvoie son identifiant de mesure G-XXXXXXXXXX.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button asChild size="sm" variant="outline" className="gap-1.5">
+                    <a href="/tuto/google-analytics" target="_blank" rel="noreferrer">
+                      <ExternalLink className="h-3.5 w-3.5" /> Ouvrir le tutoriel
+                    </a>
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="gap-1.5"
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/tuto/google-analytics`);
+                      toast.success("Lien du tutoriel copié");
+                    }}
+                  >
+                    <Copy className="h-3.5 w-3.5" /> Copier le lien
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {SEO_CURRICULUM.map((mod) => {
             const modDone = mod.lessons.filter((l) => doneMap.has(l.id)).length;
             const pct = Math.round((modDone / mod.lessons.length) * 100);

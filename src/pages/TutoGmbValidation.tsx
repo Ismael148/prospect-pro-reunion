@@ -47,7 +47,7 @@ export default function TutoGmbValidation() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="tuto-light min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       {/* Top bar */}
       <header className="sticky top-0 z-20 backdrop-blur-xl bg-background/70 border-b border-border/50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">

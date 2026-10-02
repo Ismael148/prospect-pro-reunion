@@ -15,6 +15,13 @@
       "when": 1789453438858,
       "tag": "0001_add_tuning_skip_card",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790945312804,
+      "tag": "0002_project_tasks_staff_update",
+      "breakpoints": true
     }
   ]
 }

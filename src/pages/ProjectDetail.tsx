@@ -176,7 +176,13 @@ export default function ProjectDetail() {
           }
         }
       }
-    } catch { toast.error("Erreur lors de la mise à jour de la tâche"); }
+    } catch (e: any) {
+      console.error("Task update failed", e);
+      const msg = e?.code === "PGRST116"
+        ? "Vous n'avez pas les droits pour modifier cette tâche. Contactez un administrateur."
+        : `Erreur lors de la mise à jour de la tâche${e?.message ? ` : ${e.message}` : ""}`;
+      toast.error(msg);
+    }
   };
 
   const handleModuleLinkUpdate = async (moduleId: string, linkUrl: string) => {

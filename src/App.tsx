@@ -36,6 +36,7 @@ import DomainRenewals from "./pages/DomainRenewals";
 import AuditLog from "./pages/AuditLog";
 import Historique from "./pages/Historique";
 import Performance from "./pages/Performance";
+import TachesEquipe from "./pages/TachesEquipe";
 import Privacy from "./pages/Privacy";
 import LogoValidation from "./pages/LogoValidation";
 import Terms from "./pages/Terms";
@@ -101,6 +102,10 @@ const App = () => (
             <Route
               path="/projets/:id/livrables/:deliverableId/envoyer"
               element={<ProtectedRoute><AppLayout><ProjectDeliverableEmail /></AppLayout></ProtectedRoute>}
+            />
+            <Route
+              path="/taches-equipe"
+              element={<ProtectedRoute><AppLayout><TachesEquipe /></AppLayout></ProtectedRoute>}
             />
             <Route
               path="/webmaster"

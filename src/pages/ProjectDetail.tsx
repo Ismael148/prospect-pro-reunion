@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { insertPackTasks } from "@/lib/auto-project";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -40,7 +41,7 @@ export default function ProjectDetail() {
   const navigate = useNavigate();
   const { user, hasRole } = useAuth();
   const { data: project, isLoading, error: projectError } = useProject(id!);
-  const { data: tasks = [] } = useProjectTasks(id!);
+  const { data: tasks = [], isFetched: tasksFetched } = useProjectTasks(id!);
   const { data: deliverables } = useDeliverables(id!);
   const { data: teamMembers } = useQuery({
     queryKey: ["team-members"],
@@ -103,6 +104,23 @@ export default function ProjectDetail() {
   const hasGmb = clientData?.has_gmb || false;
   const tuningWebsiteAddon = clientData?.tuning_website_addon || false;
   const skipTuningCard = (clientData as any)?.tuning_skip_card || false;
+
+  // Génération automatique des tâches du pack si le projet n'en a aucune
+  const autoGenRef = useRef(false);
+  useEffect(() => {
+    if (autoGenRef.current || !project || !clientData || !tasksFetched || tasks.length > 0) return;
+    if (!effectivePackType || effectivePackType === "autre") return;
+    autoGenRef.current = true;
+    insertPackTasks(project.id, { ...clientData, pack_type: effectivePackType, site_type: siteType }, project.start_date || new Date().toISOString().split("T")[0])
+      .then((n) => {
+        if (n) {
+          toast.success(`${n} tâches générées automatiquement`);
+          queryClient.invalidateQueries({ queryKey: ["project_tasks", project.id] });
+        }
+      })
+      .catch((e) => console.warn("Auto task generation failed", e));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project?.id, clientData, tasksFetched, tasks.length, effectivePackType]);
 
   const handleStatusChange = async (status: ProjectStatus) => {
     if (!project) return;

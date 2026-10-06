@@ -3084,6 +3084,10 @@ export type Database = {
         }
         Returns: string
       }
+      pick_least_loaded_user: {
+        Args: { _role: Database["public"]["Enums"]["app_role"] }
+        Returns: string
+      }
       submit_client_form_public: {
         Args: {
           p_form_data: Json
@@ -3179,6 +3183,10 @@ export type Database = {
           p_whatsapp_number?: string
         }
         Returns: string
+      }
+      task_role_for_module: {
+        Args: { _module: string }
+        Returns: Database["public"]["Enums"]["app_role"]
       }
       validate_logo_with_token: {
         Args: { p_client_id: string; p_token: string }

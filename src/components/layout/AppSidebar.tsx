@@ -26,6 +26,7 @@ import {
   Gauge,
   GraduationCap,
   Sparkles,
+  ListChecks,
 } from "lucide-react";
 import logo from "@/assets/logo.webp";
 import {
@@ -44,13 +45,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useMemo } from "react";
 
 const ROLE_ACCESS: Record<string, string[]> = {
-  admin: ["/", "/historique", "/performance", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/comptabilite", "/facturation", "/renouvellements-ndd", "/support", "/campagnes", "/emails", "/paiements", "/equipe", "/parametres", "/cartes-nfc", "/clients-tuning", "/corbeille", "/acces-partenaire", "/gmb", "/onboarding-fb", "/calendrier", "/formation-seo"],
-  agent_master: ["/", "/historique", "/performance", "/agent-master", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/clients-tuning", "/acces-partenaire", "/gmb", "/onboarding-fb", "/calendrier", "/formation-seo"],
+  admin: ["/", "/taches-equipe", "/historique", "/performance", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/comptabilite", "/facturation", "/renouvellements-ndd", "/support", "/campagnes", "/emails", "/paiements", "/equipe", "/parametres", "/cartes-nfc", "/clients-tuning", "/corbeille", "/acces-partenaire", "/gmb", "/onboarding-fb", "/calendrier", "/formation-seo"],
+  agent_master: ["/", "/taches-equipe", "/historique", "/performance", "/agent-master", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/clients-tuning", "/acces-partenaire", "/gmb", "/onboarding-fb", "/calendrier", "/formation-seo"],
   agent_telephonique: ["/", "/historique", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/clients-tuning", "/onboarding-fb", "/calendrier"],
   agent_support: ["/", "/historique", "/clients", "/support", "/projets", "/cartes-nfc", "/clients-tuning", "/onboarding-fb", "/calendrier"],
   commercial_terrain: ["/", "/historique", "/projets", "/commissions", "/calendrier"],
-  webmaster: ["/", "/historique", "/clients", "/clients-tuning", "/cartes-nfc", "/projets", "/webmaster", "/support", "/acces-partenaire", "/gmb", "/onboarding-fb", "/onboarding-clients", "/calendrier", "/formation-seo"],
-  designer: ["/", "/historique", "/projets", "/webmaster", "/support", "/calendrier", "/formation-seo"],
+  webmaster: ["/", "/taches-equipe", "/historique", "/clients", "/clients-tuning", "/cartes-nfc", "/projets", "/webmaster", "/support", "/acces-partenaire", "/gmb", "/onboarding-fb", "/onboarding-clients", "/calendrier", "/formation-seo"],
+  designer: ["/", "/taches-equipe", "/historique", "/projets", "/webmaster", "/support", "/calendrier", "/formation-seo"],
 };
 
 const allMenuItems = [
@@ -63,6 +64,7 @@ const allMenuItems = [
   { title: "Pipeline", icon: FolderKanban, path: "/pipeline" },
   { title: "Projets", icon: Briefcase, path: "/projets" },
   { title: "Calendrier", icon: CalendarDays, path: "/calendrier" },
+  { title: "Tâches par rôle", icon: ListChecks, path: "/taches-equipe" },
   { title: "Historique", icon: History, path: "/historique" },
   { title: "Suivi équipe", icon: Gauge, path: "/performance" },
   { title: "Commissions", icon: Coins, path: "/commissions" },

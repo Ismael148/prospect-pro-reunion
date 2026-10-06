@@ -348,7 +348,7 @@ export default function ProjectDetail() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/projets")}><ArrowLeft className="w-5 h-5" /></Button>
+        <Button variant="ghost" size="icon" onClick={() => { if (window.history.length > 2) navigate(-1); else navigate("/projets"); }}><ArrowLeft className="w-5 h-5" /></Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold tracking-tight">{project.name}</h1>
           <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">

@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef } from "react";
-import { insertPackTasks } from "@/lib/auto-project";
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";

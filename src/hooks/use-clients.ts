@@ -79,12 +79,6 @@ export function useCreateClient() {
         .select()
         .single();
       if (error) throw error;
-      try {
-        const { ensureProjectWithTasks } = await import("@/lib/auto-project");
-        await ensureProjectWithTasks(data);
-      } catch (e) {
-        console.warn("Auto project/tasks generation failed", e);
-      }
       return data;
     },
     onSuccess: () => {

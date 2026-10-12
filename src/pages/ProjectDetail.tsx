@@ -105,22 +105,6 @@ export default function ProjectDetail() {
   const tuningWebsiteAddon = clientData?.tuning_website_addon || false;
   const skipTuningCard = (clientData as any)?.tuning_skip_card || false;
 
-  // Génération automatique des tâches du pack si le projet n'en a aucune
-  const autoGenRef = useRef(false);
-  useEffect(() => {
-    if (autoGenRef.current || !project || !clientData || !tasksFetched || tasks.length > 0) return;
-    if (!effectivePackType || effectivePackType === "autre") return;
-    autoGenRef.current = true;
-    insertPackTasks(project.id, { ...clientData, pack_type: effectivePackType, site_type: siteType }, project.start_date || new Date().toISOString().split("T")[0])
-      .then((n) => {
-        if (n) {
-          toast.success(`${n} tâches générées automatiquement`);
-          queryClient.invalidateQueries({ queryKey: ["project_tasks", project.id] });
-        }
-      })
-      .catch((e) => console.warn("Auto task generation failed", e));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [project?.id, clientData, tasksFetched, tasks.length, effectivePackType]);
 
   const handleStatusChange = async (status: ProjectStatus) => {
     if (!project) return;

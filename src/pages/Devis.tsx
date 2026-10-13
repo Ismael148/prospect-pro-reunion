@@ -218,6 +218,10 @@ export default function Devis() {
 
       <Card>
         <CardHeader><CardTitle className="text-base">1. Modèle de devis {quoteNumber && <Badge variant="secondary" className="ml-2">{quoteNumber}</Badge>}</CardTitle></CardHeader>
+        <div className="px-6 -mt-1 pb-1 flex items-center gap-2">
+          <Label htmlFor="quote-number" className="text-xs text-muted-foreground whitespace-nowrap">N° de devis</Label>
+          <Input id="quote-number" value={customNumber} onChange={(e) => setCustomNumber(e.target.value)} placeholder="Automatique (DEV-2026-0001)" className="h-8 max-w-[220px] text-sm" />
+        </div>
         <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {QUOTE_TEMPLATES.map((t) => (
             <button key={t.key} type="button" onClick={() => pickTemplate(t.key)}

@@ -30,6 +30,7 @@ const TEMPLATE_LABELS: Record<string, string> = {
   form_reminder: "Relance formulaire",
   support_link: "Lien support",
   quote_sent: "Devis",
+  tuto_gmb_video: "Tutoriel validation vidéo Google",
 };
 
 interface ClientEmailHistoryProps {

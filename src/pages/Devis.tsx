@@ -27,6 +27,7 @@ export default function Devis() {
   const { data: clients = [] } = useClients();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [quoteNumber, setQuoteNumber] = useState<string | null>(null);
+  const [customNumber, setCustomNumber] = useState("");
   const [templateKey, setTemplateKey] = useState("tuning");
   const [clientId, setClientId] = useState("");
   const [client, setClient] = useState({ ...emptyClient });
@@ -126,7 +127,7 @@ export default function Devis() {
       ? await supabase.from("quotes").update(body).eq("id", editingId).select().single()
       : await supabase.from("quotes").insert(body).select().single();
     if (res.error) { toast.error(res.error.message); return null; }
-    setEditingId(res.data.id); setQuoteNumber(res.data.quote_number);
+    setEditingId(res.data.id); setQuoteNumber(res.data.quote_number); setCustomNumber(res.data.quote_number || "");
     qc.setQueryData(["quotes"], (previous: any[] = []) => [res.data, ...previous.filter((q) => q.id !== res.data.id)]);
     qc.invalidateQueries({ queryKey: ["quotes"] });
     qc.invalidateQueries({ queryKey: ["client-quotes"] });

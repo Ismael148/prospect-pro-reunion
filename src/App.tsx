@@ -60,6 +60,8 @@ import Calendrier from "./pages/Calendrier";
 import GmbPublic from "./pages/GmbPublic";
 import FormationSeo from "./pages/FormationSeo";
 import Devis from "./pages/Devis";
+import SuiviTuning from "./pages/SuiviTuning";
+import SuiviPublic from "./pages/SuiviPublic";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -230,6 +232,8 @@ const App = () => (
             <Route path="/terms" element={<Terms />} />
             {/* Public routes - short URLs */}
             <Route path="/s/:token" element={<SupportForm />} />
+            <Route path="/suivi/:token" element={<SuiviPublic />} />
+            <Route path="/suivi-tuning" element={<ProtectedRoute><AppLayout><SuiviTuning /></AppLayout></ProtectedRoute>} />
             <Route path="/f/:token/:type" element={<ClientForm />} />
             {/* Legacy long URLs (backward compat) */}
             <Route path="/support/:token" element={<SupportForm />} />

@@ -1266,6 +1266,56 @@ export type Database = {
           },
         ]
       }
+      followup_requests: {
+        Row: {
+          client_id: string
+          contact_name: string | null
+          created_at: string
+          handled_at: string | null
+          handled_by: string | null
+          id: string
+          meet_link: string | null
+          message: string | null
+          rdv_at: string | null
+          slots: string
+          status: string
+        }
+        Insert: {
+          client_id: string
+          contact_name?: string | null
+          created_at?: string
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          meet_link?: string | null
+          message?: string | null
+          rdv_at?: string | null
+          slots: string
+          status?: string
+        }
+        Update: {
+          client_id?: string
+          contact_name?: string | null
+          created_at?: string
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          meet_link?: string | null
+          message?: string | null
+          rdv_at?: string | null
+          slots?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "followup_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gmb_activities: {
         Row: {
           action_type: Database["public"]["Enums"]["gmb_activity_type"]
@@ -3230,6 +3280,15 @@ export type Database = {
           p_has_existing_page: boolean
           p_notes?: string
           p_source_url?: string
+        }
+        Returns: string
+      }
+      submit_followup_request: {
+        Args: {
+          p_message: string
+          p_name: string
+          p_slots: string
+          p_token: string
         }
         Returns: string
       }

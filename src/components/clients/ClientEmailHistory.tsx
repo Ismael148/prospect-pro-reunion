@@ -29,6 +29,7 @@ const TEMPLATE_LABELS: Record<string, string> = {
   support_resolved: "Support résolu",
   form_reminder: "Relance formulaire",
   support_link: "Lien support",
+  quote_sent: "Devis",
 };
 
 interface ClientEmailHistoryProps {

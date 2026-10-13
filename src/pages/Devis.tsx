@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useClients } from "@/hooks/use-clients";
 import { ClientCombobox } from "@/components/ClientCombobox";
-import { QUOTE_TEMPLATES, computeQuoteTotals, hasRenewal, TUNING_RENEWAL_NOTE, type QuoteItem } from "@/lib/quote-templates";
+import { QUOTE_TEMPLATES, computeQuoteTotals, hasRenewal, TUNING_RENEWAL_NOTE, quoteRemaining, type QuoteItem } from "@/lib/quote-templates";
 import { exportQuotePDF } from "@/lib/export-quote-pdf";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { FileSignature, Plus, Trash2, Download, Send, Save, Loader2, Search, Copy } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { FileSignature, Plus, Trash2, Download, Send, Save, Loader2, Search, Copy, Eye, CheckCircle2, FileText } from "lucide-react";
 
 const STATUS: Record<string, string> = { brouillon: "Brouillon", envoye: "Envoyé", accepte: "Accepté", refuse: "Refusé" };
 const eur = (n: number) => `${Number(n).toFixed(2).replace(".", ",")} €`;
@@ -35,6 +36,9 @@ export default function Devis() {
   const [busy, setBusy] = useState<"save" | "send" | null>(null);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
+  const [deposit, setDeposit] = useState("0");
+  const [dueDate, setDueDate] = useState("");
+  const [preview, setPreview] = useState<any[] | null>(null);
 
   const { data: quotes = [] } = useQuery({
     queryKey: ["quotes"],
@@ -71,7 +75,7 @@ export default function Devis() {
 
   const reset = () => {
     setEditingId(null); setQuoteNumber(null); setClientId(""); setClient({ ...emptyClient });
-    setDiscount("0"); setTaxRate("0"); setValidity("30"); pickTemplate("tuning");
+    setDiscount("0"); setTaxRate("0"); setValidity("30"); setDeposit("0"); setDueDate(""); pickTemplate("tuning");
   };
 
   const newForSameClient = () => {
@@ -83,7 +87,7 @@ export default function Devis() {
   const loadQuote = (q: any) => {
     setEditingId(q.id); setQuoteNumber(q.quote_number); setTemplateKey(q.template_key); setClientId(q.client_id || "");
     setClient({ company_name: q.company_name || "", contact_name: q.contact_name || "", email: q.email || "", phone: q.phone || "", address: q.address || "", postal_code: q.postal_code || "", city: q.city || "", siret: q.siret || "" });
-    setItems(q.items || []); setNotes(q.notes || ""); setDiscount(String(q.discount_amount ?? 0)); setTaxRate(String(q.tax_rate ?? 0)); setValidity(String(q.validity_days ?? 30));
+    setItems(q.items || []); setNotes(q.notes || ""); setDiscount(String(q.discount_amount ?? 0)); setTaxRate(String(q.tax_rate ?? 0)); setValidity(String(q.validity_days ?? 30)); setDeposit(String(q.deposit_amount ?? 0)); setDueDate(q.payment_due_date || "");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -95,6 +99,7 @@ export default function Devis() {
     items: items as any, discount_amount: parseFloat(discount) || 0, tax_rate: parseFloat(taxRate) || 0,
     amount: totals.amount, tax_amount: totals.tax_amount, total_amount: totals.total_amount,
     notes: notes.trim() || null, validity_days: parseInt(validity) || 30,
+    deposit_amount: parseFloat(deposit) || 0, payment_due_date: dueDate || null,
   });
 
   const save = async (): Promise<any | null> => {
@@ -111,12 +116,12 @@ export default function Devis() {
 
   const pdfData = (q: any) => ({
     quote_number: q.quote_number, created_at: q.created_at, validity_days: q.validity_days, items: q.items,
-    discount_amount: Number(q.discount_amount), tax_rate: Number(q.tax_rate), amount: Number(q.amount), tax_amount: Number(q.tax_amount), total_amount: Number(q.total_amount), notes: q.notes, renewal_note: hasRenewal(q.template_key) ? TUNING_RENEWAL_NOTE : null,
+    discount_amount: Number(q.discount_amount), tax_rate: Number(q.tax_rate), amount: Number(q.amount), tax_amount: Number(q.tax_amount), total_amount: Number(q.total_amount), notes: q.notes, renewal_note: hasRenewal(q.template_key) ? TUNING_RENEWAL_NOTE : null, deposit_amount: Number(q.deposit_amount || 0), payment_due_date: q.payment_due_date,
     client: { company_name: q.company_name, contact_name: q.contact_name, address: q.address, postal_code: q.postal_code, city: q.city, email: q.email, phone: q.phone, siret: q.siret },
   });
 
   const handleSave = async () => { setBusy("save"); const q = await save(); setBusy(null); if (q) toast.success(`Devis ${q.quote_number} enregistré`); };
-  const handleDownload = async () => { setBusy("save"); const q = await save(); setBusy(null); if (q) exportQuotePDF(pdfData(q)); };
+  const handleDownload = async () => { setBusy("save"); const q = await save(); setBusy(null); if (q) viewPdf(q); };
 
   const buildEmail = (list: any[]) => {
     const first = list[0];
@@ -124,8 +129,9 @@ export default function Devis() {
     const multi = list.length > 1;
     const rows = list.map((q) => {
       const label = QUOTE_TEMPLATES.find((t) => t.key === q.template_key)?.label || "Devis";
-      return `<tr><td style="padding:12px 14px;border-bottom:1px solid #f1e3ea;font-size:14px"><strong style="color:#0d0d0d">${label}</strong><br/><span style="color:#888;font-size:12px">Devis n° ${q.quote_number} · valable ${q.validity_days} jours</span></td><td style="padding:12px 14px;border-bottom:1px solid #f1e3ea;text-align:right;font-weight:bold;color:#ff006e;font-size:15px;white-space:nowrap">${eur(q.total_amount)}</td></tr>`;
+      return `<tr><td style="padding:12px 14px;border-bottom:1px solid #f1e3ea;font-size:14px"><strong style="color:#0d0d0d">${label}</strong><br/><span style="color:#888;font-size:12px">Devis n° ${q.quote_number} · valable ${q.validity_days} jours${Number(q.deposit_amount) > 0 ? ` · acompte ${eur(q.deposit_amount)}` : ""}</span></td><td style="padding:12px 14px;border-bottom:1px solid #f1e3ea;text-align:right;font-weight:bold;color:#ff006e;font-size:15px;white-space:nowrap">${eur(q.total_amount)}</td></tr>`;
     }).join("");
+    const pay4 = `<p style="margin:14px 0 0;font-size:13px;color:#333">💳 <strong>Paiement en 4 fois sans frais</strong> possible sur simple demande.</p>`;
     const renewal = list.some((q) => hasRenewal(q.template_key))
       ? `<p style="margin:18px 0 0;padding:12px 14px;background:#fff0f6;border-left:4px solid #ff006e;font-size:13px;color:#333">${TUNING_RENEWAL_NOTE}</p>` : "";
     const html = `<div style="background:#f6f6f6;padding:24px 0;font-family:Arial,Helvetica,sans-serif">
@@ -134,7 +140,8 @@ export default function Devis() {
 <div style="padding:30px 32px;font-size:14px;line-height:1.6">
 <p style="margin:0 0 14px">Bonjour ${name},</p>
 <p style="margin:0 0 14px">Nous vous remercions pour l'intérêt que vous portez à Adamkom by JJP. Suite à notre échange, nous avons le plaisir de vous adresser ${multi ? `nos <strong>${list.length} propositions commerciales</strong>, afin que vous puissiez choisir la formule la plus adaptée à votre activité` : "notre proposition commerciale"} :</p>
-<table style="width:100%;border-collapse:collapse;border:1px solid #f1e3ea;border-radius:8px;margin:6px 0 4px"><tr><td style="background:#0d0d0d;color:#fff;padding:10px 14px;font-size:12px;letter-spacing:1px">PROPOSITION</td><td style="background:#0d0d0d;color:#fff;padding:10px 14px;font-size:12px;text-align:right;letter-spacing:1px">MONTANT</td></tr>${rows}</table>
+<table style="width:100%;border-collapse:collapse;border:1px solid #f1e3ea;border-radius:8px;margin:6px 0 4px"><tr><td style="background:#0d0d0d;color:#fff;padding:10px 14px;font-size:12px;letter-spacing:1px">PROPOSITION</td><td style="background:#0d0d0d;color:#fff;padding:10px 14px;font-size:12px;text-align:right;letter-spacing:1px">MONTANT TTC</td></tr>${rows}</table>
+${pay4}
 ${renewal}
 <p style="margin:18px 0 14px">${multi ? "Les devis détaillés sont joints" : "Le devis détaillé est joint"} à cet email au format PDF. Pour valider ${multi ? "la proposition de votre choix" : "cette proposition"}, il vous suffit de nous retourner le devis signé avec la mention « Bon pour accord », ou de répondre directement à cet email.</p>
 <p style="margin:0 0 14px">Notre équipe se tient à votre entière disposition pour toute question ou ajustement au <strong>0262 66 68 76</strong> ou à <a href="mailto:contact@adamkom.com" style="color:#ff006e">contact@adamkom.com</a>.</p>
@@ -164,10 +171,25 @@ ${renewal}
     setSelected([]);
     toast.success(`${list.length > 1 ? `${list.length} devis envoyés` : "Devis envoyé"} à ${email}`);
   };
-  const sendQuote = (q: any) => sendQuotes([q]);
-  const sendSelected = async () => { setBusy("send"); await sendQuotes(quotes.filter((q: any) => selected.includes(q.id))); setBusy(null); };
+  const sendQuote = (q: any) => openPreview([q]);
+  const openPreview = (list: any[]) => {
+    if (!list.length) return;
+    if (!list[0].email) { toast.error("Ajoutez l'email du client"); return; }
+    setPreview(list);
+  };
+  const viewPdf = (q: any) => {
+    const b64 = exportQuotePDF(pdfData(q), { returnBase64: true })!;
+    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    window.open(URL.createObjectURL(new Blob([bytes], { type: "application/pdf" })), "_blank");
+  };
+  const confirmSend = async () => { if (!preview) return; setBusy("send"); await sendQuotes(preview); setBusy(null); setPreview(null); };
+  const sendSelected = () => openPreview(quotes.filter((q: any) => selected.includes(q.id)));
+  const updatePayment = async (id: string, patch: Record<string, any>) => {
+    const { error } = await supabase.from("quotes").update(patch).eq("id", id);
+    if (error) toast.error(error.message); else qc.invalidateQueries({ queryKey: ["quotes"] });
+  };
 
-  const handleSend = async () => { setBusy("send"); const q = await save(); if (q) await sendQuote(q); setBusy(null); };
+  const handleSend = async () => { setBusy("save"); const q = await save(); setBusy(null); if (q) openPreview([q]); };
 
   const setStatus = async (id: string, status: string) => {
     const { error } = await supabase.from("quotes").update({ status }).eq("id", id);
@@ -226,7 +248,7 @@ ${renewal}
       <Card>
         <CardHeader><CardTitle className="text-base">3. Prestations</CardTitle></CardHeader>
         <CardContent className="space-y-3">
-          <p className="text-xs text-muted-foreground">Cochez les lignes à inclure. Prix à 0 = affiché « Inclus ».</p>
+          <p className="text-xs text-muted-foreground">Cochez les lignes à inclure. Prix TTC. Prix à 0 = affiché « Inclus ».</p>
           {items.map((it, i) => (
             <div key={i} className="grid grid-cols-[auto_1fr_70px_100px_90px_auto] gap-2 items-center">
               <Checkbox checked={it.included !== false} onCheckedChange={(v) => updateItem(i, { included: !!v })} />
@@ -241,21 +263,25 @@ ${renewal}
 
           <div className="grid md:grid-cols-3 gap-3 pt-2">
             <div><Label>Remise (€)</Label><Input type="number" min="0" value={discount} onChange={(e) => setDiscount(e.target.value)} /></div>
-            <div><Label>TVA (%)</Label><Input type="number" min="0" step="0.1" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} /></div>
+            <div><Label>TVA incluse (%)</Label><Input type="number" min="0" step="0.1" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} /></div>
             <div><Label>Validité (jours)</Label><Input type="number" min="1" value={validity} onChange={(e) => setValidity(e.target.value)} /></div>
+          </div>
+          <div className="grid md:grid-cols-2 gap-3">
+            <div><Label>Acompte demandé (€ TTC)</Label><Input type="number" min="0" value={deposit} onChange={(e) => setDeposit(e.target.value)} /></div>
+            <div><Label>Date d'échéance du paiement</Label><Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} /></div>
           </div>
           <div><Label>Conditions / notes</Label><Textarea rows={4} value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
 
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4">
             <div className="text-sm">
-              <span className="text-muted-foreground">Total HT {eur(totals.amount)}{Number(taxRate) > 0 && ` · TVA ${eur(totals.tax_amount)}`} · </span>
+              <span className="text-muted-foreground">Total TTC{Number(taxRate) > 0 && ` (dont TVA ${eur(totals.tax_amount)})`}{(parseFloat(deposit) || 0) > 0 && ` · reste ${eur(Math.max(0, totals.total_amount - (parseFloat(deposit) || 0)))}`} · </span>
               <span className="font-bold text-lg text-primary">{eur(totals.total_amount)}</span>
             </div>
             <div className="flex gap-2 flex-wrap">
               <Button variant="outline" onClick={handleSave} disabled={!!busy}>{busy === "save" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}Enregistrer</Button>
               {editingId && <Button variant="outline" onClick={newForSameClient} disabled={!!busy}><Copy className="w-4 h-4 mr-1" />Autre devis pour ce client</Button>}
-              <Button variant="outline" onClick={handleDownload} disabled={!!busy}><Download className="w-4 h-4 mr-1" />Aperçu PDF</Button>
-              <Button onClick={handleSend} disabled={!!busy}>{busy === "send" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Send className="w-4 h-4 mr-1" />}Envoyer au client</Button>
+              <Button variant="outline" onClick={handleDownload} disabled={!!busy}><Eye className="w-4 h-4 mr-1" />Aperçu PDF</Button>
+              <Button onClick={handleSend} disabled={!!busy}>{busy === "send" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Send className="w-4 h-4 mr-1" />}Aperçu & envoi</Button>
             </div>
           </div>
         </CardContent>
@@ -279,18 +305,47 @@ ${renewal}
                 <p className="font-medium text-sm">{q.quote_number} · {q.company_name}</p>
                 <p className="text-xs text-muted-foreground">{QUOTE_TEMPLATES.find((t) => t.key === q.template_key)?.label} · {new Date(q.created_at).toLocaleDateString("fr-FR")}{q.sent_at && ` · envoyé le ${new Date(q.sent_at).toLocaleDateString("fr-FR")}`}</p>
               </div>
-              <span className="font-semibold text-sm">{eur(q.total_amount)}</span>
+              <div className="text-right text-xs min-w-[150px]">
+                <p className="font-semibold text-sm">{eur(q.total_amount)} TTC</p>
+                {q.is_paid ? <Badge className="mt-1">Payé{q.paid_at && ` le ${new Date(q.paid_at).toLocaleDateString("fr-FR")}`}</Badge>
+                  : <p className="text-muted-foreground">Acompte {eur(q.deposit_amount || 0)} · Reste <span className="text-primary font-medium">{eur(quoteRemaining(q))}</span>{q.payment_due_date && <> · éch. <span className={new Date(q.payment_due_date) < new Date() ? "text-destructive" : ""}>{new Date(q.payment_due_date).toLocaleDateString("fr-FR")}</span></>}</p>}
+              </div>
+              <Button size="sm" variant={q.is_paid ? "secondary" : "outline"} onClick={() => updatePayment(q.id, q.is_paid ? { is_paid: false, paid_at: null } : { is_paid: true, paid_at: new Date().toISOString(), status: "accepte" })}><CheckCircle2 className="w-4 h-4 mr-1" />{q.is_paid ? "Payé" : "Marquer payé"}</Button>
               <select className="h-8 rounded-md border border-input bg-background px-2 text-xs" value={q.status} onChange={(e) => setStatus(q.id, e.target.value)}>
                 {Object.entries(STATUS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
               <Button size="sm" variant="ghost" onClick={() => loadQuote(q)}>Modifier</Button>
-              <Button size="icon" variant="ghost" onClick={() => exportQuotePDF(pdfData(q))}><Download className="w-4 h-4" /></Button>
+              <Button size="icon" variant="ghost" title="Aperçu PDF" onClick={() => viewPdf(q)}><Eye className="w-4 h-4" /></Button>
+              <Button size="icon" variant="ghost" title="Télécharger" onClick={() => exportQuotePDF(pdfData(q))}><Download className="w-4 h-4" /></Button>
               <Button size="icon" variant="ghost" onClick={() => sendQuote(q)}><Send className="w-4 h-4" /></Button>
               <Button size="icon" variant="ghost" onClick={() => remove(q.id)}><Trash2 className="w-4 h-4" /></Button>
             </div>
           ))}
         </CardContent>
       </Card>
+      <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
+        <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Aperçu avant envoi</DialogTitle></DialogHeader>
+          {preview && (() => { const m = buildEmail(preview); return (
+            <div className="space-y-3">
+              <div className="text-sm space-y-1">
+                <p><span className="text-muted-foreground">À :</span> {m.name} &lt;{preview[0].email}&gt;</p>
+                <p><span className="text-muted-foreground">Objet :</span> <strong>{m.subject}</strong></p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {preview.map((q) => (
+                  <Button key={q.id} size="sm" variant="outline" onClick={() => viewPdf(q)}><FileText className="w-4 h-4 mr-1" />Devis_{q.quote_number}.pdf</Button>
+                ))}
+              </div>
+              <iframe title="Aperçu email" srcDoc={m.html} className="w-full h-[55vh] rounded-lg border border-border bg-background" />
+            </div>
+          ); })()}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPreview(null)}>Annuler</Button>
+            <Button onClick={confirmSend} disabled={busy === "send"}>{busy === "send" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Send className="w-4 h-4 mr-1" />}Confirmer l'envoi</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

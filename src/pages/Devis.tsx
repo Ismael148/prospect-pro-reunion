@@ -185,7 +185,7 @@ ${renewal}
   const confirmSend = async () => { if (!preview) return; setBusy("send"); await sendQuotes(preview); setBusy(null); setPreview(null); };
   const sendSelected = () => openPreview(quotes.filter((q: any) => selected.includes(q.id)));
   const updatePayment = async (id: string, patch: Record<string, any>) => {
-    const { error } = await supabase.from("quotes").update(patch).eq("id", id);
+    const { error } = await supabase.from("quotes").update(patch as any).eq("id", id);
     if (error) toast.error(error.message); else qc.invalidateQueries({ queryKey: ["quotes"] });
   };
 

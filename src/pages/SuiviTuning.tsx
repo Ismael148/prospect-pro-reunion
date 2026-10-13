@@ -79,7 +79,7 @@ export default function SuiviTuning({ mode = "campagne" }: { mode?: "campagne" |
   const [sendingCampaign, setSendingCampaign] = useState(false);
   const toRelance = rows.filter((r) => r.status === "a_relancer");
   const selectedRows = rows.filter((r) => selected.includes(r.c.id));
-  const sample = selectedRows[0] ? buildReminderEmail(selectedRows[0].c.manager_name || selectedRows[0].c.company_name, selectedRows[0].c.support_token) : null;
+  const sample = selectedRows[0] ? buildReminderEmail(selectedRows[0].c.manager_name, selectedRows[0].c.support_token) : null;
 
   const send = (c: any, subject: string, body: string, trigger: string) =>
     supabase.functions.invoke("send-brevo-campaign", {
@@ -95,7 +95,7 @@ export default function SuiviTuning({ mode = "campagne" }: { mode?: "campagne" |
     let ok = 0, ko = 0;
     for (const r of selectedRows) {
       if (!r.c.email) { ko++; continue; }
-      const e = buildReminderEmail(r.c.manager_name || r.c.company_name, r.c.support_token);
+      const e = buildReminderEmail(r.c.manager_name, r.c.support_token);
       const { error } = await send(r.c, e.subject, e.body, FOLLOWUP_TRIGGER);
       error ? ko++ : ok++;
     }
@@ -114,7 +114,7 @@ export default function SuiviTuning({ mode = "campagne" }: { mode?: "campagne" |
   const [subject, setSubject] = useState("");
   const [busy, setBusy] = useState(false);
   const actClient = act ? data?.clients.find((c: any) => c.id === act.req.client_id) : null;
-  const actName = actClient ? actClient.manager_name || act?.req.contact_name || actClient.company_name : "";
+  const actName = actClient ? actClient.manager_name || act?.req.contact_name || "" : "";
 
   const actEmail = useMemo(() => {
     if (!act || !actClient) return null;

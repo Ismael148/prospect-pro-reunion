@@ -78,7 +78,7 @@ export function exportQuotePDF(data: QuotePDFData, options?: { returnBase64?: bo
     head: [["PRESTATION", "QTÉ", "PRIX U. TTC", "TOTAL TTC"]],
     body: rows.map((it) => [cleanQuoteDescription(it.description).replace(/[—–]/g, "-"), String(it.quantity), it.unit_price === 0 ? "Inclus" : eur(it.unit_price), it.unit_price === 0 ? "Inclus" : eur(it.quantity * it.unit_price)]),
     theme: "plain",
-    styles: { font: "helvetica", fontSize: 8.5, textColor: [...INK], cellPadding: 3, valign: "middle", overflow: "linebreak" },
+    styles: { font: "helvetica", fontSize: 8.5, textColor: [...INK], cellPadding: { top: 2, bottom: 2, left: 3, right: 3 }, valign: "middle", overflow: "linebreak" },
     headStyles: { fillColor: [...INK], textColor: [...WHITE], fontStyle: "bold", fontSize: 8, cellPadding: { top: 4, bottom: 4, left: 3, right: 3 }, valign: "middle" },
     alternateRowStyles: { fillColor: [...PALE] },
     columnStyles: { 0: { cellWidth: contentWidth - 73 }, 1: { cellWidth: 15, halign: "center" }, 2: { cellWidth: 29, halign: "center" }, 3: { cellWidth: 29, halign: "center" } },
@@ -121,7 +121,7 @@ export function exportQuotePDF(data: QuotePDFData, options?: { returnBase64?: bo
   // AutoTable measures note height and paginates unusually long custom conditions safely.
   const noteBlock = (title: string, text: string) => {
     if (!text) return;
-    ensureSpace(23);
+    ensureSpace(18);
     autoTable(doc, {
       startY: y, head: [[title]], body: [[text.replace(/[—–]/g, "-")]], theme: "plain",
       styles: { font: "helvetica", fontSize: 8, textColor: [...GRAY], cellPadding: { top: 2, bottom: 3, left: 4, right: 4 }, overflow: "linebreak" },

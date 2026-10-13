@@ -2457,11 +2457,15 @@ export type Database = {
           contact_name: string | null
           created_at: string
           created_by: string
+          deposit_amount: number
           discount_amount: number
           email: string | null
           id: string
+          is_paid: boolean
           items: Json
           notes: string | null
+          paid_at: string | null
+          payment_due_date: string | null
           phone: string | null
           postal_code: string | null
           quote_number: string | null
@@ -2484,11 +2488,15 @@ export type Database = {
           contact_name?: string | null
           created_at?: string
           created_by?: string
+          deposit_amount?: number
           discount_amount?: number
           email?: string | null
           id?: string
+          is_paid?: boolean
           items?: Json
           notes?: string | null
+          paid_at?: string | null
+          payment_due_date?: string | null
           phone?: string | null
           postal_code?: string | null
           quote_number?: string | null
@@ -2511,11 +2519,15 @@ export type Database = {
           contact_name?: string | null
           created_at?: string
           created_by?: string
+          deposit_amount?: number
           discount_amount?: number
           email?: string | null
           id?: string
+          is_paid?: boolean
           items?: Json
           notes?: string | null
+          paid_at?: string | null
+          payment_due_date?: string | null
           phone?: string | null
           postal_code?: string | null
           quote_number?: string | null

@@ -73,7 +73,7 @@ export function exportQuotePDF(data: QuotePDFData, options?: { returnBase64?: bo
 
   const tx = pw - 95; let ty = y;
   doc.setFontSize(9); doc.setTextColor(...GRAY);
-  const row = (l: string, v: string, pink = false) => { doc.setTextColor(...(pink ? PINK : GRAY)); doc.text(l, tx, ty); doc.text(v, pw - 15, ty, { align: "right" }); ty += 6; };
+  const row = (l: string, v: string, pink = false) => { if (pink) doc.setTextColor(...PINK); else doc.setTextColor(...GRAY); doc.text(l, tx, ty); doc.text(v, pw - 15, ty, { align: "right" }); ty += 6; };
   if (data.discount_amount > 0) { row("Sous-total HT :", eur(data.amount + data.discount_amount)); row("Remise :", `-${eur(data.discount_amount)}`, true); }
   row("Total HT :", eur(data.amount));
   if (data.tax_rate > 0) row(`TVA (${data.tax_rate}%) :`, eur(data.tax_amount));

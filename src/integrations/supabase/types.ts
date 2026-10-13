@@ -2447,6 +2447,98 @@ export type Database = {
         }
         Relationships: []
       }
+      quotes: {
+        Row: {
+          address: string | null
+          amount: number
+          city: string | null
+          client_id: string | null
+          company_name: string
+          contact_name: string | null
+          created_at: string
+          created_by: string
+          discount_amount: number
+          email: string | null
+          id: string
+          items: Json
+          notes: string | null
+          phone: string | null
+          postal_code: string | null
+          quote_number: string | null
+          sent_at: string | null
+          siret: string | null
+          status: string
+          tax_amount: number
+          tax_rate: number
+          template_key: string
+          total_amount: number
+          updated_at: string
+          validity_days: number
+        }
+        Insert: {
+          address?: string | null
+          amount?: number
+          city?: string | null
+          client_id?: string | null
+          company_name: string
+          contact_name?: string | null
+          created_at?: string
+          created_by?: string
+          discount_amount?: number
+          email?: string | null
+          id?: string
+          items?: Json
+          notes?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          quote_number?: string | null
+          sent_at?: string | null
+          siret?: string | null
+          status?: string
+          tax_amount?: number
+          tax_rate?: number
+          template_key?: string
+          total_amount?: number
+          updated_at?: string
+          validity_days?: number
+        }
+        Update: {
+          address?: string | null
+          amount?: number
+          city?: string | null
+          client_id?: string | null
+          company_name?: string
+          contact_name?: string | null
+          created_at?: string
+          created_by?: string
+          discount_amount?: number
+          email?: string | null
+          id?: string
+          items?: Json
+          notes?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          quote_number?: string | null
+          sent_at?: string | null
+          siret?: string | null
+          status?: string
+          tax_amount?: number
+          tax_rate?: number
+          template_key?: string
+          total_amount?: number
+          updated_at?: string
+          validity_days?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reservation_ical_submissions: {
         Row: {
           airbnb_url: string | null

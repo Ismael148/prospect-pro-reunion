@@ -15,6 +15,7 @@ export interface QuotePDFData {
   tax_amount: number;
   total_amount: number;
   notes?: string | null;
+  renewal_note?: string | null;
   client: { company_name: string; contact_name?: string | null; address?: string | null; postal_code?: string | null; city?: string | null; email?: string | null; phone?: string | null; siret?: string | null };
 }
 
@@ -69,7 +70,7 @@ export function exportQuotePDF(data: QuotePDFData, options?: { returnBase64?: bo
     margin: { left: 15, right: 15 },
   });
   y = (doc as any).lastAutoTable.finalY + 10;
-  if (y > ph - 90) { doc.addPage(); y = 20; }
+  if (y > ph - (data.renewal_note ? 110 : 90)) { doc.addPage(); y = 20; }
 
   const tx = pw - 95; let ty = y;
   doc.setFontSize(9); doc.setTextColor(...GRAY);
@@ -95,10 +96,20 @@ export function exportQuotePDF(data: QuotePDFData, options?: { returnBase64?: bo
     doc.setFontSize(9);
     const lines = doc.splitTextToSize(data.notes.replace(/[—–]/g, "-"), pw - 42);
     const h = 14 + lines.length * 5;
-    if (y + h > ph - 30) { doc.addPage(); y = 20; }
+    if (y + h > ph - (data.renewal_note ? 52 : 30)) { doc.addPage(); y = 20; }
     doc.setFillColor(250, 245, 248); doc.roundedRect(15, y, pw - 30, h, 2, 2, "FD");
     doc.setFont("helvetica", "bold"); doc.setTextColor(...BLACK); doc.text("CONDITIONS", 21, y + 7);
     doc.setFont("helvetica", "normal"); doc.setTextColor(90, 90, 90); doc.text(lines, 21, y + 14, { lineHeightFactor: 1.35 });
+  }
+
+  if (data.renewal_note) {
+    doc.setPage(doc.getNumberOfPages());
+    const bx = 15, bw = pw - 30, bh = 16, by = ph - 25 - bh - 6;
+    doc.setFillColor(...PINK); doc.roundedRect(bx, by, bw, bh, 2, 2, "F");
+    doc.setTextColor(...WHITE); doc.setFont("helvetica", "bold"); doc.setFontSize(9);
+    doc.text("RENOUVELLEMENT", bx + 6, by + 6.5);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8.5);
+    doc.text(doc.splitTextToSize(data.renewal_note.replace(/[—–]/g, "-"), bw - 12), bx + 6, by + 11.5);
   }
 
   const pages = doc.getNumberOfPages();

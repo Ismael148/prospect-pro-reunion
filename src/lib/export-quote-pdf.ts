@@ -69,8 +69,8 @@ export function exportQuotePDF(data: QuotePDFData, options?: { returnBase64?: bo
     columnStyles: { 0: { cellWidth: 14, halign: "center" }, 2: { cellWidth: 18, halign: "center" }, 3: { cellWidth: 30, halign: "right" }, 4: { cellWidth: 30, halign: "right" } },
     margin: { left: 15, right: 15 },
   });
-  y = (doc as any).lastAutoTable.finalY + 10;
-  if (y > ph - (data.renewal_note ? 95 : 80)) { doc.addPage(); y = 20; }
+  y = (doc as any).lastAutoTable.finalY + 10; if ((globalThis as any).__DBG) console.log("y", y);
+  if (y > ph - (data.renewal_note ? 92 : 80)) { doc.addPage(); y = 20; }
 
   const tx = pw - 95; let ty = y;
   doc.setFontSize(9); doc.setTextColor(...GRAY);

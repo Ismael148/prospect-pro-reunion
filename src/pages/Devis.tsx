@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useClients } from "@/hooks/use-clients";
 import { ClientCombobox } from "@/components/ClientCombobox";
-import { QUOTE_TEMPLATES, computeQuoteTotals, hasRenewal, TUNING_RENEWAL_NOTE, quoteRemaining, type QuoteItem } from "@/lib/quote-templates";
+import { QUOTE_TEMPLATES, cleanQuoteDescription, cleanQuoteNotes, computeQuoteTotals, hasRenewal, TUNING_RENEWAL_NOTE, quoteRemaining, type QuoteItem } from "@/lib/quote-templates";
 import { exportQuotePDF } from "@/lib/export-quote-pdf";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,7 +52,8 @@ export default function Devis() {
   const totals = useMemo(() => computeQuoteTotals(items, parseFloat(discount) || 0, parseFloat(taxRate) || 0), [items, discount, taxRate]);
 
   const pickTemplate = (key: string) => {
-    const t = QUOTE_TEMPLATES.find((x) => x.key === key)!;
+    const t = QUOTE_TEMPLATES.find((x) => x.key === key);
+    if (!t) return;
     setTemplateKey(key);
     setItems(t.items.map((i) => ({ ...i })));
     setNotes(t.notes);
@@ -87,7 +88,7 @@ export default function Devis() {
   const loadQuote = (q: any) => {
     setEditingId(q.id); setQuoteNumber(q.quote_number); setTemplateKey(q.template_key); setClientId(q.client_id || "");
     setClient({ company_name: q.company_name || "", contact_name: q.contact_name || "", email: q.email || "", phone: q.phone || "", address: q.address || "", postal_code: q.postal_code || "", city: q.city || "", siret: q.siret || "" });
-    setItems(q.items || []); setNotes(q.notes || ""); setDiscount(String(q.discount_amount ?? 0)); setTaxRate(String(q.tax_rate ?? 0)); setValidity(String(q.validity_days ?? 30)); setDeposit(String(q.deposit_amount ?? 0)); setDueDate(q.payment_due_date || "");
+    setItems((q.items || []).map((item: QuoteItem) => ({ ...item, description: cleanQuoteDescription(item.description) }))); setNotes(cleanQuoteNotes(q.notes)); setDiscount(String(q.discount_amount ?? 0)); setTaxRate(String(q.tax_rate ?? 0)); setValidity(String(q.validity_days ?? 30)); setDeposit(String(q.deposit_amount ?? 0)); setDueDate(q.payment_due_date || "");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -96,9 +97,9 @@ export default function Devis() {
     company_name: client.company_name.trim(),
     contact_name: client.contact_name.trim() || null, email: client.email.trim() || null, phone: client.phone.trim() || null,
     address: client.address.trim() || null, postal_code: client.postal_code.trim() || null, city: client.city.trim() || null, siret: client.siret.trim() || null,
-    items: items as any, discount_amount: parseFloat(discount) || 0, tax_rate: parseFloat(taxRate) || 0,
+    items: items.map((item) => ({ ...item, description: cleanQuoteDescription(item.description) })) as any, discount_amount: parseFloat(discount) || 0, tax_rate: parseFloat(taxRate) || 0,
     amount: totals.amount, tax_amount: totals.tax_amount, total_amount: totals.total_amount,
-    notes: notes.trim() || null, validity_days: parseInt(validity) || 30,
+    notes: cleanQuoteNotes(notes) || null, validity_days: parseInt(validity) || 30,
     deposit_amount: parseFloat(deposit) || 0, payment_due_date: dueDate || null,
   });
 
@@ -178,7 +179,8 @@ ${renewal}
     setPreview(list);
   };
   const viewPdf = (q: any) => {
-    const b64 = exportQuotePDF(pdfData(q), { returnBase64: true })!;
+    const b64 = exportQuotePDF(pdfData(q), { returnBase64: true });
+    if (!b64) return;
     const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
     window.open(URL.createObjectURL(new Blob([bytes], { type: "application/pdf" })), "_blank");
   };
@@ -250,12 +252,12 @@ ${renewal}
         <CardContent className="space-y-3">
           <p className="text-xs text-muted-foreground">Cochez les lignes à inclure. Prix TTC. Prix à 0 = affiché « Inclus ».</p>
           {items.map((it, i) => (
-            <div key={i} className="grid grid-cols-[auto_1fr_70px_100px_90px_auto] gap-2 items-center">
+            <div key={i} className="grid grid-cols-[auto_minmax(0,1fr)_auto] sm:grid-cols-[auto_minmax(0,1fr)_60px_90px_90px_auto] gap-2 items-center">
               <Checkbox checked={it.included !== false} onCheckedChange={(v) => updateItem(i, { included: !!v })} />
-              <Input value={it.description} onChange={(e) => updateItem(i, { description: e.target.value })} />
-              <Input type="number" min="1" value={it.quantity} onChange={(e) => updateItem(i, { quantity: parseFloat(e.target.value) || 0 })} />
-              <Input type="number" step="0.01" value={it.unit_price} onChange={(e) => updateItem(i, { unit_price: parseFloat(e.target.value) || 0 })} />
-              <span className={`text-sm text-right ${it.included === false ? "text-muted-foreground line-through" : ""}`}>{eur(it.quantity * it.unit_price)}</span>
+              <Textarea rows={3} className="min-w-0 resize-y text-sm" aria-label={`Description de la prestation ${i + 1}`} value={it.description} onChange={(e) => updateItem(i, { description: e.target.value })} />
+              <Input className="text-center" aria-label={`Quantité ${i + 1}`} type="number" min="1" value={it.quantity} onChange={(e) => updateItem(i, { quantity: parseFloat(e.target.value) || 0 })} />
+              <Input className="text-center" aria-label={`Prix TTC ${i + 1}`} type="number" step="0.01" value={it.unit_price} onChange={(e) => updateItem(i, { unit_price: parseFloat(e.target.value) || 0 })} />
+              <span className={`text-sm text-center whitespace-nowrap ${it.included === false ? "text-muted-foreground line-through" : ""}`}>{eur(it.quantity * it.unit_price)}</span>
               <Button size="icon" variant="ghost" onClick={() => setItems(items.filter((_, idx) => idx !== i))}><Trash2 className="w-4 h-4" /></Button>
             </div>
           ))}

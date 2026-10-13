@@ -2,3 +2,6 @@
 - [x] Retirer les numéros des descriptions et les mentions d'acompte de 50 %.
 - [x] Vérifier les PDF courts et multipages et les tests.
 - [x] Donner aux prestations des titres distincts et des descriptions aérées, puis vérifier toutes les pages.
+- [x] Afficher immédiatement le devis enregistré et actualiser le mail selon les cases cochées.
+- [x] Simplifier le mail sans tarifs des devis et préciser les renouvellements annuels.
+- [ ] Vérifier l’enregistrement et l’aperçu sans envoyer d’email : session de contrôle sans droit de création de devis ; nécessite une session autorisée.

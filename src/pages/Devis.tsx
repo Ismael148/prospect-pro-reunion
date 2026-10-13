@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useClients } from "@/hooks/use-clients";
 import { ClientCombobox } from "@/components/ClientCombobox";
 import { QUOTE_TEMPLATES, cleanQuoteDescription, cleanQuoteNotes, computeQuoteTotals, hasRenewal, TUNING_RENEWAL_NOTE, quoteRemaining, type QuoteItem } from "@/lib/quote-templates";
+import { buildQuoteEmail } from "@/lib/quote-email";
 import { exportQuotePDF } from "@/lib/export-quote-pdf";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +23,7 @@ const emptyClient = { company_name: "", contact_name: "", email: "", phone: "", 
 
 export default function Devis() {
   const qc = useQueryClient();
+  const savedRef = useRef<HTMLDivElement>(null);
   const { data: clients = [] } = useClients();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [quoteNumber, setQuoteNumber] = useState<string | null>(null);
@@ -119,7 +121,9 @@ export default function Devis() {
       : await supabase.from("quotes").insert(body).select().single();
     if (res.error) { toast.error(res.error.message); return null; }
     setEditingId(res.data.id); setQuoteNumber(res.data.quote_number);
+    qc.setQueryData(["quotes"], (previous: any[] = []) => [res.data, ...previous.filter((q) => q.id !== res.data.id)]);
     qc.invalidateQueries({ queryKey: ["quotes"] });
+    qc.invalidateQueries({ queryKey: ["client-quotes"] });
     return res.data;
   };
 
@@ -129,40 +133,14 @@ export default function Devis() {
     client: { company_name: q.company_name, contact_name: q.contact_name, address: q.address, postal_code: q.postal_code, city: q.city, email: q.email, phone: q.phone, siret: q.siret },
   });
 
-  const handleSave = async () => { setBusy("save"); const q = await save(); setBusy(null); if (q) toast.success(`Devis ${q.quote_number} enregistré`); };
+  const handleSave = async () => { setBusy("save"); const q = await save(); setBusy(null); if (q) {
+    setSearch("");
+    toast.success(`Devis ${q.quote_number} enregistré`);
+    requestAnimationFrame(() => savedRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  } };
   const handleDownload = async () => { setBusy("save"); const q = await save(); setBusy(null); if (q) viewPdf(q); };
 
-  const buildEmail = (list: any[]) => {
-    const first = list[0];
-    const name = first.contact_name || first.company_name;
-    const multi = list.length > 1;
-    const rows = list.map((q) => {
-      const label = QUOTE_TEMPLATES.find((t) => t.key === q.template_key)?.label || "Devis";
-      return `<tr><td style="padding:12px 14px;border-bottom:1px solid #f1e3ea;font-size:14px"><strong style="color:#0d0d0d">${label}</strong><br/><span style="color:#888;font-size:12px">Devis n° ${q.quote_number} · valable ${q.validity_days} jours${Number(q.deposit_amount) > 0 ? ` · acompte ${eur(q.deposit_amount)}` : ""}</span></td><td style="padding:12px 14px;border-bottom:1px solid #f1e3ea;text-align:right;font-weight:bold;color:#ff006e;font-size:15px;white-space:nowrap">${eur(q.total_amount)}</td></tr>`;
-    }).join("");
-    const pay4 = `<p style="margin:14px 0 0;font-size:13px;color:#333">💳 <strong>Paiement en 4 fois sans frais</strong> possible sur simple demande.</p>`;
-    const renewal = list.some((q) => hasRenewal(q.template_key))
-      ? `<p style="margin:18px 0 0;padding:12px 14px;background:#fff0f6;border-left:4px solid #ff006e;font-size:13px;color:#333">${TUNING_RENEWAL_NOTE}</p>` : "";
-    const html = `<div style="background:#f6f6f6;padding:24px 0;font-family:Arial,Helvetica,sans-serif">
-<div style="max-width:620px;margin:0 auto;background:#ffffff;border-radius:10px;overflow:hidden;color:#0d0d0d">
-<div style="background:#0d0d0d;padding:26px;text-align:center;border-bottom:4px solid #ff006e"><img src="https://qaxlpmxekcvbrcnqopbp.supabase.co/storage/v1/object/public/email-assets/logo-adamkom-black.png" alt="Adamkom by JJP" style="height:46px;filter:invert(1)"/><p style="color:#ffffff;margin:10px 0 0;font-size:12px;letter-spacing:2px;text-transform:uppercase">La performance digitale</p></div>
-<div style="padding:30px 32px;font-size:14px;line-height:1.6">
-<p style="margin:0 0 14px">Bonjour ${name},</p>
-<p style="margin:0 0 14px">Nous vous remercions pour l'intérêt que vous portez à Adamkom by JJP. Suite à notre échange, nous avons le plaisir de vous adresser ${multi ? `nos <strong>${list.length} propositions commerciales</strong>, afin que vous puissiez choisir la formule la plus adaptée à votre activité` : "notre proposition commerciale"} :</p>
-<table style="width:100%;border-collapse:collapse;border:1px solid #f1e3ea;border-radius:8px;margin:6px 0 4px"><tr><td style="background:#0d0d0d;color:#fff;padding:10px 14px;font-size:12px;letter-spacing:1px">PROPOSITION</td><td style="background:#0d0d0d;color:#fff;padding:10px 14px;font-size:12px;text-align:right;letter-spacing:1px">MONTANT TTC</td></tr>${rows}</table>
-${pay4}
-${renewal}
-<p style="margin:18px 0 14px">${multi ? "Les devis détaillés sont joints" : "Le devis détaillé est joint"} à cet email au format PDF. Pour valider ${multi ? "la proposition de votre choix" : "cette proposition"}, il vous suffit de nous retourner le devis signé avec la mention « Bon pour accord », ou de répondre directement à cet email.</p>
-<p style="margin:0 0 14px">Notre équipe se tient à votre entière disposition pour toute question ou ajustement au <strong>0262 66 68 76</strong> ou à <a href="mailto:contact@adamkom.com" style="color:#ff006e">contact@adamkom.com</a>.</p>
-<p style="margin:22px 0 0">Bien cordialement,<br/><strong>L'équipe Adamkom by JJP</strong></p>
-</div>
-<div style="background:#0d0d0d;color:#bbbbbb;padding:18px;text-align:center;font-size:11px;line-height:1.6"><strong style="color:#ffffff">ADAMKOM by JJP</strong><br/>73 rue du Général Ailleret, Le Tampon · 0262 66 68 76 · contact@adamkom.com</div>
-</div></div>`;
-    const subject = multi
-      ? `Vos ${list.length} propositions Adamkom by JJP - ${first.company_name}`
-      : `Votre devis Adamkom by JJP n° ${first.quote_number} - ${first.company_name}`;
-    return { html, subject, name };
-  };
+  const buildEmail = buildQuoteEmail;
 
   const sendQuotes = async (list: any[]) => {
     if (!list.length) return;
@@ -192,7 +170,7 @@ ${renewal}
     const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
     window.open(URL.createObjectURL(new Blob([bytes], { type: "application/pdf" })), "_blank");
   };
-  const confirmSend = async () => { if (!preview) return; setBusy("send"); await sendQuotes(preview); setBusy(null); setPreview(null); };
+  const confirmSend = async () => { if (!preview) return; setBusy("send"); await sendQuotes(preview.map((q) => quotes.find((current) => current.id === q.id) || q)); setBusy(null); setPreview(null); };
   const sendSelected = () => openPreview(quotes.filter((q: any) => selected.includes(q.id)));
   const updatePayment = async (id: string, patch: Record<string, any>) => {
     const { error } = await supabase.from("quotes").update(patch as any).eq("id", id);
@@ -211,6 +189,10 @@ ${renewal}
     if (editingId === id) reset();
     qc.invalidateQueries({ queryKey: ["quotes"] });
   };
+
+  const selectedQuotes = quotes.filter((q) => selected.includes(q.id));
+  const selectedMail = buildEmail(selectedQuotes);
+  const previewQuotes = preview?.map((q) => quotes.find((current) => current.id === q.id) || q);
 
   const filtered = quotes.filter((q: any) => {
     const s = search.toLowerCase();
@@ -297,8 +279,9 @@ ${renewal}
         </CardContent>
       </Card>
 
+      <div ref={savedRef} className="scroll-mt-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
+        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3 space-y-0">
           <div>
             <CardTitle className="text-base">Devis enregistrés ({quotes.length})</CardTitle>
             <p className="text-xs text-muted-foreground mt-1">Cochez plusieurs devis d'un même client pour les envoyer dans un seul email.</p>
@@ -310,7 +293,7 @@ ${renewal}
           {filtered.length === 0 && <p className="text-sm text-muted-foreground">Aucun devis.</p>}
           {filtered.map((q: any) => (
             <div key={q.id} className={`flex flex-wrap items-center gap-3 rounded-lg border p-3 ${selected.includes(q.id) ? "border-primary bg-primary/5" : "border-border"}`}>
-              <Checkbox checked={selected.includes(q.id)} onCheckedChange={(v) => setSelected((p) => v ? [...p, q.id] : p.filter((x) => x !== q.id))} />
+              <Checkbox aria-label={`Sélectionner ${q.quote_number}`} checked={selected.includes(q.id)} onCheckedChange={(v) => setSelected((p) => v ? [...p, q.id] : p.filter((x) => x !== q.id))} />
               <div className="flex-1 min-w-[200px]">
                 <p className="font-medium text-sm">{q.quote_number} · {q.company_name}</p>
                 <p className="text-xs text-muted-foreground">{QUOTE_TEMPLATES.find((t) => t.key === q.template_key)?.label} · {new Date(q.created_at).toLocaleDateString("fr-FR")}{q.sent_at && ` · envoyé le ${new Date(q.sent_at).toLocaleDateString("fr-FR")}`}</p>
@@ -333,17 +316,25 @@ ${renewal}
           ))}
         </CardContent>
       </Card>
+      {selectedQuotes.length > 0 && (
+        <section className="mt-6 space-y-3" aria-label="Mail des devis sélectionnés">
+          <h2 className="text-base font-semibold">Aperçu du mail ({selectedQuotes.length} devis)</h2>
+          <p className="text-sm text-muted-foreground">Objet : {selectedMail.subject}</p>
+          <iframe title="Mail des devis sélectionnés" srcDoc={selectedMail.html} className="w-full h-[540px] rounded-lg border border-border bg-background" />
+        </section>
+      )}
+      </div>
       <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
         <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Aperçu avant envoi</DialogTitle></DialogHeader>
-          {preview && (() => { const m = buildEmail(preview); return (
+          {previewQuotes && (() => { const m = buildEmail(previewQuotes); return (
             <div className="space-y-3">
               <div className="text-sm space-y-1">
-                <p><span className="text-muted-foreground">À :</span> {m.name} &lt;{preview[0].email}&gt;</p>
+                <p><span className="text-muted-foreground">À :</span> {m.name} &lt;{previewQuotes[0].email}&gt;</p>
                 <p><span className="text-muted-foreground">Objet :</span> <strong>{m.subject}</strong></p>
               </div>
               <div className="flex flex-wrap gap-2">
-                {preview.map((q) => (
+                {previewQuotes.map((q) => (
                   <Button key={q.id} size="sm" variant="outline" onClick={() => viewPdf(q)}><FileText className="w-4 h-4 mr-1" />Devis_{q.quote_number}.pdf</Button>
                 ))}
               </div>

@@ -18,6 +18,12 @@ export interface QuoteTemplate {
 export const TUNING_RENEWAL_NOTE = "Renouvellement à partir de la 2e année : 149 € / an - sans engagement (maintenance, mises à jour, hébergement et suivi technique).";
 export const hasRenewal = (key?: string | null) => key === "tuning" || key === "tuning_plus";
 
+export function quoteAnnualRenewals(key?: string | null, items: QuoteItem[] = []) {
+  const website = key === "tuning_plus" || key === "numerik" || items.some((item) =>
+    item.included !== false && /cr[ée]ation\s+(?:d['’]un\s+)?site\s+(?:internet|web)/i.test(item.description));
+  return { subscription: hasRenewal(key) ? 149 : 0, website: website ? 90 : 0 };
+}
+
 const line = (description: string, unit_price: number, quantity = 1, included = true): QuoteItem => ({
   description, quantity, unit_price, total: quantity * unit_price, included,
 });

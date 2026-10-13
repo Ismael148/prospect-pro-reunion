@@ -24,6 +24,15 @@ export function quoteAnnualRenewals(key?: string | null, items: QuoteItem[] = []
   return { subscription: hasRenewal(key) ? 149 : 0, website: website ? 90 : 0 };
 }
 
+export const WEBSITE_RENEWAL_NOTE = "Site internet : renouvellement du nom de domaine et de l'hébergement à partir de la 2e année, environ 90 € / an.";
+
+/** Combined renewal text shown on quote PDFs (Chip Tuning subscription + website domain/hosting). */
+export function quoteRenewalNote(key?: string | null, items: QuoteItem[] = []): string | null {
+  const r = quoteAnnualRenewals(key, items);
+  const parts = [r.subscription > 0 ? TUNING_RENEWAL_NOTE : "", r.website > 0 ? WEBSITE_RENEWAL_NOTE : ""].filter(Boolean);
+  return parts.length ? parts.join("\n") : null;
+}
+
 const line = (description: string, unit_price: number, quantity = 1, included = true): QuoteItem => ({
   description, quantity, unit_price, total: quantity * unit_price, included,
 });

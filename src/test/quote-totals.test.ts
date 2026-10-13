@@ -25,3 +25,15 @@ describe("Quote payment rules", () => {
     expect(quoteRemaining({ total_amount: 790, deposit_amount: 100 })).toBe(690);
   });
 });
+import { quoteRenewalNote } from "@/lib/quote-templates";
+describe("quote PDF renewal note", () => {
+  it("Chip Tuning Plus mentions 149 € subscription and ~90 € domain renewal", () => {
+    const note = quoteRenewalNote("tuning_plus") || "";
+    expect(note).toContain("149 €");
+    expect(note).toContain("90 €");
+    expect(note).toMatch(/nom de domaine/);
+  });
+  it("Chip Tuning without site has no domain renewal", () => {
+    expect(quoteRenewalNote("tuning") || "").not.toContain("90 €");
+  });
+});

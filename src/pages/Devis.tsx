@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useClients } from "@/hooks/use-clients";
 import { ClientCombobox } from "@/components/ClientCombobox";
-import { QUOTE_TEMPLATES, cleanQuoteDescription, cleanQuoteNotes, computeQuoteTotals, hasRenewal, TUNING_RENEWAL_NOTE, quoteRemaining, type QuoteItem } from "@/lib/quote-templates";
+import { QUOTE_TEMPLATES, cleanQuoteDescription, cleanQuoteNotes, computeQuoteTotals, quoteRenewalNote, quoteRemaining, type QuoteItem } from "@/lib/quote-templates";
 import { buildQuoteEmail } from "@/lib/quote-email";
 import { exportQuotePDF } from "@/lib/export-quote-pdf";
 import { Button } from "@/components/ui/button";
@@ -129,7 +129,7 @@ export default function Devis() {
 
   const pdfData = (q: any) => ({
     quote_number: q.quote_number, created_at: q.created_at, validity_days: q.validity_days, items: q.items,
-    discount_amount: Number(q.discount_amount), tax_rate: Number(q.tax_rate), amount: Number(q.amount), tax_amount: Number(q.tax_amount), total_amount: Number(q.total_amount), notes: q.notes, renewal_note: hasRenewal(q.template_key) ? TUNING_RENEWAL_NOTE : null, deposit_amount: Number(q.deposit_amount || 0), payment_due_date: q.payment_due_date,
+    discount_amount: Number(q.discount_amount), tax_rate: Number(q.tax_rate), amount: Number(q.amount), tax_amount: Number(q.tax_amount), total_amount: Number(q.total_amount), notes: q.notes, renewal_note: quoteRenewalNote(q.template_key, Array.isArray(q.items) ? q.items : []), deposit_amount: Number(q.deposit_amount || 0), payment_due_date: q.payment_due_date,
     client: { company_name: q.company_name, contact_name: q.contact_name, address: q.address, postal_code: q.postal_code, city: q.city, email: q.email, phone: q.phone, siret: q.siret },
   });
 

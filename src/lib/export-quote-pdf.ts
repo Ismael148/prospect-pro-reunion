@@ -16,6 +16,8 @@ export interface QuotePDFData {
   total_amount: number;
   notes?: string | null;
   renewal_note?: string | null;
+  deposit_amount?: number | null;
+  payment_due_date?: string | null;
   client: { company_name: string; contact_name?: string | null; address?: string | null; postal_code?: string | null; city?: string | null; email?: string | null; phone?: string | null; siret?: string | null };
 }
 
@@ -60,7 +62,7 @@ export function exportQuotePDF(data: QuotePDFData, options?: { returnBase64?: bo
   const rows = data.items.filter((i) => i.included !== false);
   autoTable(doc, {
     startY: y,
-    head: [["N°", "PRESTATION", "QTÉ", "PRIX U. HT", "TOTAL HT"]],
+    head: [["N°", "PRESTATION", "QTÉ", "PRIX U. TTC", "TOTAL TTC"]],
     body: rows.map((it, i) => [String(i + 1).padStart(2, "0"), it.description, String(it.quantity), it.unit_price === 0 ? "Inclus" : eur(it.unit_price), it.unit_price === 0 ? "Inclus" : eur(it.quantity * it.unit_price)]),
     theme: "plain",
     headStyles: { fillColor: [...BLACK], textColor: [...WHITE], fontStyle: "bold", fontSize: 10, cellPadding: 5 },
@@ -75,13 +77,19 @@ export function exportQuotePDF(data: QuotePDFData, options?: { returnBase64?: bo
   const tx = pw - 95; let ty = y;
   doc.setFontSize(9); doc.setTextColor(...GRAY);
   const row = (l: string, v: string, pink = false) => { if (pink) doc.setTextColor(...PINK); else doc.setTextColor(...GRAY); doc.text(l, tx, ty); doc.text(v, pw - 15, ty, { align: "right" }); ty += 6; };
-  if (data.discount_amount > 0) { row("Sous-total HT :", eur(data.amount + data.discount_amount)); row("Remise :", `-${eur(data.discount_amount)}`, true); }
-  row("Total HT :", eur(data.amount));
-  if (data.tax_rate > 0) row(`TVA (${data.tax_rate}%) :`, eur(data.tax_amount));
+  const grossTtc = data.total_amount + (data.discount_amount || 0);
+  if (data.discount_amount > 0) { row("Sous-total TTC :", eur(grossTtc)); row("Remise :", `-${eur(data.discount_amount)}`, true); }
+  if (data.tax_rate > 0) { row("Total HT :", eur(data.amount)); row(`dont TVA (${data.tax_rate}%) :`, eur(data.tax_amount)); }
   doc.setFillColor(...BLACK); doc.roundedRect(tx - 5, ty - 3, pw - tx - 10, 14, 2, 2, "F");
   doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(...WHITE);
-  doc.text(data.tax_rate > 0 ? "TOTAL TTC :" : "TOTAL :", tx, ty + 6);
+  doc.text("TOTAL TTC :", tx, ty + 6);
   doc.setTextColor(...PINK); doc.text(eur(data.total_amount), pw - 15, ty + 6, { align: "right" });
+  ty += 14;
+  if ((data.deposit_amount || 0) > 0) {
+    ty += 4; doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+    row("Acompte :", eur(data.deposit_amount!)); row("Reste à payer :", eur(Math.max(0, data.total_amount - data.deposit_amount!)), true);
+  }
+  if (data.payment_due_date) { doc.setFont("helvetica", "normal"); doc.setFontSize(9); row("Échéance :", new Date(data.payment_due_date).toLocaleDateString("fr-FR")); }
 
   // Bon pour accord
   doc.setDrawColor(...PINK); doc.setLineWidth(0.4);

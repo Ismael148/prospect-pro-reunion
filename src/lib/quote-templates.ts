@@ -28,7 +28,7 @@ export const QUOTE_TEMPLATES: QuoteTemplate[] = [
     label: "Pack Chip Tuning",
     subtitle: "Page de conversion, GMB, visuels — 790 €",
     renewal: true,
-    notes: "Devis valable 30 jours. Acompte de 50 % à la signature, solde à la livraison.",
+    notes: "Devis valable 30 jours. Paiement en 4 fois sans frais possible. Acompte de 50 % à la signature, solde à la livraison.",
     items: [
       line("Pack Tuning Adamkom by JJP - Page de conversion professionnelle (design, rédaction, mise en ligne)", 790),
       line("Nom de domaine + hébergement 1re année", 0),
@@ -42,7 +42,7 @@ export const QUOTE_TEMPLATES: QuoteTemplate[] = [
     label: "Pack Chip Tuning Plus",
     subtitle: "Pack Tuning + création site internet — 1 780 €",
     renewal: true,
-    notes: "Devis valable 30 jours. Acompte de 50 % à la signature, solde à la livraison.",
+    notes: "Devis valable 30 jours. Paiement en 4 fois sans frais possible. Acompte de 50 % à la signature, solde à la livraison.",
     items: [
       line("Pack Tuning Adamkom by JJP - Page de conversion professionnelle (design, rédaction, mise en ligne)", 790),
       line("Création site internet vitrine professionnel (design, contenus, responsive, SEO de base)", 990),
@@ -56,7 +56,7 @@ export const QUOTE_TEMPLATES: QuoteTemplate[] = [
     key: "nfc",
     label: "Cartes Bizness NFC",
     subtitle: "Carte NFC personnalisée + page digitale — 279,90 €",
-    notes: "Devis valable 30 jours. Paiement à la commande. Délai de fabrication : 7 à 10 jours ouvrés.",
+    notes: "Devis valable 30 jours. Paiement en 4 fois sans frais possible. Paiement à la commande. Délai de fabrication : 7 à 10 jours ouvrés.",
     items: [
       line("Pack Star Bizness NFC - Carte NFC personnalisée (design recto/verso)", 279.9),
       line("Page digitale de contact connectée à la carte", 0),
@@ -69,7 +69,7 @@ export const QUOTE_TEMPLATES: QuoteTemplate[] = [
     key: "numerik",
     label: "Star Bizness Numerik",
     subtitle: "Site internet + présence digitale — 1 490 €",
-    notes: "Devis valable 30 jours. Acompte de 50 % à la signature, solde à la livraison (délai 15 jours).",
+    notes: "Devis valable 30 jours. Paiement en 4 fois sans frais possible. Acompte de 50 % à la signature, solde à la livraison (délai 15 jours).",
     items: [
       line("Pack Star Bizness Numerik - Création site internet", 1490),
       line("Fiche Google My Business", 0),
@@ -77,12 +77,18 @@ export const QUOTE_TEMPLATES: QuoteTemplate[] = [
       line("Visuels réseaux sociaux", 0),
     ],
   },
-  { key: "custom", label: "Devis libre", subtitle: "Partir d'une page blanche", notes: "Devis valable 30 jours.", items: [line("Prestation", 0)] },
+  { key: "custom", label: "Devis libre", subtitle: "Partir d'une page blanche", notes: "Devis valable 30 jours. Paiement en 4 fois sans frais possible.", items: [line("Prestation", 0)] },
 ];
 
+/** Les prix saisis sont TTC. La TVA éventuelle est incluse (affichée « dont TVA »). */
 export function computeQuoteTotals(items: QuoteItem[], discount: number, taxRate: number) {
   const gross = items.filter((i) => i.included !== false).reduce((s, i) => s + i.quantity * i.unit_price, 0);
-  const amount = Math.max(0, gross - (discount || 0));
-  const tax = Math.round(amount * (taxRate || 0)) / 100;
-  return { gross, amount, tax_amount: tax, total_amount: Math.round((amount + tax) * 100) / 100 };
+  const total = Math.round(Math.max(0, gross - (discount || 0)) * 100) / 100;
+  const ht = taxRate > 0 ? Math.round((total / (1 + taxRate / 100)) * 100) / 100 : total;
+  return { gross, amount: ht, tax_amount: Math.round((total - ht) * 100) / 100, total_amount: total };
+}
+
+export function quoteRemaining(q: { total_amount: number; deposit_amount?: number | null; is_paid?: boolean | null }) {
+  if (q.is_paid) return 0;
+  return Math.max(0, Math.round((Number(q.total_amount) - Number(q.deposit_amount || 0)) * 100) / 100);
 }

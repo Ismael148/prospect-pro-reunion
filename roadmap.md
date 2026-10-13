@@ -9,3 +9,4 @@
 - [x] Afficher immédiatement le devis enregistré et actualiser le mail selon les cases cochées.
 - [x] Simplifier le mail sans tarifs des devis et préciser les renouvellements annuels.
 - [x] Vérifier l’enregistrement et l’aperçu sans envoyer d’email avec une session administrateur autorisée.
+- [x] Saluer les mails de suivi avec le nom du gérant, et « Bonjour, » sans nom quand il manque ; vérifier l’aperçu sur deux fiches.

@@ -73,17 +73,57 @@ export function exportQuotePDF(data: QuotePDFData, options?: { returnBase64?: bo
   });
   y = lastTableY() + 5;
   const rows = data.items.filter((i) => i.included !== false);
+  const descriptionWidth = contentWidth - 64;
+  const serviceText = rows.map((item) => {
+    const text = cleanQuoteDescription(item.description).replace(/[—–]/g, "-");
+    const separator = text.indexOf(" - ");
+    const title = separator < 0 ? text : text.slice(0, separator);
+    const description = separator < 0 ? "" : text.slice(separator + 3);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(10);
+    const titleLines: string[] = doc.splitTextToSize(title, descriptionWidth - 10);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+    const descriptionLines: string[] = description ? doc.splitTextToSize(description, descriptionWidth - 10) : [];
+    const height = 9 + titleLines.length * 4.6 + (descriptionLines.length ? 2 + descriptionLines.length * 4.3 : 0);
+    return { titleLines, descriptionLines, height, text };
+  });
   autoTable(doc, {
     startY: y,
     head: [["PRESTATION", "QTÉ", "PRIX U. TTC", "TOTAL TTC"]],
-    body: rows.map((it) => [cleanQuoteDescription(it.description).replace(/[—–]/g, "-"), String(it.quantity), it.unit_price === 0 ? "Inclus" : eur(it.unit_price), it.unit_price === 0 ? "Inclus" : eur(it.quantity * it.unit_price)]),
+    body: rows.map((it, index) => [serviceText[index].text, String(it.quantity), it.unit_price === 0 ? "Inclus" : eur(it.unit_price), it.unit_price === 0 ? "Inclus" : eur(it.quantity * it.unit_price)]),
     theme: "plain",
-    styles: { font: "helvetica", fontSize: 8.5, textColor: [...INK], cellPadding: { top: 1.5, bottom: 1.5, left: 3, right: 3 }, valign: "middle", overflow: "linebreak" },
+    styles: { font: "helvetica", fontSize: 9, textColor: [...GRAY], cellPadding: { top: 4, bottom: 4, left: 3, right: 3 }, valign: "middle", overflow: "linebreak", lineColor: [...RULE], lineWidth: { bottom: 0.15 } },
     headStyles: { fillColor: [...INK], textColor: [...WHITE], fontStyle: "bold", fontSize: 8, cellPadding: { top: 4, bottom: 4, left: 3, right: 3 }, valign: "middle" },
-    alternateRowStyles: { fillColor: [...PALE] },
-    columnStyles: { 0: { cellWidth: contentWidth - 73 }, 1: { cellWidth: 15, halign: "center" }, 2: { cellWidth: 29, halign: "center" }, 3: { cellWidth: 29, halign: "center" } },
+    columnStyles: { 0: { cellWidth: descriptionWidth }, 1: { cellWidth: 12, halign: "center" }, 2: { cellWidth: 26, halign: "center" }, 3: { cellWidth: 26, halign: "center" } },
     margin: { left: margin, right: margin, top: 18, bottom: 22 },
     rowPageBreak: "avoid",
+    didParseCell: (cell) => {
+      if (cell.section !== "body") return;
+      const service = serviceText[cell.row.index];
+      if (rows[cell.row.index].unit_price > 0) {
+        cell.cell.styles.fillColor = [...PALE];
+        cell.cell.styles.fontStyle = "bold";
+        cell.cell.styles.textColor = [...INK];
+      }
+      // Extremely long custom text uses the library's standard safe pagination.
+      if (cell.column.index === 0 && service.height < bottom - 35) {
+        cell.cell.text = [];
+        cell.cell.styles.minCellHeight = service.height;
+      }
+    },
+    didDrawCell: (cell) => {
+      if (cell.section !== "body" || cell.column.index !== 0) return;
+      const service = serviceText[cell.row.index];
+      if (service.height >= bottom - 35) return;
+      const x = cell.cell.x + 5;
+      let baseline = cell.cell.y + 7.5;
+      doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(...INK);
+      doc.text(service.titleLines, x, baseline, { lineHeightFactor: 1.3 });
+      if (service.descriptionLines.length) {
+        baseline += service.titleLines.length * 4.6 + 2;
+        doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(...GRAY);
+        doc.text(service.descriptionLines, x, baseline, { lineHeightFactor: 1.35 });
+      }
+    },
   });
   y = lastTableY() + 5;
 

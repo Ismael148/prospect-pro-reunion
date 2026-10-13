@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { findDuplicateIds } from "@/lib/client-duplicates";
 import { useNavigate } from "react-router-dom";
 import { useClients, useCreateClient } from "@/hooks/use-clients";
 import { useQuery } from "@tanstack/react-query";

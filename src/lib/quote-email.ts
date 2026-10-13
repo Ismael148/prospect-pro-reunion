@@ -5,7 +5,7 @@ interface EmailQuote {
   template_key: string;
   company_name: string;
   contact_name?: string | null;
-  items?: QuoteItem[];
+  items?: unknown;
 }
 
 const escape = (value: string) => value.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] || c));
@@ -16,7 +16,7 @@ export function buildQuoteEmail(list: EmailQuote[]) {
   const name = first.contact_name || first.company_name;
   const multi = list.length > 1;
   const rows = list.map((q) => `<li style="margin:10px 0"><strong>${escape(QUOTE_TEMPLATES.find((t) => t.key === q.template_key)?.label || "Devis")}</strong> — ${escape(q.quote_number)}</li>`).join("");
-  const renewals = list.map((q) => quoteAnnualRenewals(q.template_key, q.items));
+  const renewals = list.map((q) => quoteAnnualRenewals(q.template_key, Array.isArray(q.items) ? q.items.filter((item): item is QuoteItem => item !== null && typeof item === "object" && typeof item.description === "string") : []));
   const notes = [
     renewals.some((r) => r.subscription > 0) ? "Chip Tuning / Chip Tuning Plus : abonnement de renouvellement de 149 € / an dès la 2e année, sans engagement (maintenance, mises à jour et suivi technique)." : "",
     renewals.some((r) => r.website > 0) ? "En cas de création de site : renouvellement du nom de domaine et de l’hébergement, en supplément, à environ 90 € / an." : "",

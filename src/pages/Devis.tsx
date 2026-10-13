@@ -27,6 +27,7 @@ export default function Devis() {
   const { data: clients = [] } = useClients();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [quoteNumber, setQuoteNumber] = useState<string | null>(null);
+  const [customNumber, setCustomNumber] = useState("");
   const [templateKey, setTemplateKey] = useState("tuning");
   const [clientId, setClientId] = useState("");
   const [client, setClient] = useState({ ...emptyClient });
@@ -91,7 +92,7 @@ export default function Devis() {
 
   const reset = () => {
     setEditingId(null); setQuoteNumber(null); setClientId(""); setClient({ ...emptyClient });
-    setDiscount("0"); setTaxRate("0"); setValidity("30"); setDeposit("0"); setDueDate(""); pickTemplate("tuning");
+    setDiscount("0"); setTaxRate("0"); setValidity("30"); setDeposit("0"); setDueDate(""); setCustomNumber(""); pickTemplate("tuning");
   };
 
   const newForSameClient = () => {
@@ -101,7 +102,7 @@ export default function Devis() {
   };
 
   const loadQuote = (q: any) => {
-    setEditingId(q.id); setQuoteNumber(q.quote_number); setTemplateKey(q.template_key); setClientId(q.client_id || "");
+    setEditingId(q.id); setQuoteNumber(q.quote_number); setCustomNumber(q.quote_number || ""); setTemplateKey(q.template_key); setClientId(q.client_id || "");
     setClient({ company_name: q.company_name || "", contact_name: q.contact_name || "", email: q.email || "", phone: q.phone || "", address: q.address || "", postal_code: q.postal_code || "", city: q.city || "", siret: q.siret || "" });
     setItems((q.items || []).map((item: QuoteItem) => ({ ...item, description: cleanQuoteDescription(item.description) }))); setNotes(cleanQuoteNotes(q.notes)); setDiscount(String(q.discount_amount ?? 0)); setTaxRate(String(q.tax_rate ?? 0)); setValidity(String(q.validity_days ?? 30)); setDeposit(String(q.deposit_amount ?? 0)); setDueDate(q.payment_due_date || "");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -113,6 +114,7 @@ export default function Devis() {
     contact_name: client.contact_name.trim() || null, email: client.email.trim() || null, phone: client.phone.trim() || null,
     address: client.address.trim() || null, postal_code: client.postal_code.trim() || null, city: client.city.trim() || null, siret: client.siret.trim() || null,
     items: items.map((item) => ({ ...item, description: cleanQuoteDescription(item.description) })) as any, discount_amount: parseFloat(discount) || 0, tax_rate: parseFloat(taxRate) || 0,
+    ...(customNumber.trim() ? { quote_number: customNumber.trim() } : {}),
     amount: totals.amount, tax_amount: totals.tax_amount, total_amount: totals.total_amount,
     notes: cleanQuoteNotes(notes) || null, validity_days: parseInt(validity) || 30,
     deposit_amount: parseFloat(deposit) || 0, payment_due_date: dueDate || null,
@@ -125,7 +127,7 @@ export default function Devis() {
       ? await supabase.from("quotes").update(body).eq("id", editingId).select().single()
       : await supabase.from("quotes").insert(body).select().single();
     if (res.error) { toast.error(res.error.message); return null; }
-    setEditingId(res.data.id); setQuoteNumber(res.data.quote_number);
+    setEditingId(res.data.id); setQuoteNumber(res.data.quote_number); setCustomNumber(res.data.quote_number || "");
     qc.setQueryData(["quotes"], (previous: any[] = []) => [res.data, ...previous.filter((q) => q.id !== res.data.id)]);
     qc.invalidateQueries({ queryKey: ["quotes"] });
     qc.invalidateQueries({ queryKey: ["client-quotes"] });
@@ -216,6 +218,10 @@ export default function Devis() {
 
       <Card>
         <CardHeader><CardTitle className="text-base">1. Modèle de devis {quoteNumber && <Badge variant="secondary" className="ml-2">{quoteNumber}</Badge>}</CardTitle></CardHeader>
+        <div className="px-6 -mt-1 pb-1 flex items-center gap-2">
+          <Label htmlFor="quote-number" className="text-xs text-muted-foreground whitespace-nowrap">N° de devis</Label>
+          <Input id="quote-number" value={customNumber} onChange={(e) => setCustomNumber(e.target.value)} placeholder="Automatique (DEV-2026-0001)" className="h-8 max-w-[220px] text-sm" />
+        </div>
         <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {QUOTE_TEMPLATES.map((t) => (
             <button key={t.key} type="button" onClick={() => pickTemplate(t.key)}

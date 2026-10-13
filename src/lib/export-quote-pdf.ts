@@ -54,12 +54,12 @@ export function exportQuotePDF(data: QuotePDFData, options?: { returnBase64?: bo
   doc.setFontSize(9); doc.text(data.quote_number, pw - margin, 30, { align: "right" });
   doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(...GRAY);
   doc.text(`Date : ${date.toLocaleDateString("fr-FR")}  |  Validité : ${until.toLocaleDateString("fr-FR")}`, pw - margin, 37, { align: "right" });
-  doc.setDrawColor(...PINK); doc.setLineWidth(0.7); doc.line(margin, 43, pw - margin, 43);
+  doc.setDrawColor(...PINK); doc.setLineWidth(0.7); doc.line(margin, 40, pw - margin, 40);
 
   // Table layout wraps both address blocks, including long client names and emails.
   const c = data.client;
   autoTable(doc, {
-    startY: 49,
+    startY: 44,
     body: [[
       [ISSUER.name, ISSUER.address, `Tél : ${ISSUER.phone}`, `SIRET : ${ISSUER.siret}`, ISSUER.email].join("\n"),
       [c.company_name, c.contact_name, c.address, [c.postal_code, c.city].filter(Boolean).join(" "), c.phone, c.email, c.siret ? `SIRET : ${c.siret}` : ""].filter(Boolean).join("\n"),
@@ -71,21 +71,21 @@ export function exportQuotePDF(data: QuotePDFData, options?: { returnBase64?: bo
     columnStyles: { 0: { cellWidth: contentWidth / 2 }, 1: { cellWidth: contentWidth / 2 } },
     margin: { left: margin, right: margin, top: 18, bottom: 22 },
   });
-  y = lastTableY() + 7;
+  y = lastTableY() + 5;
   const rows = data.items.filter((i) => i.included !== false);
   autoTable(doc, {
     startY: y,
     head: [["PRESTATION", "QTÉ", "PRIX U. TTC", "TOTAL TTC"]],
     body: rows.map((it) => [cleanQuoteDescription(it.description).replace(/[—–]/g, "-"), String(it.quantity), it.unit_price === 0 ? "Inclus" : eur(it.unit_price), it.unit_price === 0 ? "Inclus" : eur(it.quantity * it.unit_price)]),
     theme: "plain",
-    styles: { font: "helvetica", fontSize: 8.5, textColor: [...INK], cellPadding: { top: 2, bottom: 2, left: 3, right: 3 }, valign: "middle", overflow: "linebreak" },
+    styles: { font: "helvetica", fontSize: 8.5, textColor: [...INK], cellPadding: { top: 1.5, bottom: 1.5, left: 3, right: 3 }, valign: "middle", overflow: "linebreak" },
     headStyles: { fillColor: [...INK], textColor: [...WHITE], fontStyle: "bold", fontSize: 8, cellPadding: { top: 4, bottom: 4, left: 3, right: 3 }, valign: "middle" },
     alternateRowStyles: { fillColor: [...PALE] },
     columnStyles: { 0: { cellWidth: contentWidth - 73 }, 1: { cellWidth: 15, halign: "center" }, 2: { cellWidth: 29, halign: "center" }, 3: { cellWidth: 29, halign: "center" } },
     margin: { left: margin, right: margin, top: 18, bottom: 22 },
     rowPageBreak: "avoid",
   });
-  y = lastTableY() + 8;
+  y = lastTableY() + 5;
 
   const deposit = Number(data.deposit_amount || 0);
   const detailRows: [string, string][] = [];
@@ -116,7 +116,7 @@ export function exportQuotePDF(data: QuotePDFData, options?: { returnBase64?: bo
     doc.text(label, summaryX + 3, y + 24 + i * 6);
     doc.text(value, pw - margin - 3, y + 24 + i * 6, { align: "right" });
   });
-  y += summaryHeight + 7;
+  y += summaryHeight + 4;
 
   // AutoTable measures note height and paginates unusually long custom conditions safely.
   const noteBlock = (title: string, text: string) => {
@@ -130,7 +130,7 @@ export function exportQuotePDF(data: QuotePDFData, options?: { returnBase64?: bo
       margin: { left: margin, right: margin, top: 18, bottom: 22 },
       rowPageBreak: "avoid",
     });
-    y = lastTableY() + 5;
+    y = lastTableY() + 3;
   };
   noteBlock("CONDITIONS", cleanQuoteNotes(data.notes));
   noteBlock("RENOUVELLEMENT", data.renewal_note || "");

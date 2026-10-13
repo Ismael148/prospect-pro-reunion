@@ -58,6 +58,7 @@ import TutoGoogleAnalytics from "./pages/TutoGoogleAnalytics";
 import Calendrier from "./pages/Calendrier";
 import GmbPublic from "./pages/GmbPublic";
 import FormationSeo from "./pages/FormationSeo";
+import Devis from "./pages/Devis";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -211,6 +212,7 @@ const App = () => (
               path="/formation-seo"
               element={<ProtectedRoute><AppLayout><FormationSeo /></AppLayout></ProtectedRoute>}
             />
+            <Route path="/devis" element={<ProtectedRoute><AppLayout><Devis /></AppLayout></ProtectedRoute>} />
             {/* Public tutorials */}
             <Route path="/tuto/facebook" element={<TutoFacebook />} />
             <Route path="/tuto/gmb" element={<TutoGmb />} />

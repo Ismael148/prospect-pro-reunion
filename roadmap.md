@@ -1,9 +1,9 @@
 - [x] Refaire la présentation PDF des devis et centrer les tarifs TTC.
-- [ ] Ajouter le tutoriel de validation vidéo Google et sa section d’envoi sur les fiches Chip Tuning.
-- [ ] Vérifier le tutoriel et l’aperçu du mail sur une fiche client autorisée.
+- [x] Ajouter le tutoriel de validation vidéo Google et sa section d’envoi sur les fiches Chip Tuning.
+- [x] Vérifier le tutoriel et l’aperçu du mail sur une fiche client autorisée.
 - [x] Retirer les numéros des descriptions et les mentions d'acompte de 50 %.
 - [x] Vérifier les PDF courts et multipages et les tests.
 - [x] Donner aux prestations des titres distincts et des descriptions aérées, puis vérifier toutes les pages.
 - [x] Afficher immédiatement le devis enregistré et actualiser le mail selon les cases cochées.
 - [x] Simplifier le mail sans tarifs des devis et préciser les renouvellements annuels.
-- [ ] Vérifier l’enregistrement et l’aperçu sans envoyer d’email : session de contrôle sans droit de création de devis ; nécessite une session autorisée.
+- [x] Vérifier l’enregistrement et l’aperçu sans envoyer d’email avec une session administrateur autorisée.

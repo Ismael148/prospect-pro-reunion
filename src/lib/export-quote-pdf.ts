@@ -100,13 +100,13 @@ export function exportQuotePDF(data: QuotePDFData, options?: { returnBase64?: bo
     doc.setFillColor(250, 245, 248); doc.roundedRect(15, y, pw - 30, h, 2, 2, "FD");
     doc.setFont("helvetica", "bold"); doc.setTextColor(...BLACK); doc.text("CONDITIONS", 21, y + 7);
     doc.setFont("helvetica", "normal"); doc.setTextColor(90, 90, 90); doc.text(lines, 21, y + 14, { lineHeightFactor: 1.35 });
-    y += h + 5;
+    y += h + 3;
   }
 
   if (data.renewal_note) {
     doc.setPage(doc.getNumberOfPages());
     const bx = 15, bw = pw - 30, bh = 19;
-    if (y + bh > ph - 28) { doc.addPage(); y = 20; }
+    if (y + bh > ph - 25) { doc.addPage(); y = 20; }
     const by = y;
     doc.setFillColor(...PINK); doc.roundedRect(bx, by, bw, bh, 2, 2, "F");
     doc.setTextColor(...WHITE); doc.setFont("helvetica", "bold"); doc.setFontSize(9);

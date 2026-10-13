@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { campaignStatus } from "@/lib/followup";
+import { buildCancelEmail, buildConfirmEmail, buildReminderEmail, buildRescheduleEmail, campaignStatus } from "@/lib/followup";
 
 const now = new Date("2026-10-13T10:00:00Z");
 const base = { hasOpenTicket: false, hasPendingRequest: false, nextRdv: null, lastReminder: null, now };

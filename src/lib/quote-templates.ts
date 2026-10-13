@@ -68,7 +68,7 @@ export const QUOTE_TEMPLATES: QuoteTemplate[] = [
     subtitle: "Carte NFC personnalisée + page digitale — 279,90 €",
     notes: "Devis valable 30 jours. Paiement en 4 fois sans frais possible. Paiement à la commande. Délai de fabrication : 7 à 10 jours ouvrés.",
     items: [
-      line("Pack Star Bizness NFC - Carte NFC personnalisée (design recto/verso)", 279.9),
+      line("Carte Bizness NFC personnalisée (design recto/verso) - prix par carte, ajustez la quantité selon le nombre de cartes", 279.9),
       line("Page digitale de contact connectée à la carte", 0),
       line("QR Code + programmation NFC", 0),
       line("Formation à l'utilisation de la carte", 0),

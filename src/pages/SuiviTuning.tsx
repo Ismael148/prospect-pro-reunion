@@ -42,7 +42,7 @@ export default function SuiviTuning() {
     queryKey: ["suivi-tuning"],
     queryFn: async () => {
       const [clients, tickets, reqs, logs] = await Promise.all([
-        supabase.from("clients").select("id, company_name, manager_name, email, support_token").eq("pack_type", "star_bizness_tuning" as any).order("company_name"),
+        supabase.from("clients").select("id, company_name, manager_name, email, support_token, pack_type").in("pack_type", ["star_bizness_tuning", "star_bizness_numerik"] as any).order("company_name"),
         supabase.from("support_tickets").select("client_id, status, ticket_number").in("status", ["ouvert", "en_cours"]),
         supabase.from("followup_requests").select("*").order("created_at", { ascending: false }),
         supabase.from("email_send_log").select("created_at, metadata").eq("metadata->>trigger", FOLLOWUP_TRIGGER).order("created_at", { ascending: false }),
@@ -148,7 +148,7 @@ export default function SuiviTuning() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Suivi & Relance Chip Tuning</h1>
+        <h1 className="text-2xl font-bold">Suivi & Relance Chip Tuning & Clients 2.0</h1>
         <p className="text-muted-foreground text-sm">Relance tous les 15 jours, exclusion automatique et gestion des demandes de visio.</p>
       </div>
 
@@ -161,7 +161,7 @@ export default function SuiviTuning() {
         <TabsContent value="campagne">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap">
-              <CardTitle className="text-lg">Clients Chip Tuning</CardTitle>
+              <CardTitle className="text-lg">Clients Chip Tuning & 2.0</CardTitle>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => setSelected(toRelance.map((r) => r.c.id))}>Sélectionner les clients à relancer</Button>
                 <Button size="sm" disabled={!selected.length} onClick={() => setCampaignOpen(true)}><Send className="w-4 h-4 mr-1" />Relire & envoyer ({selected.length})</Button>
@@ -178,14 +178,16 @@ export default function SuiviTuning() {
                       <tr key={r.c.id} className="border-b border-border/50">
                         <td className="p-2"><Checkbox disabled={r.status.startsWith("exclu") || r.status === "rdv"} checked={selected.includes(r.c.id)}
                           onCheckedChange={(v) => setSelected((s) => (v ? [...s, r.c.id] : s.filter((x) => x !== r.c.id)))} /></td>
-                        <td className="p-2 font-medium">{r.c.company_name}{!r.c.email && <span className="block text-xs text-destructive">Pas d'email</span>}</td>
+                        <td className="p-2 font-medium">{r.c.company_name}
+                          <span className="block text-xs text-muted-foreground">{r.c.pack_type === "star_bizness_numerik" ? "Client 2.0" : "Chip Tuning"}</span>
+                          {!r.c.email && <span className="block text-xs text-destructive">Pas d'email</span>}</td>
                         <td className="p-2"><Badge variant="outline" className={STATUS_STYLE[r.status]}>{CAMPAIGN_LABELS[r.status]}</Badge></td>
                         <td className="p-2">{fmt(r.lastReminder)}</td>
                         <td className="p-2">{r.lastAction}</td>
                         <td className="p-2">{r.nextAction}</td>
                       </tr>
                     ))}
-                    {!rows.length && <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">Aucun client Chip Tuning</td></tr>}
+                    {!rows.length && <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">Aucun client Chip Tuning ou 2.0</td></tr>}
                   </tbody>
                 </table>
               )}

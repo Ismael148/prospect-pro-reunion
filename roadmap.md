@@ -2,7 +2,7 @@
 - [x] Ajouter le tutoriel de validation vidéo Google et sa section d’envoi sur les fiches Chip Tuning.
 - [x] Vérifier le tutoriel et l’aperçu du mail sur une fiche client autorisée.
 - [x] Moderniser le tutoriel sur fond blanc et vérifier le titre sur ordinateur et téléphone.
-- [ ] Vérifier la disponibilité d’une vidéo officielle Google avec voix française.
+- [x] Vérifier les vidéos officielles Google : aucune version avec voix française trouvée ; indiquer la langue réelle et les options de sous-titres.
 - [x] Retirer les numéros des descriptions et les mentions d'acompte de 50 %.
 - [x] Vérifier les PDF courts et multipages et les tests.
 - [x] Donner aux prestations des titres distincts et des descriptions aérées, puis vérifier toutes les pages.

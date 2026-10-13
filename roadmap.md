@@ -1,0 +1,3 @@
+- [ ] Refaire la présentation PDF des devis et centrer les tarifs TTC.
+- [ ] Retirer les numéros des descriptions et les mentions d'acompte de 50 %.
+- [ ] Vérifier les PDF courts et multipages et les tests.

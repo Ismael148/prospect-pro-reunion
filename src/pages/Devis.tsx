@@ -74,6 +74,14 @@ export default function Devis() {
   const updateItem = (i: number, patch: Partial<QuoteItem>) =>
     setItems((prev) => prev.map((it, idx) => (idx === i ? { ...it, ...patch, total: (patch.quantity ?? it.quantity) * (patch.unit_price ?? it.unit_price) } : it)));
 
+  /** Saisie directe du prix total TTC d'une ligne : le prix unitaire est recalculé selon la quantité. */
+  const updateItemTotal = (i: number, total: number) =>
+    setItems((prev) => prev.map((it, idx) => {
+      if (idx !== i) return it;
+      const qty = it.quantity > 0 ? it.quantity : 1;
+      return { ...it, unit_price: total / qty, total };
+    }));
+
   const reset = () => {
     setEditingId(null); setQuoteNumber(null); setClientId(""); setClient({ ...emptyClient });
     setDiscount("0"); setTaxRate("0"); setValidity("30"); setDeposit("0"); setDueDate(""); pickTemplate("tuning");
@@ -252,12 +260,12 @@ ${renewal}
         <CardContent className="space-y-3">
           <p className="text-xs text-muted-foreground">Cochez les lignes à inclure. Prix TTC. Prix à 0 = affiché « Inclus ».</p>
           {items.map((it, i) => (
-            <div key={i} className="grid grid-cols-[auto_minmax(0,1fr)_auto] sm:grid-cols-[auto_minmax(0,1fr)_60px_90px_90px_auto] gap-2 items-center">
+            <div key={i} className="grid grid-cols-[auto_minmax(0,1fr)_auto] sm:grid-cols-[auto_minmax(0,1fr)_60px_90px_90px_90px_auto] gap-2 items-center">
               <Checkbox checked={it.included !== false} onCheckedChange={(v) => updateItem(i, { included: !!v })} />
               <Textarea rows={3} className="min-w-0 resize-y text-sm" aria-label={`Description de la prestation ${i + 1}`} value={it.description} onChange={(e) => updateItem(i, { description: e.target.value })} />
               <Input className="text-center" aria-label={`Quantité ${i + 1}`} type="number" min="1" value={it.quantity} onChange={(e) => updateItem(i, { quantity: parseFloat(e.target.value) || 0 })} />
               <Input className="text-center" aria-label={`Prix TTC ${i + 1}`} type="number" step="0.01" value={it.unit_price} onChange={(e) => updateItem(i, { unit_price: parseFloat(e.target.value) || 0 })} />
-              <span className={`text-sm text-center whitespace-nowrap ${it.included === false ? "text-muted-foreground line-through" : ""}`}>{eur(it.quantity * it.unit_price)}</span>
+              <Input className="text-center" aria-label={`Total TTC ${i + 1}`} type="number" step="0.01" value={Math.round(it.quantity * it.unit_price * 100) / 100} onChange={(e) => updateItemTotal(i, parseFloat(e.target.value) || 0)} />
               <Button size="icon" variant="ghost" onClick={() => setItems(items.filter((_, idx) => idx !== i))}><Trash2 className="w-4 h-4" /></Button>
             </div>
           ))}

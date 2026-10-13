@@ -74,6 +74,14 @@ export default function Devis() {
   const updateItem = (i: number, patch: Partial<QuoteItem>) =>
     setItems((prev) => prev.map((it, idx) => (idx === i ? { ...it, ...patch, total: (patch.quantity ?? it.quantity) * (patch.unit_price ?? it.unit_price) } : it)));
 
+  /** Saisie directe du prix total TTC d'une ligne : le prix unitaire est recalculé selon la quantité. */
+  const updateItemTotal = (i: number, total: number) =>
+    setItems((prev) => prev.map((it, idx) => {
+      if (idx !== i) return it;
+      const qty = it.quantity > 0 ? it.quantity : 1;
+      return { ...it, unit_price: total / qty, total };
+    }));
+
   const reset = () => {
     setEditingId(null); setQuoteNumber(null); setClientId(""); setClient({ ...emptyClient });
     setDiscount("0"); setTaxRate("0"); setValidity("30"); setDeposit("0"); setDueDate(""); pickTemplate("tuning");

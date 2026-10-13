@@ -61,6 +61,7 @@ import GmbPublic from "./pages/GmbPublic";
 import FormationSeo from "./pages/FormationSeo";
 import Devis from "./pages/Devis";
 import SuiviTuning from "./pages/SuiviTuning";
+import SuiviDisponibilites from "./pages/SuiviDisponibilites";
 import SuiviPublic from "./pages/SuiviPublic";
 import NotFound from "./pages/NotFound";
 
@@ -234,6 +235,7 @@ const App = () => (
             <Route path="/s/:token" element={<SupportForm />} />
             <Route path="/suivi/:token" element={<SuiviPublic />} />
             <Route path="/suivi-tuning" element={<ProtectedRoute><AppLayout><SuiviTuning /></AppLayout></ProtectedRoute>} />
+            <Route path="/suivi-disponibilites" element={<ProtectedRoute><AppLayout><SuiviDisponibilites /></AppLayout></ProtectedRoute>} />
             <Route path="/f/:token/:type" element={<ClientForm />} />
             {/* Legacy long URLs (backward compat) */}
             <Route path="/support/:token" element={<SupportForm />} />

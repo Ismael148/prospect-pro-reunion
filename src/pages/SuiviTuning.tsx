@@ -34,7 +34,11 @@ const REQ_LABEL: Record<string, string> = { en_attente: "En attente", confirme: 
 
 type Action = "confirm" | "recale" | "annule";
 
-export default function SuiviTuning() {
+export default function SuiviTuning({ mode = "campagne" }: { mode?: "campagne" | "dispos" }) {
+  const [search, setSearch] = useState("");
+  const [reqFilter, setReqFilter] = useState("all");
+  const q = search.trim().toLowerCase();
+  const match = (c: any) => !q || [c?.company_name, c?.manager_name, c?.email].some((v) => (v || "").toLowerCase().includes(q));
   const qc = useQueryClient();
   const { data: branding } = useEmailBranding();
 
@@ -148,22 +152,29 @@ export default function SuiviTuning() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Suivi & Relance Chip Tuning & Clients 2.0</h1>
-        <p className="text-muted-foreground text-sm">Relance tous les 15 jours, exclusion automatique et gestion des demandes de visio.</p>
+        <h1 className="text-2xl font-bold">{mode === "dispos" ? "Suivi Disponibilités" : "Suivi & Relance Chip Tuning & Clients 2.0"}</h1>
+        <p className="text-muted-foreground text-sm">{mode === "dispos" ? "Toutes les demandes de créneaux envoyées par les clients et leur statut." : "Relance tous les 15 jours et exclusion automatique. Les demandes de créneaux sont dans « Suivi Disponibilités »."}</p>
       </div>
 
-      <Tabs defaultValue="campagne">
-        <TabsList>
-          <TabsTrigger value="campagne">Campagne ({toRelance.length} à relancer)</TabsTrigger>
-          <TabsTrigger value="demandes">Demandes de dispo ({data?.reqs.filter((r) => r.status === "en_attente").length || 0})</TabsTrigger>
-        </TabsList>
+      <div className="flex gap-2 flex-wrap">
+        <Input placeholder="Rechercher un client (nom, gérant, email)…" value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-sm" />
+        {mode === "dispos" && (
+          <select value={reqFilter} onChange={(e) => setReqFilter(e.target.value)} className="h-10 rounded-md border border-input bg-background px-3 text-sm">
+            <option value="all">Tous les statuts</option>
+            {Object.entries(REQ_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+        )}
+      </div>
+
+      <Tabs value={mode === "dispos" ? "demandes" : "campagne"}>
 
         <TabsContent value="campagne">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap">
               <CardTitle className="text-lg">Clients Chip Tuning & 2.0</CardTitle>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => setSelected(toRelance.map((r) => r.c.id))}>Sélectionner les clients à relancer</Button>
+                <Button variant="outline" size="sm" onClick={() => setSelected(toRelance.filter((r) => match(r.c)).map((r) => r.c.id))}>Sélectionner les clients à relancer</Button>
+                <Button variant="outline" size="sm" disabled={!selected.length} onClick={() => setSelected([])}>Tout désélectionner</Button>
                 <Button size="sm" disabled={!selected.length} onClick={() => setCampaignOpen(true)}><Send className="w-4 h-4 mr-1" />Relire & envoyer ({selected.length})</Button>
               </div>
             </CardHeader>
@@ -174,7 +185,7 @@ export default function SuiviTuning() {
                     <tr><th className="p-2 w-8" /><th className="p-2">Client</th><th className="p-2">Statut campagne</th><th className="p-2">Dernière relance</th><th className="p-2">Dernier retour</th><th className="p-2">Prochaine action</th></tr>
                   </thead>
                   <tbody>
-                    {rows.map((r) => (
+                    {rows.filter((r) => match(r.c)).map((r) => (
                       <tr key={r.c.id} className="border-b border-border/50">
                         <td className="p-2"><Checkbox disabled={r.status.startsWith("exclu") || r.status === "rdv"} checked={selected.includes(r.c.id)}
                           onCheckedChange={(v) => setSelected((s) => (v ? [...s, r.c.id] : s.filter((x) => x !== r.c.id)))} /></td>
@@ -199,8 +210,9 @@ export default function SuiviTuning() {
           <Card>
             <CardHeader><CardTitle className="text-lg">Historique des demandes</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              {(data?.reqs || []).map((r) => {
+              {(data?.reqs || []).filter((r) => reqFilter === "all" || r.status === reqFilter).map((r) => {
                 const c = data?.clients.find((x: any) => x.id === r.client_id);
+                if (!match(c)) return null;
                 return (
                   <div key={r.id} className="rounded-lg border border-border p-4 flex flex-col md:flex-row md:items-center gap-3 justify-between">
                     <div className="space-y-1 min-w-0">

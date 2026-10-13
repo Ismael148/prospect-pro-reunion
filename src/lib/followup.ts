@@ -46,7 +46,7 @@ export function buildReminderEmail(name: string, token?: string | null) {
   return {
     subject: "[Adamkom by JJP] Suivi de votre solution – Vos besoins & mises à jour",
     body: `<p style="margin:0 0 20px">Bonjour <strong>${esc(name)}</strong>,</p>
-<p style="margin:0 0 20px">Nous espérons que tout se passe au mieux dans l'exploitation de votre solution digitale.</p>
+<p style="margin:0 0 20px">Nous espérons que vous allez bien et que votre activité se porte bien.</p>
 <p style="margin:0 0 20px"><strong>Chez Adamkom by JJP</strong>, nous tenons à être pleinement à vos côtés. Si vous avez besoin d'effectuer des modifications, de déployer des mises à jour ou de poser des questions techniques, vous disposez de deux options directes :</p>
 <ul style="margin:0 0 20px;padding-left:20px">
 <li style="margin-bottom:8px"><strong>Ouvrir un ticket support</strong> : transmettez votre demande directement depuis votre espace client.</li>

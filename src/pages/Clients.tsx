@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { findDuplicateIds } from "@/lib/client-duplicates";
 import { useNavigate } from "react-router-dom";
 import { useClients, useCreateClient } from "@/hooks/use-clients";
 import { useQuery } from "@tanstack/react-query";
@@ -43,6 +44,8 @@ export default function Clients() {
   const [showFilters, setShowFilters] = useState(false);
   const [sortOrder, setSortOrder] = useState<"recent" | "ancien">("recent");
   const [filterPeriod, setFilterPeriod] = useState<string>("all");
+  const [showDuplicates, setShowDuplicates] = useState(false);
+  const duplicateIds = useMemo(() => findDuplicateIds((clients || []) as any), [clients]);
 
   const [form, setForm] = useState({
     company_name: "", manager_name: "", phone: "", email: "", address: "", city: "",
@@ -128,6 +131,8 @@ export default function Clients() {
     if (c.pack_type === "star_bizness_nfc") return false;
     // Les clients Tuning ont leur propre page dédiée
     if (c.pack_type === "star_bizness_tuning") return false;
+    // Doublons d'une fiche 1.0 / Chip Tuning : masqués (jamais supprimés)
+    if (!showDuplicates && duplicateIds.has(c.id)) return false;
     const s = search.toLowerCase();
     const matchSearch = !s || c.company_name.toLowerCase().includes(s) ||
       c.city?.toLowerCase().includes(s) || c.sector?.toLowerCase().includes(s) ||
@@ -264,6 +269,11 @@ export default function Clients() {
             <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-[10px]">{activeFilterCount}</Badge>
           )}
         </Button>
+        {duplicateIds.size > 0 && (
+          <Button variant={showDuplicates ? "default" : "outline"} size="sm" onClick={() => setShowDuplicates(!showDuplicates)}>
+            {showDuplicates ? "Masquer" : "Afficher"} les doublons 1.0 / Tuning ({duplicateIds.size})
+          </Button>
+        )}
         {activeFilterCount > 0 && (
           <Button variant="ghost" size="sm" onClick={resetFilters} className="gap-1 text-muted-foreground"><X className="w-3.5 h-3.5" /> Réinitialiser</Button>
         )}

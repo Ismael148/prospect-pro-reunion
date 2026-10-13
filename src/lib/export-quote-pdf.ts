@@ -15,6 +15,7 @@ export interface QuotePDFData {
   tax_amount: number;
   total_amount: number;
   notes?: string | null;
+  renewal_note?: string | null;
   client: { company_name: string; contact_name?: string | null; address?: string | null; postal_code?: string | null; city?: string | null; email?: string | null; phone?: string | null; siret?: string | null };
 }
 
@@ -65,11 +66,11 @@ export function exportQuotePDF(data: QuotePDFData, options?: { returnBase64?: bo
     headStyles: { fillColor: [...BLACK], textColor: [...WHITE], fontStyle: "bold", fontSize: 10, cellPadding: 5 },
     bodyStyles: { fontSize: 9.5, cellPadding: 4.5, textColor: [50, 50, 50] },
     alternateRowStyles: { fillColor: [250, 245, 248] },
-    columnStyles: { 0: { cellWidth: 14, halign: "center" }, 2: { cellWidth: 16, halign: "center" }, 3: { cellWidth: 30, halign: "right" }, 4: { cellWidth: 30, halign: "right" } },
+    columnStyles: { 0: { cellWidth: 14, halign: "center" }, 2: { cellWidth: 18, halign: "center" }, 3: { cellWidth: 30, halign: "right" }, 4: { cellWidth: 30, halign: "right" } },
     margin: { left: 15, right: 15 },
   });
   y = (doc as any).lastAutoTable.finalY + 10;
-  if (y > ph - 90) { doc.addPage(); y = 20; }
+  if (y > ph - (data.renewal_note ? 92 : 80)) { doc.addPage(); y = 20; }
 
   const tx = pw - 95; let ty = y;
   doc.setFontSize(9); doc.setTextColor(...GRAY);
@@ -77,28 +78,41 @@ export function exportQuotePDF(data: QuotePDFData, options?: { returnBase64?: bo
   if (data.discount_amount > 0) { row("Sous-total HT :", eur(data.amount + data.discount_amount)); row("Remise :", `-${eur(data.discount_amount)}`, true); }
   row("Total HT :", eur(data.amount));
   if (data.tax_rate > 0) row(`TVA (${data.tax_rate}%) :`, eur(data.tax_amount));
-  doc.setFillColor(...BLACK); doc.roundedRect(tx - 5, ty - 3, pw - tx - 10 + 5, 14, 2, 2, "F");
+  doc.setFillColor(...BLACK); doc.roundedRect(tx - 5, ty - 3, pw - tx - 10, 14, 2, 2, "F");
   doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(...WHITE);
   doc.text(data.tax_rate > 0 ? "TOTAL TTC :" : "TOTAL :", tx, ty + 6);
   doc.setTextColor(...PINK); doc.text(eur(data.total_amount), pw - 15, ty + 6, { align: "right" });
 
   // Bon pour accord
   doc.setDrawColor(...PINK); doc.setLineWidth(0.4);
-  doc.roundedRect(15, y - 3, 80, 34, 2, 2, "S");
+  doc.roundedRect(15, y - 3, 80, 28, 2, 2, "S");
   doc.setFontSize(9); doc.setTextColor(...BLACK); doc.text("BON POUR ACCORD", 20, y + 4);
   doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(...GRAY);
   doc.text("Date, signature et cachet du client", 20, y + 10);
   doc.text("précédés de « Bon pour accord »", 20, y + 15);
-  y = Math.max(ty + 20, y + 40);
+  y = Math.max(ty + 14, y + 30);
 
   if (data.notes) {
     doc.setFontSize(9);
     const lines = doc.splitTextToSize(data.notes.replace(/[—–]/g, "-"), pw - 42);
     const h = 14 + lines.length * 5;
-    if (y + h > ph - 30) { doc.addPage(); y = 20; }
+    if (y + h > ph - (data.renewal_note ? 30 : 30)) { doc.addPage(); y = 20; }
     doc.setFillColor(250, 245, 248); doc.roundedRect(15, y, pw - 30, h, 2, 2, "FD");
     doc.setFont("helvetica", "bold"); doc.setTextColor(...BLACK); doc.text("CONDITIONS", 21, y + 7);
     doc.setFont("helvetica", "normal"); doc.setTextColor(90, 90, 90); doc.text(lines, 21, y + 14, { lineHeightFactor: 1.35 });
+    y += h + 3;
+  }
+
+  if (data.renewal_note) {
+    doc.setPage(doc.getNumberOfPages());
+    const bx = 15, bw = pw - 30, bh = 19;
+    if (y + bh > ph - 25) { doc.addPage(); y = 20; }
+    const by = y;
+    doc.setFillColor(...PINK); doc.roundedRect(bx, by, bw, bh, 2, 2, "F");
+    doc.setTextColor(...WHITE); doc.setFont("helvetica", "bold"); doc.setFontSize(9);
+    doc.text("RENOUVELLEMENT", bx + 6, by + 6.5);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8.5);
+    doc.text(doc.splitTextToSize(data.renewal_note.replace(/[—–]/g, "-"), bw - 12), bx + 6, by + 12);
   }
 
   const pages = doc.getNumberOfPages();

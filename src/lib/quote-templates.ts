@@ -12,7 +12,11 @@ export interface QuoteTemplate {
   subtitle: string;
   notes: string;
   items: QuoteItem[];
+  renewal?: boolean;
 }
+
+export const TUNING_RENEWAL_NOTE = "Renouvellement à partir de la 2e année : 149 € / an - sans engagement (maintenance, mises à jour, hébergement et suivi technique).";
+export const hasRenewal = (key?: string | null) => key === "tuning" || key === "tuning_plus";
 
 const line = (description: string, unit_price: number, quantity = 1, included = true): QuoteItem => ({
   description, quantity, unit_price, total: quantity * unit_price, included,
@@ -23,14 +27,28 @@ export const QUOTE_TEMPLATES: QuoteTemplate[] = [
     key: "tuning",
     label: "Pack Chip Tuning",
     subtitle: "Page de conversion, GMB, visuels — 790 €",
-    notes:
-      "Devis valable 30 jours. Acompte de 50 % à la signature, solde à la livraison.\nÀ partir de la 2e année : abonnement maintenance 149 €/an (sans engagement) incluant hébergement, mises à jour et suivi technique.",
+    renewal: true,
+    notes: "Devis valable 30 jours. Acompte de 50 % à la signature, solde à la livraison.",
     items: [
       line("Pack Tuning Adamkom by JJP - Page de conversion professionnelle (design, rédaction, mise en ligne)", 790),
       line("Nom de domaine + hébergement 1re année", 0),
       line("Optimisation fiche Google My Business", 0),
       line("Visuels réseaux sociaux personnalisés", 0),
-      line("Création site internet vitrine (option)", 990, 1, false),
+      line("Carte business NFC supplémentaire (option)", 49.9, 1, false),
+    ],
+  },
+  {
+    key: "tuning_plus",
+    label: "Pack Chip Tuning Plus",
+    subtitle: "Pack Tuning + création site internet — 1 780 €",
+    renewal: true,
+    notes: "Devis valable 30 jours. Acompte de 50 % à la signature, solde à la livraison.",
+    items: [
+      line("Pack Tuning Adamkom by JJP - Page de conversion professionnelle (design, rédaction, mise en ligne)", 790),
+      line("Création site internet vitrine professionnel (design, contenus, responsive, SEO de base)", 990),
+      line("Nom de domaine + hébergement 1re année", 0),
+      line("Optimisation fiche Google My Business", 0),
+      line("Visuels réseaux sociaux personnalisés", 0),
       line("Carte business NFC supplémentaire (option)", 49.9, 1, false),
     ],
   },

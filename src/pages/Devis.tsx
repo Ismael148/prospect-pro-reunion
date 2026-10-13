@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useClients } from "@/hooks/use-clients";
 import { ClientCombobox } from "@/components/ClientCombobox";
-import { QUOTE_TEMPLATES, computeQuoteTotals, type QuoteItem } from "@/lib/quote-templates";
+import { QUOTE_TEMPLATES, computeQuoteTotals, hasRenewal, TUNING_RENEWAL_NOTE, type QuoteItem } from "@/lib/quote-templates";
 import { exportQuotePDF } from "@/lib/export-quote-pdf";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { FileSignature, Plus, Trash2, Download, Send, Save, Loader2, Search } from "lucide-react";
+import { FileSignature, Plus, Trash2, Download, Send, Save, Loader2, Search, Copy } from "lucide-react";
 
 const STATUS: Record<string, string> = { brouillon: "Brouillon", envoye: "Envoyé", accepte: "Accepté", refuse: "Refusé" };
 const eur = (n: number) => `${Number(n).toFixed(2).replace(".", ",")} €`;
@@ -34,6 +34,7 @@ export default function Devis() {
   const [validity, setValidity] = useState("30");
   const [busy, setBusy] = useState<"save" | "send" | null>(null);
   const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<string[]>([]);
 
   const { data: quotes = [] } = useQuery({
     queryKey: ["quotes"],
@@ -73,6 +74,12 @@ export default function Devis() {
     setDiscount("0"); setTaxRate("0"); setValidity("30"); pickTemplate("tuning");
   };
 
+  const newForSameClient = () => {
+    setEditingId(null); setQuoteNumber(null);
+    toast.info("Nouveau devis : les infos client sont conservées, choisissez un autre modèle");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const loadQuote = (q: any) => {
     setEditingId(q.id); setQuoteNumber(q.quote_number); setTemplateKey(q.template_key); setClientId(q.client_id || "");
     setClient({ company_name: q.company_name || "", contact_name: q.contact_name || "", email: q.email || "", phone: q.phone || "", address: q.address || "", postal_code: q.postal_code || "", city: q.city || "", siret: q.siret || "" });
@@ -104,39 +111,61 @@ export default function Devis() {
 
   const pdfData = (q: any) => ({
     quote_number: q.quote_number, created_at: q.created_at, validity_days: q.validity_days, items: q.items,
-    discount_amount: Number(q.discount_amount), tax_rate: Number(q.tax_rate), amount: Number(q.amount), tax_amount: Number(q.tax_amount), total_amount: Number(q.total_amount), notes: q.notes,
+    discount_amount: Number(q.discount_amount), tax_rate: Number(q.tax_rate), amount: Number(q.amount), tax_amount: Number(q.tax_amount), total_amount: Number(q.total_amount), notes: q.notes, renewal_note: hasRenewal(q.template_key) ? TUNING_RENEWAL_NOTE : null,
     client: { company_name: q.company_name, contact_name: q.contact_name, address: q.address, postal_code: q.postal_code, city: q.city, email: q.email, phone: q.phone, siret: q.siret },
   });
 
   const handleSave = async () => { setBusy("save"); const q = await save(); setBusy(null); if (q) toast.success(`Devis ${q.quote_number} enregistré`); };
   const handleDownload = async () => { setBusy("save"); const q = await save(); setBusy(null); if (q) exportQuotePDF(pdfData(q)); };
 
-  const sendQuote = async (q: any) => {
-    if (!q.email) { toast.error("Ajoutez l'email du client"); return; }
-    const base64 = exportQuotePDF(pdfData(q), { returnBase64: true });
-    const name = q.contact_name || q.company_name;
-    const html = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;color:#0d0d0d">
-<div style="background:#0d0d0d;padding:24px;text-align:center;border-bottom:4px solid #ff006e"><img src="https://qaxlpmxekcvbrcnqopbp.supabase.co/storage/v1/object/public/email-assets/logo-adamkom-black.png" alt="Adamkom by JJP" style="height:48px;filter:invert(1)"/></div>
-<div style="padding:28px">
-<p>Bonjour ${name},</p>
-<p>Suite à notre échange, vous trouverez ci-joint votre devis <strong>n° ${q.quote_number}</strong> d'un montant de <strong style="color:#ff006e">${eur(q.total_amount)}</strong>.</p>
-<p>Ce devis est valable ${q.validity_days} jours. Pour l'accepter, il vous suffit de nous le retourner signé avec la mention « Bon pour accord », ou de répondre simplement à cet email.</p>
-<p>Nous restons à votre disposition pour toute question au <strong>0262 66 68 76</strong>.</p>
-<p>Belle journée,<br/><strong>L'équipe Adamkom by JJP</strong></p>
+  const buildEmail = (list: any[]) => {
+    const first = list[0];
+    const name = first.contact_name || first.company_name;
+    const multi = list.length > 1;
+    const rows = list.map((q) => {
+      const label = QUOTE_TEMPLATES.find((t) => t.key === q.template_key)?.label || "Devis";
+      return `<tr><td style="padding:12px 14px;border-bottom:1px solid #f1e3ea;font-size:14px"><strong style="color:#0d0d0d">${label}</strong><br/><span style="color:#888;font-size:12px">Devis n° ${q.quote_number} · valable ${q.validity_days} jours</span></td><td style="padding:12px 14px;border-bottom:1px solid #f1e3ea;text-align:right;font-weight:bold;color:#ff006e;font-size:15px;white-space:nowrap">${eur(q.total_amount)}</td></tr>`;
+    }).join("");
+    const renewal = list.some((q) => hasRenewal(q.template_key))
+      ? `<p style="margin:18px 0 0;padding:12px 14px;background:#fff0f6;border-left:4px solid #ff006e;font-size:13px;color:#333">${TUNING_RENEWAL_NOTE}</p>` : "";
+    const html = `<div style="background:#f6f6f6;padding:24px 0;font-family:Arial,Helvetica,sans-serif">
+<div style="max-width:620px;margin:0 auto;background:#ffffff;border-radius:10px;overflow:hidden;color:#0d0d0d">
+<div style="background:#0d0d0d;padding:26px;text-align:center;border-bottom:4px solid #ff006e"><img src="https://qaxlpmxekcvbrcnqopbp.supabase.co/storage/v1/object/public/email-assets/logo-adamkom-black.png" alt="Adamkom by JJP" style="height:46px;filter:invert(1)"/><p style="color:#ffffff;margin:10px 0 0;font-size:12px;letter-spacing:2px;text-transform:uppercase">La performance digitale</p></div>
+<div style="padding:30px 32px;font-size:14px;line-height:1.6">
+<p style="margin:0 0 14px">Bonjour ${name},</p>
+<p style="margin:0 0 14px">Nous vous remercions pour l'intérêt que vous portez à Adamkom by JJP. Suite à notre échange, nous avons le plaisir de vous adresser ${multi ? `nos <strong>${list.length} propositions commerciales</strong>, afin que vous puissiez choisir la formule la plus adaptée à votre activité` : "notre proposition commerciale"} :</p>
+<table style="width:100%;border-collapse:collapse;border:1px solid #f1e3ea;border-radius:8px;margin:6px 0 4px"><tr><td style="background:#0d0d0d;color:#fff;padding:10px 14px;font-size:12px;letter-spacing:1px">PROPOSITION</td><td style="background:#0d0d0d;color:#fff;padding:10px 14px;font-size:12px;text-align:right;letter-spacing:1px">MONTANT</td></tr>${rows}</table>
+${renewal}
+<p style="margin:18px 0 14px">${multi ? "Les devis détaillés sont joints" : "Le devis détaillé est joint"} à cet email au format PDF. Pour valider ${multi ? "la proposition de votre choix" : "cette proposition"}, il vous suffit de nous retourner le devis signé avec la mention « Bon pour accord », ou de répondre directement à cet email.</p>
+<p style="margin:0 0 14px">Notre équipe se tient à votre entière disposition pour toute question ou ajustement au <strong>0262 66 68 76</strong> ou à <a href="mailto:contact@adamkom.com" style="color:#ff006e">contact@adamkom.com</a>.</p>
+<p style="margin:22px 0 0">Bien cordialement,<br/><strong>L'équipe Adamkom by JJP</strong></p>
 </div>
-<div style="background:#0d0d0d;color:#ffffff;padding:16px;text-align:center;font-size:12px">Adamkom by JJP — La performance digitale · contact@adamkom.com · 0262 66 68 76</div></div>`;
+<div style="background:#0d0d0d;color:#bbbbbb;padding:18px;text-align:center;font-size:11px;line-height:1.6"><strong style="color:#ffffff">ADAMKOM by JJP</strong><br/>73 rue du Général Ailleret, Le Tampon · 0262 66 68 76 · contact@adamkom.com</div>
+</div></div>`;
+    const subject = multi
+      ? `Vos ${list.length} propositions Adamkom by JJP - ${first.company_name}`
+      : `Votre devis Adamkom by JJP n° ${first.quote_number} - ${first.company_name}`;
+    return { html, subject, name };
+  };
+
+  const sendQuotes = async (list: any[]) => {
+    if (!list.length) return;
+    const email = list[0].email;
+    if (!email) { toast.error("Ajoutez l'email du client"); return; }
+    if (list.some((q) => (q.email || "").toLowerCase() !== email.toLowerCase())) { toast.error("Les devis sélectionnés doivent concerner le même client (même email)"); return; }
+    const { html, subject, name } = buildEmail(list);
+    const attachment = list.map((q) => ({ name: `Devis_${q.quote_number}.pdf`, content: exportQuotePDF(pdfData(q), { returnBase64: true }) }));
     const { data, error } = await supabase.functions.invoke("send-brevo-campaign", {
-      body: {
-        action: "send_client_email", recipientEmail: q.email, recipientName: name,
-        subject: `Votre devis Adamkom by JJP n° ${q.quote_number}`, htmlContent: html, trigger: "quote_sent", client_id: q.client_id,
-        attachment: [{ name: `Devis_${q.quote_number}.pdf`, content: base64 }],
-      },
+      body: { action: "send_client_email", recipientEmail: email, recipientName: name, subject, htmlContent: html, trigger: "quote_sent", client_id: list[0].client_id, attachment },
     });
     if (error || (data as any)?.error) { toast.error((data as any)?.error || "Échec de l'envoi"); return; }
-    await supabase.from("quotes").update({ status: "envoye", sent_at: new Date().toISOString() }).eq("id", q.id);
+    await supabase.from("quotes").update({ status: "envoye", sent_at: new Date().toISOString() }).in("id", list.map((q) => q.id));
     qc.invalidateQueries({ queryKey: ["quotes"] });
-    toast.success(`Devis envoyé à ${q.email}`);
+    setSelected([]);
+    toast.success(`${list.length > 1 ? `${list.length} devis envoyés` : "Devis envoyé"} à ${email}`);
   };
+  const sendQuote = (q: any) => sendQuotes([q]);
+  const sendSelected = async () => { setBusy("send"); await sendQuotes(quotes.filter((q: any) => selected.includes(q.id))); setBusy(null); };
 
   const handleSend = async () => { setBusy("send"); const q = await save(); if (q) await sendQuote(q); setBusy(null); };
 
@@ -224,6 +253,7 @@ export default function Devis() {
             </div>
             <div className="flex gap-2 flex-wrap">
               <Button variant="outline" onClick={handleSave} disabled={!!busy}>{busy === "save" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Save className="w-4 h-4 mr-1" />}Enregistrer</Button>
+              {editingId && <Button variant="outline" onClick={newForSameClient} disabled={!!busy}><Copy className="w-4 h-4 mr-1" />Autre devis pour ce client</Button>}
               <Button variant="outline" onClick={handleDownload} disabled={!!busy}><Download className="w-4 h-4 mr-1" />Aperçu PDF</Button>
               <Button onClick={handleSend} disabled={!!busy}>{busy === "send" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Send className="w-4 h-4 mr-1" />}Envoyer au client</Button>
             </div>
@@ -233,13 +263,18 @@ export default function Devis() {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
-          <CardTitle className="text-base">Devis enregistrés ({quotes.length})</CardTitle>
+          <div>
+            <CardTitle className="text-base">Devis enregistrés ({quotes.length})</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">Cochez plusieurs devis d'un même client pour les envoyer dans un seul email.</p>
+          </div>
+          {selected.length > 0 && <Button size="sm" onClick={sendSelected} disabled={!!busy}>{busy === "send" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Send className="w-4 h-4 mr-1" />}Envoyer {selected.length} devis</Button>}
           <div className="relative w-64"><Search className="w-4 h-4 absolute left-2.5 top-2.5 text-muted-foreground" /><Input className="pl-8" placeholder="Rechercher…" value={search} onChange={(e) => setSearch(e.target.value)} /></div>
         </CardHeader>
         <CardContent className="space-y-2">
           {filtered.length === 0 && <p className="text-sm text-muted-foreground">Aucun devis.</p>}
           {filtered.map((q: any) => (
-            <div key={q.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-border p-3">
+            <div key={q.id} className={`flex flex-wrap items-center gap-3 rounded-lg border p-3 ${selected.includes(q.id) ? "border-primary bg-primary/5" : "border-border"}`}>
+              <Checkbox checked={selected.includes(q.id)} onCheckedChange={(v) => setSelected((p) => v ? [...p, q.id] : p.filter((x) => x !== q.id))} />
               <div className="flex-1 min-w-[200px]">
                 <p className="font-medium text-sm">{q.quote_number} · {q.company_name}</p>
                 <p className="text-xs text-muted-foreground">{QUOTE_TEMPLATES.find((t) => t.key === q.template_key)?.label} · {new Date(q.created_at).toLocaleDateString("fr-FR")}{q.sent_at && ` · envoyé le ${new Date(q.sent_at).toLocaleDateString("fr-FR")}`}</p>

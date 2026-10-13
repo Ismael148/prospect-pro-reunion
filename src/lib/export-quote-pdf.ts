@@ -68,7 +68,7 @@ export function exportQuotePDF(data: QuotePDFData, options?: { returnBase64?: bo
     headStyles: { fillColor: [...BLACK], textColor: [...WHITE], fontStyle: "bold", fontSize: 10, cellPadding: 5 },
     bodyStyles: { fontSize: 9.5, cellPadding: 4.5, textColor: [50, 50, 50] },
     alternateRowStyles: { fillColor: [250, 245, 248] },
-    columnStyles: { 0: { cellWidth: 14, halign: "center" }, 2: { cellWidth: 18, halign: "center" }, 3: { cellWidth: 30, halign: "right" }, 4: { cellWidth: 30, halign: "right" } },
+    columnStyles: { 0: { cellWidth: 14, halign: "center" }, 2: { cellWidth: 18, halign: "center" }, 3: { cellWidth: 34, halign: "right" }, 4: { cellWidth: 32, halign: "right" } },
     margin: { left: 15, right: 15 },
   });
   y = (doc as any).lastAutoTable.finalY + 10;

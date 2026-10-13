@@ -77,8 +77,9 @@ export function exportQuotePDF(data: QuotePDFData, options?: { returnBase64?: bo
   const serviceText = rows.map((item) => {
     const text = cleanQuoteDescription(item.description).replace(/[—–]/g, "-");
     const separator = text.indexOf(" - ");
-    const title = separator < 0 ? text : text.slice(0, separator);
-    const description = separator < 0 ? "" : text.slice(separator + 3);
+    const parenthesis = separator < 0 ? text.indexOf(" (") : -1;
+    const title = separator >= 0 ? text.slice(0, separator) : parenthesis >= 0 ? text.slice(0, parenthesis) : text;
+    const description = separator >= 0 ? text.slice(separator + 3) : parenthesis >= 0 ? text.slice(parenthesis + 2).replace(/\)$/, "") : "";
     doc.setFont("helvetica", "bold"); doc.setFontSize(10);
     const titleLines: string[] = doc.splitTextToSize(title, descriptionWidth - 10);
     doc.setFont("helvetica", "normal"); doc.setFontSize(9);

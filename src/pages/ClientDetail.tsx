@@ -42,6 +42,7 @@ import ClientEmailActions from "@/components/clients/ClientEmailActions";
 import DomainRenewalInvoice from "@/components/clients/DomainRenewalInvoice";
 import ClientEmailHistory from "@/components/clients/ClientEmailHistory";
 import ClientInvoicesSection from "@/components/clients/ClientInvoicesSection";
+import ClientQuotesSection from "@/components/clients/ClientQuotesSection";
 import ConversionFormSection from "@/components/clients/ConversionFormSection";
 
 import ClientRemindersSection from "@/components/clients/ClientRemindersSection";
@@ -1794,6 +1795,8 @@ export default function ClientDetail() {
         billing_year: (client as any).billing_year,
         invoiced_offline: (client as any).invoiced_offline,
       }} />
+
+      <ClientQuotesSection clientId={id!} clientEmail={client.email} />
 
       <SupportTicketsSection clientId={id!} />
 

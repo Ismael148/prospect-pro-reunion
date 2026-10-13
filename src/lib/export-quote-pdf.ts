@@ -2,7 +2,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { INVOICE_LOGO_PNG } from "@/lib/invoice-logo";
 import { ISSUER } from "@/lib/export-invoice-pdf";
-import type { QuoteItem } from "@/lib/quote-templates";
+import { cleanQuoteDescription, cleanQuoteNotes, type QuoteItem } from "@/lib/quote-templates";
 
 export interface QuotePDFData {
   quote_number: string;
@@ -21,117 +21,128 @@ export interface QuotePDFData {
   client: { company_name: string; contact_name?: string | null; address?: string | null; postal_code?: string | null; city?: string | null; email?: string | null; phone?: string | null; siret?: string | null };
 }
 
-const BLACK = [13, 13, 13] as const;
+const INK = [13, 13, 13] as const;
 const PINK = [255, 0, 110] as const;
 const WHITE = [255, 255, 255] as const;
-const GRAY = [120, 120, 120] as const;
-const eur = (n: number) => `${n.toFixed(2).replace(".", ",")} €`;
+const GRAY = [100, 100, 100] as const;
+const PALE = [248, 248, 249] as const;
+const RULE = [226, 226, 230] as const;
+const eur = (n: number) => `${Number(n).toFixed(2).replace(".", ",")} €`;
 
 export function exportQuotePDF(data: QuotePDFData, options?: { returnBase64?: boolean }): string | undefined {
   const doc = new jsPDF();
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
+  const margin = 15;
+  const contentWidth = pw - margin * 2;
+  const bottom = ph - 22;
   const date = data.created_at ? new Date(data.created_at) : new Date();
   const until = new Date(date.getTime() + data.validity_days * 86400000);
+  let y = 15;
+  const ensureSpace = (height: number) => {
+    if (y + height > bottom) { doc.addPage(); y = 18; }
+  };
+  const lastTableY = () => (doc as jsPDF & { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? y;
 
-  doc.setFillColor(...BLACK); doc.rect(0, 0, pw, 45, "F");
-  doc.setFillColor(...PINK); doc.triangle(pw - 40, 0, pw, 0, pw, 40, "F"); doc.rect(0, 0, 5, 45, "F");
-  doc.setTextColor(...WHITE); doc.setFont("helvetica", "bold"); doc.setFontSize(20);
-  doc.text("DEVIS", 15, 25);
-  doc.setFontSize(11); doc.text(`N° ${data.quote_number}`, pw - 15, 18, { align: "right" });
-  doc.setFont("helvetica", "normal"); doc.setFontSize(9);
-  doc.text(`Date : ${date.toLocaleDateString("fr-FR")}`, pw - 15, 26, { align: "right" });
-  doc.text(`Valable jusqu'au : ${until.toLocaleDateString("fr-FR")}`, pw - 15, 32, { align: "right" });
+  try { doc.addImage(INVOICE_LOGO_PNG, "PNG", margin, y, 22, 22); } catch { /* Brand name remains visible. */ }
+  doc.setTextColor(...INK); doc.setFont("helvetica", "bold"); doc.setFontSize(13);
+  doc.text("ADAMKOM by JJP", 42, 23);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(...GRAY);
+  doc.text("La performance digitale", 42, 29);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(22); doc.setTextColor(...INK);
+  doc.text("DEVIS", pw - margin, 23, { align: "right" });
+  doc.setFontSize(9); doc.text(data.quote_number, pw - margin, 30, { align: "right" });
+  doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(...GRAY);
+  doc.text(`Date : ${date.toLocaleDateString("fr-FR")}  |  Validité : ${until.toLocaleDateString("fr-FR")}`, pw - margin, 37, { align: "right" });
+  doc.setDrawColor(...PINK); doc.setLineWidth(0.7); doc.line(margin, 40, pw - margin, 40);
 
-  try { doc.addImage(INVOICE_LOGO_PNG, "PNG", 15, 52, 24, 24); } catch { /* */ }
-  let y = 60; const ix = 44;
-  doc.setTextColor(...BLACK); doc.setFont("helvetica", "bold"); doc.setFontSize(16);
-  doc.text("ADAMKOM by JJP", ix, y); y += 7;
-  doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(...GRAY);
-  [ISSUER.name, ISSUER.address, `Tél : ${ISSUER.phone}`, `SIRET : ${ISSUER.siret}`, ISSUER.email].forEach((t) => { doc.text(t, ix, y); y += 5; });
-
-  const cx = pw / 2 + 10; let cy = 60;
-  doc.setTextColor(...PINK); doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.text("DEVIS ÉTABLI POUR :", cx, cy); cy += 7;
-  doc.setTextColor(0, 0, 0); doc.text(data.client.company_name, cx, cy); cy += 6;
-  doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(...GRAY);
+  // Table layout wraps both address blocks, including long client names and emails.
   const c = data.client;
-  [c.contact_name, c.address, [c.postal_code, c.city].filter(Boolean).join(" "), c.phone, c.email, c.siret ? `SIRET : ${c.siret}` : ""]
-    .filter(Boolean).forEach((t) => { doc.text(String(t), cx, cy); cy += 5; });
-
-  y = Math.max(y, cy) + 10;
+  autoTable(doc, {
+    startY: 44,
+    body: [[
+      [ISSUER.name, ISSUER.address, `Tél : ${ISSUER.phone}`, `SIRET : ${ISSUER.siret}`, ISSUER.email].join("\n"),
+      [c.company_name, c.contact_name, c.address, [c.postal_code, c.city].filter(Boolean).join(" "), c.phone, c.email, c.siret ? `SIRET : ${c.siret}` : ""].filter(Boolean).join("\n"),
+    ]],
+    head: [["ÉMETTEUR", "DEVIS ÉTABLI POUR"]],
+    theme: "plain",
+    styles: { font: "helvetica", fontSize: 8, textColor: [...GRAY], cellPadding: { top: 1, bottom: 1, left: 0, right: 8 }, overflow: "linebreak" },
+    headStyles: { textColor: [...PINK], fontSize: 8, fontStyle: "bold" },
+    columnStyles: { 0: { cellWidth: contentWidth / 2 }, 1: { cellWidth: contentWidth / 2 } },
+    margin: { left: margin, right: margin, top: 18, bottom: 22 },
+  });
+  y = lastTableY() + 5;
   const rows = data.items.filter((i) => i.included !== false);
   autoTable(doc, {
     startY: y,
-    head: [["N°", "PRESTATION", "QTÉ", "PRIX U. TTC", "TOTAL TTC"]],
-    body: rows.map((it, i) => [String(i + 1).padStart(2, "0"), it.description, String(it.quantity), it.unit_price === 0 ? "Inclus" : eur(it.unit_price), it.unit_price === 0 ? "Inclus" : eur(it.quantity * it.unit_price)]),
+    head: [["PRESTATION", "QTÉ", "PRIX U. TTC", "TOTAL TTC"]],
+    body: rows.map((it) => [cleanQuoteDescription(it.description).replace(/[—–]/g, "-"), String(it.quantity), it.unit_price === 0 ? "Inclus" : eur(it.unit_price), it.unit_price === 0 ? "Inclus" : eur(it.quantity * it.unit_price)]),
     theme: "plain",
-    headStyles: { fillColor: [...BLACK], textColor: [...WHITE], fontStyle: "bold", fontSize: 10, cellPadding: 5 },
-    bodyStyles: { fontSize: 9.5, cellPadding: 4.5, textColor: [50, 50, 50] },
-    alternateRowStyles: { fillColor: [250, 245, 248] },
-    columnStyles: { 0: { cellWidth: 14, halign: "center" }, 2: { cellWidth: 18, halign: "center" }, 3: { cellWidth: 34, halign: "right" }, 4: { cellWidth: 32, halign: "right" } },
-    margin: { left: 15, right: 15 },
+    styles: { font: "helvetica", fontSize: 8.5, textColor: [...INK], cellPadding: { top: 1.5, bottom: 1.5, left: 3, right: 3 }, valign: "middle", overflow: "linebreak" },
+    headStyles: { fillColor: [...INK], textColor: [...WHITE], fontStyle: "bold", fontSize: 8, cellPadding: { top: 4, bottom: 4, left: 3, right: 3 }, valign: "middle" },
+    alternateRowStyles: { fillColor: [...PALE] },
+    columnStyles: { 0: { cellWidth: contentWidth - 73 }, 1: { cellWidth: 15, halign: "center" }, 2: { cellWidth: 29, halign: "center" }, 3: { cellWidth: 29, halign: "center" } },
+    margin: { left: margin, right: margin, top: 18, bottom: 22 },
+    rowPageBreak: "avoid",
   });
-  y = (doc as any).lastAutoTable.finalY + 10;
-  if (y > ph - (data.renewal_note ? 92 : 80)) { doc.addPage(); y = 20; }
+  y = lastTableY() + 5;
 
-  const tx = pw - 95; let ty = y;
-  doc.setFontSize(9); doc.setTextColor(...GRAY);
-  const row = (l: string, v: string, pink = false) => { if (pink) doc.setTextColor(...PINK); else doc.setTextColor(...GRAY); doc.text(l, tx, ty); doc.text(v, pw - 15, ty, { align: "right" }); ty += 6; };
-  const grossTtc = data.total_amount + (data.discount_amount || 0);
-  if (data.discount_amount > 0) { row("Sous-total TTC :", eur(grossTtc)); row("Remise :", `-${eur(data.discount_amount)}`, true); }
-  if (data.tax_rate > 0) { row("Total HT :", eur(data.amount)); row(`dont TVA (${data.tax_rate}%) :`, eur(data.tax_amount)); }
-  doc.setFillColor(...BLACK); doc.roundedRect(tx - 5, ty - 3, pw - tx - 10, 14, 2, 2, "F");
-  doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(...WHITE);
-  doc.text("TOTAL TTC :", tx, ty + 6);
-  doc.setTextColor(...PINK); doc.text(eur(data.total_amount), pw - 15, ty + 6, { align: "right" });
-  ty += 14;
-  if ((data.deposit_amount || 0) > 0) {
-    ty += 4; doc.setFont("helvetica", "normal"); doc.setFontSize(9);
-    row("Acompte :", eur(data.deposit_amount!)); row("Reste à payer :", eur(Math.max(0, data.total_amount - data.deposit_amount!)), true);
-  }
-  if (data.payment_due_date) { doc.setFont("helvetica", "normal"); doc.setFontSize(9); row("Échéance :", new Date(data.payment_due_date).toLocaleDateString("fr-FR")); }
+  const deposit = Number(data.deposit_amount || 0);
+  const detailRows: [string, string][] = [];
+  if (data.discount_amount > 0) detailRows.push(["Sous-total TTC", eur(data.total_amount + data.discount_amount)], ["Remise", `-${eur(data.discount_amount)}`]);
+  if (data.tax_rate > 0) detailRows.push([`dont TVA (${data.tax_rate} %)`, eur(data.tax_amount)]);
+  if (deposit > 0) detailRows.push(["Acompte", eur(deposit)], ["Restant dû", eur(Math.max(0, data.total_amount - deposit))]);
+  if (data.payment_due_date) detailRows.push(["Échéance", new Date(data.payment_due_date).toLocaleDateString("fr-FR")]);
+  const summaryHeight = Math.max(30, 18 + detailRows.length * 6);
+  ensureSpace(summaryHeight);
+  const summaryX = pw - margin - 80;
+  doc.setDrawColor(...RULE); doc.setLineWidth(0.3); doc.rect(margin, y, 85, 30);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(...INK);
+  doc.text("BON POUR ACCORD", margin + 5, y + 7);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); doc.setTextColor(...GRAY);
+  doc.text("Date, signature et cachet du client", margin + 5, y + 13);
+  doc.text("précédés de « Bon pour accord »", margin + 5, y + 18);
 
-  // Bon pour accord
-  doc.setDrawColor(...PINK); doc.setLineWidth(0.4);
-  doc.roundedRect(15, y - 3, 80, 28, 2, 2, "S");
-  doc.setFontSize(9); doc.setTextColor(...BLACK); doc.text("BON POUR ACCORD", 20, y + 4);
+  doc.setFillColor(...INK); doc.rect(summaryX, y, 80, 18, "F");
+  doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(...WHITE);
+  doc.text("TOTAL TTC", summaryX + 5, y + 11);
+  doc.setTextColor(...PINK);
+  // Price is centered in its own half, with a guaranteed inset from the edge.
+  const price = eur(data.total_amount);
+  doc.setFontSize(Math.min(13, 13 * 34 / Math.max(34, doc.getTextWidth(price) * 13 / 9)));
+  doc.text(price, summaryX + 59, y + 11, { align: "center" });
   doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(...GRAY);
-  doc.text("Date, signature et cachet du client", 20, y + 10);
-  doc.text("précédés de « Bon pour accord »", 20, y + 15);
-  y = Math.max(ty + 4, y + 28);
+  detailRows.forEach(([label, value], i) => {
+    doc.text(label, summaryX + 3, y + 24 + i * 6);
+    doc.text(value, pw - margin - 3, y + 24 + i * 6, { align: "right" });
+  });
+  y += summaryHeight + 4;
 
-  if (data.notes) {
-    doc.setFontSize(9);
-    const lines = doc.splitTextToSize(data.notes.replace(/[—–]/g, "-"), pw - 42);
-    const h = 14 + lines.length * 5;
-    if (y + h > ph - (data.renewal_note ? 30 : 30)) { doc.addPage(); y = 20; }
-    doc.setFillColor(250, 245, 248); doc.roundedRect(15, y, pw - 30, h, 2, 2, "FD");
-    doc.setFont("helvetica", "bold"); doc.setTextColor(...BLACK); doc.text("CONDITIONS", 21, y + 7);
-    doc.setFont("helvetica", "normal"); doc.setTextColor(90, 90, 90); doc.text(lines, 21, y + 14, { lineHeightFactor: 1.35 });
-    y += h + 3;
-  }
-
-  if (data.renewal_note) {
-    doc.setPage(doc.getNumberOfPages());
-    const bx = 15, bw = pw - 30, bh = 19;
-    if (y + bh > ph - 25) { doc.addPage(); y = 20; }
-    const by = y;
-    doc.setFillColor(...PINK); doc.roundedRect(bx, by, bw, bh, 2, 2, "F");
-    doc.setTextColor(...WHITE); doc.setFont("helvetica", "bold"); doc.setFontSize(9);
-    doc.text("RENOUVELLEMENT", bx + 6, by + 6.5);
-    doc.setFont("helvetica", "normal"); doc.setFontSize(8.5);
-    doc.text(doc.splitTextToSize(data.renewal_note.replace(/[—–]/g, "-"), bw - 12), bx + 6, by + 12);
-  }
+  // AutoTable measures note height and paginates unusually long custom conditions safely.
+  const noteBlock = (title: string, text: string) => {
+    if (!text) return;
+    ensureSpace(18);
+    autoTable(doc, {
+      startY: y, head: [[title]], body: [[text.replace(/[—–]/g, "-")]], theme: "plain",
+      styles: { font: "helvetica", fontSize: 8, textColor: [...GRAY], cellPadding: { top: 2, bottom: 3, left: 4, right: 4 }, overflow: "linebreak" },
+      headStyles: { textColor: [...PINK], fontStyle: "bold", fontSize: 8, cellPadding: { top: 3, bottom: 1, left: 4, right: 4 } },
+      bodyStyles: { fillColor: [...PALE] },
+      margin: { left: margin, right: margin, top: 18, bottom: 22 },
+      rowPageBreak: "avoid",
+    });
+    y = lastTableY() + 3;
+  };
+  noteBlock("CONDITIONS", cleanQuoteNotes(data.notes));
+  noteBlock("RENOUVELLEMENT", data.renewal_note || "");
 
   const pages = doc.getNumberOfPages();
   for (let p = 1; p <= pages; p++) {
     doc.setPage(p);
-    doc.setFillColor(...BLACK); doc.rect(0, ph - 25, pw, 25, "F");
-    doc.setFillColor(...PINK); doc.triangle(0, ph - 25, 40, ph - 25, 0, ph, "F"); doc.rect(pw - 5, ph - 25, 5, 25, "F");
-    doc.setTextColor(...WHITE); doc.setFontSize(8); doc.setFont("helvetica", "normal");
-    doc.text("ADAMKOM by JJP — La performance digitale | contact@adamkom.com | 0262 66 68 76", pw / 2, ph - 10, { align: "center" });
+    doc.setDrawColor(...RULE); doc.setLineWidth(0.3); doc.line(margin, ph - 17, pw - margin, ph - 17);
+    doc.setTextColor(...GRAY); doc.setFontSize(7); doc.setFont("helvetica", "normal");
+    doc.text("ADAMKOM by JJP | contact@adamkom.com | 0262 66 68 76", pw / 2, ph - 11, { align: "center" });
+    doc.text(`${p} / ${pages}`, pw - margin, ph - 6, { align: "right" });
   }
-
   if (options?.returnBase64) return doc.output("datauristring").split(",")[1];
   doc.save(`Devis_${data.quote_number}_${data.client.company_name.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`);
   return undefined;

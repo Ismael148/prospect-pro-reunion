@@ -28,17 +28,17 @@ export const QUOTE_TEMPLATES: QuoteTemplate[] = [
     label: "Pack Chip Tuning",
     subtitle: "8 prestations incluses — 790 €",
     renewal: true,
-    notes: "Devis valable 30 jours. Paiement en 4 fois sans frais possible. Acompte de 50 % à la signature, solde à la livraison.",
+    notes: "Devis valable 30 jours. Paiement en 4 fois sans frais possible.",
     items: [
       line("Pack Chip Tuning Adamkom by JJP - 8 prestations incluses", 790),
-      line("1. Optimisation complète de votre fiche Google - Donnez à votre fiche l'impact qu'elle mérite pour attirer les regards et donner envie de vous choisir", 0),
-      line("2. Votre page de conversion sur mesure - Captez vos clients avec une page qui attire, rassure et transforme une simple visite en véritable opportunité", 0),
-      line("3. Votre Carte Bizness intelligente NFC - L'outil par excellence pour parler de votre entreprise, partager vos services et rester connecté à vos clients", 0),
-      line("4. Votre inscription sur Les Entreprises 974 - Faites rayonner votre entreprise au cœur d'un réseau de plus de 450 entreprises réunies pour renforcer la visibilité locale à La Réunion", 0),
-      line("5. Une vidéo Short qui fait parler de vous - Quelques secondes pour montrer votre savoir-faire, capter l'attention et donner envie de découvrir votre entreprise", 0),
-      line("6. Vos visuels Google - Faites vivre votre fiche et donnez régulièrement une nouvelle raison à vos clients de penser à vous", 0),
-      line("7. Référencement de vos réseaux sociaux sur Google - 99 % des entreprises ne savent pas qu'on peut référencer leurs réseaux sociaux avec Google. Avec Adamkom, ces choses sont faites", 0),
-      line("8. Faites exploser vos avis et vos étoiles Google - Un moyen rapide et efficace pour faire grandir vos avis et renforcer la réputation de votre fiche Google", 0),
+      line("Optimisation complète de votre fiche Google - Donnez à votre fiche l'impact qu'elle mérite pour attirer les regards et donner envie de vous choisir", 0),
+      line("Votre page de conversion sur mesure - Captez vos clients avec une page qui attire, rassure et transforme une simple visite en véritable opportunité", 0),
+      line("Votre Carte Bizness intelligente NFC - L'outil par excellence pour parler de votre entreprise, partager vos services et rester connecté à vos clients", 0),
+      line("Votre inscription sur Les Entreprises 974 - Faites rayonner votre entreprise au cœur d'un réseau de plus de 450 entreprises réunies pour renforcer la visibilité locale à La Réunion", 0),
+      line("Une vidéo Short qui fait parler de vous - Quelques secondes pour montrer votre savoir-faire, capter l'attention et donner envie de découvrir votre entreprise", 0),
+      line("Vos visuels Google - Faites vivre votre fiche et donnez régulièrement une nouvelle raison à vos clients de penser à vous", 0),
+      line("Référencement de vos réseaux sociaux sur Google - 99 % des entreprises ne savent pas qu'on peut référencer leurs réseaux sociaux avec Google. Avec Adamkom, ces choses sont faites", 0),
+      line("Faites exploser vos avis et vos étoiles Google - Un moyen rapide et efficace pour faire grandir vos avis et renforcer la réputation de votre fiche Google", 0),
       line("Carte Bizness NFC supplémentaire (option)", 49.9, 1, false),
     ],
   },
@@ -47,17 +47,17 @@ export const QUOTE_TEMPLATES: QuoteTemplate[] = [
     label: "Pack Chip Tuning Plus",
     subtitle: "Pack Tuning (8 prestations) + création site internet — 1 780 €",
     renewal: true,
-    notes: "Devis valable 30 jours. Paiement en 4 fois sans frais possible. Acompte de 50 % à la signature, solde à la livraison.",
+    notes: "Devis valable 30 jours. Paiement en 4 fois sans frais possible.",
     items: [
       line("Pack Chip Tuning Adamkom by JJP - 8 prestations incluses", 790),
-      line("1. Optimisation complète de votre fiche Google - Donnez à votre fiche l'impact qu'elle mérite pour attirer les regards et donner envie de vous choisir", 0),
-      line("2. Votre page de conversion sur mesure - Captez vos clients avec une page qui attire, rassure et transforme une simple visite en véritable opportunité", 0),
-      line("3. Votre Carte Bizness intelligente NFC - L'outil par excellence pour parler de votre entreprise, partager vos services et rester connecté à vos clients", 0),
-      line("4. Votre inscription sur Les Entreprises 974 - Faites rayonner votre entreprise au cœur d'un réseau de plus de 450 entreprises réunies pour renforcer la visibilité locale à La Réunion", 0),
-      line("5. Une vidéo Short qui fait parler de vous - Quelques secondes pour montrer votre savoir-faire, capter l'attention et donner envie de découvrir votre entreprise", 0),
-      line("6. Vos visuels Google - Faites vivre votre fiche et donnez régulièrement une nouvelle raison à vos clients de penser à vous", 0),
-      line("7. Référencement de vos réseaux sociaux sur Google - 99 % des entreprises ne savent pas qu'on peut référencer leurs réseaux sociaux avec Google. Avec Adamkom, ces choses sont faites", 0),
-      line("8. Faites exploser vos avis et vos étoiles Google - Un moyen rapide et efficace pour faire grandir vos avis et renforcer la réputation de votre fiche Google", 0),
+      line("Optimisation complète de votre fiche Google - Donnez à votre fiche l'impact qu'elle mérite pour attirer les regards et donner envie de vous choisir", 0),
+      line("Votre page de conversion sur mesure - Captez vos clients avec une page qui attire, rassure et transforme une simple visite en véritable opportunité", 0),
+      line("Votre Carte Bizness intelligente NFC - L'outil par excellence pour parler de votre entreprise, partager vos services et rester connecté à vos clients", 0),
+      line("Votre inscription sur Les Entreprises 974 - Faites rayonner votre entreprise au cœur d'un réseau de plus de 450 entreprises réunies pour renforcer la visibilité locale à La Réunion", 0),
+      line("Une vidéo Short qui fait parler de vous - Quelques secondes pour montrer votre savoir-faire, capter l'attention et donner envie de découvrir votre entreprise", 0),
+      line("Vos visuels Google - Faites vivre votre fiche et donnez régulièrement une nouvelle raison à vos clients de penser à vous", 0),
+      line("Référencement de vos réseaux sociaux sur Google - 99 % des entreprises ne savent pas qu'on peut référencer leurs réseaux sociaux avec Google. Avec Adamkom, ces choses sont faites", 0),
+      line("Faites exploser vos avis et vos étoiles Google - Un moyen rapide et efficace pour faire grandir vos avis et renforcer la réputation de votre fiche Google", 0),
       line("Création site internet vitrine professionnel (design, contenus, responsive, SEO de base)", 990),
       line("Carte Bizness NFC supplémentaire (option)", 49.9, 1, false),
     ],
@@ -79,7 +79,7 @@ export const QUOTE_TEMPLATES: QuoteTemplate[] = [
     key: "numerik",
     label: "Star Bizness Numerik",
     subtitle: "Site internet + présence digitale — 1 490 €",
-    notes: "Devis valable 30 jours. Paiement en 4 fois sans frais possible. Acompte de 50 % à la signature, solde à la livraison (délai 15 jours).",
+    notes: "Devis valable 30 jours. Paiement en 4 fois sans frais possible. Délai de livraison : 15 jours.",
     items: [
       line("Pack Star Bizness Numerik - Création site internet", 1490),
       line("Fiche Google My Business", 0),
@@ -101,4 +101,13 @@ export function computeQuoteTotals(items: QuoteItem[], discount: number, taxRate
 export function quoteRemaining(q: { total_amount: number; deposit_amount?: number | null; is_paid?: boolean | null }) {
   if (q.is_paid) return 0;
   return Math.max(0, Math.round((Number(q.total_amount) - Number(q.deposit_amount || 0)) * 100) / 100);
+}
+
+/** Normalise également les anciens devis lors de leur affichage et export. */
+export function cleanQuoteDescription(description: string) {
+  return description.replace(/^\s*\d+[.)]\s*/, "");
+}
+
+export function cleanQuoteNotes(notes?: string | null) {
+  return (notes || "").replace(/[^.!?\n]*acompte\s*(?:de\s*)?50\s*%[^.!?\n]*[.!?]?/gi, "").replace(/ {2,}/g, " ").trim();
 }

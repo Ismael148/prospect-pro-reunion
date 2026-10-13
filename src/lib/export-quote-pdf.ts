@@ -98,7 +98,7 @@ export function exportQuotePDF(data: QuotePDFData, options?: { returnBase64?: bo
   doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(...GRAY);
   doc.text("Date, signature et cachet du client", 20, y + 10);
   doc.text("précédés de « Bon pour accord »", 20, y + 15);
-  y = Math.max(ty + 14, y + 30);
+  y = Math.max(ty + 4, y + 28);
 
   if (data.notes) {
     doc.setFontSize(9);

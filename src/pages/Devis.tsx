@@ -91,7 +91,7 @@ export default function Devis() {
 
   const reset = () => {
     setEditingId(null); setQuoteNumber(null); setClientId(""); setClient({ ...emptyClient });
-    setDiscount("0"); setTaxRate("0"); setValidity("30"); setDeposit("0"); setDueDate(""); pickTemplate("tuning");
+    setDiscount("0"); setTaxRate("0"); setValidity("30"); setDeposit("0"); setDueDate(""); setCustomNumber(""); pickTemplate("tuning");
   };
 
   const newForSameClient = () => {
@@ -101,7 +101,7 @@ export default function Devis() {
   };
 
   const loadQuote = (q: any) => {
-    setEditingId(q.id); setQuoteNumber(q.quote_number); setTemplateKey(q.template_key); setClientId(q.client_id || "");
+    setEditingId(q.id); setQuoteNumber(q.quote_number); setCustomNumber(q.quote_number || ""); setTemplateKey(q.template_key); setClientId(q.client_id || "");
     setClient({ company_name: q.company_name || "", contact_name: q.contact_name || "", email: q.email || "", phone: q.phone || "", address: q.address || "", postal_code: q.postal_code || "", city: q.city || "", siret: q.siret || "" });
     setItems((q.items || []).map((item: QuoteItem) => ({ ...item, description: cleanQuoteDescription(item.description) }))); setNotes(cleanQuoteNotes(q.notes)); setDiscount(String(q.discount_amount ?? 0)); setTaxRate(String(q.tax_rate ?? 0)); setValidity(String(q.validity_days ?? 30)); setDeposit(String(q.deposit_amount ?? 0)); setDueDate(q.payment_due_date || "");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -113,6 +113,7 @@ export default function Devis() {
     contact_name: client.contact_name.trim() || null, email: client.email.trim() || null, phone: client.phone.trim() || null,
     address: client.address.trim() || null, postal_code: client.postal_code.trim() || null, city: client.city.trim() || null, siret: client.siret.trim() || null,
     items: items.map((item) => ({ ...item, description: cleanQuoteDescription(item.description) })) as any, discount_amount: parseFloat(discount) || 0, tax_rate: parseFloat(taxRate) || 0,
+    ...(customNumber.trim() ? { quote_number: customNumber.trim() } : {}),
     amount: totals.amount, tax_amount: totals.tax_amount, total_amount: totals.total_amount,
     notes: cleanQuoteNotes(notes) || null, validity_days: parseInt(validity) || 30,
     deposit_amount: parseFloat(deposit) || 0, payment_due_date: dueDate || null,

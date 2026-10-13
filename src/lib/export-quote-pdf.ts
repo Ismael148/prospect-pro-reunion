@@ -69,7 +69,7 @@ export function exportQuotePDF(data: QuotePDFData, options?: { returnBase64?: bo
     columnStyles: { 0: { cellWidth: 14, halign: "center" }, 2: { cellWidth: 18, halign: "center" }, 3: { cellWidth: 30, halign: "right" }, 4: { cellWidth: 30, halign: "right" } },
     margin: { left: 15, right: 15 },
   });
-  y = (doc as any).lastAutoTable.finalY + 10; if ((globalThis as any).__DBG) console.log("y", y);
+  y = (doc as any).lastAutoTable.finalY + 10;
   if (y > ph - (data.renewal_note ? 92 : 80)) { doc.addPage(); y = 20; }
 
   const tx = pw - 95; let ty = y;
@@ -85,18 +85,18 @@ export function exportQuotePDF(data: QuotePDFData, options?: { returnBase64?: bo
 
   // Bon pour accord
   doc.setDrawColor(...PINK); doc.setLineWidth(0.4);
-  doc.roundedRect(15, y - 3, 80, 34, 2, 2, "S");
+  doc.roundedRect(15, y - 3, 80, 28, 2, 2, "S");
   doc.setFontSize(9); doc.setTextColor(...BLACK); doc.text("BON POUR ACCORD", 20, y + 4);
   doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(...GRAY);
   doc.text("Date, signature et cachet du client", 20, y + 10);
   doc.text("précédés de « Bon pour accord »", 20, y + 15);
-  y = Math.max(ty + 20, y + 40);
+  y = Math.max(ty + 14, y + 30);
 
   if (data.notes) {
     doc.setFontSize(9);
     const lines = doc.splitTextToSize(data.notes.replace(/[—–]/g, "-"), pw - 42);
     const h = 14 + lines.length * 5;
-    if (y + h > ph - (data.renewal_note ? 52 : 30)) { doc.addPage(); y = 20; }
+    if (y + h > ph - (data.renewal_note ? 49 : 30)) { doc.addPage(); y = 20; }
     doc.setFillColor(250, 245, 248); doc.roundedRect(15, y, pw - 30, h, 2, 2, "FD");
     doc.setFont("helvetica", "bold"); doc.setTextColor(...BLACK); doc.text("CONDITIONS", 21, y + 7);
     doc.setFont("helvetica", "normal"); doc.setTextColor(90, 90, 90); doc.text(lines, 21, y + 14, { lineHeightFactor: 1.35 });

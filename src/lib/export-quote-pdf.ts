@@ -66,11 +66,11 @@ export function exportQuotePDF(data: QuotePDFData, options?: { returnBase64?: bo
     headStyles: { fillColor: [...BLACK], textColor: [...WHITE], fontStyle: "bold", fontSize: 10, cellPadding: 5 },
     bodyStyles: { fontSize: 9.5, cellPadding: 4.5, textColor: [50, 50, 50] },
     alternateRowStyles: { fillColor: [250, 245, 248] },
-    columnStyles: { 0: { cellWidth: 14, halign: "center" }, 2: { cellWidth: 16, halign: "center" }, 3: { cellWidth: 30, halign: "right" }, 4: { cellWidth: 30, halign: "right" } },
+    columnStyles: { 0: { cellWidth: 14, halign: "center" }, 2: { cellWidth: 18, halign: "center" }, 3: { cellWidth: 30, halign: "right" }, 4: { cellWidth: 30, halign: "right" } },
     margin: { left: 15, right: 15 },
   });
   y = (doc as any).lastAutoTable.finalY + 10;
-  if (y > ph - (data.renewal_note ? 110 : 90)) { doc.addPage(); y = 20; }
+  if (y > ph - (data.renewal_note ? 95 : 80)) { doc.addPage(); y = 20; }
 
   const tx = pw - 95; let ty = y;
   doc.setFontSize(9); doc.setTextColor(...GRAY);
@@ -78,7 +78,7 @@ export function exportQuotePDF(data: QuotePDFData, options?: { returnBase64?: bo
   if (data.discount_amount > 0) { row("Sous-total HT :", eur(data.amount + data.discount_amount)); row("Remise :", `-${eur(data.discount_amount)}`, true); }
   row("Total HT :", eur(data.amount));
   if (data.tax_rate > 0) row(`TVA (${data.tax_rate}%) :`, eur(data.tax_amount));
-  doc.setFillColor(...BLACK); doc.roundedRect(tx - 5, ty - 3, pw - tx - 10 + 5, 14, 2, 2, "F");
+  doc.setFillColor(...BLACK); doc.roundedRect(tx - 5, ty - 3, pw - tx - 10, 14, 2, 2, "F");
   doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(...WHITE);
   doc.text(data.tax_rate > 0 ? "TOTAL TTC :" : "TOTAL :", tx, ty + 6);
   doc.setTextColor(...PINK); doc.text(eur(data.total_amount), pw - 15, ty + 6, { align: "right" });
@@ -104,12 +104,12 @@ export function exportQuotePDF(data: QuotePDFData, options?: { returnBase64?: bo
 
   if (data.renewal_note) {
     doc.setPage(doc.getNumberOfPages());
-    const bx = 15, bw = pw - 30, bh = 16, by = ph - 25 - bh - 6;
+    const bx = 15, bw = pw - 30, bh = 19, by = ph - 25 - bh - 6;
     doc.setFillColor(...PINK); doc.roundedRect(bx, by, bw, bh, 2, 2, "F");
     doc.setTextColor(...WHITE); doc.setFont("helvetica", "bold"); doc.setFontSize(9);
     doc.text("RENOUVELLEMENT", bx + 6, by + 6.5);
     doc.setFont("helvetica", "normal"); doc.setFontSize(8.5);
-    doc.text(doc.splitTextToSize(data.renewal_note.replace(/[—–]/g, "-"), bw - 12), bx + 6, by + 11.5);
+    doc.text(doc.splitTextToSize(data.renewal_note.replace(/[—–]/g, "-"), bw - 12), bx + 6, by + 12);
   }
 
   const pages = doc.getNumberOfPages();

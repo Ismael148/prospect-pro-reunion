@@ -40,12 +40,16 @@ const sign = `<p style="margin:0">Cordialement,<br><strong style="color:${BRAND_
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));
 const note = (n?: string) => (n?.trim() ? `<p style="margin:0 0 20px">${esc(n.trim()).replace(/\n/g, "<br>")}</p>` : "");
 
-export function buildReminderEmail(name: string, token?: string | null) {
+/** Greeting addresses the client by their own name only — no name means a plain "Bonjour,". */
+const hello = (name?: string | null) =>
+  `<p style="margin:0 0 20px">Bonjour${name?.trim() ? ` <strong>${esc(name.trim())}</strong>` : ""},</p>`;
+
+export function buildReminderEmail(name?: string | null, token?: string | null) {
   const f = followupLink(token);
   const s = supportLink(token);
   return {
     subject: "[Adamkom by JJP] Suivi de votre solution – Vos besoins & mises à jour",
-    body: `<p style="margin:0 0 20px">Bonjour <strong>${esc(name)}</strong>,</p>
+    body: `${hello(name)}
 <p style="margin:0 0 20px">Nous espérons que vous allez bien et que votre activité se porte bien.</p>
 <p style="margin:0 0 20px"><strong>Chez Adamkom by JJP</strong>, nous tenons à être pleinement à vos côtés. Si vous avez besoin d'effectuer des modifications, de déployer des mises à jour ou de poser des questions techniques, vous disposez de deux options directes :</p>
 <ul style="margin:0 0 20px;padding-left:20px">
@@ -59,10 +63,10 @@ ${sign}`,
   };
 }
 
-export function buildConfirmEmail(name: string, dateLabel: string, meet: string, extra?: string) {
+export function buildConfirmEmail(name?: string | null, dateLabel = "", meet = "", extra?: string) {
   return {
     subject: "Confirmation de votre rendez-vous Visio avec Adamkom by JJP",
-    body: `<p style="margin:0 0 20px">Bonjour <strong>${esc(name)}</strong>,</p>
+    body: `${hello(name)}
 <p style="margin:0 0 20px">Nous vous confirmons notre rendez-vous visio le <strong>${esc(dateLabel)}</strong>.</p>
 <p style="margin:0 0 20px">Voici votre lien d'accès direct Google Meet :</p>
 ${makeCta("🎥 Rejoindre la visio", meet)}
@@ -72,11 +76,11 @@ ${note(extra)}
   };
 }
 
-export function buildRescheduleEmail(name: string, token?: string | null, extra?: string) {
+export function buildRescheduleEmail(name?: string | null, token?: string | null, extra?: string) {
   const f = followupLink(token);
   return {
     subject: "Nouveaux créneaux pour votre rendez-vous Visio – Adamkom by JJP",
-    body: `<p style="margin:0 0 20px">Bonjour <strong>${esc(name)}</strong>,</p>
+    body: `${hello(name)}
 <p style="margin:0 0 20px">Malheureusement, les créneaux proposés ne sont pas disponibles de notre côté. Pourriez-vous nous transmettre de nouvelles plages horaires, <strong>du lundi au vendredi, entre 9h et 17h</strong> ?</p>
 ${note(extra)}
 ${f ? makeCta("📅 Proposer de nouveaux créneaux", f) : ""}
@@ -84,10 +88,10 @@ ${sign}`,
   };
 }
 
-export function buildCancelEmail(name: string, reason?: string) {
+export function buildCancelEmail(name?: string | null, reason?: string) {
   return {
     subject: "Annulation de votre demande de rendez-vous – Adamkom by JJP",
-    body: `<p style="margin:0 0 20px">Bonjour <strong>${esc(name)}</strong>,</p>
+    body: `${hello(name)}
 <p style="margin:0 0 20px">Nous vous informons que votre demande de rendez-vous visio a été annulée.</p>
 ${note(reason)}
 <p style="margin:0 0 20px">Vous pouvez à tout moment nous recontacter ou ouvrir un ticket support si besoin.</p>

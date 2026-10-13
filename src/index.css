@@ -199,3 +199,30 @@
     background-size: 32px 32px;
   }
 }
+
+/* Dedicated white Google verification guide. */
+.gmb-video-tutorial .gmb-guide-title {
+  font-size: 28px;
+  line-height: 1.25;
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+.gmb-video-tutorial p,
+.gmb-video-tutorial h2,
+.gmb-video-tutorial h3 {
+  text-wrap: pretty;
+  overflow-wrap: break-word;
+  hyphens: none;
+}
+.gmb-video-tutorial .gmb-step {
+  transition: background-color 160ms ease;
+}
+@media (min-width: 640px) {
+  .gmb-video-tutorial .gmb-guide-title {
+    font-size: 46px;
+    line-height: 1.2;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gmb-video-tutorial .gmb-step { transition: none; }
+}

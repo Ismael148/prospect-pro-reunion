@@ -65,7 +65,7 @@ export function QuoteToInvoiceDialog({ quote, onClose }: { quote: any | null; on
       else if (paidNum > 0) await supabase.from("quotes").update({ deposit_amount: paidNum, status: "accepte" } as any).eq("id", quote.id);
       qc.invalidateQueries({ queryKey: ["invoices"] });
       qc.invalidateQueries({ queryKey: ["quotes"] });
-      toast.success(`Facture ${quote.quote_number} créée`, { action: { label: "Voir", onClick: () => navigate("/factures") } });
+      toast.success(`Facture ${quote.quote_number} créée`, { action: { label: "Voir", onClick: () => navigate("/facturation") } });
       onClose();
     } catch (e: any) {
       toast.error(e.message || "Erreur lors de la création de la facture");

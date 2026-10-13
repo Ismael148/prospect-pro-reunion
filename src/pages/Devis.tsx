@@ -56,6 +56,11 @@ export default function Devis() {
   const pickTemplate = (key: string) => {
     const t = QUOTE_TEMPLATES.find((x) => x.key === key);
     if (!t) return;
+    // Choisir un autre modèle = nouveau devis : on ne modifie jamais le devis déjà enregistré.
+    if (editingId && key !== templateKey) {
+      setEditingId(null); setQuoteNumber(null);
+      toast.info("Nouveau devis : le devis précédent reste enregistré dans la liste");
+    }
     setTemplateKey(key);
     setItems(t.items.map((i) => ({ ...i })));
     setNotes(t.notes);

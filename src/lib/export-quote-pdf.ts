@@ -96,15 +96,18 @@ export function exportQuotePDF(data: QuotePDFData, options?: { returnBase64?: bo
     doc.setFontSize(9);
     const lines = doc.splitTextToSize(data.notes.replace(/[—–]/g, "-"), pw - 42);
     const h = 14 + lines.length * 5;
-    if (y + h > ph - (data.renewal_note ? 49 : 30)) { doc.addPage(); y = 20; }
+    if (y + h > ph - (data.renewal_note ? 30 : 30)) { doc.addPage(); y = 20; }
     doc.setFillColor(250, 245, 248); doc.roundedRect(15, y, pw - 30, h, 2, 2, "FD");
     doc.setFont("helvetica", "bold"); doc.setTextColor(...BLACK); doc.text("CONDITIONS", 21, y + 7);
     doc.setFont("helvetica", "normal"); doc.setTextColor(90, 90, 90); doc.text(lines, 21, y + 14, { lineHeightFactor: 1.35 });
+    y += h + 5;
   }
 
   if (data.renewal_note) {
     doc.setPage(doc.getNumberOfPages());
-    const bx = 15, bw = pw - 30, bh = 19, by = ph - 25 - bh - 6;
+    const bx = 15, bw = pw - 30, bh = 19;
+    if (y + bh > ph - 28) { doc.addPage(); y = 20; }
+    const by = y;
     doc.setFillColor(...PINK); doc.roundedRect(bx, by, bw, bh, 2, 2, "F");
     doc.setTextColor(...WHITE); doc.setFont("helvetica", "bold"); doc.setFontSize(9);
     doc.text("RENOUVELLEMENT", bx + 6, by + 6.5);

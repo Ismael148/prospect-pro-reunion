@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { QuoteToInvoiceDialog } from "@/components/devis/QuoteToInvoiceDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { FileSignature, Plus, Trash2, Download, Send, Save, Loader2, Search, Copy, Eye, CheckCircle2, FileText } from "lucide-react";
 
@@ -42,6 +43,7 @@ export default function Devis() {
   const [deposit, setDeposit] = useState("0");
   const [dueDate, setDueDate] = useState("");
   const [preview, setPreview] = useState<any[] | null>(null);
+  const [invoiceQuote, setInvoiceQuote] = useState<any | null>(null);
 
   const { data: quotes = [] } = useQuery({
     queryKey: ["quotes"],
@@ -290,6 +292,7 @@ export default function Devis() {
         </CardContent>
       </Card>
 
+      <QuoteToInvoiceDialog quote={invoiceQuote} onClose={() => setInvoiceQuote(null)} />
       <div ref={savedRef} className="scroll-mt-6">
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3 space-y-0">
@@ -319,6 +322,7 @@ export default function Devis() {
                 {Object.entries(STATUS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
               <Button size="sm" variant="ghost" onClick={() => loadQuote(q)}>Modifier</Button>
+              <Button size="sm" variant="outline" onClick={() => setInvoiceQuote(q)}><FileText className="w-4 h-4 mr-1" />Facturer</Button>
               <Button size="icon" variant="ghost" title="Aperçu PDF" onClick={() => viewPdf(q)}><Eye className="w-4 h-4" /></Button>
               <Button size="icon" variant="ghost" title="Télécharger" onClick={() => exportQuotePDF(pdfData(q))}><Download className="w-4 h-4" /></Button>
               <Button size="icon" variant="ghost" onClick={() => sendQuote(q)}><Send className="w-4 h-4" /></Button>

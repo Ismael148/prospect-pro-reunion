@@ -631,6 +631,46 @@ export default function Invoices() {
         </DialogContent>
       </Dialog>
 
+      {/* Send Invoice Dialog: editable recipient + email preview */}
+      <Dialog open={!!sendTarget} onOpenChange={(o) => { if (!o) setSendTarget(null); }}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Envoyer la facture {sendTarget?.invoice_number}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Adresse email du destinataire</Label>
+              <Input
+                type="email"
+                value={sendEmail}
+                onChange={(e) => setSendEmail(e.target.value)}
+                placeholder="client@exemple.com"
+              />
+              <p className="text-xs text-muted-foreground">Vous pouvez corriger l'adresse juste pour cet envoi — la fiche client n'est pas modifiée.</p>
+            </div>
+            {sendPreview && (
+              <div className="space-y-2">
+                <Label>Aperçu du mail</Label>
+                <p className="text-sm"><span className="text-muted-foreground">Objet :</span> <strong>{sendPreview.subject}</strong></p>
+                <p className="text-xs text-muted-foreground">La facture PDF est jointe automatiquement au mail.</p>
+                <iframe
+                  title="Aperçu du mail de facture"
+                  srcDoc={sendPreview.html}
+                  className="w-full h-[50vh] rounded-md border border-border/50 bg-white"
+                />
+              </div>
+            )}
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setSendTarget(null)}>Annuler</Button>
+              <Button onClick={handleSend} disabled={sendInvoice.isPending} className="gap-2">
+                {sendInvoice.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                Confirmer l'envoi
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* PDF Preview Dialog */}
       <Dialog open={!!previewUrl} onOpenChange={(o) => { if (!o) setPreviewUrl(null); }}>
         <DialogContent className="max-w-4xl">

@@ -80,6 +80,33 @@ export default function Support() {
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const [adminNotes, setAdminNotes] = useState("");
   const [teamMembers, setTeamMembers] = useState<{ user_id: string; full_name: string; role: string }[]>([]);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const deepLinkTicketId = searchParams.get("ticket");
+
+  // Ouvre directement le ticket demandé (lien depuis une fiche client : /support?ticket=<id>)
+  useEffect(() => {
+    if (!deepLinkTicketId || !tickets) return;
+    const found = tickets.find((t) => t.id === deepLinkTicketId);
+    if (found) {
+      setSelectedTicket(found);
+      setAdminNotes(found.admin_notes || "");
+      setSearchParams({}, { replace: true });
+    } else if (!isLoading) {
+      // Le ticket n'est pas dans la liste (p. ex. filtrée par rôle) : on le charge seul
+      (async () => {
+        const { data } = await supabase
+          .from("support_tickets")
+          .select("*")
+          .eq("id", deepLinkTicketId)
+          .maybeSingle();
+        if (data) {
+          setSelectedTicket(data);
+          setAdminNotes(data.admin_notes || "");
+        }
+        setSearchParams({}, { replace: true });
+      })();
+    }
+  }, [deepLinkTicketId, tickets, isLoading, setSearchParams]);
 
   useEffect(() => {
     if (!isAdmin) return;

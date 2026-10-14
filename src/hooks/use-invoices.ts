@@ -82,8 +82,9 @@ export function useCreateInvoice() {
   });
 }
 
-/** Sends the invoice email (PDF attached) to the client via n8n. */
-export async function sendInvoiceEmail(data: Invoice) {
+/** Sends the invoice email (PDF attached) to the client via n8n.
+ *  `emailOverride` lets the sender correct the recipient address just before sending. */
+export async function sendInvoiceEmail(data: Invoice, emailOverride?: string) {
   const { data: client } = await supabase
     .from("clients")
     .select("company_name, manager_name, address, postal_code, city, email, phone, siret, vat_number, ndi, support_token, payment_method, pack_type, tuning_website_addon")
@@ -92,7 +93,8 @@ export async function sendInvoiceEmail(data: Invoice) {
 
 
   if (!client) throw new Error("Client introuvable");
-  if (!client.email) throw new Error("Ce client n'a pas d'adresse email");
+  const recipientEmail = (emailOverride || client.email || "").trim();
+  if (!recipientEmail) throw new Error("Ce client n'a pas d'adresse email");
 
   const { PUBLISHED_URL: publishedUrl, PACK_LABELS } = await import("@/lib/constants");
   const packLabel = (PACK_LABELS as Record<string, string>)[client.pack_type as string] || null;

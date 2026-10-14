@@ -541,7 +541,7 @@ function SupportTicketsSection({ clientId }: { clientId: string }) {
               return (
                 <div
                   key={t.id}
-                  onClick={() => navigate("/support")}
+                  onClick={() => navigate(`/support?ticket=${t.id}`)}
                   className={`p-4 rounded-xl border cursor-pointer transition-all hover:shadow-md hover:scale-[1.01] ${
                     t.status === "ouvert" ? "border-amber-300 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-800" :
                     t.status === "en_cours" ? "border-blue-300 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-800" :

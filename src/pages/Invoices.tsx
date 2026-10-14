@@ -1,8 +1,10 @@
 import { useState, useMemo } from "react";
-import { useInvoices, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, useSendInvoice, type InvoiceItem } from "@/hooks/use-invoices";
+import { useInvoices, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, useSendInvoice, type Invoice, type InvoiceItem } from "@/hooks/use-invoices";
 import { useClients } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";
 import { exportInvoicePDF } from "@/lib/export-invoice-pdf";
+import { buildInvoiceEmail } from "@/lib/invoice-email";
+import { ClientCombobox } from "@/components/ClientCombobox";
 import { PACK_LABELS, PACK_PRICES, PACK_RENEWAL_PRICES, PACK_RENEWAL_NOTE, TUNING_WEBSITE_ADDON_PRICE } from "@/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -90,6 +92,9 @@ export default function Invoices() {
   ]);
   const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [sendTarget, setSendTarget] = useState<Invoice | null>(null);
+  const [sendEmail, setSendEmail] = useState("");
+  const [sendPreview, setSendPreview] = useState<{ subject: string; html: string } | null>(null);
 
   const clientMap = useMemo(() => {
     const map = new Map<string, any>();
@@ -266,10 +271,26 @@ export default function Invoices() {
     if (base64) setPreviewUrl(`data:application/pdf;base64,${base64}`);
   };
 
-  const handleSend = async (inv: any) => {
+  // Opens the send dialog: editable recipient + email preview before anything goes out
+  const openSendDialog = (inv: Invoice) => {
+    const client = clientMap.get(inv.client_id);
+    if (!client) { toast.error("Client introuvable"); return; }
+    setSendTarget(inv);
+    setSendEmail(client.email || "");
+    setSendPreview(buildInvoiceEmail(inv, client));
+  };
+
+  const handleSend = async () => {
+    if (!sendTarget) return;
+    const email = sendEmail.trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error("Saisissez une adresse email valide");
+      return;
+    }
     try {
-      await sendInvoice.mutateAsync(inv);
-      toast.success("Facture envoyée au client");
+      await sendInvoice.mutateAsync({ invoice: sendTarget, emailOverride: email });
+      toast.success(`Facture envoyée à ${email}`);
+      setSendTarget(null);
     } catch (e: any) {
       toast.error(e?.message || "Erreur lors de l'envoi");
     }
@@ -415,7 +436,7 @@ export default function Invoices() {
                           <Download className="w-4 h-4" />
                         </Button>
                         {isAdmin && (inv.status === "brouillon" || inv.status === "payee") && (
-                          <Button size="icon" variant="ghost" onClick={() => handleSend(inv)} disabled={sendInvoice.isPending} title={inv.status === "payee" ? "Envoyer la facture acquittée au client" : "Envoyer la facture au client"}>
+                          <Button size="icon" variant="ghost" onClick={() => openSendDialog(inv)} disabled={sendInvoice.isPending} title={inv.status === "payee" ? "Envoyer la facture acquittée au client" : "Envoyer la facture au client"}>
                             {sendInvoice.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4 text-primary" />}
                           </Button>
                         )}
@@ -471,17 +492,19 @@ export default function Invoices() {
             </div>
             <div className="space-y-2">
               <Label>Client *</Label>
-              <Select value={selectedClientId} onValueChange={handleClientChange}>
-                <SelectTrigger><SelectValue placeholder="Sélectionner un client" /></SelectTrigger>
-                <SelectContent>
-                  {signedClients.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.company_name}
-                      {c.pack_type === "star_bizness_tuning" ? " — TUNING" : c.pack_type === "star_bizness_nfc" ? " — NFC" : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <ClientCombobox
+                options={signedClients}
+                value={selectedClientId}
+                onChange={handleClientChange}
+                placeholder="Rechercher un client (nom, NDI, ville)…"
+                getBadge={(c) =>
+                  c.pack_type === "star_bizness_tuning" ? (
+                    <Badge variant="outline" className="text-[10px]">TUNING</Badge>
+                  ) : c.pack_type === "star_bizness_nfc" ? (
+                    <Badge variant="outline" className="text-[10px]">NFC</Badge>
+                  ) : null
+                }
+              />
             </div>
 
 

@@ -82,8 +82,9 @@ export function useCreateInvoice() {
   });
 }
 
-/** Sends the invoice email (PDF attached) to the client via n8n. */
-export async function sendInvoiceEmail(data: Invoice) {
+/** Sends the invoice email (PDF attached) to the client via n8n.
+ *  `emailOverride` lets the sender correct the recipient address just before sending. */
+export async function sendInvoiceEmail(data: Invoice, emailOverride?: string) {
   const { data: client } = await supabase
     .from("clients")
     .select("company_name, manager_name, address, postal_code, city, email, phone, siret, vat_number, ndi, support_token, payment_method, pack_type, tuning_website_addon")
@@ -92,7 +93,8 @@ export async function sendInvoiceEmail(data: Invoice) {
 
 
   if (!client) throw new Error("Client introuvable");
-  if (!client.email) throw new Error("Ce client n'a pas d'adresse email");
+  const recipientEmail = (emailOverride || client.email || "").trim();
+  if (!recipientEmail) throw new Error("Ce client n'a pas d'adresse email");
 
   const { PUBLISHED_URL: publishedUrl, PACK_LABELS } = await import("@/lib/constants");
   const packLabel = (PACK_LABELS as Record<string, string>)[client.pack_type as string] || null;
@@ -142,7 +144,7 @@ export async function sendInvoiceEmail(data: Invoice) {
       ? `Cette facture est soldée${data.paid_date ? ` (paiement reçu le ${new Date(data.paid_date).toLocaleDateString("fr-FR")})` : ""}. Aucun règlement complémentaire n'est attendu.`
       : `Merci d'indiquer la référence « Facture ${data.invoice_number} » lors de votre règlement.`,
     client_id: data.client_id,
-    client_email: client.email,
+    client_email: recipientEmail,
     company_name: client.company_name,
     manager_name: client.manager_name,
     greeting_name: (client.manager_name?.trim() || client.company_name),
@@ -157,7 +159,7 @@ export async function sendInvoiceEmail(data: Invoice) {
 
   // Journal des emails : trace date + statut par facture
   await supabase.from("email_send_log").insert({
-    recipient_email: client.email,
+    recipient_email: recipientEmail,
     recipient_name: client.manager_name || client.company_name,
     subject: `Facture n° ${data.invoice_number}`,
     message_id: `invoice-${data.id}-${Date.now()}`,
@@ -176,8 +178,10 @@ export async function sendInvoiceEmail(data: Invoice) {
 export function useSendInvoice() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (invoice: Invoice) => {
-      await sendInvoiceEmail(invoice);
+    mutationFn: async (input: Invoice | { invoice: Invoice; emailOverride?: string }) => {
+      const invoice = "invoice" in input ? input.invoice : input;
+      const emailOverride = "invoice" in input ? input.emailOverride : undefined;
+      await sendInvoiceEmail(invoice, emailOverride);
       // Une facture déjà payée garde son statut : on ne fait que renvoyer le document.
       if (invoice.status !== "payee") {
         const { error } = await supabase

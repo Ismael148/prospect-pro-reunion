@@ -3,7 +3,7 @@ import { useInvoices, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, useS
 import { useClients } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";
 import { exportInvoicePDF } from "@/lib/export-invoice-pdf";
-import { buildInvoiceEmail } from "@/lib/invoice-email";
+import { buildInvoiceEmail, getInvoiceEmailDraft } from "@/lib/invoice-email";
 import { ClientCombobox } from "@/components/ClientCombobox";
 import { PACK_LABELS, PACK_PRICES, PACK_RENEWAL_PRICES, PACK_RENEWAL_NOTE, TUNING_WEBSITE_ADDON_PRICE } from "@/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -94,13 +94,21 @@ export default function Invoices() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [sendTarget, setSendTarget] = useState<Invoice | null>(null);
   const [sendEmail, setSendEmail] = useState("");
-  const [sendPreview, setSendPreview] = useState<{ subject: string; html: string } | null>(null);
+  const [sendSubject, setSendSubject] = useState("");
+  const [sendMessage, setSendMessage] = useState("");
 
   const clientMap = useMemo(() => {
     const map = new Map<string, any>();
     (clients || []).forEach((c) => map.set(c.id, c));
     return map;
   }, [clients]);
+
+  const sendPreview = useMemo(() => {
+    const client = sendTarget ? clientMap.get(sendTarget.client_id) : null;
+    return sendTarget && client
+      ? buildInvoiceEmail(sendTarget, client, { subject: sendSubject, message: sendMessage })
+      : null;
+  }, [sendTarget, clientMap, sendSubject, sendMessage]);
 
   const filteredInvoices = useMemo(() => {
     if (!invoices) return [];
@@ -277,7 +285,9 @@ export default function Invoices() {
     if (!client) { toast.error("Client introuvable"); return; }
     setSendTarget(inv);
     setSendEmail(client.email || "");
-    setSendPreview(buildInvoiceEmail(inv, client));
+    const draft = getInvoiceEmailDraft(inv, client);
+    setSendSubject(draft.subject);
+    setSendMessage(draft.message);
   };
 
   const handleSend = async () => {
@@ -287,8 +297,12 @@ export default function Invoices() {
       toast.error("Saisissez une adresse email valide");
       return;
     }
+    if (!sendSubject.trim() || !sendMessage.trim()) {
+      toast.error("Renseignez l’objet et le message du mail");
+      return;
+    }
     try {
-      await sendInvoice.mutateAsync({ invoice: sendTarget, emailOverride: email });
+      await sendInvoice.mutateAsync({ invoice: sendTarget, emailOverride: email, emailDraft: { subject: sendSubject, message: sendMessage } });
       toast.success(`Facture envoyée à ${email}`);
       setSendTarget(null);
     } catch (e: any) {
@@ -639,14 +653,23 @@ export default function Invoices() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Adresse email du destinataire</Label>
+              <Label htmlFor="invoice-email-recipient">Adresse email du destinataire</Label>
               <Input
+                id="invoice-email-recipient"
                 type="email"
                 value={sendEmail}
                 onChange={(e) => setSendEmail(e.target.value)}
                 placeholder="client@exemple.com"
               />
               <p className="text-xs text-muted-foreground">Vous pouvez corriger l'adresse juste pour cet envoi — la fiche client n'est pas modifiée.</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="invoice-email-subject">Objet du mail</Label>
+              <Input id="invoice-email-subject" value={sendSubject} onChange={(e) => setSendSubject(e.target.value)} disabled={sendInvoice.isPending} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="invoice-email-message">Message</Label>
+              <Textarea id="invoice-email-message" value={sendMessage} onChange={(e) => setSendMessage(e.target.value)} rows={10} disabled={sendInvoice.isPending} />
             </div>
             {sendPreview && (
               <div className="space-y-2">
@@ -656,13 +679,14 @@ export default function Invoices() {
                 <iframe
                   title="Aperçu du mail de facture"
                   srcDoc={sendPreview.html}
-                  className="w-full h-[50vh] rounded-md border border-border/50 bg-white"
+                  sandbox=""
+                  className="w-full h-[50vh] rounded-md border border-border/50 bg-background"
                 />
               </div>
             )}
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setSendTarget(null)}>Annuler</Button>
-              <Button onClick={handleSend} disabled={sendInvoice.isPending} className="gap-2">
+              <Button onClick={handleSend} disabled={sendInvoice.isPending || !sendSubject.trim() || !sendMessage.trim()} className="gap-2">
                 {sendInvoice.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 Confirmer l'envoi
               </Button>

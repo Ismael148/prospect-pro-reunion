@@ -26,7 +26,33 @@ export interface InvoiceEmailClient {
   tuning_website_addon?: boolean | null;
 }
 
-export function buildInvoiceEmail(inv: InvoiceEmailInvoice, client: InvoiceEmailClient) {
+export interface InvoiceEmailDraft {
+  subject: string;
+  message: string;
+}
+
+export function getInvoiceEmailDraft(inv: InvoiceEmailInvoice, client: InvoiceEmailClient): InvoiceEmailDraft {
+  const name = client.manager_name?.trim();
+  const packLabel = (PACK_LABELS as Record<string, string>)[client.pack_type as string];
+  return {
+    subject: `Facture n° ${inv.invoice_number} - Adamkom by JJP`,
+    message: [
+      name ? `Bonjour ${name},` : "Bonjour,",
+      `Vous trouverez en pièce jointe votre facture n° ${inv.invoice_number}.`,
+      packLabel ? `Contrat : ${packLabel}${client.tuning_website_addon ? " + Création site internet" : ""}` : "",
+      `Montant TTC : ${eur(inv.total_amount)}`,
+      inv.due_date ? `Date d'échéance : ${new Date(inv.due_date).toLocaleDateString("fr-FR")}` : "",
+      inv.status === "payee"
+        ? `Cette facture est soldée${inv.paid_date ? ` (paiement reçu le ${new Date(inv.paid_date).toLocaleDateString("fr-FR")})` : ""}. Aucun règlement complémentaire n'est attendu.`
+        : `Merci d'indiquer la référence « Facture ${inv.invoice_number} » lors de votre règlement.`,
+      "Nous restons à votre disposition pour toute question.",
+      "Bien cordialement,\nL'équipe Adamkom by JJP",
+    ].filter(Boolean).join("\n\n"),
+  };
+}
+
+export function buildInvoiceEmail(inv: InvoiceEmailInvoice, client: InvoiceEmailClient, draft?: InvoiceEmailDraft) {
+  const defaults = getInvoiceEmailDraft(inv, client);
   const isPaid = inv.status === "payee";
   const name = client.manager_name?.trim();
   const greeting = name ? `Bonjour ${escape(name)},` : "Bonjour,";
@@ -63,7 +89,12 @@ export function buildInvoiceEmail(inv: InvoiceEmailInvoice, client: InvoiceEmail
     <p style="margin:0">Bien cordialement,<br/><strong>L'équipe Adamkom by JJP</strong></p>`;
 
   return {
-    subject: `Facture n° ${inv.invoice_number} - Adamkom by JJP`,
-    html: wrapInBrandedTemplate(body, supportLink),
+    subject: draft?.subject.trim() ?? defaults.subject,
+    html: wrapInBrandedTemplate(
+      draft && draft.message !== defaults.message
+        ? draft.message.split(/\n\s*\n/).map((paragraph) => `<p style="margin:0 0 16px;overflow-wrap:anywhere">${escape(paragraph).replace(/\n/g, "<br/>")}</p>`).join("")
+        : body,
+      supportLink,
+    ),
   };
 }

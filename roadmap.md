@@ -11,3 +11,4 @@
 - [x] Vérifier l’enregistrement et l’aperçu sans envoyer d’email avec une session administrateur autorisée.
 - [x] Saluer les mails de suivi avec le nom du gérant, et « Bonjour, » sans nom quand il manque ; vérifier l’aperçu sur deux fiches.
 - [x] Modifier l’objet et le contenu du mail de facture, transmettre le message prévisualisé et vérifier sans envoyer de mail client.
+- [ ] Retirer l’attribution automatique des nouvelles tâches et vérifier que les attributions existantes restent intactes.

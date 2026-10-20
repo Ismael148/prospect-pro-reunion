@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { getPackModules, PACK_DEADLINE_DAYS, PACK_LABELS } from "@/lib/constants";
 
-/** Insert all pack module tasks for a project (assignment is done by a DB trigger). */
+/** Insert all pack module tasks for a project without assigning a team member. */
 export async function insertPackTasks(projectId: string, client: any, startDate: string) {
   const modules = getPackModules(
     client.pack_type, client.site_type || "vitrine", !!client.has_gmb,

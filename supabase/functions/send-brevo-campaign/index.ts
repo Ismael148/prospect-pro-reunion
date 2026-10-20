@@ -262,7 +262,7 @@ Deno.serve(async (req) => {
     // ACTION: send_client_email (per-client actions: support, form reminders, custom)
     // ═══════════════════════════════════════════
     if (action === 'send_client_email') {
-      const { recipientEmail: rawRecipient, recipientName, subject, htmlContent, trigger, client_id, attachment } = body;
+      const { recipientEmail: rawRecipient, recipientName, subject, htmlContent, trigger, client_id, invoice_id, attachment } = body;
       const recipientEmail = sanitizeEmail(rawRecipient);
 
       if (!recipientEmail || !subject || !htmlContent) {
@@ -297,7 +297,7 @@ Deno.serve(async (req) => {
           status: 'failed',
           template_name: trigger || 'client_email',
           error_message: err,
-          metadata: { client_id, trigger },
+          metadata: { client_id, trigger, ...(trigger === 'invoice' && invoice_id ? { invoice_id } : {}) },
         });
         return new Response(JSON.stringify({ error: `Brevo error: ${err}` }), {
           status: 500,
@@ -315,7 +315,7 @@ Deno.serve(async (req) => {
         subject,
         status: 'sent',
         template_name: trigger || 'client_email',
-        metadata: { client_id, trigger },
+        metadata: { client_id, trigger, ...(trigger === 'invoice' && invoice_id ? { invoice_id } : {}) },
       });
 
       return new Response(JSON.stringify({ success: true, messageId }), {

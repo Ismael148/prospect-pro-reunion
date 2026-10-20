@@ -1,0 +1,2 @@
+DROP TRIGGER IF EXISTS trg_auto_assign_project_task ON public.project_tasks;
+COMMENT ON FUNCTION public.auto_assign_project_task() IS 'DEPRECATED: new project tasks are assigned only when an assignee is explicitly selected. No automatic assignment trigger is attached.';

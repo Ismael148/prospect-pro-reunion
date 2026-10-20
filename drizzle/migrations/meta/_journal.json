@@ -57,6 +57,13 @@
       "when": 1791891748184,
       "tag": "0007_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792477082652,
+      "tag": "0008_manual_project_task_assignment",
+      "breakpoints": true
     }
   ]
 }

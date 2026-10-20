@@ -9,3 +9,4 @@
 - Generate quote email previews and outgoing messages with the same shared builder using the current quote selection; this keeps attachment lists and renewal information consistent.
 - Build editable invoice email previews and send payloads with one shared builder; plain-text edits are escaped and the PDF remains generated from invoice data.
 - Send edited invoice emails through the existing single-client email service, not the fixed n8n template; this delivers the preview and PDF exactly once and records the invoice association.
+- Do not attach an auto-assignment trigger to project task insertion; only explicit assignee input may assign a new task, keeping generation and manual creation consistent.

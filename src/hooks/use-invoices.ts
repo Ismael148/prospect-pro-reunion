@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { triggerN8nWebhook } from "@/lib/n8n-webhook";
 import { exportInvoicePDF } from "@/lib/export-invoice-pdf";
+import { buildInvoiceEmail, type InvoiceEmailDraft } from "@/lib/invoice-email";
 
 export interface InvoiceItem {
   description: string;
@@ -84,7 +85,7 @@ export function useCreateInvoice() {
 
 /** Sends the invoice email (PDF attached) to the client via n8n.
  *  `emailOverride` lets the sender correct the recipient address just before sending. */
-export async function sendInvoiceEmail(data: Invoice, emailOverride?: string) {
+export async function sendInvoiceEmail(data: Invoice, emailOverride?: string, emailDraft?: InvoiceEmailDraft) {
   const { data: client } = await supabase
     .from("clients")
     .select("company_name, manager_name, address, postal_code, city, email, phone, siret, vat_number, ndi, support_token, payment_method, pack_type, tuning_website_addon")
@@ -95,6 +96,10 @@ export async function sendInvoiceEmail(data: Invoice, emailOverride?: string) {
   if (!client) throw new Error("Client introuvable");
   const recipientEmail = (emailOverride || client.email || "").trim();
   if (!recipientEmail) throw new Error("Ce client n'a pas d'adresse email");
+  if (emailDraft && (!emailDraft.subject.trim() || !emailDraft.message.trim())) {
+    throw new Error("Renseignez l’objet et le message du mail");
+  }
+  const emailContent = buildInvoiceEmail(data, client, emailDraft);
 
   const { PUBLISHED_URL: publishedUrl, PACK_LABELS } = await import("@/lib/constants");
   const packLabel = (PACK_LABELS as Record<string, string>)[client.pack_type as string] || null;
@@ -130,6 +135,10 @@ export async function sendInvoiceEmail(data: Invoice, emailOverride?: string) {
 
   const isPaid = data.status === "payee";
   await triggerN8nWebhook('invoice.created', {
+    subject: emailContent.subject,
+    html_content: emailContent.html,
+    email_subject: emailContent.subject,
+    email_html: emailContent.html,
     invoice_number: data.invoice_number,
     total_amount: data.total_amount,
     discount_amount: (data as any).discount_amount ?? 0,
@@ -147,7 +156,7 @@ export async function sendInvoiceEmail(data: Invoice, emailOverride?: string) {
     client_email: recipientEmail,
     company_name: client.company_name,
     manager_name: client.manager_name,
-    greeting_name: (client.manager_name?.trim() || client.company_name),
+    greeting_name: client.manager_name?.trim() || null,
     support_link: supportLink,
     form_nfc_link: formNfcLink,
     form_site_link: formSiteLink,
@@ -161,7 +170,7 @@ export async function sendInvoiceEmail(data: Invoice, emailOverride?: string) {
   await supabase.from("email_send_log").insert({
     recipient_email: recipientEmail,
     recipient_name: client.manager_name || client.company_name,
-    subject: `Facture n° ${data.invoice_number}`,
+    subject: emailContent.subject,
     message_id: `invoice-${data.id}-${Date.now()}`,
     template_name: "invoice",
     status: "sent",
@@ -178,10 +187,11 @@ export async function sendInvoiceEmail(data: Invoice, emailOverride?: string) {
 export function useSendInvoice() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: Invoice | { invoice: Invoice; emailOverride?: string }) => {
+    mutationFn: async (input: Invoice | { invoice: Invoice; emailOverride?: string; emailDraft?: InvoiceEmailDraft }) => {
       const invoice = "invoice" in input ? input.invoice : input;
       const emailOverride = "invoice" in input ? input.emailOverride : undefined;
-      await sendInvoiceEmail(invoice, emailOverride);
+      const emailDraft = "invoice" in input ? input.emailDraft : undefined;
+      await sendInvoiceEmail(invoice, emailOverride, emailDraft);
       // Une facture déjà payée garde son statut : on ne fait que renvoyer le document.
       if (invoice.status !== "payee") {
         const { error } = await supabase

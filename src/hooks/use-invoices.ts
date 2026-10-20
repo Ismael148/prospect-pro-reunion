@@ -133,6 +133,27 @@ export async function sendInvoiceEmail(data: Invoice, emailOverride?: string, em
     },
   }, { returnBase64: true });
 
+  // Edited emails use the existing client-email sender, which accepts the exact
+  // preview and PDF; the legacy n8n invoice template cannot honor text edits.
+  if (emailDraft) {
+    if (!pdfBase64) throw new Error("Impossible de générer la facture PDF");
+    const { data: result, error } = await supabase.functions.invoke("send-brevo-campaign", {
+      body: {
+        action: "send_client_email",
+        recipientEmail,
+        recipientName: client.manager_name || null,
+        subject: emailContent.subject,
+        htmlContent: emailContent.html,
+        trigger: "invoice",
+        client_id: data.client_id,
+        invoice_id: data.id,
+        attachment: [{ name: `Facture_${data.invoice_number}.pdf`, content: pdfBase64 }],
+      },
+    });
+    if (error || !result?.success) throw new Error(result?.error || error?.message || "Erreur lors de l'envoi");
+    return;
+  }
+
   const isPaid = data.status === "payee";
   await triggerN8nWebhook('invoice.created', {
     subject: emailContent.subject,

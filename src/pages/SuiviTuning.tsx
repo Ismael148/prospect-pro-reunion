@@ -1,3 +1,4 @@
+import { EmailSupportOption, useEmailSupport } from "@/components/EmailSupportOption";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,6 +36,7 @@ const REQ_LABEL: Record<string, string> = { en_attente: "En attente", confirme: 
 type Action = "confirm" | "recale" | "annule";
 
 export default function SuiviTuning({ mode = "campagne" }: { mode?: "campagne" | "dispos" }) {
+  const { includeSupport, setIncludeSupport, applySupport } = useEmailSupport();
   const [search, setSearch] = useState("");
   const [reqFilter, setReqFilter] = useState("all");
   const q = search.trim().toLowerCase();
@@ -85,7 +87,7 @@ export default function SuiviTuning({ mode = "campagne" }: { mode?: "campagne" |
     supabase.functions.invoke("send-brevo-campaign", {
       body: {
         action: "send_client_email", recipientEmail: c.email, recipientName: c.manager_name || c.company_name,
-        subject, htmlContent: wrapInBrandedTemplate(body, supportLink(c.support_token) || undefined, branding || undefined),
+        subject, htmlContent: applySupport(wrapInBrandedTemplate(body, supportLink(c.support_token) || undefined, branding || undefined), supportLink(c.support_token), branding || undefined),
         trigger, client_id: c.id,
       },
     });
@@ -147,7 +149,7 @@ export default function SuiviTuning({ mode = "campagne" }: { mode?: "campagne" |
     qc.invalidateQueries({ queryKey: ["suivi-tuning"] });
   };
 
-  const preview = (body: string) => wrapInBrandedTemplate(body, undefined, branding || undefined);
+  const preview = (body: string, token?: string | null) => applySupport(wrapInBrandedTemplate(body, undefined, branding || undefined), supportLink(token), branding || undefined);
 
   return (
     <div className="space-y-6">
@@ -245,8 +247,9 @@ export default function SuiviTuning({ mode = "campagne" }: { mode?: "campagne" |
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Relance à {selectedRows.length} client(s)</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground">{selectedRows.map((r) => r.c.company_name).join(", ")}</p>
+          <EmailSupportOption checked={includeSupport} onChange={setIncludeSupport} />
           {sample && <><p className="text-sm"><strong>Objet :</strong> {sample.subject}</p>
-            <iframe title="aperçu" srcDoc={preview(sample.body)} className="w-full h-[460px] rounded border border-border bg-white" /></>}
+            <iframe title="aperçu" srcDoc={preview(sample.body, selectedRows[0]?.c.support_token)} className="w-full h-[460px] rounded border border-border bg-white" /></>}
           <DialogFooter><Button onClick={sendCampaign} disabled={sendingCampaign}>{sendingCampaign && <Loader2 className="w-4 h-4 animate-spin mr-2" />}Confirmer l'envoi</Button></DialogFooter>
         </DialogContent>
       </Dialog>
@@ -265,7 +268,8 @@ export default function SuiviTuning({ mode = "campagne" }: { mode?: "campagne" |
             )}
             <div><Label>{act?.type === "annule" ? "Motif de l'annulation" : "Note personnalisée (facultatif)"}</Label>
               <Textarea value={extra} onChange={(e) => setExtra(e.target.value)} rows={3} /></div>
-            {actEmail && <iframe title="aperçu" srcDoc={preview(actEmail.body)} className="w-full h-[420px] rounded border border-border bg-white" />}
+            <EmailSupportOption checked={includeSupport} onChange={setIncludeSupport} />
+            {actEmail && <iframe title="aperçu" srcDoc={preview(actEmail.body, actClient?.support_token)} className="w-full h-[420px] rounded border border-border bg-white" />}
           </div>
           <DialogFooter><Button onClick={confirmAct} disabled={busy}>{busy && <Loader2 className="w-4 h-4 animate-spin mr-2" />}Envoyer le mail au client</Button></DialogFooter>
         </DialogContent>

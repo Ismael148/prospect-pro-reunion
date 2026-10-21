@@ -1,3 +1,5 @@
+import { PUBLISHED_URL } from "@/lib/constants";
+import { EmailSupportOption, useEmailSupport } from "@/components/EmailSupportOption";
 import { useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,6 +25,7 @@ const eur = (n: number) => `${Number(n).toFixed(2).replace(".", ",")} €`;
 const emptyClient = { company_name: "", contact_name: "", email: "", phone: "", address: "", postal_code: "", city: "", siret: "" };
 
 export default function Devis() {
+  const { includeSupport, setIncludeSupport, applySupport } = useEmailSupport();
   const qc = useQueryClient();
   const savedRef = useRef<HTMLDivElement>(null);
   const { data: clients = [] } = useClients();
@@ -149,7 +152,11 @@ export default function Devis() {
   } };
   const handleDownload = async () => { setBusy("save"); const q = await save(); setBusy(null); if (q) viewPdf(q); };
 
-  const buildEmail = buildQuoteEmail;
+  const buildEmail = (list: any[]) => {
+    const mail = buildQuoteEmail(list);
+    const token = clients.find((c) => c.id === list[0]?.client_id)?.support_token;
+    return { ...mail, html: applySupport(mail.html, token ? `${PUBLISHED_URL}/s/${token}` : undefined) };
+  };
 
   const sendQuotes = async (list: any[]) => {
     if (!list.length) return;
@@ -334,6 +341,7 @@ export default function Devis() {
       {selectedQuotes.length > 0 && (
         <section className="mt-6 space-y-3" aria-label="Mail des devis sélectionnés">
           <h2 className="text-base font-semibold">Aperçu du mail ({selectedQuotes.length} devis)</h2>
+          <EmailSupportOption checked={includeSupport} onChange={setIncludeSupport} />
           <p className="text-sm text-muted-foreground">Objet : {selectedMail.subject}</p>
           <iframe title="Mail des devis sélectionnés" srcDoc={selectedMail.html} className="w-full h-[540px] rounded-lg border border-border bg-background" />
         </section>
@@ -342,6 +350,7 @@ export default function Devis() {
       <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
         <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Aperçu avant envoi</DialogTitle></DialogHeader>
+          <EmailSupportOption checked={includeSupport} onChange={setIncludeSupport} />
           {previewQuotes && (() => { const m = buildEmail(previewQuotes); return (
             <div className="space-y-3">
               <div className="text-sm space-y-1">

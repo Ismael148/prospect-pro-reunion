@@ -1,3 +1,4 @@
+import { EmailSupportOption, useEmailSupport } from "@/components/EmailSupportOption";
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -266,6 +267,7 @@ export default function ProjectDeliverableEmail() {
   const supportToken = client?.support_token || "";
   const supportLink = supportToken ? `${PUBLISHED_URL}/s/${supportToken}` : "";
 
+  const { includeSupport, setIncludeSupport, applySupport } = useEmailSupport();
   const [recipientEmail, setRecipientEmail] = useState(clientEmail);
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
@@ -394,8 +396,8 @@ export default function ProjectDeliverableEmail() {
     .join("")}
 </div>`
       : "";
-    return wrapInBrandedTemplate(sanitizedBody + downloadBlock, replaceVariables(supportLink), emailBranding || undefined);
-  }, [deliverable, message, replaceVariables, supportLink, emailBranding, uploadedAttachments]);
+    return applySupport(wrapInBrandedTemplate(sanitizedBody + downloadBlock, replaceVariables(supportLink), emailBranding || undefined), supportLink, emailBranding || undefined);
+  }, [deliverable, message, replaceVariables, supportLink, emailBranding, uploadedAttachments, applySupport]);
 
   const resolvedSubject = useMemo(() => replaceVariables(subject), [subject, replaceVariables]);
 
@@ -790,6 +792,7 @@ Site livré : ${linkUrl.trim() || "(lien à vérifier)"}
           {/* Preview */}
           <Card className="border-0 shadow-md shadow-primary/5">
             <CardHeader><CardTitle>Aperçu</CardTitle></CardHeader>
+            <EmailSupportOption checked={includeSupport} onChange={setIncludeSupport} />
             <CardContent className="space-y-4">
               <div className="rounded-xl border border-border bg-card p-4">
                 <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Objet</p>

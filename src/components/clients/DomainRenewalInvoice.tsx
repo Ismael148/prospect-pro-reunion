@@ -1,3 +1,5 @@
+import { PUBLISHED_URL } from "@/lib/constants";
+import { EmailSupportOption, useEmailSupport } from "@/components/EmailSupportOption";
 import { useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmailBranding } from "@/hooks/use-email-branding";
@@ -42,6 +44,7 @@ function buildEmailBody(greetingName: string, domainName: string, amount: number
 }
 
 interface ClientData {
+  support_token?: string | null;
   id: string;
   company_name: string;
   manager_name?: string | null;
@@ -58,6 +61,7 @@ export default function DomainRenewalInvoice({ client }: { client: ClientData })
   const { user } = useAuth();
   const createInvoice = useCreateInvoice();
   const { data: branding } = useEmailBranding();
+  const { includeSupport, setIncludeSupport, applySupport } = useEmailSupport();
   const [domainName, setDomainName] = useState("");
   const [amount, setAmount] = useState("");
   const [sending, setSending] = useState(false);
@@ -73,8 +77,8 @@ export default function DomainRenewalInvoice({ client }: { client: ClientData })
   const defaultBody = buildEmailBody(greetingName, domainName.trim(), amountNum, invoiceNumberPlaceholder);
 
   const previewHtml = useMemo(() => {
-    return wrapInBrandedTemplate(emailBodyOverride || defaultBody, undefined, branding || undefined);
-  }, [emailBodyOverride, defaultBody, branding]);
+    return applySupport(wrapInBrandedTemplate(emailBodyOverride || defaultBody, undefined, branding || undefined), client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined, branding || undefined);
+  }, [emailBodyOverride, defaultBody, branding, applySupport, client.support_token]);
 
   if (!client.email) return null;
 
@@ -134,7 +138,7 @@ export default function DomainRenewalInvoice({ client }: { client: ClientData })
       const finalBody = emailBodyOverride
         ? emailBodyOverride.replace(/FACTURE-NDD-XXXX/g, invoice.invoice_number)
         : buildEmailBody(greetingName, domainName.trim(), amountNum, invoice.invoice_number);
-      const htmlContent = wrapInBrandedTemplate(finalBody, undefined, branding || undefined);
+      const htmlContent = applySupport(wrapInBrandedTemplate(finalBody, undefined, branding || undefined), client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined, branding || undefined);
 
       // Fetch RIB file as base64
       let ribBase64: string | null = null;
@@ -315,6 +319,7 @@ export default function DomainRenewalInvoice({ client }: { client: ClientData })
             </DialogTitle>
           </DialogHeader>
 
+          <EmailSupportOption checked={includeSupport} onChange={setIncludeSupport} />
           <div className="space-y-4">
             {/* Subject */}
             <div className="space-y-1.5">

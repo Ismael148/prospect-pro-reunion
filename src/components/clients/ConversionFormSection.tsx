@@ -1,3 +1,4 @@
+import { EmailSupportOption, useEmailSupport } from "@/components/EmailSupportOption";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmailBranding } from "@/hooks/use-email-branding";
@@ -25,6 +26,7 @@ const STATUS_LABELS: Record<string, string> = { en_attente: "En attente", soumis
 export default function ConversionFormSection({ clientId, companyName, managerName, email, supportToken }: Props) {
   const { data: branding } = useEmailBranding();
   const { data: forms } = useClientForms(clientId);
+  const { includeSupport, setIncludeSupport, applySupport } = useEmailSupport();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [sending, setSending] = useState(false);
 
@@ -42,7 +44,7 @@ ${link ? makeCta("🎯 Remplir le formulaire", link) : ""}
 
   const fullHtml = wrapInBrandedTemplate(
     bodyHtml,
-    supportToken ? `${PUBLISHED_URL}/s/${supportToken}` : undefined,
+    includeSupport && supportToken ? `${PUBLISHED_URL}/s/${supportToken}` : undefined,
     branding || undefined,
   );
 
@@ -94,7 +96,7 @@ ${link ? makeCta("🎯 Remplir le formulaire", link) : ""}
               <Button size="sm" variant="outline" className="gap-2" onClick={() => setPreviewOpen(true)}>
                 <Eye className="w-4 h-4" /> Aperçu du mail
               </Button>
-              <Button size="sm" className="gap-2" disabled={!email || sending} onClick={handleSend}>
+              <Button size="sm" className="gap-2" disabled={!email || sending} onClick={() => setPreviewOpen(true)}>
                 {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Envoyer par email
               </Button>
               <Button size="sm" variant="outline" className="gap-2"
@@ -152,6 +154,7 @@ ${link ? makeCta("🎯 Remplir le formulaire", link) : ""}
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{subject}</DialogTitle></DialogHeader>
+          <EmailSupportOption checked={includeSupport} onChange={setIncludeSupport} />
           <div className="rounded-lg border border-border overflow-hidden bg-white">
             <iframe title="Aperçu du mail" srcDoc={fullHtml} className="w-full h-[55vh] border-0" />
           </div>

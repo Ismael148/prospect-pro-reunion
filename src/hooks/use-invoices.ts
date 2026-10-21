@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { triggerN8nWebhook } from "@/lib/n8n-webhook";
 import { exportInvoicePDF } from "@/lib/export-invoice-pdf";
-import { buildInvoiceEmail, type InvoiceEmailDraft } from "@/lib/invoice-email";
+import { buildInvoiceEmail, getInvoiceEmailDraft, type InvoiceEmailDraft } from "@/lib/invoice-email";
 import { buildInvoiceAttachments } from "@/lib/invoice-attachments";
 
 export interface InvoiceItem {
@@ -86,7 +86,7 @@ export function useCreateInvoice() {
 
 /** Sends the invoice email (PDF attached) to the client via n8n.
  *  `emailOverride` lets the sender correct the recipient address just before sending. */
-export async function sendInvoiceEmail(data: Invoice, emailOverride?: string, emailDraft?: InvoiceEmailDraft, includeRib = false) {
+export async function sendInvoiceEmail(data: Invoice, emailOverride?: string, emailDraft?: InvoiceEmailDraft, includeRib = false, includeSupport = true) {
   const { data: client } = await supabase
     .from("clients")
     .select("company_name, manager_name, address, postal_code, city, email, phone, siret, vat_number, ndi, support_token, payment_method, pack_type, tuning_website_addon")
@@ -100,7 +100,7 @@ export async function sendInvoiceEmail(data: Invoice, emailOverride?: string, em
   if (emailDraft && (!emailDraft.subject.trim() || !emailDraft.message.trim())) {
     throw new Error("Renseignez l’objet et le message du mail");
   }
-  const emailContent = buildInvoiceEmail(data, client, emailDraft);
+  const emailContent = buildInvoiceEmail(data, client, emailDraft ? { ...emailDraft, includeSupport } : includeSupport ? undefined : { ...getInvoiceEmailDraft(data, client), includeSupport });
 
   const { PUBLISHED_URL: publishedUrl, PACK_LABELS } = await import("@/lib/constants");
   const packLabel = (PACK_LABELS as Record<string, string>)[client.pack_type as string] || null;
@@ -136,7 +136,7 @@ export async function sendInvoiceEmail(data: Invoice, emailOverride?: string, em
 
   // Edited emails use the existing client-email sender, which accepts the exact
   // preview and PDF; the legacy n8n invoice template cannot honor text edits.
-  if (emailDraft || includeRib) {
+  if (emailDraft || includeRib || !includeSupport) {
     if (!pdfBase64) throw new Error("Impossible de générer la facture PDF");
     const attachment = await buildInvoiceAttachments(data.invoice_number, pdfBase64, includeRib);
     const { data: result, error } = await supabase.functions.invoke("send-brevo-campaign", {
@@ -210,12 +210,13 @@ export async function sendInvoiceEmail(data: Invoice, emailOverride?: string, em
 export function useSendInvoice() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: Invoice | { invoice: Invoice; emailOverride?: string; emailDraft?: InvoiceEmailDraft; includeRib?: boolean }) => {
+    mutationFn: async (input: Invoice | { invoice: Invoice; emailOverride?: string; emailDraft?: InvoiceEmailDraft; includeRib?: boolean; includeSupport?: boolean }) => {
       const invoice = "invoice" in input ? input.invoice : input;
       const emailOverride = "invoice" in input ? input.emailOverride : undefined;
       const emailDraft = "invoice" in input ? input.emailDraft : undefined;
       const includeRib = "invoice" in input ? input.includeRib : false;
-      await sendInvoiceEmail(invoice, emailOverride, emailDraft, includeRib);
+      const includeSupport = "invoice" in input ? input.includeSupport ?? true : true;
+      await sendInvoiceEmail(invoice, emailOverride, emailDraft, includeRib, includeSupport);
       // Une facture déjà payée garde son statut : on ne fait que renvoyer le document.
       if (invoice.status !== "payee") {
         const { error } = await supabase

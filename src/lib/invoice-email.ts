@@ -29,6 +29,7 @@ export interface InvoiceEmailClient {
 export interface InvoiceEmailDraft {
   subject: string;
   message: string;
+  includeSupport?: boolean;
 }
 
 export function getInvoiceEmailDraft(inv: InvoiceEmailInvoice, client: InvoiceEmailClient): InvoiceEmailDraft {
@@ -94,7 +95,7 @@ export function buildInvoiceEmail(inv: InvoiceEmailInvoice, client: InvoiceEmail
       draft && draft.message !== defaults.message
         ? draft.message.split(/\n\s*\n/).map((paragraph) => `<p style="margin:0 0 16px;overflow-wrap:anywhere">${escape(paragraph).replace(/\n/g, "<br/>")}</p>`).join("")
         : body,
-      supportLink,
+      draft?.includeSupport === false ? undefined : supportLink,
     ),
   };
 }

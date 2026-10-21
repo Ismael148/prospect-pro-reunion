@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { EmailSupportOption, useEmailSupport } from "@/components/EmailSupportOption";
 import { useInvoices, useCreateInvoice, useUpdateInvoice, useDeleteInvoice, useSendInvoice, type Invoice, type InvoiceItem } from "@/hooks/use-invoices";
 import { useClients } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";
@@ -97,6 +98,7 @@ export default function Invoices() {
   const [sendSubject, setSendSubject] = useState("");
   const [sendMessage, setSendMessage] = useState("");
   const [sendIncludeRib, setSendIncludeRib] = useState(false);
+  const { includeSupport, setIncludeSupport } = useEmailSupport();
 
   const clientMap = useMemo(() => {
     const map = new Map<string, any>();
@@ -107,9 +109,9 @@ export default function Invoices() {
   const sendPreview = useMemo(() => {
     const client = sendTarget ? clientMap.get(sendTarget.client_id) : null;
     return sendTarget && client
-      ? buildInvoiceEmail(sendTarget, client, { subject: sendSubject, message: sendMessage })
+      ? buildInvoiceEmail(sendTarget, client, { subject: sendSubject, message: sendMessage, includeSupport })
       : null;
-  }, [sendTarget, clientMap, sendSubject, sendMessage]);
+  }, [sendTarget, clientMap, sendSubject, sendMessage, includeSupport]);
 
   const filteredInvoices = useMemo(() => {
     if (!invoices) return [];
@@ -304,7 +306,7 @@ export default function Invoices() {
       return;
     }
     try {
-      await sendInvoice.mutateAsync({ invoice: sendTarget, emailOverride: email, emailDraft: { subject: sendSubject, message: sendMessage }, includeRib: sendIncludeRib });
+      await sendInvoice.mutateAsync({ invoice: sendTarget, emailOverride: email, emailDraft: { subject: sendSubject, message: sendMessage }, includeRib: sendIncludeRib, includeSupport });
       toast.success(`Facture envoyée à ${email}`);
       setSendTarget(null);
     } catch (e: any) {
@@ -684,6 +686,7 @@ export default function Invoices() {
                 <p className="text-xs text-muted-foreground">
                   Pièces jointes : Facture_{sendTarget?.invoice_number}.pdf{sendIncludeRib ? " + RIB_Adamkom_by_JJP.pdf" : ""}
                 </p>
+                <EmailSupportOption checked={includeSupport} onChange={setIncludeSupport} disabled={sendInvoice.isPending} />
                 <iframe
                   title="Aperçu du mail de facture"
                   srcDoc={sendPreview.html}

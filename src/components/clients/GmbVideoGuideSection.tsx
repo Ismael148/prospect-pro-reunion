@@ -1,3 +1,5 @@
+import { PUBLISHED_URL } from "@/lib/constants";
+import { EmailSupportOption, useEmailSupport } from "@/components/EmailSupportOption";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Video, Eye, Send, ClipboardCopy, ExternalLink, Loader2 } from "lucide-react";
@@ -9,14 +11,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { buildGmbVideoEmail, gmbVideoGuideUrl } from "@/lib/gmb-video-guide";
 import { toast } from "sonner";
 
-interface Props { clientId: string; companyName: string; managerName?: string | null; email?: string | null }
+interface Props { clientId: string; companyName: string; managerName?: string | null; email?: string | null; supportToken?: string | null }
 
-export default function GmbVideoGuideSection({ clientId, companyName, managerName, email }: Props) {
+export default function GmbVideoGuideSection({ clientId, companyName, managerName, email, supportToken }: Props) {
   const { data: branding } = useEmailBranding();
   const queryClient = useQueryClient();
+  const { includeSupport, setIncludeSupport, applySupport } = useEmailSupport();
   const [open, setOpen] = useState(false);
   const [sending, setSending] = useState(false);
-  const mail = buildGmbVideoEmail(companyName, managerName, branding || undefined);
+  const builtMail = buildGmbVideoEmail(companyName, managerName, branding || undefined);
+  const mail = { ...builtMail, html: applySupport(builtMail.html, supportToken ? `${PUBLISHED_URL}/s/${supportToken}` : undefined, branding || undefined) };
   const link = gmbVideoGuideUrl(companyName);
   const send = async () => {
     if (!email || sending) return;
@@ -52,6 +56,7 @@ export default function GmbVideoGuideSection({ clientId, companyName, managerNam
       <Dialog open={open} onOpenChange={(value) => { if (!sending) setOpen(value); }}><DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
         <DialogHeader><DialogTitle>Aperçu · Tutoriel validation Google</DialogTitle></DialogHeader>
         <p className="break-words text-sm">À : {email || "Adresse email manquante"}</p><p className="break-words text-sm font-medium">{mail.subject}</p>
+        <EmailSupportOption checked={includeSupport} onChange={setIncludeSupport} />
         <iframe title="Aperçu du mail de validation vidéo Google" srcDoc={mail.html} sandbox="" className="h-[50vh] w-full rounded-lg border border-border" />
         <DialogFooter><Button variant="outline" disabled={sending} onClick={() => setOpen(false)}>Fermer</Button><Button disabled={!email || sending} onClick={send}>{sending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />} Confirmer l’envoi</Button></DialogFooter>
       </DialogContent></Dialog>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { EmailSupportOption, useEmailSupport } from "@/components/EmailSupportOption";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useInvoicesByClient, useSendInvoice, useCreateInvoice, type Invoice } from "@/hooks/use-invoices";
@@ -59,6 +60,7 @@ interface ClientInvoicesSectionProps {
 export default function ClientInvoicesSection({ client }: ClientInvoicesSectionProps) {
   const { data: invoices, isLoading } = useInvoicesByClient(client.id);
   const sendInvoice = useSendInvoice();
+  const { includeSupport, setIncludeSupport } = useEmailSupport();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [billingYear, setBillingYear] = useState<string>(client.billing_year ? String(client.billing_year) : "");
@@ -103,7 +105,7 @@ export default function ClientInvoicesSection({ client }: ClientInvoicesSectionP
         created_by: auth.user?.id,
         payment_methods: client.payment_method ? [client.payment_method] : null,
       } as any);
-      await sendInvoice.mutateAsync(created);
+      await sendInvoice.mutateAsync({ invoice: created, includeSupport });
       toast.success("Facture acquittée générée et envoyée au client");
     } catch (e: any) {
       toast.error(e?.message || "Erreur lors de la génération de la facture");
@@ -177,7 +179,7 @@ export default function ClientInvoicesSection({ client }: ClientInvoicesSectionP
   const handleSend = async (inv: Invoice) => {
     setSendingId(inv.id);
     try {
-      await sendInvoice.mutateAsync(inv);
+      await sendInvoice.mutateAsync({ invoice: inv, includeSupport });
       toast.success("Facture envoyée au client");
     } catch (e: any) {
       toast.error(e?.message || "Erreur lors de l'envoi");
@@ -201,6 +203,7 @@ export default function ClientInvoicesSection({ client }: ClientInvoicesSectionP
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
+        <EmailSupportOption checked={includeSupport} onChange={setIncludeSupport} disabled={generating || !!sendingId} />
         <div className="rounded-lg border border-border/60 bg-muted/30 p-3 space-y-2">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             Suivi de facturation hors plateforme

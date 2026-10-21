@@ -96,6 +96,7 @@ export default function Invoices() {
   const [sendEmail, setSendEmail] = useState("");
   const [sendSubject, setSendSubject] = useState("");
   const [sendMessage, setSendMessage] = useState("");
+  const [sendIncludeRib, setSendIncludeRib] = useState(false);
 
   const clientMap = useMemo(() => {
     const map = new Map<string, any>();
@@ -288,6 +289,7 @@ export default function Invoices() {
     const draft = getInvoiceEmailDraft(inv, client);
     setSendSubject(draft.subject);
     setSendMessage(draft.message);
+    setSendIncludeRib(false);
   };
 
   const handleSend = async () => {
@@ -302,7 +304,7 @@ export default function Invoices() {
       return;
     }
     try {
-      await sendInvoice.mutateAsync({ invoice: sendTarget, emailOverride: email, emailDraft: { subject: sendSubject, message: sendMessage } });
+      await sendInvoice.mutateAsync({ invoice: sendTarget, emailOverride: email, emailDraft: { subject: sendSubject, message: sendMessage }, includeRib: sendIncludeRib });
       toast.success(`Facture envoyée à ${email}`);
       setSendTarget(null);
     } catch (e: any) {
@@ -675,7 +677,13 @@ export default function Invoices() {
               <div className="space-y-2">
                 <Label>Aperçu du mail</Label>
                 <p className="text-sm"><span className="text-muted-foreground">Objet :</span> <strong>{sendPreview.subject}</strong></p>
-                <p className="text-xs text-muted-foreground">La facture PDF est jointe automatiquement au mail.</p>
+                <div className="flex items-center gap-2">
+                  <Checkbox id="invoice-attach-rib" checked={sendIncludeRib} onCheckedChange={(checked) => setSendIncludeRib(checked === true)} disabled={sendInvoice.isPending} />
+                  <Label htmlFor="invoice-attach-rib" className="cursor-pointer">Joindre le RIB Adamkom</Label>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Pièces jointes : Facture_{sendTarget?.invoice_number}.pdf{sendIncludeRib ? " + RIB_Adamkom_by_JJP.pdf" : ""}
+                </p>
                 <iframe
                   title="Aperçu du mail de facture"
                   srcDoc={sendPreview.html}

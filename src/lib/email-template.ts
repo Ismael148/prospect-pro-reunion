@@ -18,6 +18,17 @@ export interface EmailBrandingConfig {
   support_cta_button?: string;
 }
 
+/** Replaces only the optional support section, preserving all other email content. */
+export function applyEmailSupport(html: string, supportLink?: string | null, includeSupport = true, branding?: EmailBrandingConfig): string {
+  const clean = html.replace(/<!-- SUPPORT SECTION -->[\s\S]*?(?=<!-- FOOTER -->)/g, "");
+  if (!includeSupport || !supportLink) return clean;
+  const wrapped = wrapInBrandedTemplate("", supportLink, branding);
+  const section = wrapped.match(/<!-- SUPPORT SECTION -->[\s\S]*?(?=<!-- FOOTER -->)/)?.[0] || "";
+  return clean.includes("<!-- FOOTER -->")
+    ? clean.replace("<!-- FOOTER -->", section + "<!-- FOOTER -->")
+    : clean + section;
+}
+
 /**
  * Wraps any email body HTML in the unified Adamkom branded template.
  * @param bodyHtml - The inner content of the email

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { triggerN8nWebhook } from "@/lib/n8n-webhook";
 import { exportInvoicePDF } from "@/lib/export-invoice-pdf";
 import { buildInvoiceEmail, type InvoiceEmailDraft } from "@/lib/invoice-email";
+import { buildInvoiceAttachments } from "@/lib/invoice-attachments";
 
 export interface InvoiceItem {
   description: string;
@@ -85,7 +86,7 @@ export function useCreateInvoice() {
 
 /** Sends the invoice email (PDF attached) to the client via n8n.
  *  `emailOverride` lets the sender correct the recipient address just before sending. */
-export async function sendInvoiceEmail(data: Invoice, emailOverride?: string, emailDraft?: InvoiceEmailDraft) {
+export async function sendInvoiceEmail(data: Invoice, emailOverride?: string, emailDraft?: InvoiceEmailDraft, includeRib = false) {
   const { data: client } = await supabase
     .from("clients")
     .select("company_name, manager_name, address, postal_code, city, email, phone, siret, vat_number, ndi, support_token, payment_method, pack_type, tuning_website_addon")
@@ -135,8 +136,9 @@ export async function sendInvoiceEmail(data: Invoice, emailOverride?: string, em
 
   // Edited emails use the existing client-email sender, which accepts the exact
   // preview and PDF; the legacy n8n invoice template cannot honor text edits.
-  if (emailDraft) {
+  if (emailDraft || includeRib) {
     if (!pdfBase64) throw new Error("Impossible de générer la facture PDF");
+    const attachment = await buildInvoiceAttachments(data.invoice_number, pdfBase64, includeRib);
     const { data: result, error } = await supabase.functions.invoke("send-brevo-campaign", {
       body: {
         action: "send_client_email",
@@ -147,7 +149,7 @@ export async function sendInvoiceEmail(data: Invoice, emailOverride?: string, em
         trigger: "invoice",
         client_id: data.client_id,
         invoice_id: data.id,
-        attachment: [{ name: `Facture_${data.invoice_number}.pdf`, content: pdfBase64 }],
+        attachment,
       },
     });
     if (error || !result?.success) throw new Error(result?.error || error?.message || "Erreur lors de l'envoi");
@@ -208,11 +210,12 @@ export async function sendInvoiceEmail(data: Invoice, emailOverride?: string, em
 export function useSendInvoice() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: Invoice | { invoice: Invoice; emailOverride?: string; emailDraft?: InvoiceEmailDraft }) => {
+    mutationFn: async (input: Invoice | { invoice: Invoice; emailOverride?: string; emailDraft?: InvoiceEmailDraft; includeRib?: boolean }) => {
       const invoice = "invoice" in input ? input.invoice : input;
       const emailOverride = "invoice" in input ? input.emailOverride : undefined;
       const emailDraft = "invoice" in input ? input.emailDraft : undefined;
-      await sendInvoiceEmail(invoice, emailOverride, emailDraft);
+      const includeRib = "invoice" in input ? input.includeRib : false;
+      await sendInvoiceEmail(invoice, emailOverride, emailDraft, includeRib);
       // Une facture déjà payée garde son statut : on ne fait que renvoyer le document.
       if (invoice.status !== "payee") {
         const { error } = await supabase

@@ -1,3 +1,4 @@
+import { EmailSupportOption, useEmailSupport } from "@/components/EmailSupportOption";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -63,6 +64,7 @@ interface Props {
 }
 
 export default function SocialDeliverables({ projectId, clientId }: Props) {
+  const { includeSupport, setIncludeSupport, applySupport } = useEmailSupport();
   const { user, hasRole } = useAuth();
   const isAdmin = hasRole("admin");
   const { data: deliverables = [], isLoading } = useSocialDeliverables(projectId);
@@ -230,7 +232,7 @@ ${previewBlock}
 
 <p style="margin:0">Cordialement,<br><strong style="color:#ff006e">L'équipe Adamkom</strong></p>`;
 
-      const fullHtml = wrapInBrandedTemplate(bodyHtml, supportLink, branding || undefined);
+      const fullHtml = applySupport(wrapInBrandedTemplate(bodyHtml, supportLink, branding || undefined), supportLink, branding || undefined);
 
       const subject = `${typeLabel} — ${formatMonthYear(del.month_year)} | ${clientInfo.company_name}`;
 
@@ -298,6 +300,7 @@ ${previewBlock}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        <EmailSupportOption checked={includeSupport} onChange={setIncludeSupport} />
         {monthDeliverables.length === 0 ? (
           <div className="text-center py-8 space-y-3">
             <p className="text-sm text-muted-foreground">Aucun livrable pour {formatMonthYear(selectedMonth)}</p>

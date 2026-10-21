@@ -1,3 +1,5 @@
+import { PUBLISHED_URL } from "@/lib/constants";
+import { EmailSupportOption, useEmailSupport } from "@/components/EmailSupportOption";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { format, differenceInDays, addYears, parseISO } from "date-fns";
@@ -59,6 +61,7 @@ export default function DomainRenewals() {
   const deleteRenewal = useDeleteDomainRenewal();
   const logReminder = useLogRenewalReminder();
 
+  const { includeSupport, setIncludeSupport, applySupport } = useEmailSupport();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
@@ -178,7 +181,7 @@ export default function DomainRenewals() {
 <p style="margin:0 0 20px">Pour effectuer le virement, vous trouverez <strong>notre RIB en pièce jointe</strong>.</p>
 <p style="margin:0 0 20px">Merci de procéder au règlement dans les meilleurs délais.</p>
 <p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`;
-    const message = wrapInBrandedTemplate(body, undefined, branding || undefined);
+    const message = applySupport(wrapInBrandedTemplate(body, undefined, branding || undefined), client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined, branding || undefined);
 
     try {
       // RIB en pièce jointe
@@ -510,6 +513,7 @@ export default function DomainRenewals() {
           <DialogHeader>
             <DialogTitle>Envoyer une relance — {reminderRenewal?.domain_name}</DialogTitle>
           </DialogHeader>
+          <EmailSupportOption checked={includeSupport} onChange={setIncludeSupport} />
           <div className="space-y-3 text-sm">
             <p>Un email de relance sera envoyé à <strong>{clients.find((c) => c.id === reminderRenewal?.client_id)?.email || "—"}</strong></p>
             <p>Domaine: <strong>{reminderRenewal?.domain_name}</strong></p>

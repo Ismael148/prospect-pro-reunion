@@ -1,3 +1,4 @@
+import { EmailSupportOption, useEmailSupport } from "@/components/EmailSupportOption";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmailBranding } from "@/hooks/use-email-branding";
@@ -239,6 +240,7 @@ interface ClientEmailActionsProps {
 }
 
 export default function ClientEmailActions({ client }: ClientEmailActionsProps) {
+  const { includeSupport, setIncludeSupport, applySupport } = useEmailSupport();
   const [sendingAction, setSendingAction] = useState<string | null>(null);
   const [previewAction, setPreviewAction] = useState<EmailAction | null>(null);
   const [customSubject, setCustomSubject] = useState("");
@@ -306,7 +308,7 @@ ${proLoginUrl ? makeCta('🔐 Se connecter à mon espace', proLoginUrl) : ''}
 <p style="margin:0 0 20px;font-size:13px;color:#71717a">⚠️ Pour votre sécurité, ne partagez jamais ces identifiants. En cas de problème de connexion, contactez-nous via votre espace support.</p>
 <p style="margin:0">Cordialement,<br><strong style="color:${BRAND_COLOR}">L'équipe Adamkom</strong></p>`;
     const supportLink = client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined;
-    return wrapInBrandedTemplate(body, supportLink, branding || undefined);
+    return applySupport(wrapInBrandedTemplate(body, supportLink, branding || undefined), supportLink, branding || undefined);
   };
 
   const handleSendProCredentials = async () => {
@@ -427,7 +429,7 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
     try {
       const bodyHtml = buildGmailTutoHtml();
       const supportLink = client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined;
-      const htmlContent = wrapInBrandedTemplate(bodyHtml, supportLink, branding || undefined);
+      const htmlContent = applySupport(wrapInBrandedTemplate(bodyHtml, supportLink, branding || undefined), supportLink, branding || undefined);
       const subject = `Recevez vos emails pro dans Gmail — ${client.company_name}`;
       const { error } = await supabase.functions.invoke("send-brevo-campaign", {
         body: {
@@ -472,7 +474,7 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
       const bodyHtml = (customBody !== null && previewAction?.id === action.id)
         ? customBody
         : action.bodyFn(client);
-      const htmlContent = wrapInBrandedTemplate(bodyHtml, supportLink, branding || undefined);
+      const htmlContent = applySupport(wrapInBrandedTemplate(bodyHtml, supportLink, branding || undefined), supportLink, branding || undefined);
 
       const subject = customSubject || action.subject;
 
@@ -566,7 +568,7 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
           recipientEmail: client.email,
           recipientName: greeting,
           subject: aiResult.subject,
-          htmlContent: aiResult.htmlContent,
+          htmlContent: applySupport(aiResult.htmlContent, client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined, branding || undefined),
           trigger: "ai_generated",
           client_id: client.id,
         },
@@ -589,11 +591,11 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
     : "";
 
   const previewHtml = previewAction
-    ? wrapInBrandedTemplate(
+    ? applySupport(wrapInBrandedTemplate(
         previewBody,
         client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined,
         branding || undefined
-      )
+      ), client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined, branding || undefined)
     : "";
 
 
@@ -651,7 +653,7 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
                   <Button size="sm" variant="outline" className="flex-1 px-2" onClick={() => handlePreview(action, true)}>
                     <Pencil className="w-3.5 h-3.5 mr-1" /> Modifier
                   </Button>
-                  <Button size="sm" className="flex-1 px-2" onClick={() => handleSend(action)} disabled={sendingAction === action.id}>
+                  <Button size="sm" className="flex-1 px-2" onClick={() => handlePreview(action)} disabled={sendingAction === action.id}>
                     {sendingAction === action.id ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Send className="w-3.5 h-3.5 mr-1" />}
                     Envoyer
                   </Button>
@@ -688,6 +690,7 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
               {previewAction?.label}
             </DialogTitle>
           </DialogHeader>
+          <EmailSupportOption checked={includeSupport} onChange={setIncludeSupport} />
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <Label>Objet</Label>
@@ -756,6 +759,7 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
             </DialogTitle>
           </DialogHeader>
 
+          <EmailSupportOption checked={includeSupport} onChange={setIncludeSupport} />
           <div className="space-y-4">
             {/* Client summary */}
             <div className="grid grid-cols-2 gap-3 p-3 rounded-lg bg-muted/30 text-sm">
@@ -815,7 +819,7 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
                 <div className="space-y-2">
                   <Label>Aperçu de l'email</Label>
                   <div className="border border-border rounded-lg overflow-hidden bg-white max-h-[400px] overflow-y-auto">
-                    <div dangerouslySetInnerHTML={{ __html: aiResult.htmlContent }} />
+                    <div dangerouslySetInnerHTML={{ __html: applySupport(aiResult.htmlContent, client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined, branding || undefined) }} />
                   </div>
                 </div>
               </div>
@@ -844,6 +848,7 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
               <KeyRound className="w-5 h-5 text-primary" /> Envoyer les accès professionnels
             </DialogTitle>
           </DialogHeader>
+          <EmailSupportOption checked={includeSupport} onChange={setIncludeSupport} />
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Lien de connexion *</Label>
@@ -906,6 +911,7 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
               <AtSign className="w-5 h-5 text-primary" /> Envoyer le tuto « Email Pro → Gmail »
             </DialogTitle>
           </DialogHeader>
+          <EmailSupportOption checked={includeSupport} onChange={setIncludeSupport} />
           <div className="space-y-4">
             <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
               💡 Le tuto suit la <strong>procédure officielle Gmail</strong> (méthode POP, captures Google).
@@ -1061,7 +1067,7 @@ ${makeCta('📬 Suivre le tutoriel Email Pro → Gmail', tutoLink)}
                 dangerouslySetInnerHTML={{
                   __html: wrapInBrandedTemplate(
                     buildGmailTutoHtml(),
-                    client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined,
+                    includeSupport && client.support_token ? `${PUBLISHED_URL}/s/${client.support_token}` : undefined,
                     branding || undefined
                   ),
                 }}

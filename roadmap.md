@@ -13,3 +13,4 @@
 - [x] Modifier l’objet et le contenu du mail de facture, transmettre le message prévisualisé et vérifier sans envoyer de mail client.
 - [x] Retirer l’attribution automatique des nouvelles tâches et vérifier que les attributions existantes restent intactes.
 - [x] Ajouter une case RIB Adamkom à l’envoi des factures et vérifier les pièces jointes sans envoyer d’email.
+- [ ] Proposer le bloc support facultatif dans tous les envois manuels, avec aperçu et lien personnel cohérents.

@@ -1454,7 +1454,7 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName, cli
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {Object.entries(fd).filter(([k, v]) => v && v.toString().trim() && k !== "extra_cards" && k !== "gallery_urls" && k !== "logo_url" && k !== "photo_url").map(([key, value]) => (
                           <div key={key} className="text-sm">
-                            <span className="text-[11px] text-muted-foreground uppercase tracking-wider block">{key.replace(/_/g, " ")}</span>
+                            <span className="text-[11px] text-muted-foreground uppercase tracking-wider block">{key === "scratch_game_prizes" ? "Cadeaux du jeu à gratter" : key === "scratch_game_rules" ? "Règles du jeu à gratter" : key.replace(/_/g, " ")}</span>
                             <span className="font-medium">{Array.isArray(value) ? value.join(", ") : String(value)}</span>
                           </div>
                         ))}

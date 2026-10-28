@@ -25,6 +25,8 @@ const FIELD_LABELS: Record<string, string> = {
   competitors: "Concurrents",
   preferred_style: "Style préféré",
   additional_pages: "Pages additionnelles",
+  scratch_game_prizes: "Cadeaux du jeu à gratter",
+  scratch_game_rules: "Règles du jeu à gratter",
 };
 
 function safeName(s: string) {

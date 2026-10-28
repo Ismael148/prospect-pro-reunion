@@ -39,6 +39,8 @@ export interface ClientFormData {
   service_area?: string;
   usp?: string;
   promo_offer?: string;
+  scratch_game_prizes?: string;
+  scratch_game_rules?: string;
   cta_preference?: string;
   contact_phone?: string;
   whatsapp_number?: string;

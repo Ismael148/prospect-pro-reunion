@@ -63,6 +63,8 @@ const CONVERSION_FIELDS: { key: keyof ClientFormData; label: string; type?: stri
   { key: "service_list", label: "Vos prestations avec tarifs", placeholder: "Ex: Vidange dès 79 €, Freins dès 149 €, Distribution dès 390 €...", multiline: true, required: true },
   { key: "usp", label: "Pourquoi vous choisir ?", placeholder: "Ex: Prix affichés, garantie 12 mois, toutes marques", multiline: true },
   { key: "promo_offer", label: "Promotion ou jeu en cours (optionnel)", placeholder: "Ex: -30 % sur le forfait entretien ce mois-ci" },
+  { key: "scratch_game_prizes", label: "Quels cadeaux souhaitez-vous proposer dans votre jeu à gratter ? (optionnel)", placeholder: "Précisez les lots ou avantages à gagner : bon cadeau, prestation offerte, remise… Indiquez leur valeur et les quantités disponibles, si vous les connaissez.", multiline: true },
+  { key: "scratch_game_rules", label: "Quelles sont les règles de votre jeu à gratter ? (si applicable)", placeholder: "Si vous avez déjà défini des règles, précisez les conditions de participation, les dates du jeu, les limites par personne et les modalités pour récupérer les cadeaux. Vous pouvez aussi ajouter un lien vers votre règlement.", multiline: true },
   { key: "address", label: "Adresse", placeholder: "112 rue Léopold Rambaud, 97490 Sainte-Clotilde", required: true },
   { key: "service_area", label: "Zone d'intervention", placeholder: "Ex: Sainte-Clotilde, Saint-Denis et alentours" },
   { key: "opening_hours", label: "Horaires d'ouverture", placeholder: "Lun–Ven 7h30–17h30, Sam 8h–12h" },
@@ -86,7 +88,7 @@ const EXTRA_CARD_FIELDS: { key: keyof CardEntry; label: string; type?: string; p
 export default function ClientForm() {
   const { token, type } = useParams<{ token: string; type: string }>();
   const formType: "nfc" | "site" | "conversion" = type === "nfc" ? "nfc" : type === "conversion" ? "conversion" : "site";
-  const { data, isLoading, error } = useClientFormByToken(token!, formType);
+  const { data, isLoading, error } = useClientFormByToken(token ?? "", formType);
   const submitForm = useSubmitClientForm();
   const [formData, setFormData] = useState<ClientFormData>({});
   const [submitted, setSubmitted] = useState(false);
@@ -224,7 +226,8 @@ export default function ClientForm() {
         ...formData,
         ...(totalSteps > 1 ? { extra_cards: extraCards } : {}),
       };
-      await submitForm.mutateAsync({ token: token!, formType, formData: submitData });
+      if (!token) return;
+      await submitForm.mutateAsync({ token, formType, formData: submitData });
       setSubmitted(true);
       toast.success("Formulaire envoyé avec succès !");
     } catch {
@@ -237,12 +240,13 @@ export default function ClientForm() {
     <>
       {fields.map((field) => (
         <div key={field.key} className="space-y-1.5">
-          <Label>
+          <Label htmlFor={field.key}>
             {field.label}
             {field.required && <span className="text-destructive ml-1">*</span>}
           </Label>
           {field.multiline ? (
             <Textarea
+              id={field.key}
               value={(formData[field.key] as string) || ""}
               onChange={(e) => handleChange(field.key, e.target.value)}
               placeholder={field.placeholder}
@@ -250,6 +254,7 @@ export default function ClientForm() {
             />
           ) : (
             <Input
+              id={field.key}
               type={field.type || "text"}
               value={(formData[field.key] as string) || ""}
               onChange={(e) => handleChange(field.key, e.target.value)}

@@ -14,4 +14,4 @@
 - [x] Retirer l’attribution automatique des nouvelles tâches et vérifier que les attributions existantes restent intactes.
 - [x] Ajouter une case RIB Adamkom à l’envoi des factures et vérifier les pièces jointes sans envoyer d’email.
 - [ ] Proposer le bloc support facultatif dans tous les envois manuels, avec aperçu et lien personnel cohérents.
-- [ ] Ajouter les cadeaux et règles éventuelles du jeu à gratter au formulaire de conversion et vérifier leur transmission.
+- [x] Ajouter les cadeaux et règles éventuelles du jeu à gratter au formulaire de conversion et vérifier leur transmission sans enregistrer de réponse de test.

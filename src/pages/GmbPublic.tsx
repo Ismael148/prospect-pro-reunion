@@ -261,7 +261,12 @@ export default function GmbPublic() {
                   <p className="mb-4 whitespace-pre-line rounded-xl bg-white/5 p-3 text-sm text-white/80">{latestAudit.summary}</p>
                 )}
                 <div className="space-y-4">
-                  {GMB_AUDIT_SECTIONS.map((section) => (
+                  {GMB_AUDIT_SECTIONS.filter((section) =>
+                    section.criteria.some((c) => {
+                      const st = latestAudit.criteria?.[c.id]?.status;
+                      return st && st !== "na";
+                    }),
+                  ).map((section) => (
                     <div key={section.key}>
                       <p className="mb-2 text-sm font-semibold text-white/80">{section.title}</p>
                       <ul className="space-y-1.5">

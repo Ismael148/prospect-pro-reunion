@@ -1,21 +1,33 @@
 import { useState } from "react";
-import { CheckCircle2, ExternalLink, Lightbulb, AlertTriangle, Clock, ChevronDown } from "lucide-react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { CheckCircle2, Circle, ExternalLink, Lightbulb, AlertTriangle, Clock, ChevronDown, StickyNote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { GMB_PLAYBOOK, computePhaseProgress, type GmbPlaybookPhase } from "@/lib/gmb-playbook";
-import { useUpsertClientGmb, type ClientGmbWithClient } from "@/hooks/use-client-gmb";
+import { Textarea } from "@/components/ui/textarea";
+import { GMB_PLAYBOOK, type GmbPlaybookPhase, type GmbPlaybookStep } from "@/lib/gmb-playbook";
+import { computeStepsProgress, getStepEntry, isRecurringPhase, reunionMonth, stepKey } from "@/lib/gmb-steps";
+import { useToggleGmbStep, type ClientGmbWithClient } from "@/hooks/use-client-gmb";
 import { useCreateGmbActivity } from "@/hooks/use-gmb-activities";
+import { useAuth } from "@/contexts/AuthContext";
 import { GmbAiAssistant } from "./GmbAiAssistant";
 
 interface Props {
   row: ClientGmbWithClient;
 }
 
+const monthLabel = (month: string) =>
+  format(new Date(`${month}-01T12:00:00`), "MMMM yyyy", { locale: fr });
+
 export function GmbWebmasterPlaybook({ row }: Props) {
-  const upsert = useUpsertClientGmb();
+  const toggle = useToggleGmbStep();
   const createActivity = useCreateGmbActivity();
+  const { user, profile } = useAuth();
   const [openPhase, setOpenPhase] = useState<string>("creation");
+  const [noteOpen, setNoteOpen] = useState<string | null>(null);
+  const [noteDraft, setNoteDraft] = useState("");
+  const month = reunionMonth();
 
   const gbpUrl = (template?: string) => {
     if (!template) return null;
@@ -26,21 +38,38 @@ export function GmbWebmasterPlaybook({ row }: Props) {
     return template;
   };
 
-  const toggleCheck = async (key: string, checked: boolean, stepTitle: string) => {
-    await upsert.mutateAsync({
+  const who = { id: user?.id ?? null, name: profile?.full_name ?? user?.email ?? null };
+
+  const setDone = async (phase: GmbPlaybookPhase, step: GmbPlaybookStep, done: boolean) => {
+    await toggle.mutateAsync({
       id: row.id,
-      client_id: row.client_id,
-      [key]: checked,
-    } as any);
-    if (checked) {
+      key: stepKey(phase, step, month),
+      done,
+      checklistKey: isRecurringPhase(phase) ? undefined : step.checklistKey,
+      who,
+    });
+    if (done) {
       createActivity.mutate({
         client_gmb_id: row.id,
         client_id: row.client_id,
         action_type: "checklist_maj",
-        description: `✅ ${stepTitle}`,
+        description: `✅ ${step.title}${isRecurringPhase(phase) ? ` (${monthLabel(month)})` : ""}`,
         visible_to_client: true,
       });
     }
+  };
+
+  const saveNote = async (phase: GmbPlaybookPhase, step: GmbPlaybookStep) => {
+    const entry = getStepEntry(phase, step, row, month);
+    await toggle.mutateAsync({
+      id: row.id,
+      key: stepKey(phase, step, month),
+      done: Boolean(entry?.done),
+      checklistKey: isRecurringPhase(phase) ? undefined : step.checklistKey,
+      who,
+      note: noteDraft.trim() || null,
+    });
+    setNoteOpen(null);
   };
 
   return (
@@ -51,8 +80,8 @@ export function GmbWebmasterPlaybook({ row }: Props) {
           <div className="flex-1">
             <h3 className="font-bold">Guide Webmaster GMB</h3>
             <p className="text-sm text-muted-foreground">
-              Chaque étape cochée est loggée dans le journal et visible par le client.
-              Suis les 4 phases dans l'ordre pour une fiche performante.
+              Coche chaque étape une fois vérifiée sur la fiche : la date et ton nom sont enregistrés, et le client voit
+              l'avancement sur son lien. L'entretien mensuel repart à zéro chaque mois.
             </p>
           </div>
           <GmbAiAssistant row={row} />
@@ -60,8 +89,9 @@ export function GmbWebmasterPlaybook({ row }: Props) {
       </Card>
 
       {GMB_PLAYBOOK.map((phase) => {
-        const progress = computePhaseProgress(phase, row as any);
+        const progress = computeStepsProgress([phase], row, month);
         const isOpen = openPhase === phase.key;
+        const recurring = isRecurringPhase(phase);
         return (
           <Card key={phase.key} className="overflow-hidden">
             <button
@@ -70,23 +100,24 @@ export function GmbWebmasterPlaybook({ row }: Props) {
             >
               <span className="text-2xl">{phase.emoji}</span>
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <h4 className="font-semibold">{phase.title}</h4>
-                  {progress.total > 0 && (
-                    <span className="text-xs font-semibold text-muted-foreground">
-                      {progress.done}/{progress.total}
+                  <span className="text-xs font-semibold text-muted-foreground">
+                    {progress.done}/{progress.total}
+                  </span>
+                  {recurring && (
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold capitalize text-primary">
+                      {monthLabel(month)}
                     </span>
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground">{phase.description}</p>
-                {progress.total > 0 && (
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full bg-gradient-to-r from-primary to-primary/70 transition-all"
-                      style={{ width: `${progress.pct}%` }}
-                    />
-                  </div>
-                )}
+                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full bg-gradient-to-r from-primary to-primary/70 transition-all"
+                    style={{ width: `${progress.pct}%` }}
+                  />
+                </div>
               </div>
               <ChevronDown className={`h-4 w-4 shrink-0 transition ${isOpen ? "rotate-180" : ""}`} />
             </button>
@@ -94,68 +125,104 @@ export function GmbWebmasterPlaybook({ row }: Props) {
             {isOpen && (
               <div className="space-y-3 border-t bg-muted/20 p-4">
                 {phase.steps.map((step, idx) => {
-                  const checked = step.checklistKey
-                    ? Boolean((row as any)[step.checklistKey])
-                    : false;
+                  const entry = getStepEntry(phase, step, row, month);
+                  const checked = Boolean(entry?.done);
                   const link = gbpUrl(step.linkTemplate);
+                  const key = stepKey(phase, step, month);
                   return (
                     <div
                       key={step.id}
-                      className="flex gap-3 rounded-lg border bg-background p-3 shadow-sm"
+                      className={`flex gap-3 rounded-lg border bg-background p-3 shadow-sm ${checked ? "border-success/40" : ""}`}
                     >
-                      <div className="flex flex-col items-center gap-1">
+                      <div className="flex flex-col items-center gap-1.5">
                         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary">
                           {idx + 1}
                         </span>
-                        {step.checklistKey && (
-                          <Checkbox
-                            checked={checked}
-                            onCheckedChange={(v) =>
-                              toggleCheck(step.checklistKey!, Boolean(v), step.title)
-                            }
-                          />
-                        )}
+                        <Checkbox
+                          aria-label={`Étape faite : ${step.title}`}
+                          checked={checked}
+                          disabled={toggle.isPending}
+                          onCheckedChange={(v) => setDone(phase, step, Boolean(v))}
+                        />
                       </div>
                       <div className="min-w-0 flex-1 space-y-1.5">
                         <div className="flex items-start justify-between gap-2">
-                          <p className="text-sm font-semibold">
-                            {step.title}
-                            {checked && (
-                              <CheckCircle2 className="ml-1.5 inline h-3.5 w-3.5 text-emerald-500" />
-                            )}
-                          </p>
+                          <p className="text-sm font-semibold">{step.title}</p>
                           {step.eta && (
                             <span className="flex shrink-0 items-center gap-1 text-[10px] text-muted-foreground">
                               <Clock className="h-3 w-3" /> {step.eta} min
                             </span>
                           )}
                         </div>
-                        <p className="text-xs leading-relaxed text-muted-foreground">
-                          {step.description}
+                        <p className={`flex items-center gap-1 text-[11px] font-medium ${checked ? "text-success" : "text-muted-foreground"}`}>
+                          {checked ? <CheckCircle2 className="h-3 w-3" /> : <Circle className="h-3 w-3" />}
+                          {checked
+                            ? entry?.at
+                              ? `Fait le ${format(new Date(entry.at), "d MMM yyyy 'à' HH:mm", { locale: fr })}${entry.by_name ? ` par ${entry.by_name}` : ""}`
+                              : "Fait"
+                            : "Pas encore fait"}
                         </p>
+                        <p className="text-xs leading-relaxed text-muted-foreground">{step.description}</p>
                         {step.tip && (
-                          <div className="flex gap-1.5 rounded-md bg-blue-500/10 p-2 text-[11px] text-blue-700 dark:text-blue-300">
-                            <Lightbulb className="h-3 w-3 shrink-0 mt-0.5" />
+                          <div className="flex gap-1.5 rounded-md bg-primary/5 p-2 text-[11px] text-foreground/80">
+                            <Lightbulb className="mt-0.5 h-3 w-3 shrink-0 text-primary" />
                             <span>
                               <strong>Astuce :</strong> {step.tip}
                             </span>
                           </div>
                         )}
                         {step.warning && (
-                          <div className="flex gap-1.5 rounded-md bg-amber-500/10 p-2 text-[11px] text-amber-800 dark:text-amber-200">
-                            <AlertTriangle className="h-3 w-3 shrink-0 mt-0.5" />
+                          <div className="flex gap-1.5 rounded-md bg-warning/10 p-2 text-[11px] text-foreground/80">
+                            <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-warning" />
                             <span>
                               <strong>Attention :</strong> {step.warning}
                             </span>
                           </div>
                         )}
-                        {link && (
-                          <Button asChild size="sm" variant="outline" className="h-7 text-xs">
-                            <a href={link} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="mr-1 h-3 w-3" />
-                              {step.linkLabel || "Ouvrir"}
-                            </a>
-                          </Button>
+                        {entry?.note && noteOpen !== key && (
+                          <p className="rounded-md bg-muted/60 p-2 text-[11px] text-foreground/80">
+                            <StickyNote className="mr-1 inline h-3 w-3" /> {entry.note}
+                          </p>
+                        )}
+                        {noteOpen === key ? (
+                          <div className="space-y-2">
+                            <Textarea
+                              rows={2}
+                              value={noteDraft}
+                              onChange={(e) => setNoteDraft(e.target.value)}
+                              placeholder="Note interne : ce qui a été vérifié, ce qui manque…"
+                            />
+                            <div className="flex gap-2">
+                              <Button size="sm" className="h-7 text-xs" disabled={toggle.isPending} onClick={() => saveNote(phase, step)}>
+                                Enregistrer la note
+                              </Button>
+                              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setNoteOpen(null)}>
+                                Annuler
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-wrap gap-2">
+                            {link && (
+                              <Button asChild size="sm" variant="outline" className="h-7 text-xs">
+                                <a href={link} target="_blank" rel="noopener noreferrer">
+                                  <ExternalLink className="mr-1 h-3 w-3" />
+                                  {step.linkLabel || "Ouvrir"}
+                                </a>
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 text-xs"
+                              onClick={() => {
+                                setNoteDraft(entry?.note || "");
+                                setNoteOpen(key);
+                              }}
+                            >
+                              <StickyNote className="mr-1 h-3 w-3" /> {entry?.note ? "Modifier la note" : "Ajouter une note"}
+                            </Button>
+                          </div>
                         )}
                       </div>
                     </div>

@@ -21,6 +21,20 @@ describe("invitation RDV visio", () => {
     expect(buildMeetInviteEmail({ ...base, name: "Paul Hoarau" }).body).toContain("Bonjour <strong>Paul Hoarau</strong>,");
     expect(buildMeetInviteEmail({ ...base, name: null }).body).toContain("Bonjour,");
   });
+  it("le texte par défaut mentionne la demande faite au support", () => {
+    const m = buildMeetInviteEmail({ motif: "Site internet", start: reunionLocalToDate("2026-12-01T10:00"), durationMin: 30, meet: DEFAULT_MEET_LINK });
+    expect(m.body).toContain("Suite à votre demande auprès de notre support");
+    expect(m.body).not.toContain("faire le point");
+  });
+  it("utilise le texte modifié, échappé, à la place du texte par défaut", () => {
+    const m = buildMeetInviteEmail({ motif: "Site internet", start: reunionLocalToDate("2026-12-01T10:00"), durationMin: 30, meet: DEFAULT_MEET_LINK,
+      intro: "Merci <b>pour</b> votre appel.", closing: "À jeudi !" });
+    expect(m.body).toContain("Merci &lt;b&gt;pour&lt;/b&gt; votre appel.");
+    expect(m.body).toContain("À jeudi !");
+    expect(m.body).not.toContain("Suite à votre demande");
+    expect(m.body).not.toContain("Si ce créneau ne vous convient pas");
+    expect(m.body).toContain(DEFAULT_MEET_LINK);
+  });
   it("l'heure saisie est l'heure de La Réunion", () => {
     expect(reunionLocalToDate("2026-12-01T10:00").toISOString()).toBe("2026-12-01T06:00:00.000Z");
   });

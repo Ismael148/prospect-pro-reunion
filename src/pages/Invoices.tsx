@@ -7,7 +7,8 @@ import { exportInvoicePDF } from "@/lib/export-invoice-pdf";
 import { buildInvoiceEmail, getInvoiceEmailDraft } from "@/lib/invoice-email";
 import { ClientCombobox } from "@/components/ClientCombobox";
 import { InvoiceTemplatePicker } from "@/components/invoices/InvoiceTemplatePicker";
-import { DEFAULT_INVOICE_TEMPLATE, type InvoiceTemplateId } from "@/lib/invoice-templates";
+import { DEFAULT_INVOICE_TEMPLATE, INVOICE_TEMPLATES, clientPreferredTemplate, shouldSaveClientTemplate, type InvoiceTemplateId } from "@/lib/invoice-templates";
+import { useSetClientInvoiceTemplate } from "@/hooks/use-client-invoice-template";
 import { PACK_LABELS, PACK_PRICES, PACK_RENEWAL_PRICES, PACK_RENEWAL_NOTE, TUNING_WEBSITE_ADDON_PRICE } from "@/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -95,6 +96,8 @@ export default function Invoices() {
   ]);
   const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
   const [designTemplate, setDesignTemplate] = useState<InvoiceTemplateId>(DEFAULT_INVOICE_TEMPLATE);
+  const [rememberTemplate, setRememberTemplate] = useState(true);
+  const setClientTemplate = useSetClientInvoiceTemplate();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [sendTarget, setSendTarget] = useState<Invoice | null>(null);
   const [sendEmail, setSendEmail] = useState("");
@@ -156,6 +159,8 @@ export default function Invoices() {
   const handleClientChange = (clientId: string) => {
     setSelectedClientId(clientId);
     const client = clientMap.get(clientId);
+    setDesignTemplate(clientPreferredTemplate(client));
+    setRememberTemplate(true);
     if (client?.payment_method) {
       setPaymentMethods([client.payment_method]);
     }
@@ -202,6 +207,13 @@ export default function Invoices() {
         design_template: designTemplate,
       } as any);
       toast.success("Facture créée en brouillon — vérifiez puis cliquez sur Envoyer");
+      const selectedClient = clientMap.get(selectedClientId);
+      if (shouldSaveClientTemplate(selectedClient, designTemplate, rememberTemplate)) {
+        setClientTemplate.mutate(
+          { clientId: selectedClientId, template: designTemplate },
+          { onError: () => toast.error("Facture créée, mais le modèle préféré du client n'a pas pu être enregistré") },
+        );
+      }
       setDialogOpen(false);
       resetForm();
     } catch { toast.error("Erreur lors de la création"); }
@@ -216,6 +228,7 @@ export default function Invoices() {
     setItems([{ description: "", quantity: 1, unit_price: 0, total: 0 }]);
     setPaymentMethods([]);
     setDesignTemplate(DEFAULT_INVOICE_TEMPLATE);
+    setRememberTemplate(true);
   };
 
   const handleStatusChange = async (id: string, status: string) => {
@@ -535,6 +548,23 @@ export default function Invoices() {
               <Label>Modèle de facture</Label>
               <InvoiceTemplatePicker value={designTemplate} onChange={setDesignTemplate} />
               <p className="text-xs text-muted-foreground">Le logo Adamkom figure sur tous les modèles. Cliquez sur « Aperçu » pour voir la facture complète.</p>
+              {selectedClientId && (() => {
+                const c = clientMap.get(selectedClientId);
+                const saved = INVOICE_TEMPLATES.find((t) => t.id === c?.invoice_template);
+                return (
+                  <div className="rounded-md border border-border/60 bg-muted/20 p-2.5 space-y-1.5">
+                    <p className="text-xs text-muted-foreground">
+                      {saved ? <>Modèle préféré de ce client : <strong className="text-foreground">{saved.name}</strong></> : "Ce client n'a pas encore de modèle préféré."}
+                    </p>
+                    {c?.invoice_template !== designTemplate && (
+                      <label className="flex items-center gap-2 text-sm cursor-pointer">
+                        <Checkbox checked={rememberTemplate} onCheckedChange={(v) => setRememberTemplate(Boolean(v))} />
+                        Retenir ce modèle pour les prochaines factures de ce client
+                      </label>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
 
             <div className="grid grid-cols-3 gap-4">

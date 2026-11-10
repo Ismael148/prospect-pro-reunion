@@ -83,21 +83,6 @@ import { FileDown } from "lucide-react";
 // Liens envoyés aux clients : toujours l'adresse officielle, jamais celle de l'aperçu.
 const PUBLIC_BASE_URL = PUBLISHED_URL;
 
-const CHECKLIST_ITEMS: Array<{
-  key: keyof ClientGmbWithClient;
-  label: string;
-  hint?: string;
-}> = [
-  { key: "checklist_account_created", label: "Compte Google Business créé", hint: "business.google.com" },
-  { key: "checklist_postal_requested", label: "Vérification postale demandée" },
-  { key: "checklist_code_received", label: "Code reçu du client" },
-  { key: "checklist_verified", label: "Fiche vérifiée et active" },
-  { key: "checklist_logo_added", label: "Logo ajouté" },
-  { key: "checklist_photos_added", label: "Photos (≥ 5) ajoutées" },
-  { key: "checklist_hours_set", label: "Horaires renseignés" },
-  { key: "checklist_description_added", label: "Description optimisée" },
-];
-
 /** Avancement de la mise en place : toutes les étapes du guide (hors entretien mensuel). */
 function getProgress(row: ClientGmbWithClient) {
   return setupProgress(row).pct;
@@ -505,10 +490,9 @@ function GmbCard({
                     performed_at: a.performed_at,
                     link: a.link,
                   })),
-                  checklist: CHECKLIST_ITEMS.map((c) => ({
-                    label: c.label,
-                    done: Boolean((row as any)[c.key]),
-                  })),
+                  checklist: GMB_PLAYBOOK.flatMap((phase) =>
+                    phase.steps.map((step) => ({ label: step.title, done: isStepDone(phase, step, row) })),
+                  ),
                   goal: goal || null,
                   totalReviews: row.total_reviews,
                   averageRating: row.average_rating,

@@ -71,13 +71,16 @@ import {
   buildGmbCreateUrl,
 } from "@/hooks/use-client-gmb";
 import { GmbWebmasterPlaybook } from "@/components/gmb/GmbWebmasterPlaybook";
+import { GmbAuditPanel } from "@/components/gmb/GmbAuditPanel";
+import { setupProgress } from "@/lib/gmb-steps";
+import { PUBLISHED_URL } from "@/lib/constants";
 import { GmbActivityTimeline } from "@/components/gmb/GmbActivityTimeline";
 import { GmbMonthlyGoals } from "@/components/gmb/GmbMonthlyGoals";
 import { GMB_ACTIVITY_LABELS, type GmbActivityType } from "@/hooks/use-gmb-activities";
 import { FileDown } from "lucide-react";
 
-const PUBLIC_BASE_URL =
-  typeof window !== "undefined" ? window.location.origin : "https://ai.adamkom.com";
+// Liens envoyés aux clients : toujours l'adresse officielle, jamais celle de l'aperçu.
+const PUBLIC_BASE_URL = PUBLISHED_URL;
 
 const CHECKLIST_ITEMS: Array<{
   key: keyof ClientGmbWithClient;
@@ -94,10 +97,9 @@ const CHECKLIST_ITEMS: Array<{
   { key: "checklist_description_added", label: "Description optimisée" },
 ];
 
+/** Avancement de la mise en place : toutes les étapes du guide (hors entretien mensuel). */
 function getProgress(row: ClientGmbWithClient) {
-  const total = CHECKLIST_ITEMS.length;
-  const done = CHECKLIST_ITEMS.filter((it) => Boolean((row as any)[it.key])).length;
-  return Math.round((done / total) * 100);
+  return setupProgress(row).pct;
 }
 
 export default function Gmb() {
@@ -359,7 +361,7 @@ export default function Gmb() {
       {/* Detail dialog */}
       {activeRow && (
         <GmbDetailDialog
-          row={activeRow}
+          row={rows.find((r) => r.id === activeRow.id) ?? activeRow}
           open={!!activeRow}
           onClose={() => setActiveRow(null)}
         />
@@ -657,9 +659,12 @@ function GmbDetailDialog({
         </DialogHeader>
 
         <Tabs defaultValue="playbook">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid h-auto w-full grid-cols-4 sm:grid-cols-7">
             <TabsTrigger value="playbook" className="gap-1">
               <BookOpen className="h-3 w-3" /> Guide
+            </TabsTrigger>
+            <TabsTrigger value="audit" className="gap-1">
+              <Search className="h-3 w-3" /> Analyse
             </TabsTrigger>
             <TabsTrigger value="checklist" className="gap-1">
               <ListChecks className="h-3 w-3" /> Checklist
@@ -676,6 +681,10 @@ function GmbDetailDialog({
 
           <TabsContent value="playbook" className="pt-4">
             <GmbWebmasterPlaybook row={row} />
+          </TabsContent>
+
+          <TabsContent value="audit" className="pt-4">
+            <GmbAuditPanel row={row} />
           </TabsContent>
 
           <TabsContent value="goals" className="pt-4">

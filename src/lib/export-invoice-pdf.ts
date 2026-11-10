@@ -322,20 +322,13 @@ function renderEpure(doc: jsPDF, data: InvoicePDFData) {
 
   const due = dueLabel(data);
   if (due) {
-    label("ÉCHÉANCE", R, y);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(...NAVY);
-    doc.text(due, R, y + 7, { align: "right" });
-  }
-  // Le libellé « ÉCHÉANCE » est aligné à droite : on le redessine proprement.
-  if (due) {
-    doc.setFillColor(...WHITE);
-    doc.rect(R - 40, y - 4, 40, 5, "F");
     doc.setFont("helvetica", "bold");
     doc.setFontSize(7.5);
     doc.setTextColor(...GOLD);
     doc.text("ÉCHÉANCE", R, y, { align: "right" });
+    doc.setFontSize(10);
+    doc.setTextColor(...NAVY);
+    doc.text(due, R, y + 7, { align: "right" });
   }
 
   y = Math.max(iy, cy) + 10;

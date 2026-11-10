@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { cleanQuoteDescription, cleanQuoteNotes } from "@/lib/quote-templates";
+import { clientPreferredTemplate } from "@/lib/invoice-templates";
 
 const METHODS: Record<string, string> = { virement: "Virement", cb: "Carte bancaire", cheque: "Chèque", especes: "Espèces" };
 const eur = (n: number) => `${Number(n || 0).toFixed(2).replace(".", ",")} €`;

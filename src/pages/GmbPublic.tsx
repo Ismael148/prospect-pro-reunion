@@ -19,6 +19,14 @@ import { Badge } from "@/components/ui/badge";
 import { GMB_ACTIVITY_LABELS, GMB_ACTIVITY_ICONS } from "@/hooks/use-gmb-activities";
 import { GMB_STATUS_LABELS, GMB_STATUS_COLORS, type GmbStatus } from "@/hooks/use-client-gmb";
 import { goalProgressColor } from "@/hooks/use-gmb-goals";
+import { GMB_PLAYBOOK } from "@/lib/gmb-playbook";
+import { isRecurringPhase, isStepDone, monthlyProgress, setupProgress } from "@/lib/gmb-steps";
+import {
+  AUDIT_STATUS_LABELS,
+  GMB_AUDIT_SECTIONS,
+  auditScoreLabel,
+  type AuditCriteria,
+} from "@/lib/gmb-audit";
 
 interface DashboardData {
   client: { company_name: string; city: string | null; sector: string | null };
@@ -31,18 +39,8 @@ interface DashboardData {
     performed_at: string;
   }>;
   goal: any | null;
+  audits?: Array<{ id: string; criteria: AuditCriteria; score: number; summary: string | null; created_at: string }>;
 }
-
-const CHECKLIST_LABELS: Array<{ key: string; label: string }> = [
-  { key: "checklist_account_created", label: "Fiche créée sur Google" },
-  { key: "checklist_postal_requested", label: "Vérification demandée" },
-  { key: "checklist_code_received", label: "Code de vérification reçu" },
-  { key: "checklist_verified", label: "Fiche activée & vérifiée" },
-  { key: "checklist_logo_added", label: "Logo ajouté" },
-  { key: "checklist_photos_added", label: "Photos ajoutées" },
-  { key: "checklist_hours_set", label: "Horaires renseignés" },
-  { key: "checklist_description_added", label: "Description SEO ajoutée" },
-];
 
 export default function GmbPublic() {
   const { token } = useParams<{ token: string }>();
@@ -84,11 +82,12 @@ export default function GmbPublic() {
   }
 
   const { client, gmb, activities, goal } = data;
+  const latestAudit = data.audits?.[0];
+  const previousAudit = data.audits?.[1];
 
-  const checklistDone = gmb
-    ? CHECKLIST_LABELS.filter((c) => gmb[c.key]).length
-    : 0;
-  const checklistPct = Math.round((checklistDone / CHECKLIST_LABELS.length) * 100);
+  const setup = setupProgress(gmb);
+  const monthly = monthlyProgress(gmb);
+  const checklistPct = setup.pct;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-black text-white">
@@ -168,10 +167,9 @@ export default function GmbPublic() {
                     performed_at: a.performed_at,
                     link: a.link,
                   })),
-                  checklist: CHECKLIST_LABELS.map((c) => ({
-                    label: c.label,
-                    done: Boolean(gmb[c.key]),
-                  })),
+                  checklist: GMB_PLAYBOOK.flatMap((phase) =>
+                    phase.steps.map((step) => ({ label: step.title, done: isStepDone(phase, step, gmb) })),
+                  ),
                   goal: goal || null,
                   totalReviews: gmb.total_reviews,
                   averageRating: gmb.average_rating,
@@ -212,22 +210,82 @@ export default function GmbPublic() {
                   }}
                 />
               </div>
-              <ul className="grid gap-2 md:grid-cols-2">
-                {CHECKLIST_LABELS.map((c) => {
-                  const done = gmb[c.key];
-                  return (
-                    <li key={c.key} className="flex items-center gap-2 text-sm">
-                      {done ? (
-                        <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
-                      ) : (
-                        <Circle className="h-4 w-4 shrink-0 text-white/30" />
-                      )}
-                      <span className={done ? "text-white/90" : "text-white/40"}>{c.label}</span>
-                    </li>
-                  );
-                })}
-              </ul>
+              <p className="mb-4 text-xs text-white/50">
+                Mise en place : {setup.done}/{setup.total} étapes · Entretien du mois : {monthly.done}/{monthly.total}
+              </p>
+              <div className="space-y-4">
+                {GMB_PLAYBOOK.map((phase) => (
+                  <div key={phase.key}>
+                    <p className="mb-2 text-sm font-semibold text-white/80">
+                      {phase.emoji} {phase.title}
+                      {isRecurringPhase(phase) && <span className="ml-2 text-xs font-normal text-white/50">(ce mois-ci)</span>}
+                    </p>
+                    <ul className="grid gap-2 md:grid-cols-2">
+                      {phase.steps.map((step) => {
+                        const done = isStepDone(phase, step, gmb);
+                        return (
+                          <li key={step.id} className="flex items-start gap-2 text-sm">
+                            {done ? (
+                              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+                            ) : (
+                              <Circle className="mt-0.5 h-4 w-4 shrink-0 text-white/30" />
+                            )}
+                            <span className={done ? "text-white/90" : "text-white/40"}>{step.title}</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ))}
+              </div>
             </section>
+
+            {latestAudit && (
+              <section className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="flex items-center gap-2 font-semibold">
+                    <Star className="h-5 w-5" style={{ color: "#ff006e" }} />
+                    Analyse de votre fiche
+                  </h3>
+                  <span className="text-2xl font-bold" style={{ color: "#ff006e" }}>
+                    {latestAudit.score}/100
+                  </span>
+                </div>
+                <p className="mb-4 text-sm text-white/60">
+                  {auditScoreLabel(latestAudit.score)} · analysée le {format(new Date(latestAudit.created_at), "d MMMM yyyy", { locale: fr })}
+                  {previousAudit && latestAudit.score !== previousAudit.score && (
+                    <> · {latestAudit.score > previousAudit.score ? "+" : ""}{latestAudit.score - previousAudit.score} pts depuis la précédente analyse</>
+                  )}
+                </p>
+                {latestAudit.summary && (
+                  <p className="mb-4 whitespace-pre-line rounded-xl bg-white/5 p-3 text-sm text-white/80">{latestAudit.summary}</p>
+                )}
+                <div className="space-y-4">
+                  {GMB_AUDIT_SECTIONS.map((section) => (
+                    <div key={section.key}>
+                      <p className="mb-2 text-sm font-semibold text-white/80">{section.title}</p>
+                      <ul className="space-y-1.5">
+                        {section.criteria.map((c) => {
+                          const entry = latestAudit.criteria?.[c.id];
+                          if (!entry?.status || entry.status === "na") return null;
+                          const color =
+                            entry.status === "ok" ? "text-emerald-400" : entry.status === "improve" ? "text-amber-400" : "text-rose-400";
+                          return (
+                            <li key={c.id} className="flex items-start justify-between gap-3 text-sm">
+                              <span className="text-white/85">
+                                {c.label}
+                                {entry.note && <span className="block text-xs text-white/50">{entry.note}</span>}
+                              </span>
+                              <span className={`shrink-0 text-xs font-semibold ${color}`}>{AUDIT_STATUS_LABELS[entry.status]}</span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* Monthly goals */}
             {goal && (

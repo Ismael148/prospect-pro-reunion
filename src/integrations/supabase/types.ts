@@ -447,6 +447,7 @@ export type Database = {
           google_reviews_url: string | null
           has_gmb: boolean | null
           id: string
+          invoice_template: string | null
           invoiced_offline: boolean
           logo_created: boolean
           logo_created_at: string | null
@@ -509,6 +510,7 @@ export type Database = {
           google_reviews_url?: string | null
           has_gmb?: boolean | null
           id?: string
+          invoice_template?: string | null
           invoiced_offline?: boolean
           logo_created?: boolean
           logo_created_at?: string | null
@@ -571,6 +573,7 @@ export type Database = {
           google_reviews_url?: string | null
           has_gmb?: boolean | null
           id?: string
+          invoice_template?: string | null
           invoiced_offline?: boolean
           logo_created?: boolean
           logo_created_at?: string | null

@@ -228,7 +228,7 @@ function renderSignature(doc: jsPDF, data: InvoicePDFData) {
   doc.text(paymentLabel(data), 15, y + 6);
 
   const totalsBoxX = pw - 100;
-  const ty = drawSubtotals(doc, data, totalsBoxX, pw - 15, y - 12);
+  const ty = drawSubtotals(doc, data, totalsBoxX, pw - 15, y - 4);
   const ttcY = ty + 2;
   doc.setFillColor(...NAVY);
   doc.roundedRect(totalsBoxX - 5, ttcY - 5, pw - totalsBoxX + 5 - 10, 14, 2, 2, "F");

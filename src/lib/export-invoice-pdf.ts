@@ -104,6 +104,12 @@ const tableBody = (data: InvoicePDFData) => data.items.map((item, i) => [
 
 const TABLE_HEAD = [["N°", "DESCRIPTION", "QTÉ", "PRIX", "TOTAL"]];
 
+// Aligne les en-têtes de colonnes sur leurs valeurs (QTÉ centrée, montants à droite).
+const HEAD_ALIGN = ["center", "left", "center", "right", "right"] as const;
+const alignHead = (hook: any) => {
+  if (hook.section === "head") hook.cell.styles.halign = HEAD_ALIGN[hook.column.index] ?? "left";
+};
+
 function addLogo(doc: jsPDF, x: number, y: number, size: number) {
   try { doc.addImage(INVOICE_LOGO_PNG, "PNG", x, y, size, size); } catch { /* logo optionnel */ }
 }
@@ -193,6 +199,7 @@ function renderSignature(doc: jsPDF, data: InvoicePDFData) {
     head: TABLE_HEAD,
     body: tableBody(data),
     theme: "plain",
+    didParseCell: alignHead,
     headStyles: { fillColor: [...NAVY], textColor: [...WHITE], fontSize: 10, fontStyle: "bold", cellPadding: 5 },
     bodyStyles: { fontSize: 10, cellPadding: 5, textColor: [50, 50, 50] },
     alternateRowStyles: { fillColor: [...PALE_PINK] },
@@ -338,6 +345,7 @@ function renderEpure(doc: jsPDF, data: InvoicePDFData) {
     head: TABLE_HEAD,
     body: tableBody(data),
     theme: "plain",
+    didParseCell: alignHead,
     headStyles: {
       textColor: [...NAVY], fontSize: 8, fontStyle: "bold", cellPadding: { top: 3, bottom: 3, left: 3, right: 3 },
       lineColor: [...NAVY], lineWidth: { bottom: 0.6 },
@@ -523,10 +531,11 @@ function renderPrestige(doc: jsPDF, data: InvoicePDFData) {
     head: TABLE_HEAD,
     body: tableBody(data),
     theme: "plain",
+    didParseCell: alignHead,
     headStyles: { fillColor: [...NAVY], textColor: [...WHITE], fontSize: 8, fontStyle: "bold", cellPadding: 3.5 },
     bodyStyles: { fontSize: 9, textColor: [...DARK], cellPadding: 3.8, lineColor: [...LINE], lineWidth: { bottom: 0.25 } },
     columnStyles: {
-      0: { cellWidth: 10, halign: "center", textColor: [...GOLD], fontStyle: "bold" },
+      0: { cellWidth: 13, halign: "center", textColor: [...GOLD], fontStyle: "bold" },
       1: { cellWidth: "auto" },
       2: { cellWidth: 13, halign: "center" },
       3: { cellWidth: 25, halign: "right" },
@@ -591,7 +600,7 @@ function renderAurore(doc: jsPDF, data: InvoicePDFData) {
   doc.setFillColor(255, 64, 150);
   doc.circle(pw - 30, 8, 34, "F");
   doc.setFillColor(...NAVY);
-  doc.circle(pw + 4, 58, 26, "F");
+  doc.circle(pw + 2, 44, 20, "F");
   doc.setFillColor(...NAVY);
   doc.rect(0, 62, pw, 2.2, "F");
 
@@ -657,6 +666,7 @@ function renderAurore(doc: jsPDF, data: InvoicePDFData) {
     head: TABLE_HEAD,
     body: tableBody(data),
     theme: "plain",
+    didParseCell: alignHead,
     headStyles: { fillColor: [...GOLD], textColor: [...WHITE], fontSize: 8.5, fontStyle: "bold", cellPadding: 4 },
     bodyStyles: { fontSize: 9.5, textColor: [...DARK], cellPadding: 4.2 },
     alternateRowStyles: { fillColor: [...SOFT_PINK] },

@@ -11,6 +11,9 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { FileText, Eye, Download, Send, Loader2, Mail } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { INVOICE_TEMPLATES, clientPreferredTemplate, type InvoiceTemplateId } from "@/lib/invoice-templates";
+import { useSetClientInvoiceTemplate } from "@/hooks/use-client-invoice-template";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -54,7 +57,40 @@ interface ClientInvoicesSectionProps {
     billing_year?: number | null;
     invoiced_offline?: boolean | null;
     billing_amount?: number | null;
+    invoice_template?: string | null;
   };
+}
+
+function InvoiceTemplatePreference({ clientId, value }: { clientId: string; value?: string | null }) {
+  const setTemplate = useSetClientInvoiceTemplate();
+  const current = INVOICE_TEMPLATES.some((t) => t.id === value) ? (value as string) : "default";
+  return (
+    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-muted/30 p-3">
+      <span className="text-sm font-medium">Modèle de facture préféré</span>
+      <Select
+        value={current}
+        disabled={setTemplate.isPending}
+        onValueChange={(v) =>
+          setTemplate.mutate(
+            { clientId, template: v === "default" ? null : (v as InvoiceTemplateId) },
+            {
+              onSuccess: () => toast.success("Modèle de facture enregistré pour ce client"),
+              onError: () => toast.error("Impossible d'enregistrer le modèle"),
+            },
+          )
+        }
+      >
+        <SelectTrigger className="h-9 w-56"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="default">Par défaut (Signature)</SelectItem>
+          {INVOICE_TEMPLATES.map((t) => (
+            <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <span className="text-xs text-muted-foreground">Proposé automatiquement à chaque nouvelle facture.</span>
+    </div>
+  );
 }
 
 export default function ClientInvoicesSection({ client }: ClientInvoicesSectionProps) {
@@ -104,6 +140,7 @@ export default function ClientInvoicesSection({ client }: ClientInvoicesSectionP
         ],
         created_by: auth.user?.id,
         payment_methods: client.payment_method ? [client.payment_method] : null,
+        design_template: clientPreferredTemplate(client),
       } as any);
       await sendInvoice.mutateAsync({ invoice: created, includeSupport });
       toast.success("Facture acquittée générée et envoyée au client");
@@ -203,6 +240,7 @@ export default function ClientInvoicesSection({ client }: ClientInvoicesSectionP
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
+        <InvoiceTemplatePreference clientId={client.id} value={client.invoice_template} />
         <EmailSupportOption checked={includeSupport} onChange={setIncludeSupport} disabled={generating || !!sendingId} />
         <div className="rounded-lg border border-border/60 bg-muted/30 p-3 space-y-2">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">

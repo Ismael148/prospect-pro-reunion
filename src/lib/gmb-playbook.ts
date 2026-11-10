@@ -82,6 +82,18 @@ export const GMB_PLAYBOOK: GmbPlaybookPhase[] = [
         checklistKey: "checklist_code_received",
         eta: 2,
       },
+      {
+        id: "verified",
+        title: "Fiche validée par Google",
+        description:
+          "Contrôle sur business.google.com que la fiche affiche bien « Validée » et qu'elle apparaît dans Google Maps. Si Google demande une vidéo, envoie au client le tutoriel de validation vidéo.",
+        warning:
+          "Ne coche cette étape que lorsque Google indique la fiche comme validée — une demande en cours ne suffit pas.",
+        checklistKey: "checklist_verified",
+        linkTemplate: GBP_SIMPLE,
+        linkLabel: "Vérifier sur Google",
+        eta: 2,
+      },
     ],
   },
   {
@@ -126,6 +138,14 @@ export const GMB_PLAYBOOK: GmbPlaybookPhase[] = [
         eta: 5,
       },
       {
+        id: "contact",
+        title: "Téléphone, site web et lien de prise de contact",
+        description:
+          "Renseigne le numéro principal (identique au site et à la carte NFC), l'adresse du site internet et, si le client en a, le lien de réservation ou de prise de rendez-vous.",
+        warning: "Le nom, l'adresse et le téléphone doivent être strictement identiques partout (site, réseaux, annuaires).",
+        eta: 5,
+      },
+      {
         id: "description",
         title: "Description SEO (750 caractères)",
         description:
@@ -166,11 +186,20 @@ export const GMB_PLAYBOOK: GmbPlaybookPhase[] = [
       },
       {
         id: "qa",
-        title: "Créer 3-5 Q&A anticipées",
+        title: "Préparer 3-5 questions fréquentes",
         description:
-          "Poste toi-même les questions fréquentes (parking, réservation, moyens de paiement) et réponds-y depuis le compte pro. Fait gagner du temps aux prospects.",
-        tip: "Les Q&A apparaissent directement dans le Knowledge Panel — grosse visibilité.",
+          "Liste les questions fréquentes (parking, réservation, moyens de paiement) avec leurs réponses. Si la rubrique Questions/réponses n'est plus proposée sur la fiche, intègre ces réponses dans la description, les services et le site.",
+        tip: "Des réponses claires rassurent les prospects avant qu'ils appellent.",
         eta: 20,
+      },
+      {
+        id: "review-link",
+        title: "Lien d'avis transmis au client",
+        description:
+          "Récupère le lien « Demander des avis » de la fiche et transmets-le au client (mail, WhatsApp, carte NFC) pour qu'il le partage à ses clients.",
+        linkTemplate: GBP_SIMPLE,
+        linkLabel: "Ouvrir GBP",
+        eta: 5,
       },
       {
         id: "first-reviews",
@@ -223,14 +252,3 @@ export const GMB_PLAYBOOK: GmbPlaybookPhase[] = [
     ],
   },
 ];
-
-export function computePhaseProgress(
-  phase: GmbPlaybookPhase,
-  gmb: Record<string, any>
-): { done: number; total: number; pct: number } {
-  const stepsWithKey = phase.steps.filter((s) => s.checklistKey);
-  const total = stepsWithKey.length;
-  if (total === 0) return { done: 0, total: 0, pct: 0 };
-  const done = stepsWithKey.filter((s) => gmb[s.checklistKey!]).length;
-  return { done, total, pct: Math.round((done / total) * 100) };
-}

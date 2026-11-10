@@ -300,6 +300,7 @@ export type Database = {
           notes: string | null
           postal_requested_at: string | null
           status: Database["public"]["Enums"]["gmb_status"]
+          step_progress: Json
           total_reviews: number | null
           unanswered_reviews: number | null
           updated_at: string
@@ -330,6 +331,7 @@ export type Database = {
           notes?: string | null
           postal_requested_at?: string | null
           status?: Database["public"]["Enums"]["gmb_status"]
+          step_progress?: Json
           total_reviews?: number | null
           unanswered_reviews?: number | null
           updated_at?: string
@@ -360,6 +362,7 @@ export type Database = {
           notes?: string | null
           postal_requested_at?: string | null
           status?: Database["public"]["Enums"]["gmb_status"]
+          step_progress?: Json
           total_reviews?: number | null
           unanswered_reviews?: number | null
           updated_at?: string
@@ -1369,6 +1372,53 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gmb_audits: {
+        Row: {
+          client_gmb_id: string
+          client_id: string
+          created_at: string
+          created_by: string | null
+          created_by_name: string | null
+          criteria: Json
+          id: string
+          maps_url: string | null
+          score: number
+          summary: string | null
+        }
+        Insert: {
+          client_gmb_id: string
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          criteria?: Json
+          id?: string
+          maps_url?: string | null
+          score?: number
+          summary?: string | null
+        }
+        Update: {
+          client_gmb_id?: string
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          criteria?: Json
+          id?: string
+          maps_url?: string | null
+          score?: number
+          summary?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gmb_audits_client_gmb_id_fkey"
+            columns: ["client_gmb_id"]
+            isOneToOne: false
+            referencedRelation: "client_gmb"
             referencedColumns: ["id"]
           },
         ]

@@ -71,33 +71,21 @@ import {
   buildGmbCreateUrl,
 } from "@/hooks/use-client-gmb";
 import { GmbWebmasterPlaybook } from "@/components/gmb/GmbWebmasterPlaybook";
+import { GmbAuditPanel } from "@/components/gmb/GmbAuditPanel";
+import { isStepDone, monthlyProgress, setupProgress } from "@/lib/gmb-steps";
+import { GMB_PLAYBOOK } from "@/lib/gmb-playbook";
+import { PUBLISHED_URL } from "@/lib/constants";
 import { GmbActivityTimeline } from "@/components/gmb/GmbActivityTimeline";
 import { GmbMonthlyGoals } from "@/components/gmb/GmbMonthlyGoals";
 import { GMB_ACTIVITY_LABELS, type GmbActivityType } from "@/hooks/use-gmb-activities";
 import { FileDown } from "lucide-react";
 
-const PUBLIC_BASE_URL =
-  typeof window !== "undefined" ? window.location.origin : "https://ai.adamkom.com";
+// Liens envoyés aux clients : toujours l'adresse officielle, jamais celle de l'aperçu.
+const PUBLIC_BASE_URL = PUBLISHED_URL;
 
-const CHECKLIST_ITEMS: Array<{
-  key: keyof ClientGmbWithClient;
-  label: string;
-  hint?: string;
-}> = [
-  { key: "checklist_account_created", label: "Compte Google Business créé", hint: "business.google.com" },
-  { key: "checklist_postal_requested", label: "Vérification postale demandée" },
-  { key: "checklist_code_received", label: "Code reçu du client" },
-  { key: "checklist_verified", label: "Fiche vérifiée et active" },
-  { key: "checklist_logo_added", label: "Logo ajouté" },
-  { key: "checklist_photos_added", label: "Photos (≥ 5) ajoutées" },
-  { key: "checklist_hours_set", label: "Horaires renseignés" },
-  { key: "checklist_description_added", label: "Description optimisée" },
-];
-
+/** Avancement de la mise en place : toutes les étapes du guide (hors entretien mensuel). */
 function getProgress(row: ClientGmbWithClient) {
-  const total = CHECKLIST_ITEMS.length;
-  const done = CHECKLIST_ITEMS.filter((it) => Boolean((row as any)[it.key])).length;
-  return Math.round((done / total) * 100);
+  return setupProgress(row).pct;
 }
 
 export default function Gmb() {
@@ -186,7 +174,7 @@ export default function Gmb() {
         const { data, error } = await (supabase as any)
           .from("client_gmb")
           .select(
-            "*, clients(id, company_name, ndi, address, city, postal_code, phone, sector, has_gmb, gmb_public_token)"
+            "*, clients(id, company_name, ndi, address, city, postal_code, phone, sector, has_gmb, gmb_public_token, manager_name, email, support_token)"
           )
           .eq("client_id", pickedClientId)
           .maybeSingle();
@@ -265,7 +253,7 @@ export default function Gmb() {
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  Le statut initial sera <Badge variant="outline">À créer</Badge>. Une fois activé, tu retrouves le <strong>guide pas-à-pas, la checklist des 8 étapes, les objectifs mensuels et le journal d'activité</strong> visible par le client.
+                  Le statut initial sera <Badge variant="outline">À créer</Badge>. Une fois activé, tu retrouves le <strong>guide pas-à-pas, l'analyse de la fiche, la vérification de chaque étape, les objectifs mensuels et le journal d'activité</strong> visible par le client.
                 </p>
               )}
             </div>
@@ -288,7 +276,7 @@ export default function Gmb() {
           <p className="font-semibold mb-2">📘 Comment ça marche ?</p>
           <ol className="list-decimal ml-5 space-y-1 text-muted-foreground">
             <li><strong>Activer le suivi GMB</strong> pour un client → il apparaît dans la liste ci-dessous.</li>
-            <li>Clique sur <strong>Gérer</strong> sur sa carte → tu accèdes à 6 onglets : <strong>Guide</strong> (pas-à-pas webmaster), <strong>Checklist</strong> (8 étapes), <strong>Objectifs</strong> (posts/avis/photos du mois), <strong>Journal</strong> (actions visibles ou non par le client), <strong>Infos</strong> et <strong>Avis</strong>.</li>
+            <li>Clique sur <strong>Gérer</strong> sur sa carte → tu accèdes à 7 onglets : <strong>Guide</strong> (chaque étape à cocher, datée et signée), <strong>Analyse</strong> (note de la fiche à partir de son lien), <strong>Checklist</strong> (vue fait / pas encore fait), <strong>Objectifs</strong> (posts/avis/photos du mois), <strong>Journal</strong> (actions visibles ou non par le client), <strong>Infos</strong> et <strong>Avis</strong>.</li>
             <li>Copie le <strong>Lien client</strong> et envoie-le au client — il voit alors le travail en direct sur <code>/mon-gmb/…</code>.</li>
           </ol>
         </CardContent>
@@ -359,7 +347,7 @@ export default function Gmb() {
       {/* Detail dialog */}
       {activeRow && (
         <GmbDetailDialog
-          row={activeRow}
+          row={rows.find((r) => r.id === activeRow.id) ?? activeRow}
           open={!!activeRow}
           onClose={() => setActiveRow(null)}
         />
@@ -502,10 +490,9 @@ function GmbCard({
                     performed_at: a.performed_at,
                     link: a.link,
                   })),
-                  checklist: CHECKLIST_ITEMS.map((c) => ({
-                    label: c.label,
-                    done: Boolean((row as any)[c.key]),
-                  })),
+                  checklist: GMB_PLAYBOOK.flatMap((phase) =>
+                    phase.steps.map((step) => ({ label: step.title, done: isStepDone(phase, step, row) })),
+                  ),
                   goal: goal || null,
                   totalReviews: row.total_reviews,
                   averageRating: row.average_rating,
@@ -581,14 +568,6 @@ function GmbDetailDialog({
     total_reviews: row.total_reviews ?? 0,
     average_rating: row.average_rating ?? "",
     unanswered_reviews: row.unanswered_reviews ?? 0,
-    checklist_account_created: row.checklist_account_created,
-    checklist_postal_requested: row.checklist_postal_requested,
-    checklist_code_received: row.checklist_code_received,
-    checklist_verified: row.checklist_verified,
-    checklist_logo_added: row.checklist_logo_added,
-    checklist_photos_added: row.checklist_photos_added,
-    checklist_hours_set: row.checklist_hours_set,
-    checklist_description_added: row.checklist_description_added,
   });
 
   const client = row.clients;
@@ -657,9 +636,12 @@ function GmbDetailDialog({
         </DialogHeader>
 
         <Tabs defaultValue="playbook">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid h-auto w-full grid-cols-4 sm:grid-cols-7">
             <TabsTrigger value="playbook" className="gap-1">
               <BookOpen className="h-3 w-3" /> Guide
+            </TabsTrigger>
+            <TabsTrigger value="audit" className="gap-1">
+              <Search className="h-3 w-3" /> Analyse
             </TabsTrigger>
             <TabsTrigger value="checklist" className="gap-1">
               <ListChecks className="h-3 w-3" /> Checklist
@@ -676,6 +658,10 @@ function GmbDetailDialog({
 
           <TabsContent value="playbook" className="pt-4">
             <GmbWebmasterPlaybook row={row} />
+          </TabsContent>
+
+          <TabsContent value="audit" className="pt-4">
+            <GmbAuditPanel row={row} />
           </TabsContent>
 
           <TabsContent value="goals" className="pt-4">
@@ -744,29 +730,8 @@ function GmbDetailDialog({
               </CardContent>
             </Card>
 
-            {/* Checklist */}
-            <div className="space-y-2">
-              {CHECKLIST_ITEMS.map((it) => (
-                <label
-                  key={String(it.key)}
-                  className="flex cursor-pointer items-start gap-3 rounded-lg border p-3 hover:bg-accent/40"
-                >
-                  <Checkbox
-                    checked={(draft as any)[it.key] as boolean}
-                    onCheckedChange={(v) =>
-                      setDraft({ ...draft, [it.key]: Boolean(v) } as any)
-                    }
-                  />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{it.label}</p>
-                    {it.hint && <p className="text-xs text-muted-foreground">{it.hint}</p>}
-                  </div>
-                  {(draft as any)[it.key] && (
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                  )}
-                </label>
-              ))}
-            </div>
+            {/* Vérification complète : chaque étape du guide, faite ou pas encore */}
+            <GmbStepsOverview row={row} />
           </TabsContent>
 
           <TabsContent value="info" className="space-y-4 pt-4">
@@ -913,5 +878,47 @@ function GmbDetailDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** Vue d'ensemble : toutes les étapes du guide avec leur état. Les cases se cochent dans l'onglet Guide. */
+function GmbStepsOverview({ row }: { row: ClientGmbWithClient }) {
+  const setup = setupProgress(row);
+  const monthly = monthlyProgress(row);
+  return (
+    <div className="space-y-3">
+      <div className="grid gap-2 sm:grid-cols-2">
+        <div className="rounded-lg border p-3">
+          <p className="text-xs text-muted-foreground">Mise en place</p>
+          <p className="text-lg font-bold">{setup.done}/{setup.total} étapes · {setup.pct}%</p>
+        </div>
+        <div className="rounded-lg border p-3">
+          <p className="text-xs text-muted-foreground">Entretien du mois</p>
+          <p className="text-lg font-bold">{monthly.done}/{monthly.total} étapes · {monthly.pct}%</p>
+        </div>
+      </div>
+      {GMB_PLAYBOOK.map((phase) => (
+        <div key={phase.key} className="space-y-1.5">
+          <p className="text-sm font-semibold">{phase.emoji} {phase.title}</p>
+          {phase.steps.map((step) => {
+            const done = isStepDone(phase, step, row);
+            return (
+              <div key={step.id} className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm">
+                {done ? (
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-success" />
+                ) : (
+                  <AlertTriangle className="h-4 w-4 shrink-0 text-warning" />
+                )}
+                <span className="flex-1">{step.title}</span>
+                <span className={`text-xs font-medium ${done ? "text-success" : "text-muted-foreground"}`}>
+                  {done ? "Fait" : "Pas encore fait"}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      ))}
+      <p className="text-xs text-muted-foreground">Pour cocher une étape, ouvre l'onglet Guide.</p>
+    </div>
   );
 }

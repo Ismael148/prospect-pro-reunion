@@ -1796,6 +1796,7 @@ export default function ClientDetail() {
         payment_method: client.payment_method,
         billing_year: (client as any).billing_year,
         invoiced_offline: (client as any).invoiced_offline,
+        invoice_template: (client as any).invoice_template,
       }} />
 
       <ClientQuotesSection clientId={id!} clientEmail={client.email} />

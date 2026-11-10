@@ -12,3 +12,5 @@
 - Build invoice attachments with a shared helper; fetch and validate the existing agency RIB only on explicit selection, and abort delivery if it cannot be loaded.
 - Do not attach an auto-assignment trigger to project task insertion; only explicit assignee input may assign a new task, keeping generation and manual creation consistent.
 - Invoice PDF designs are separate renderers selected by the invoice's stored template id, with unknown ids falling back to the default; every renderer must draw the agency logo.
+- GMB step completion lives in one per-client progress map keyed by playbook step id (recurring steps suffixed with the Réunion month); legacy checklist booleans are only mirrored for compatibility, so every view reads progress through the shared step helpers.
+- GMB listing analyses are staff-graded criteria stored as dated snapshots with a computed score; the public client dashboard exposes only completion state, scores and client-facing notes, never staff names or internal notes.

@@ -10,4 +10,4 @@
 - Build editable invoice email previews and send payloads with one shared builder; plain-text edits are escaped and the PDF remains generated from invoice data.
 - Send edited invoice emails through the existing single-client email service, not the fixed n8n template; this delivers the preview and PDF exactly once and records the invoice association.
 - Build invoice attachments with a shared helper; fetch and validate the existing agency RIB only on explicit selection, and abort delivery if it cannot be loaded.
-- Do not attach an auto-assignment trigger to project task insertion; only explicit assignee input may assign a new task, keeping generation and manual creation consistent.
+- Do not attach an auto-assignment trigger to project task insertion; only explicit assignee input may assign a new task, keeping generation and manual creation consistent.- Invoice PDF designs are separate renderers selected by the invoice's stored template id, with unknown ids falling back to the default; every renderer must draw the agency logo.

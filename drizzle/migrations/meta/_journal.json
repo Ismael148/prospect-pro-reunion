@@ -85,6 +85,13 @@
       "when": 1794308612959,
       "tag": "0011_gmb_step_progress_and_audits",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794310903694,
+      "tag": "0012_followup_logs_staff_read",
+      "breakpoints": true
     }
   ]
 }

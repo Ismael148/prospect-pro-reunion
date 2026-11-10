@@ -16,7 +16,7 @@ import { wrapInBrandedTemplate } from "@/lib/email-template";
 import { supportLink } from "@/lib/followup";
 import {
   DEFAULT_MEET_LINK, MEET_INVITE_TRIGGER, MEET_MOTIFS, type MeetMotifId,
-  buildMeetInviteEmail, meetMotifLabel, reunionLocalToDate,
+  DEFAULT_MEET_CLOSING, buildMeetInviteEmail, defaultMeetIntro, meetMotifLabel, reunionLocalToDate,
 } from "@/lib/meet-invite";
 import { toast } from "sonner";
 
@@ -39,8 +39,13 @@ export default function MeetInviteSection({ clientId, companyName, managerName, 
   const [note, setNote] = useState("");
   const [subject, setSubject] = useState("");
   const [addToCalendar, setAddToCalendar] = useState(true);
+  // null = follow the default text (which tracks the chosen motif); string = staff-edited text.
+  const [intro, setIntro] = useState<string | null>(null);
+  const [closing, setClosing] = useState<string | null>(null);
 
   const motif = meetMotifLabel(motifId, customMotif);
+  const introText = intro ?? defaultMeetIntro(motif);
+  const closingText = closing ?? DEFAULT_MEET_CLOSING;
   const start = when ? reunionLocalToDate(when) : null;
   const startValid = !!start && !Number.isNaN(start.getTime()) && start.getTime() > Date.now();
   const meetValid = /^https:\/\/meet\.google\.com\/\S+$/.test(meet.trim());
@@ -49,20 +54,21 @@ export default function MeetInviteSection({ clientId, companyName, managerName, 
   const mail = useMemo(() => {
     const built = buildMeetInviteEmail({
       name: managerName, motif: motif || "[motif]", start: startValid ? start! : new Date(Date.now() + 86_400_000),
-      durationMin: duration, meet: meet.trim() || DEFAULT_MEET_LINK, note,
+      durationMin: duration, meet: meet.trim() || DEFAULT_MEET_LINK, note, intro: introText, closing: closingText,
     });
     const link = supportLink(supportToken);
     return { subject: subject.trim() || built.subject, html: applySupport(wrapInBrandedTemplate(built.body, link || undefined, branding || undefined), link, branding || undefined) };
-  }, [managerName, motif, start, startValid, duration, meet, note, subject, supportToken, branding, applySupport]);
+  }, [managerName, motif, start, startValid, duration, meet, note, introText, closingText, subject, supportToken, branding, applySupport]);
 
   const problems = [
     !toValid && "adresse email valide",
     !motif && "motif",
     !startValid && "date et heure à venir",
     !meetValid && "lien Google Meet",
+    !introText.trim() && "texte d'introduction",
   ].filter(Boolean) as string[];
 
-  const openDialog = () => { setTo(email || ""); setSubject(""); setOpen(true); };
+  const openDialog = () => { setTo(email || ""); setSubject(""); setIntro(null); setClosing(null); setOpen(true); };
 
   const send = async () => {
     if (problems.length || sending) return;
@@ -128,7 +134,22 @@ export default function MeetInviteSection({ clientId, companyName, managerName, 
               </div>
               <div className="space-y-1.5"><Label>Lien Google Meet</Label><Input value={meet} onChange={(e) => setMeet(e.target.value)} /></div>
               <div className="space-y-1.5"><Label>Objet du mail</Label><Input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder={mail.subject} /></div>
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <Label>Texte d'introduction</Label>
+                  {intro !== null && <Button type="button" variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => setIntro(null)}>Rétablir le texte par défaut</Button>}
+                </div>
+                <Textarea value={introText} onChange={(e) => setIntro(e.target.value)} rows={4} />
+                <p className="text-xs text-muted-foreground">Placé après « Bonjour », avant la date, l'heure et le lien Meet.</p>
+              </div>
               <div className="space-y-1.5"><Label>Message complémentaire (facultatif)</Label><Textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} placeholder="Ex. : Pensez à préparer vos photos et vos textes." /></div>
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <Label>Texte de fin (facultatif)</Label>
+                  {closing !== null && <Button type="button" variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => setClosing(null)}>Rétablir le texte par défaut</Button>}
+                </div>
+                <Textarea value={closingText} onChange={(e) => setClosing(e.target.value)} rows={2} />
+              </div>
               <EmailSupportOption checked={includeSupport} onChange={setIncludeSupport} />
               <div className="flex items-center gap-2">
                 <Checkbox id="meet-calendar" checked={addToCalendar} onCheckedChange={(v) => setAddToCalendar(v === true)} />

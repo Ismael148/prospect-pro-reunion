@@ -253,7 +253,7 @@ export default function Gmb() {
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  Le statut initial sera <Badge variant="outline">À créer</Badge>. Une fois activé, tu retrouves le <strong>guide pas-à-pas, la checklist des 8 étapes, les objectifs mensuels et le journal d'activité</strong> visible par le client.
+                  Le statut initial sera <Badge variant="outline">À créer</Badge>. Une fois activé, tu retrouves le <strong>guide pas-à-pas, l'analyse de la fiche, la vérification de chaque étape, les objectifs mensuels et le journal d'activité</strong> visible par le client.
                 </p>
               )}
             </div>
@@ -276,7 +276,7 @@ export default function Gmb() {
           <p className="font-semibold mb-2">📘 Comment ça marche ?</p>
           <ol className="list-decimal ml-5 space-y-1 text-muted-foreground">
             <li><strong>Activer le suivi GMB</strong> pour un client → il apparaît dans la liste ci-dessous.</li>
-            <li>Clique sur <strong>Gérer</strong> sur sa carte → tu accèdes à 6 onglets : <strong>Guide</strong> (pas-à-pas webmaster), <strong>Checklist</strong> (8 étapes), <strong>Objectifs</strong> (posts/avis/photos du mois), <strong>Journal</strong> (actions visibles ou non par le client), <strong>Infos</strong> et <strong>Avis</strong>.</li>
+            <li>Clique sur <strong>Gérer</strong> sur sa carte → tu accèdes à 7 onglets : <strong>Guide</strong> (chaque étape à cocher, datée et signée), <strong>Analyse</strong> (note de la fiche à partir de son lien), <strong>Checklist</strong> (vue fait / pas encore fait), <strong>Objectifs</strong> (posts/avis/photos du mois), <strong>Journal</strong> (actions visibles ou non par le client), <strong>Infos</strong> et <strong>Avis</strong>.</li>
             <li>Copie le <strong>Lien client</strong> et envoie-le au client — il voit alors le travail en direct sur <code>/mon-gmb/…</code>.</li>
           </ol>
         </CardContent>

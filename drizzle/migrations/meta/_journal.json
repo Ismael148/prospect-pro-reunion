@@ -64,6 +64,13 @@
       "when": 1792477082652,
       "tag": "0008_manual_project_task_assignment",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794287994202,
+      "tag": "0009_invoice_design_template",
+      "breakpoints": true
     }
   ]
 }

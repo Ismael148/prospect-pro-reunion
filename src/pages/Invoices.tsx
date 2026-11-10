@@ -6,6 +6,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { exportInvoicePDF } from "@/lib/export-invoice-pdf";
 import { buildInvoiceEmail, getInvoiceEmailDraft } from "@/lib/invoice-email";
 import { ClientCombobox } from "@/components/ClientCombobox";
+import { InvoiceTemplatePicker } from "@/components/invoices/InvoiceTemplatePicker";
+import { DEFAULT_INVOICE_TEMPLATE, type InvoiceTemplateId } from "@/lib/invoice-templates";
 import { PACK_LABELS, PACK_PRICES, PACK_RENEWAL_PRICES, PACK_RENEWAL_NOTE, TUNING_WEBSITE_ADDON_PRICE } from "@/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -92,6 +94,7 @@ export default function Invoices() {
     { description: "", quantity: 1, unit_price: 0, total: 0 },
   ]);
   const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
+  const [designTemplate, setDesignTemplate] = useState<InvoiceTemplateId>(DEFAULT_INVOICE_TEMPLATE);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [sendTarget, setSendTarget] = useState<Invoice | null>(null);
   const [sendEmail, setSendEmail] = useState("");
@@ -196,6 +199,7 @@ export default function Invoices() {
         created_by: user!.id,
         status: "brouillon",
         payment_methods: paymentMethods.length > 0 ? paymentMethods : null,
+        design_template: designTemplate,
       } as any);
       toast.success("Facture créée en brouillon — vérifiez puis cliquez sur Envoyer");
       setDialogOpen(false);
@@ -211,6 +215,7 @@ export default function Invoices() {
     setDueDate("");
     setItems([{ description: "", quantity: 1, unit_price: 0, total: 0 }]);
     setPaymentMethods([]);
+    setDesignTemplate(DEFAULT_INVOICE_TEMPLATE);
   };
 
   const handleStatusChange = async (id: string, status: string) => {
@@ -274,6 +279,7 @@ export default function Invoices() {
       notes: notes || null,
       items,
       payment_methods: paymentMethods.length > 0 ? paymentMethods : null,
+      design_template: designTemplate,
       client_id: selectedClientId,
     };
     const data = buildPdfData(draft);
@@ -525,6 +531,11 @@ export default function Invoices() {
               />
             </div>
 
+            <div className="space-y-2">
+              <Label>Modèle de facture</Label>
+              <InvoiceTemplatePicker value={designTemplate} onChange={setDesignTemplate} />
+              <p className="text-xs text-muted-foreground">Le logo Adamkom figure sur tous les modèles. Cliquez sur « Aperçu » pour voir la facture complète.</p>
+            </div>
 
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">

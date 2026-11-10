@@ -252,14 +252,3 @@ export const GMB_PLAYBOOK: GmbPlaybookPhase[] = [
     ],
   },
 ];
-
-export function computePhaseProgress(
-  phase: GmbPlaybookPhase,
-  gmb: Record<string, any>
-): { done: number; total: number; pct: number } {
-  const stepsWithKey = phase.steps.filter((s) => s.checklistKey);
-  const total = stepsWithKey.length;
-  if (total === 0) return { done: 0, total: 0, pct: 0 };
-  const done = stepsWithKey.filter((s) => gmb[s.checklistKey!]).length;
-  return { done, total, pct: Math.round((done / total) * 100) };
-}

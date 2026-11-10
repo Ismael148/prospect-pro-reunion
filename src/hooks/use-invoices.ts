@@ -28,6 +28,7 @@ export interface Invoice {
   notes: string | null;
   items: InvoiceItem[];
   payment_methods?: string[] | null;
+  design_template?: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -120,6 +121,7 @@ export async function sendInvoiceEmail(data: Invoice, emailOverride?: string, em
     notes: data.notes,
     items: data.items,
     payment_methods: data.payment_methods,
+    design_template: data.design_template,
     client: {
       company_name: client.company_name,
       address: client.address,

@@ -72,7 +72,8 @@ import {
 } from "@/hooks/use-client-gmb";
 import { GmbWebmasterPlaybook } from "@/components/gmb/GmbWebmasterPlaybook";
 import { GmbAuditPanel } from "@/components/gmb/GmbAuditPanel";
-import { setupProgress } from "@/lib/gmb-steps";
+import { isStepDone, monthlyProgress, setupProgress } from "@/lib/gmb-steps";
+import { GMB_PLAYBOOK } from "@/lib/gmb-playbook";
 import { PUBLISHED_URL } from "@/lib/constants";
 import { GmbActivityTimeline } from "@/components/gmb/GmbActivityTimeline";
 import { GmbMonthlyGoals } from "@/components/gmb/GmbMonthlyGoals";
@@ -583,14 +584,6 @@ function GmbDetailDialog({
     total_reviews: row.total_reviews ?? 0,
     average_rating: row.average_rating ?? "",
     unanswered_reviews: row.unanswered_reviews ?? 0,
-    checklist_account_created: row.checklist_account_created,
-    checklist_postal_requested: row.checklist_postal_requested,
-    checklist_code_received: row.checklist_code_received,
-    checklist_verified: row.checklist_verified,
-    checklist_logo_added: row.checklist_logo_added,
-    checklist_photos_added: row.checklist_photos_added,
-    checklist_hours_set: row.checklist_hours_set,
-    checklist_description_added: row.checklist_description_added,
   });
 
   const client = row.clients;
@@ -753,29 +746,8 @@ function GmbDetailDialog({
               </CardContent>
             </Card>
 
-            {/* Checklist */}
-            <div className="space-y-2">
-              {CHECKLIST_ITEMS.map((it) => (
-                <label
-                  key={String(it.key)}
-                  className="flex cursor-pointer items-start gap-3 rounded-lg border p-3 hover:bg-accent/40"
-                >
-                  <Checkbox
-                    checked={(draft as any)[it.key] as boolean}
-                    onCheckedChange={(v) =>
-                      setDraft({ ...draft, [it.key]: Boolean(v) } as any)
-                    }
-                  />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{it.label}</p>
-                    {it.hint && <p className="text-xs text-muted-foreground">{it.hint}</p>}
-                  </div>
-                  {(draft as any)[it.key] && (
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                  )}
-                </label>
-              ))}
-            </div>
+            {/* Vérification complète : chaque étape du guide, faite ou pas encore */}
+            <GmbStepsOverview row={row} />
           </TabsContent>
 
           <TabsContent value="info" className="space-y-4 pt-4">
@@ -922,5 +894,47 @@ function GmbDetailDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** Vue d'ensemble : toutes les étapes du guide avec leur état. Les cases se cochent dans l'onglet Guide. */
+function GmbStepsOverview({ row }: { row: ClientGmbWithClient }) {
+  const setup = setupProgress(row);
+  const monthly = monthlyProgress(row);
+  return (
+    <div className="space-y-3">
+      <div className="grid gap-2 sm:grid-cols-2">
+        <div className="rounded-lg border p-3">
+          <p className="text-xs text-muted-foreground">Mise en place</p>
+          <p className="text-lg font-bold">{setup.done}/{setup.total} étapes · {setup.pct}%</p>
+        </div>
+        <div className="rounded-lg border p-3">
+          <p className="text-xs text-muted-foreground">Entretien du mois</p>
+          <p className="text-lg font-bold">{monthly.done}/{monthly.total} étapes · {monthly.pct}%</p>
+        </div>
+      </div>
+      {GMB_PLAYBOOK.map((phase) => (
+        <div key={phase.key} className="space-y-1.5">
+          <p className="text-sm font-semibold">{phase.emoji} {phase.title}</p>
+          {phase.steps.map((step) => {
+            const done = isStepDone(phase, step, row);
+            return (
+              <div key={step.id} className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm">
+                {done ? (
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-success" />
+                ) : (
+                  <AlertTriangle className="h-4 w-4 shrink-0 text-warning" />
+                )}
+                <span className="flex-1">{step.title}</span>
+                <span className={`text-xs font-medium ${done ? "text-success" : "text-muted-foreground"}`}>
+                  {done ? "Fait" : "Pas encore fait"}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      ))}
+      <p className="text-xs text-muted-foreground">Pour cocher une étape, ouvre l'onglet Guide.</p>
+    </div>
   );
 }

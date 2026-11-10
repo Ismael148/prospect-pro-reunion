@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { applyStepChange, type GmbStepProgress } from "@/lib/gmb-steps";
+import { computeAuditScore, type AuditCriteria } from "@/lib/gmb-audit";
 
 const normalizeSearch = (value: string | null | undefined) =>
   (value ?? "")
@@ -52,6 +54,7 @@ export interface ClientGmb {
   average_rating: number | null;
   unanswered_reviews: number;
   notes: string | null;
+  step_progress: GmbStepProgress | null;
   created_at: string;
   updated_at: string;
 }
@@ -68,6 +71,9 @@ export interface ClientGmbWithClient extends ClientGmb {
     sector: string | null;
     has_gmb: boolean | null;
     gmb_public_token: string | null;
+    manager_name?: string | null;
+    email?: string | null;
+    support_token?: string | null;
   } | null;
 }
 
@@ -106,7 +112,7 @@ export function useClientGmbList(filters?: { status?: GmbStatus | "all"; search?
       let q = (supabase as any)
         .from("client_gmb")
         .select(
-          "*, clients(id, company_name, ndi, address, city, postal_code, phone, sector, has_gmb, gmb_public_token)"
+          "*, clients(id, company_name, ndi, address, city, postal_code, phone, sector, has_gmb, gmb_public_token, manager_name, email, support_token)"
         )
         .order("updated_at", { ascending: false });
       if (filters?.status && filters.status !== "all") q = q.eq("status", filters.status);
@@ -177,14 +183,11 @@ export function useUpsertClientGmb() {
   return useMutation({
     mutationFn: async (input: Partial<ClientGmb> & { client_id: string }) => {
       const { data: user } = await supabase.auth.getUser();
-      const payload: any = {
-        ...input,
-        gmb_url: input.gmb_url || null,
-        gmb_location_id: input.gmb_location_id || null,
-        business_name_on_google: input.business_name_on_google || null,
-        google_account_email: input.google_account_email || null,
-        notes: input.notes || null,
-      };
+      // Ne normalise que les champs envoyés : une mise à jour partielle ne doit pas effacer les autres.
+      const payload: any = { ...input };
+      for (const key of ["gmb_url", "gmb_location_id", "business_name_on_google", "google_account_email", "notes"] as const) {
+        if (key in input) payload[key] = (input as any)[key] || null;
+      }
       if (!input.id) payload.created_by = user.user?.id;
       const { data, error } = input.id
         ? await (supabase as any)
@@ -235,4 +238,90 @@ export function buildGmbCreateUrl(client: {
   if (parts) params.set("address", parts);
   if (client.phone) params.set("phone", client.phone);
   return `https://business.google.com/create?${params.toString()}`;
+}
+
+/** Coche / décoche une étape du guide GMB (avec date et auteur), et synchronise l'ancienne case si elle existe. */
+export function useToggleGmbStep() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      id: string;
+      key: string;
+      done: boolean;
+      checklistKey?: string;
+      who: { id?: string | null; name?: string | null };
+      note?: string | null;
+    }) => {
+      const { data: current, error: readError } = await (supabase as any)
+        .from("client_gmb")
+        .select("step_progress")
+        .eq("id", input.id)
+        .single();
+      if (readError) throw readError;
+      const step_progress = applyStepChange(current?.step_progress, input.key, input.done, input.who, input.note);
+      const update: Record<string, unknown> = { step_progress };
+      if (input.checklistKey) update[input.checklistKey] = input.done;
+      const { error } = await (supabase as any).from("client_gmb").update(update).eq("id", input.id);
+      if (error) throw error;
+      return step_progress;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["client-gmb"] }),
+    onError: (e: any) => toast.error(e.message || "Impossible d'enregistrer l'étape"),
+  });
+}
+
+export interface GmbAudit {
+  id: string;
+  client_gmb_id: string;
+  client_id: string;
+  maps_url: string | null;
+  criteria: AuditCriteria;
+  score: number;
+  summary: string | null;
+  created_by: string | null;
+  created_by_name: string | null;
+  created_at: string;
+}
+
+export function useGmbAudits(clientGmbId?: string) {
+  return useQuery({
+    queryKey: ["gmb-audits", clientGmbId],
+    enabled: !!clientGmbId,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("gmb_audits")
+        .select("*")
+        .eq("client_gmb_id", clientGmbId)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return (data || []) as GmbAudit[];
+    },
+  });
+}
+
+export function useSaveGmbAudit() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      client_gmb_id: string;
+      client_id: string;
+      maps_url: string | null;
+      criteria: AuditCriteria;
+      summary: string | null;
+      created_by_name: string | null;
+    }) => {
+      const { data, error } = await (supabase as any)
+        .from("gmb_audits")
+        .insert({ ...input, score: computeAuditScore(input.criteria) })
+        .select()
+        .single();
+      if (error) throw error;
+      return data as GmbAudit;
+    },
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ["gmb-audits", data.client_gmb_id] });
+    },
+    onError: (e: any) => toast.error(e.message || "Impossible d'enregistrer l'analyse"),
+  });
 }

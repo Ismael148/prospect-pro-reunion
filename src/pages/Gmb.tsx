@@ -186,7 +186,7 @@ export default function Gmb() {
         const { data, error } = await (supabase as any)
           .from("client_gmb")
           .select(
-            "*, clients(id, company_name, ndi, address, city, postal_code, phone, sector, has_gmb, gmb_public_token)"
+            "*, clients(id, company_name, ndi, address, city, postal_code, phone, sector, has_gmb, gmb_public_token, manager_name, email, support_token)"
           )
           .eq("client_id", pickedClientId)
           .maybeSingle();

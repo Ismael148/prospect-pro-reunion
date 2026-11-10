@@ -45,8 +45,10 @@ export function QuoteToInvoiceDialog({ quote, onClose }: { quote: any | null; on
         ? `Paiement effectué : ${eur(paidNum)} le ${new Date(paidDate).toLocaleDateString("fr-FR")} (${METHODS[method]}).${rest > 0 ? ` Reste à payer : ${eur(rest)}.` : " Facture soldée."}`
         : "";
       const notes = [cleanQuoteNotes(quote.notes), `Facture établie d'après le devis n° ${quote.quote_number}.`, paymentLine].filter(Boolean).join("\n");
+      const { data: clientPref } = await supabase.from("clients").select("invoice_template").eq("id", quote.client_id).maybeSingle();
       const { error } = await supabase.from("invoices").insert({
         client_id: quote.client_id,
+        design_template: clientPreferredTemplate(clientPref),
         created_by: auth.user!.id,
         invoice_number: quote.quote_number,
         amount: Number(quote.amount ?? total),

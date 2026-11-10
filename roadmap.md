@@ -16,3 +16,5 @@
 - [ ] Proposer le bloc support facultatif dans tous les envois manuels, avec aperçu et lien personnel cohérents.
 - [x] Ajouter les cadeaux et règles éventuelles du jeu à gratter au formulaire de conversion et vérifier leur transmission sans enregistrer de réponse de test.
 - [x] Proposer 4 modèles de facture design (logo Adamkom toujours présent) au choix à la création.
+- [ ] Mémoriser un modèle de facture préféré par client et le proposer automatiquement à la création.
+- [ ] Analyse d'une fiche Google à partir d'un lien, rapport envoyable au client, et suivi minutieux de chaque étape GMB (fait / pas fait).

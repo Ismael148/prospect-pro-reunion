@@ -45,6 +45,7 @@ import ClientInvoicesSection from "@/components/clients/ClientInvoicesSection";
 import ClientQuotesSection from "@/components/clients/ClientQuotesSection";
 import ConversionFormSection from "@/components/clients/ConversionFormSection";
 import GmbVideoGuideSection from "@/components/clients/GmbVideoGuideSection";
+import MeetInviteSection from "@/components/clients/MeetInviteSection";
 import { hasGmbVideoGuide } from "@/lib/gmb-video-guide";
 
 import ClientRemindersSection from "@/components/clients/ClientRemindersSection";
@@ -1804,6 +1805,7 @@ export default function ClientDetail() {
       <SupportTicketsSection clientId={id!} />
 
       <ClientEmailHistory clientId={id!} clientEmail={client.email} />
+      <MeetInviteSection clientId={client.id} companyName={client.company_name} managerName={client.manager_name} email={client.email} supportToken={(client as any).support_token} />
       {hasGmbVideoGuide(client.pack_type) && (
         <GmbVideoGuideSection clientId={client.id} companyName={client.company_name} managerName={client.manager_name} email={client.email} />
       )}

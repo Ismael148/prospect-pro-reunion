@@ -105,8 +105,9 @@ export default function ClientsDecollage() {
         assigned_to: user!.id, created_by: user!.id,
       } as any);
       if (form.withProject && created) {
-        await createProject(created, true);
-        toast.success(`Client créé, projet et ${TOTAL_TASKS} tâches générés`);
+        const projectId = await createProject(created, true);
+        if (projectId) toast.success(`Client créé, projet et ${TOTAL_TASKS} tâches générés`);
+        else toast.warning("Client créé, mais le projet n'a pas pu être généré : utilisez « Créer le projet + tâches ».");
       } else toast.success("Client Décollage créé");
       setOpen(false);
       setForm(EMPTY_FORM);

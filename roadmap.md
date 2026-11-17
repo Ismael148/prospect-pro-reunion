@@ -18,3 +18,4 @@
 - [x] Proposer 4 modèles de facture design (logo Adamkom toujours présent) au choix à la création.
 - [x] Mémoriser un modèle de facture préféré par client et le proposer automatiquement à la création.
 - [x] Analyse d'une fiche Google à partir d'un lien, rapport envoyable au client, et suivi minutieux de chaque étape GMB (fait / pas fait).
+- [x] Section Clients Décollage : ajout de clients, mail de présentation modifiable (WhatsApp affiché), ticket support, projet et tâches du pack.

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { Copy, Loader2, Send, Ticket } from "lucide-react";
@@ -34,19 +34,13 @@ export default function DecollageSupportDialog({ client, open, onOpenChange }: {
   const { data: branding } = useEmailBranding();
   const [tab, setTab] = useState("mail");
   const [busy, setBusy] = useState(false);
-  const [to, setTo] = useState("");
+  // The parent remounts this dialog per client (key), so state starts from the client's data on first render.
+  const [to, setTo] = useState(client?.email || "");
   const [subject, setSubject] = useState("");
-  const [name, setName] = useState("");
+  const [name, setName] = useState(client?.manager_name || "");
   const [intro, setIntro] = useState(DEFAULT_SUPPORT_INTRO);
   const [note, setNote] = useState("");
   const [ticket, setTicket] = useState({ category: "question", priority: "normale", subject: "", message: "" });
-
-  useEffect(() => {
-    if (!open || !client) return;
-    setTab("mail"); setTo(client.email || ""); setSubject(""); setName(client.manager_name || "");
-    setIntro(DEFAULT_SUPPORT_INTRO); setNote("");
-    setTicket({ category: "question", priority: "normale", subject: "", message: "" });
-  }, [open, client]);
 
   const link = supportLink(client?.support_token);
   const mail = useMemo(() => {

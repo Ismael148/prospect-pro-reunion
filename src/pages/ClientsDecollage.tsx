@@ -257,8 +257,8 @@ export default function ClientsDecollage() {
         </DialogContent>
       </Dialog>
 
-      <DecollageEmailDialog client={mailClient} open={!!mailClient} onOpenChange={(v) => { if (!v) setMailClient(null); }} />
-      <DecollageSupportDialog client={supportClient} open={!!supportClient} onOpenChange={(v) => { if (!v) setSupportClient(null); }} />
+      <DecollageEmailDialog key={mailClient?.id || "none"} client={mailClient} open={!!mailClient} onOpenChange={(v) => { if (!v) setMailClient(null); }} />
+      <DecollageSupportDialog key={supportClient?.id || "none"} client={supportClient} open={!!supportClient} onOpenChange={(v) => { if (!v) setSupportClient(null); }} />
     </motion.div>
   );
 }

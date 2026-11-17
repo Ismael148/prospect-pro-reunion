@@ -23,9 +23,9 @@ describe("Pack Décollage", () => {
     expect(buildDecollageEmail({ ...DECOLLAGE_DEFAULTS, name: "" }).html).toContain("Bonjour,");
   });
 
-  it("hides the WhatsApp number unless it is ticked", () => {
-    expect(buildDecollageEmail({ ...DECOLLAGE_DEFAULTS }).html).not.toContain("93 80 22 01");
-    expect(buildDecollageEmail({ ...DECOLLAGE_DEFAULTS, includeWhatsapp: true }).html).toContain("93 80 22 01");
+  it("shows the WhatsApp number by default and hides it when unticked", () => {
+    expect(buildDecollageEmail({ ...DECOLLAGE_DEFAULTS }).html).toContain("93 80 22 01");
+    expect(buildDecollageEmail({ ...DECOLLAGE_DEFAULTS, includeWhatsapp: false }).html).not.toContain("93 80 22 01");
   });
 
   it("adds the support block only when asked and a link exists", () => {

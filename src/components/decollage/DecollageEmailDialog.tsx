@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Code2, Loader2, RotateCcw, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,17 +22,11 @@ export default function DecollageEmailDialog({ client, open, onOpenChange }: { c
   const queryClient = useQueryClient();
   const { data: branding } = useEmailBranding();
   const { includeSupport, setIncludeSupport } = useEmailSupport();
-  const [to, setTo] = useState("");
-  const [fields, setFields] = useState<DecollageEmailFields>({ ...DECOLLAGE_DEFAULTS });
+  // The parent remounts this dialog per client (key), so state starts from the client's data on first render.
+  const [to, setTo] = useState(client?.email || "");
+  const [fields, setFields] = useState<DecollageEmailFields>({ ...DECOLLAGE_DEFAULTS, name: client?.manager_name || "", subject: "" });
   const [htmlOverride, setHtmlOverride] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
-
-  useEffect(() => {
-    if (!open || !client) return;
-    setTo(client.email || "");
-    setFields({ ...DECOLLAGE_DEFAULTS, name: client.manager_name || "", subject: "" });
-    setHtmlOverride(null);
-  }, [open, client]);
 
   const link = supportLink(client?.support_token);
   const built = useMemo(

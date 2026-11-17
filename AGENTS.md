@@ -16,3 +16,4 @@
 - GMB listing analyses are staff-graded criteria stored as dated snapshots with a computed score; the public client dashboard exposes only completion state, scores and client-facing notes, never staff names or internal notes.
 
 - Shared CRM read policies use `public.is_staff(auth.uid())` (any role in user_roles), plus owner-row access where relevant; never `USING (true)` or a signed-in-only check, so role-less accounts see no team data.
+- Pack Décollage presentation and support-link emails come from one shared builder per email for preview and send, delivered through the single-client email service; a full-HTML override is sent as edited.

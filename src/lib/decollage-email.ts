@@ -49,9 +49,9 @@ export const DECOLLAGE_DEFAULTS: Omit<DecollageEmailFields, "name" | "subject"> 
   note: "",
   price: "2 250 €",
   priceText: "15 jours d'essai pour voir concrètement comment nous optimisons tout pour vous. Carte NFC offerte avec le forfait.",
-  questions: "Des questions ? Répondez à cet e-mail ou appelez-nous. On s'occupe de lancer vos 15 jours d'essai.",
+  questions: "Des questions ? Écrivez-nous sur WhatsApp, répondez à cet e-mail ou appelez-nous. On s'occupe de lancer vos 15 jours d'essai.",
   footer: "Pack Décollage est un service Adamkom by JJP. Prix TTC, tout inclus. Offre d'essai de 15 jours.",
-  includeWhatsapp: false,
+  includeWhatsapp: true,
 };
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));

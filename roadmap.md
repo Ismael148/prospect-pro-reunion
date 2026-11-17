@@ -20,3 +20,4 @@
 - [x] Analyse d'une fiche Google à partir d'un lien, rapport envoyable au client, et suivi minutieux de chaque étape GMB (fait / pas fait).
 - [x] Section Clients Décollage : ajout de clients, mail de présentation modifiable (WhatsApp affiché), ticket support, projet et tâches du pack.
 - [x] Test réel Décollage : agence de test créée, 50 tâches générées, présentation envoyée à adamkom.co@gmail.com.
+- [x] Suivi des mails Décollage : ouvertures, clics, taux d'ouverture et de clic.

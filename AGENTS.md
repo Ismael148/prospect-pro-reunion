@@ -17,3 +17,4 @@
 
 - Shared CRM read policies use `public.is_staff(auth.uid())` (any role in user_roles), plus owner-row access where relevant; never `USING (true)` or a signed-in-only check, so role-less accounts see no team data.
 - Pack Décollage presentation and support-link emails come from one shared builder per email for preview and send, delivered through the single-client email service; a full-HTML override is sent as edited.
+- Email opens/clicks are pulled from the email provider into a staff-readable `email_tracking` snapshot (one row per message, refreshed on demand); the sent-email log stays unchanged and the last snapshot is kept when provider events expire.

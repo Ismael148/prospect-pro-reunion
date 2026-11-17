@@ -324,6 +324,81 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ═══════════════════════════════════════════
+    // ACTION: sync_tracking (opens / clicks of emails sent to given clients, from Brevo events)
+    // ═══════════════════════════════════════════
+    if (action === 'sync_tracking') {
+      const { data: roleRows } = await serviceSupabase.from('user_roles').select('role').eq('user_id', user.id).limit(1);
+      if (!roleRows?.length) {
+        return new Response(JSON.stringify({ error: 'Accès réservé à l\'équipe' }), { status: 403, headers: corsHeaders });
+      }
+      const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const clientIds: string[] = Array.isArray(body.client_ids)
+        ? [...new Set(body.client_ids.filter((v: unknown) => typeof v === 'string' && UUID_RE.test(v)))].slice(0, 300) as string[]
+        : [];
+      if (!clientIds.length) {
+        return new Response(JSON.stringify({ success: true, synced: 0 }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      const since = new Date(Date.now() - 90 * 86400000).toISOString();
+      const { data: logs, error: logsError } = await serviceSupabase.from('email_send_log')
+        .select('message_id, recipient_email, subject, template_name, created_at, metadata')
+        .eq('status', 'sent').not('message_id', 'is', null)
+        .in('metadata->>client_id', clientIds)
+        .gte('created_at', since)
+        .order('created_at', { ascending: false }).limit(300);
+      if (logsError) throw logsError;
+
+      const OPEN = new Set(['opened', 'uniqueOpened']);
+      const FAIL: Record<string, string> = { hardBounces: 'Adresse invalide (rejet définitif)', softBounces: 'Rejet temporaire', blocked: 'Bloqué', spam: 'Signalé comme spam', invalid: 'Adresse invalide', error: 'Erreur d\'envoi' };
+      let synced = 0;
+      const rows = (logs || []) as any[];
+      for (let i = 0; i < rows.length; i += 5) {
+        const batch = rows.slice(i, i + 5);
+        await Promise.all(batch.map(async (log) => {
+          const url = new URL('https://api.brevo.com/v3/smtp/statistics/events');
+          url.searchParams.set('messageId', log.message_id);
+          url.searchParams.set('limit', '100');
+          url.searchParams.set('days', '90');
+          const res = await fetch(url, { headers: { 'api-key': BREVO_API_KEY, accept: 'application/json' } });
+          if (!res.ok) { console.error(`Brevo events [${res.status}]: ${await res.text()}`); return; }
+          const events: any[] = (await res.json())?.events || [];
+          if (!events.length) return; // keep the last known snapshot when Brevo no longer returns events
+          const at = (e: any) => new Date(e.date).toISOString();
+          const sorted = events.filter((e) => e?.date).sort((a, b) => +new Date(a.date) - +new Date(b.date));
+          const opens = sorted.filter((e) => OPEN.has(e.event));
+          const clicks = sorted.filter((e) => e.event === 'clicks');
+          const delivered = sorted.find((e) => e.event === 'delivered');
+          const failure = [...sorted].reverse().find((e) => FAIL[e.event]);
+          const links = [...new Set(clicks.map((e) => e.link).filter(Boolean))].slice(0, 20);
+          const status = clicks.length ? 'clicked' : opens.length ? 'opened' : failure ? failure.event : delivered ? 'delivered' : 'sent';
+          const { error } = await serviceSupabase.from('email_tracking').upsert({
+            message_id: log.message_id,
+            client_id: log.metadata?.client_id || null,
+            template_name: log.template_name,
+            recipient_email: log.recipient_email,
+            subject: log.subject,
+            sent_at: log.created_at,
+            status,
+            delivered_at: delivered ? at(delivered) : null,
+            first_opened_at: opens[0] ? at(opens[0]) : null,
+            last_opened_at: opens.length ? at(opens[opens.length - 1]) : null,
+            open_count: opens.length,
+            click_count: clicks.length,
+            last_clicked_at: clicks.length ? at(clicks[clicks.length - 1]) : null,
+            clicked_links: links,
+            failure_reason: failure ? `${FAIL[failure.event]}${failure.reason ? ` : ${failure.reason}` : ''}` : null,
+            last_synced_at: new Date().toISOString(),
+          }, { onConflict: 'message_id' });
+          if (error) console.error('email_tracking upsert:', error.message); else synced++;
+        }));
+      }
+
+      return new Response(JSON.stringify({ success: true, synced, total: rows.length }), {
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     return new Response(JSON.stringify({ error: 'Action inconnue' }), { status: 400, headers: corsHeaders });
   } catch (error) {
     console.error('send-brevo-campaign error:', error);

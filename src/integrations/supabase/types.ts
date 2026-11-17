@@ -1097,6 +1097,63 @@ export type Database = {
           },
         ]
       }
+      email_tracking: {
+        Row: {
+          click_count: number
+          clicked_links: Json
+          client_id: string | null
+          delivered_at: string | null
+          failure_reason: string | null
+          first_opened_at: string | null
+          last_clicked_at: string | null
+          last_opened_at: string | null
+          last_synced_at: string
+          message_id: string
+          open_count: number
+          recipient_email: string | null
+          sent_at: string | null
+          status: string
+          subject: string | null
+          template_name: string | null
+        }
+        Insert: {
+          click_count?: number
+          clicked_links?: Json
+          client_id?: string | null
+          delivered_at?: string | null
+          failure_reason?: string | null
+          first_opened_at?: string | null
+          last_clicked_at?: string | null
+          last_opened_at?: string | null
+          last_synced_at?: string
+          message_id: string
+          open_count?: number
+          recipient_email?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+          template_name?: string | null
+        }
+        Update: {
+          click_count?: number
+          clicked_links?: Json
+          client_id?: string | null
+          delivered_at?: string | null
+          failure_reason?: string | null
+          first_opened_at?: string | null
+          last_clicked_at?: string | null
+          last_opened_at?: string | null
+          last_synced_at?: string
+          message_id?: string
+          open_count?: number
+          recipient_email?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+          template_name?: string | null
+        }
+        Relationships: []
+      }
       expenses: {
         Row: {
           amount: number

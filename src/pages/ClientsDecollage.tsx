@@ -14,6 +14,7 @@ import { ensureProjectWithTasks } from "@/lib/auto-project";
 import { exportClientsCSV, exportClientsPDF } from "@/lib/export-clients-list";
 import DecollageEmailDialog, { type DecollageClient } from "@/components/decollage/DecollageEmailDialog";
 import DecollageSupportDialog from "@/components/decollage/DecollageSupportDialog";
+import DecollageEmailTracking, { TrackingBadge, useDecollageTracking } from "@/components/decollage/DecollageEmailTracking";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -75,6 +76,9 @@ export default function ClientsDecollage() {
       return map;
     },
   });
+  const tracking = useDecollageTracking(ids);
+  const clientNames = useMemo(() => Object.fromEntries(all.map((c: any) => [c.id, c.company_name])), [all]);
+  const lastPresentation = (clientId: string) => tracking.emails.find((e) => e.client_id === clientId && e.template_name === DECOLLAGE_EMAIL_TRIGGER);
   const projectOf = (clientId: string) => (projects || []).find((p: any) => p.client_id === clientId);
 
   const createProject = async (client: any, silent = false) => {
@@ -156,6 +160,8 @@ export default function ClientsDecollage() {
         </CardContent>
       </Card>
 
+      {ids.length > 0 && <DecollageEmailTracking tracking={tracking} clientNames={clientNames} />}
+
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input className="pl-10" placeholder="Rechercher un client Décollage..." value={search} onChange={(e) => setSearch(e.target.value)} />
@@ -180,7 +186,8 @@ export default function ClientsDecollage() {
               <TableBody>
                 {list.map((c: any) => {
                   const p: any = projectOf(c.id);
-                  const sent = lastMails?.[c.id];
+                  const tracked = lastPresentation(c.id);
+                  const sent = tracked?.sent_at || lastMails?.[c.id];
                   const dc: DecollageClient = { id: c.id, company_name: c.company_name, manager_name: c.manager_name, email: c.email, support_token: c.support_token };
                   return (
                     <TableRow key={c.id} className="align-top">
@@ -195,7 +202,12 @@ export default function ClientsDecollage() {
                         {c.manager_name && <div>{c.manager_name}</div>}
                         {c.phone && <div>{c.phone}</div>}
                         {c.email ? <div>{c.email}</div> : <div className="text-destructive">Pas d'email</div>}
-                        {sent && <div className="mt-1 text-[11px] text-primary">Présentation envoyée le {new Date(sent).toLocaleDateString("fr-FR")}</div>}
+                        {sent && (
+                          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-primary">
+                            Présentation envoyée le {new Date(sent).toLocaleDateString("fr-FR")}
+                            {tracked && <TrackingBadge email={tracked} />}
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell>
                         {p ? (
@@ -258,8 +270,8 @@ export default function ClientsDecollage() {
         </DialogContent>
       </Dialog>
 
-      <DecollageEmailDialog key={mailClient?.id || "none"} client={mailClient} open={!!mailClient} onOpenChange={(v) => { if (!v) setMailClient(null); }} />
-      <DecollageSupportDialog key={supportClient?.id || "none"} client={supportClient} open={!!supportClient} onOpenChange={(v) => { if (!v) setSupportClient(null); }} />
+      <DecollageEmailDialog key={mailClient?.id || "none"} client={mailClient} open={!!mailClient} onOpenChange={(v) => { if (!v) { setMailClient(null); tracking.sync.mutate(); } }} />
+      <DecollageSupportDialog key={supportClient?.id || "none"} client={supportClient} open={!!supportClient} onOpenChange={(v) => { if (!v) { setSupportClient(null); tracking.sync.mutate(); } }} />
     </motion.div>
   );
 }

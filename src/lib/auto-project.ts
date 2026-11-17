@@ -29,7 +29,7 @@ export async function insertPackTasks(projectId: string, client: any, startDate:
 }
 
 /** Create the client's project (if missing) and generate its pack tasks. */
-export async function ensureProjectWithTasks(client: any) {
+export async function ensureProjectWithTasks(client: any): Promise<string | undefined> {
   if (!client?.id || !client.pack_type || client.pack_type === "autre") return;
   const { data: existing } = await supabase.from("projects").select("id").eq("client_id", client.id).limit(1);
   let projectId = existing?.[0]?.id as string | undefined;
@@ -52,4 +52,5 @@ export async function ensureProjectWithTasks(client: any) {
   }
   const { count } = await supabase.from("project_tasks").select("id", { count: "exact", head: true }).eq("project_id", projectId!);
   if (!count) await insertPackTasks(projectId!, client, start);
+  return projectId;
 }

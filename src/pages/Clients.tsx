@@ -131,6 +131,8 @@ export default function Clients() {
     if (c.pack_type === "star_bizness_nfc") return false;
     // Les clients Tuning ont leur propre page dédiée
     if (c.pack_type === "star_bizness_tuning") return false;
+    // Les clients Décollage ont aussi leur page dédiée
+    if (c.pack_type === "pack_decollage") return false;
     // Doublons d'une fiche 1.0 / Chip Tuning : masqués (jamais supprimés)
     if (!showDuplicates && duplicateIds.has(c.id)) return false;
     const s = search.toLowerCase();

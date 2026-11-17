@@ -1,6 +1,6 @@
 type C = { id: string; company_name?: string | null; email?: string | null; phone?: string | null; pack_type?: string | null };
 
-const OTHER_LISTS = ["star_bizness_nfc", "star_bizness_tuning"];
+const OTHER_LISTS = ["star_bizness_nfc", "star_bizness_tuning", "pack_decollage"];
 
 export const normName = (s?: string | null) =>
   (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");

@@ -3469,6 +3469,7 @@ export type Database = {
         | "star_bizness_nfc"
         | "autre"
         | "star_bizness_tuning"
+        | "pack_decollage"
       partner_access_role:
         | "admin"
         | "editor"
@@ -3737,6 +3738,7 @@ export const Constants = {
         "star_bizness_nfc",
         "autre",
         "star_bizness_tuning",
+        "pack_decollage",
       ],
       partner_access_role: [
         "admin",

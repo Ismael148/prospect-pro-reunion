@@ -1654,6 +1654,7 @@ export default function ClientDetail() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="star_bizness_tuning">✨ PACK TUNING</SelectItem>
+                <SelectItem value="pack_decollage">🚀 PACK DÉCOLLAGE</SelectItem>
                 <SelectItem value="star_bizness_numerik">STAR BIZNESS NUMERIK</SelectItem>
                 <SelectItem value="star_bizness_nfc">STAR BIZNESS NFC</SelectItem>
                 <SelectItem value="autre">Autre</SelectItem>

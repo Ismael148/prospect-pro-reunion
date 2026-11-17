@@ -44,6 +44,7 @@ export const PACK_LABELS: Record<PackType, string> = {
   star_bizness_numerik: "STAR BIZNESS NUMERIK",
   star_bizness_nfc: "STAR BIZNESS NFC",
   star_bizness_tuning: "Adamkom by JJP - PACK TUNING",
+  pack_decollage: "PACK DÉCOLLAGE",
   autre: "Autre",
 };
 
@@ -51,6 +52,7 @@ export const PACK_PRICES: Record<string, number> = {
   star_bizness_numerik: 1490,
   star_bizness_nfc: 279.90,
   star_bizness_tuning: 790,
+  pack_decollage: 2250,
 };
 
 export const TUNING_WEBSITE_ADDON_PRICE = 990;
@@ -147,6 +149,16 @@ export const PACK_DELIVERABLES: Record<string, string[]> = {
     "Vidéo short de présentation",
     "Visuels pour la fiche Google My Business",
     "Référencement réseaux sociaux & avis Google",
+  ],
+  pack_decollage: [
+    "Page de conversion",
+    "Appels sortants",
+    "Support client",
+    "Contenus réseaux",
+    "Fiche Google optimisée",
+    "Visibilité IA",
+    "Référencement Entreprises 974",
+    "Carte NFC offerte",
   ],
   autre: [],
 };
@@ -358,10 +370,116 @@ export const TUNING_MODULES: ProjectModule[] = [
   },
 ];
 
+// ============ PACK DÉCOLLAGE (agences de voyage) ============
+// 8 prestations de https://decollage.adamkom.com/ + cadrage (jour 1) et bilan d'essai (jour 15).
+export const DECOLLAGE_MODULES: ProjectModule[] = [
+  {
+    id: "cadrage", name: "Cadrage de l'agence (Jour 1)", icon: "🧭", deadlineDays: 1,
+    tasks: [
+      { title: "Appel de cadrage : agence, destinations, clientèle", priority: "urgente" },
+      { title: "Récupérer logo, photos, coordonnées et charte graphique", priority: "urgente" },
+      { title: "Lister les voyages, prestations, offres du mois et promotions", priority: "urgente" },
+      { title: "Définir le ton de l'agence (pour les appels et le support)", priority: "haute" },
+      { title: "Planifier les 15 jours d'essai avec le client", priority: "haute" },
+    ],
+  },
+  {
+    id: "page_conversion", name: "Page de conversion", icon: "🎯", deadlineDays: 5,
+    tasks: [
+      { title: "Créer la page de conversion (accroche, offres et prix, avis, FAQ, l'agence)", priority: "urgente" },
+      { title: "Intégrer les prix des voyages organisés et les offres du mois", priority: "urgente" },
+      { title: "Ajouter les boutons de contact (appel, WhatsApp, demande de devis)", priority: "haute" },
+      { title: "Optimiser la page pour mobile", priority: "haute" },
+      { title: "Renseigner le lien de la page de conversion sur la fiche client", priority: "urgente" },
+      { title: "Valider la page avec le client", priority: "haute" },
+    ],
+  },
+  {
+    id: "appels_sortants", name: "Appels sortants", icon: "📞", deadlineDays: 14,
+    tasks: [
+      { title: "Rédiger le script d'appel au nom de l'agence", priority: "haute" },
+      { title: "Récupérer la liste des prospects, devis en attente et clients à rappeler", priority: "urgente" },
+      { title: "Démarcher les nouveaux prospects", priority: "haute" },
+      { title: "Relancer les devis en attente", priority: "haute" },
+      { title: "Rappeler les clients existants", priority: "haute" },
+      { title: "Envoyer le compte rendu des appels au client", priority: "haute" },
+    ],
+  },
+  {
+    id: "support_client", name: "Support client", icon: "🎧", deadlineDays: 7,
+    tasks: [
+      { title: "Mettre en place le support au nom de l'agence (ligne, horaires, ton)", priority: "urgente" },
+      { title: "Préparer les réponses types (avant départ, modifications, après retour)", priority: "haute" },
+      { title: "Définir avec le client les cas à lui transmettre", priority: "haute" },
+      { title: "Suivre les demandes des voyageurs et en faire le point avec l'agence", priority: "moyenne" },
+    ],
+  },
+  {
+    id: "contenus_reseaux", name: "Contenus réseaux", icon: "📱", deadlineDays: 10,
+    tasks: [
+      { title: "Préparer le planning des publications", priority: "haute" },
+      { title: "Créer les visuels des offres (avant / après)", priority: "haute" },
+      { title: "Monter les vidéos courtes", priority: "haute" },
+      { title: "Rédiger les textes et hashtags", priority: "moyenne" },
+      { title: "Livrer les contenus au client (ses comptes restent les siens)", priority: "urgente" },
+    ],
+  },
+  {
+    id: "fiche_google", name: "Fiche Google", icon: "📍", deadlineDays: 7,
+    tasks: [
+      { title: "Obtenir l'accès à la fiche Google de l'agence (ou la créer)", priority: "urgente" },
+      { title: "Analyser la fiche existante (captures avant)", priority: "haute" },
+      { title: "Compléter informations, catégories, horaires et description", priority: "haute" },
+      { title: "Ajouter les photos et l'offre du mois", priority: "haute" },
+      { title: "Publier les premières publications Google", priority: "haute" },
+      { title: "Répondre aux avis clients", priority: "moyenne" },
+    ],
+  },
+  {
+    id: "visibilite_ia", name: "Visibilité IA", icon: "🤖", deadlineDays: 14,
+    tasks: [
+      { title: "Choisir les recherches clés (ex. « agence de voyage + ville »)", priority: "haute" },
+      { title: "Optimiser titres, descriptions et contenus de la page", priority: "haute" },
+      { title: "Ajouter la page à la Google Search Console", priority: "urgente" },
+      { title: "Rédiger des contenus clairs repris par les assistants IA (FAQ, offres)", priority: "haute" },
+      { title: "Vérifier la présence de l'agence sur Google et dans les assistants IA", priority: "moyenne" },
+    ],
+  },
+  {
+    id: "annuaire", name: "Entreprises 974", icon: "📒", deadlineDays: 7,
+    tasks: [
+      { title: "Ajout des informations de base de l'agence", priority: "haute" },
+      { title: "Ajout de la description", priority: "haute" },
+      { title: "Ajout des photos", priority: "haute" },
+      { title: "Ajout des FAQ", priority: "moyenne" },
+      { title: "Ajout des avis sur les entreprises974", priority: "moyenne" },
+    ],
+  },
+  {
+    id: "carte_business", name: "Carte NFC offerte", icon: "💳", deadlineDays: 10,
+    tasks: [
+      { title: "Création du design de la carte (logo et couleurs de l'agence)", priority: "haute" },
+      { title: "Validation du design avec le client", priority: "haute" },
+      { title: "Programmer la carte NFC vers la page de conversion", priority: "haute" },
+      { title: "Tester le scan NFC et le QR Code", priority: "haute" },
+      { title: "Livrer la carte au client", priority: "urgente" },
+    ],
+  },
+  {
+    id: "bilan_essai", name: "Bilan des 15 jours d'essai", icon: "🚀", deadlineDays: 15,
+    tasks: [
+      { title: "Préparer le bilan : appels, contenus, fiche Google, visibilité", priority: "haute" },
+      { title: "Présenter le bilan au client", priority: "urgente" },
+      { title: "Recueillir la décision du client pour la suite", priority: "urgente" },
+    ],
+  },
+];
+
 export function getPackModules(packType: string, siteType?: string, hasGmb?: boolean, tuningWebsiteAddon = false, skipTuningCard = false): ProjectModule[] {
   if (packType === "star_bizness_nfc") {
     return PACK_MODULES.star_bizness_nfc;
   }
+  if (packType === "pack_decollage") return DECOLLAGE_MODULES;
   if (packType === "star_bizness_tuning") {
     const baseModules = skipTuningCard
       ? TUNING_MODULES.filter((m) => m.id !== "carte_business")
@@ -623,5 +741,6 @@ export const PACK_DEADLINE_DAYS: Record<string, number> = {
   star_bizness_numerik: 15,
   star_bizness_nfc: 7,
   star_bizness_tuning: 15,
+  pack_decollage: 15,
   autre: 30,
 };

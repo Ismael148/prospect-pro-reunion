@@ -31,6 +31,7 @@ import ImportCSV from "./pages/ImportCSV";
 import Campaigns from "./pages/Campaigns";
 import NfcClients from "./pages/NfcClients";
 import ClientsTuning from "./pages/ClientsTuning";
+import ClientsDecollage from "./pages/ClientsDecollage";
 import DeletedClients from "./pages/DeletedClients";
 import DomainRenewals from "./pages/DomainRenewals";
 import AuditLog from "./pages/AuditLog";
@@ -155,6 +156,10 @@ const App = () => (
             <Route
               path="/clients-tuning"
               element={<ProtectedRoute><AppLayout><ClientsTuning /></AppLayout></ProtectedRoute>}
+            />
+            <Route
+              path="/clients-decollage"
+              element={<ProtectedRoute><AppLayout><ClientsDecollage /></AppLayout></ProtectedRoute>}
             />
             <Route
               path="/cartes-nfc"

@@ -65,7 +65,7 @@ const TABLES: Record<string, TableConfig> = {
     byId: (id) => [["client", id]],
   },
   projects: {
-    lists: [["projects"], ["logo-clients"], ["overdue-tasks-dashboard"], ["all_project_tasks_full"], ["agenda-tasks"], ["clients-status"], ["client-task-stats"]],
+    lists: [["projects"], ["logo-clients"], ["overdue-tasks-dashboard"], ["all_project_tasks_full"], ["agenda-tasks"], ["clients-status"], ["client-task-stats"], ["global-stats"]],
     byId: (id, row) => {
       const k: string[][] = [["project", id], ["projects", id]];
       if (row?.client_id) k.push(["client", row.client_id]);
@@ -73,7 +73,7 @@ const TABLES: Record<string, TableConfig> = {
     },
   },
   project_tasks: {
-    lists: [["overdue-tasks-dashboard"], ["all_project_tasks_full"], ["agenda-tasks"], ["clients-status"], ["client-task-stats"]],
+    lists: [["overdue-tasks-dashboard"], ["all_project_tasks_full"], ["agenda-tasks"], ["clients-status"], ["client-task-stats"], ["global-stats"]],
     byId: (_id, row) => {
       const k: string[][] = [];
       if (row?.project_id) {
@@ -97,7 +97,7 @@ const TABLES: Record<string, TableConfig> = {
     },
   },
   support_tickets: {
-    lists: [["support-tickets"], ["support"], ["clients-status"]],
+    lists: [["support-tickets"], ["support"], ["clients-status"], ["global-stats"]],
     byId: (id) => [["ticket", id]],
   },
   social_deliverables: {
@@ -121,7 +121,7 @@ const TABLES: Record<string, TableConfig> = {
     byId: (id) => [["prospect", id]],
   },
   client_activities: {
-    lists: [["team-comments"]],
+    lists: [["team-comments"], ["global-stats"]],
     byId: (_id, row) => (row?.client_id ? [["activities", row.client_id], ["client-activities", row.client_id], ["client", row.client_id]] : []),
   },
   commissions: {
@@ -149,6 +149,9 @@ const TABLES: Record<string, TableConfig> = {
   },
   gmb_onboarding_submissions: {
     lists: [["gmb-onboarding"]],
+  },
+  task_reminder_log: {
+    lists: [["task-reminders"], ["global-stats"]],
   },
 };
 

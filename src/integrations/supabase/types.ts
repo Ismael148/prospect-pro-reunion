@@ -3191,6 +3191,66 @@ export type Database = {
           },
         ]
       }
+      task_reminder_log: {
+        Row: {
+          assignee_id: string
+          created_at: string
+          error_message: string | null
+          id: string
+          last_synced_at: string | null
+          message_id: string | null
+          oldest_due_date: string | null
+          open_count: number
+          opened_at: string | null
+          recipient_email: string | null
+          recipient_name: string | null
+          reminder_day: string
+          status: string
+          task_count: number
+          task_ids: string[]
+          trigger: string
+          triggered_by: string | null
+        }
+        Insert: {
+          assignee_id: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          last_synced_at?: string | null
+          message_id?: string | null
+          oldest_due_date?: string | null
+          open_count?: number
+          opened_at?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          reminder_day?: string
+          status?: string
+          task_count?: number
+          task_ids?: string[]
+          trigger?: string
+          triggered_by?: string | null
+        }
+        Update: {
+          assignee_id?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          last_synced_at?: string | null
+          message_id?: string | null
+          oldest_due_date?: string | null
+          open_count?: number
+          opened_at?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          reminder_day?: string
+          status?: string
+          task_count?: number
+          task_ids?: string[]
+          trigger?: string
+          triggered_by?: string | null
+        }
+        Relationships: []
+      }
       ticket_comments: {
         Row: {
           content: string

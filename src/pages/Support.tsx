@@ -3,6 +3,8 @@ import { useSearchParams } from "react-router-dom";
 import { TicketComments } from "@/components/support/TicketComments";
 import { TicketTracking, ResponseBadge } from "@/components/support/TicketTracking";
 import { SupportTrackingSummary } from "@/components/support/SupportTrackingSummary";
+import { TaskRemindersPanel } from "@/components/support/TaskRemindersPanel";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getTicketTracking } from "@/lib/support-tracking";
 import { useSupportTickets, useUpdateTicket } from "@/hooks/use-support";
 import { useClients } from "@/hooks/use-clients";
@@ -86,6 +88,7 @@ export default function Support() {
   const [teamMembers, setTeamMembers] = useState<{ user_id: string; full_name: string; role: string }[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const deepLinkTicketId = searchParams.get("ticket");
+  const section = searchParams.get("vue") === "relances" ? "relances" : "tickets";
 
   // Ouvre directement le ticket demandé (lien depuis une fiche client : /support?ticket=<id>)
   useEffect(() => {
@@ -367,6 +370,14 @@ export default function Support() {
         </div>
       </div>
 
+      <Tabs value={section} onValueChange={(v) => setSearchParams(v === "relances" ? { vue: "relances" } : {}, { replace: true })}>
+        <TabsList>
+          <TabsTrigger value="tickets">Tickets</TabsTrigger>
+          <TabsTrigger value="relances">Relances tâches</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      {section === "relances" ? <TaskRemindersPanel /> : (<>
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {(["ouvert", "en_cours", "resolu", "ferme"] as const).map((status) => {
@@ -515,6 +526,8 @@ export default function Support() {
           })}
         </div>
       )}
+
+      </>)}
 
       {/* Ticket Detail Dialog */}
       <Dialog open={!!selectedTicket} onOpenChange={(open) => !open && setSelectedTicket(null)}>

@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import CommentairesEquipe from "./pages/CommentairesEquipe";
 import ClientsStatut from "./pages/ClientsStatut";
 import Agenda from "./pages/Agenda";
+import StatsGlobales from "./pages/StatsGlobales";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
 import ClientDetail from "./pages/ClientDetail";
@@ -225,6 +226,7 @@ const App = () => (
               element={<ProtectedRoute><AppLayout><FormationSeo /></AppLayout></ProtectedRoute>}
             />
             <Route path="/clients-statut" element={<ProtectedRoute><AppLayout><ClientsStatut /></AppLayout></ProtectedRoute>} />
+            <Route path="/stats-globales" element={<ProtectedRoute><AppLayout><StatsGlobales /></AppLayout></ProtectedRoute>} />
             <Route path="/agenda" element={<ProtectedRoute><AppLayout><Agenda /></AppLayout></ProtectedRoute>} />
             <Route path="/commentaires-equipe" element={<ProtectedRoute><AppLayout><CommentairesEquipe /></AppLayout></ProtectedRoute>} />
             <Route path="/devis" element={<ProtectedRoute><AppLayout><Devis /></AppLayout></ProtectedRoute>} />

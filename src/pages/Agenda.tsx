@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { CalendarCheck, CheckCircle2, Circle, Search, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,7 +28,8 @@ export default function Agenda() {
   // Roles may load after the first render: managers default to the whole team.
   const touched = useRef(false);
   useEffect(() => { if (!touched.current) setWho(isManager ? "all" : "me"); }, [isManager]);
-  const [search, setSearch] = useState("");
+  const [searchParams] = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get("q") || "");
   const [shown, setShown] = useState<Record<string, number>>({});
   const [pending, setPending] = useState<Set<string>>(new Set());
   const today = reunionToday();

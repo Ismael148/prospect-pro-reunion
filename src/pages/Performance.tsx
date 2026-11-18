@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { AgentTrackingTable } from "@/components/team/AgentTrackingTable";
 import { Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -287,6 +288,10 @@ export default function Performance() {
             <SelectItem value="prospectsConverted">Prospects convertis</SelectItem>
           </SelectContent>
         </Select>
+      </motion.div>
+
+      <motion.div variants={item}>
+        <AgentTrackingTable />
       </motion.div>
 
       {/* KPIs */}

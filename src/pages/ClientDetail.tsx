@@ -1715,7 +1715,7 @@ export default function ClientDetail() {
           <ClientRemindersSection clientId={client.id} />
           <LogoTrackingCard client={client as any} />
           <ClientProjectsSection clientId={client.id} />
-          <ClientTaskStatsCard clientId={client.id} />
+          <ClientTaskStatsCard clientId={client.id} companyName={client.company_name} />
         </div>
         <Card className="border-0 shadow-md shadow-primary/5 h-fit">
           <CardHeader><CardTitle className="text-lg">Pipeline</CardTitle></CardHeader>

@@ -20,7 +20,7 @@ export type AgendaTask = {
 const PAGE = 1000;
 
 /** Fetches every row of a query, page by page (the API returns at most 1 000 rows per call). */
-async function fetchAllPages<T>(build: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: any }>): Promise<T[]> {
+export async function fetchAllPages<T>(build: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: any }>): Promise<T[]> {
   const out: T[] = [];
   for (let from = 0; ; from += PAGE) {
     const { data, error } = await build(from, from + PAGE - 1);

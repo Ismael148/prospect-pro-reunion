@@ -1,11 +1,13 @@
 // Edge function: task-overdue-reminders
-// - Scheduled every weekday morning: one digest email per team member who has overdue tasks.
-// - action "run" (admin): send the digests now (optionally to one member).
+// - Scheduled every weekday morning: one individual email per overdue task (with its project),
+//   at most MAX_PER_MEMBER per team member, rotating so every late task gets its turn.
+// - Emails go to the member's real reminder address (team_notification_emails), never the login id.
+// - action "run" (admin): send now (optionally to one member).
 // - action "sync" (support managers): refresh opens of recent reminder emails from Brevo.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { authenticateCronRequest } from "../_shared/cron-auth.ts";
-import { buildOverdueDigest, firstName, type OverdueTask } from "./email.ts";
+import { buildTaskReminder, firstName, pickTasksToRemind, type OverdueTask } from "./email.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -19,13 +21,14 @@ const reunionDay = (d = new Date()) =>
 const reunionWeekday = (d = new Date()) =>
   new Intl.DateTimeFormat("en-US", { timeZone: "Indian/Reunion", weekday: "short" }).format(d);
 
-type Admin = ReturnType<typeof createClient>;
+// deno-lint-ignore no-explicit-any
+type Admin = any;
 
 async function loadOverdueTasks(sb: Admin, today: string, onlyAssignee?: string) {
   const out = new Map<string, OverdueTask[]>();
   for (let from = 0; ; from += 1000) {
     let q = sb.from("project_tasks")
-      .select("id, title, due_date, assigned_to, projects!inner(name, status, clients(company_name))")
+      .select("id, title, due_date, assigned_to, project_id, projects!inner(name, status, clients(company_name))")
       .neq("status", "termine")
       .lt("due_date", today)
       .not("assigned_to", "is", null)
@@ -37,7 +40,10 @@ async function loadOverdueTasks(sb: Admin, today: string, onlyAssignee?: string)
     if (error) throw error;
     for (const t of (data || []) as any[]) {
       const list = out.get(t.assigned_to) || [];
-      list.push({ id: t.id, title: t.title, due_date: t.due_date, project_name: t.projects?.name ?? null, client_name: t.projects?.clients?.company_name ?? null });
+      list.push({
+        id: t.id, title: t.title, due_date: t.due_date, project_id: t.project_id ?? null,
+        project_name: t.projects?.name ?? null, client_name: t.projects?.clients?.company_name ?? null,
+      });
       out.set(t.assigned_to, list);
     }
     if (!data || data.length < 1000) break;
@@ -45,105 +51,165 @@ async function loadOverdueTasks(sb: Admin, today: string, onlyAssignee?: string)
   return out;
 }
 
-async function sendDigests(sb: Admin, trigger: "auto" | "manual", triggeredBy: string | null, onlyAssignee?: string) {
+/** Last sent reminder per task (last 90 days) and the tasks already reminded today. */
+async function loadReminderHistory(sb: Admin, today: string) {
+  const last = new Map<string, string>();
+  const todaySet = new Set<string>();
+  const since = new Date(Date.now() - 90 * 86_400_000).toISOString();
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await sb.from("task_reminder_log").select("task_id, created_at, reminder_day")
+      .eq("status", "sent").not("task_id", "is", null).gte("created_at", since)
+      .order("created_at", { ascending: false }).range(from, from + 999);
+    if (error) throw error;
+    for (const r of (data || []) as any[]) {
+      if (!last.has(r.task_id)) last.set(r.task_id, r.created_at);
+      if (r.reminder_day === today) todaySet.add(r.task_id);
+    }
+    if (!data || data.length < 1000) break;
+  }
+  return { last, todaySet };
+}
+
+async function sendReminders(sb: Admin, trigger: "auto" | "manual", triggeredBy: string | null, onlyAssignee?: string) {
   const today = reunionDay();
   const byAssignee = await loadOverdueTasks(sb, today, onlyAssignee);
+  const { last, todaySet } = await loadReminderHistory(sb, today);
   const results = { sent: 0, failed: 0, no_email: 0, skipped_already_sent: 0, members: byAssignee.size };
 
-  let alreadySent = new Set<string>();
-  if (trigger === "auto") {
-    const { data } = await sb.from("task_reminder_log").select("assignee_id").eq("reminder_day", today).eq("trigger", "auto").eq("status", "sent");
-    alreadySent = new Set((data || []).map((r: any) => r.assignee_id));
-  }
-
   const ids = [...byAssignee.keys()];
-  const { data: profiles } = ids.length
-    ? await sb.from("profiles").select("user_id, full_name").in("user_id", ids)
-    : { data: [] as any[] };
+  const [{ data: profiles }, { data: addresses }] = ids.length
+    ? await Promise.all([
+      sb.from("profiles").select("user_id, full_name").in("user_id", ids),
+      sb.from("team_notification_emails").select("user_id, email").in("user_id", ids),
+    ])
+    : [{ data: [] as any[] }, { data: [] as any[] }];
   const apiKey = Deno.env.get("BREVO_API_KEY");
 
-  for (const [assigneeId, tasks] of byAssignee) {
-    if (alreadySent.has(assigneeId)) { results.skipped_already_sent++; continue; }
+  await Promise.all([...byAssignee].map(async ([assigneeId, tasks]) => {
     const fullName = (profiles || []).find((p: any) => p.user_id === assigneeId)?.full_name ?? null;
     const name = firstName(fullName);
-    const oldest = tasks.reduce((m, t) => (t.due_date < m ? t.due_date : m), tasks[0].due_date);
-    const base = {
-      assignee_id: assigneeId, recipient_name: fullName, task_count: tasks.length,
-      task_ids: tasks.map((t) => t.id), oldest_due_date: oldest, trigger, triggered_by: triggeredBy, reminder_day: today,
-    };
+    const email = (addresses || []).find((a: any) => a.user_id === assigneeId)?.email ?? null;
+    // Automatic runs never re-send a task already reminded that day; manual runs pick the next ones in the rotation.
+    const picked = pickTasksToRemind(tasks, last, today, undefined, todaySet);
+    results.skipped_already_sent += tasks.length > 0 && picked.length === 0 ? 1 : 0;
+    if (!picked.length) return;
 
-    const { data: userRes } = await sb.auth.admin.getUserById(assigneeId);
-    const email = userRes?.user?.email;
+    const base = { assignee_id: assigneeId, recipient_name: fullName, trigger, triggered_by: triggeredBy, reminder_day: today };
     if (!email) {
-      await sb.from("task_reminder_log").insert({ ...base, status: "no_email", error_message: "Aucune adresse email pour ce membre" });
+      await sb.from("task_reminder_log").insert({
+        ...base, task_count: tasks.length, task_ids: picked.map((t) => t.id),
+        oldest_due_date: picked[0]?.due_date ?? null, status: "no_email",
+        error_message: "Adresse de réception des relances à renseigner dans Suivi équipe",
+      });
       results.no_email++;
-      continue;
+      return;
     }
 
-    const { subject, html } = buildOverdueDigest(name, tasks, today);
-    try {
-      if (!apiKey) throw new Error("BREVO_API_KEY missing");
-      const res = await fetch("https://api.brevo.com/v3/smtp/email", {
-        method: "POST",
-        headers: { "api-key": apiKey, "content-type": "application/json", accept: "application/json" },
-        body: JSON.stringify({
-          sender: { name: "Adamkom", email: "contact@adamkom.com" },
-          to: [{ email, name: fullName || undefined }],
-          subject,
-          htmlContent: html,
-          tags: ["task_overdue_reminder"],
-        }),
-      });
-      const text = await res.text();
-      if (!res.ok) throw new Error(`Brevo ${res.status}: ${text}`);
-      const messageId = (() => { try { return JSON.parse(text).messageId ?? null; } catch { return null; } })();
-      await sb.from("task_reminder_log").insert({ ...base, recipient_email: email, status: "sent", message_id: messageId });
-      await sb.from("email_send_log").insert({
-        recipient_email: email, recipient_name: fullName, subject, status: "sent",
-        template_name: "task_overdue_reminder", message_id: messageId,
-        metadata: { assignee_id: assigneeId, task_count: tasks.length, trigger },
-      });
-      results.sent++;
-    } catch (e) {
-      console.error("Reminder failed", assigneeId, e);
-      await sb.from("task_reminder_log").insert({ ...base, recipient_email: email, status: "failed", error_message: String((e as Error).message).slice(0, 500) });
-      results.failed++;
+    for (const task of picked) {
+      const row = {
+        ...base, recipient_email: email, task_count: 1, task_ids: [task.id], oldest_due_date: task.due_date,
+        task_id: task.id, task_title: task.title, task_due_date: task.due_date,
+        project_id: task.project_id, project_name: task.project_name, client_name: task.client_name,
+      };
+      const { subject, html } = buildTaskReminder(name, task, today, tasks.length);
+      try {
+        if (!apiKey) throw new Error("BREVO_API_KEY missing");
+        const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+          method: "POST",
+          headers: { "api-key": apiKey, "content-type": "application/json", accept: "application/json" },
+          body: JSON.stringify({
+            sender: { name: "Adamkom", email: "contact@adamkom.com" },
+            to: [{ email, name: fullName || undefined }],
+            subject,
+            htmlContent: html,
+            tags: ["task_overdue_reminder"],
+          }),
+        });
+        const text = await res.text();
+        if (!res.ok) throw new Error(`Brevo ${res.status}: ${text}`);
+        const messageId = (() => { try { return JSON.parse(text).messageId ?? null; } catch { return null; } })();
+        await sb.from("task_reminder_log").insert({ ...row, status: "sent", message_id: messageId });
+        await sb.from("email_send_log").insert({
+          recipient_email: email, recipient_name: fullName, subject, status: "sent",
+          template_name: "task_overdue_reminder", message_id: messageId,
+          metadata: { assignee_id: assigneeId, task_id: task.id, project_id: task.project_id, trigger },
+        });
+        results.sent++;
+      } catch (e) {
+        console.error("Reminder failed", assigneeId, task.id, e);
+        await sb.from("task_reminder_log").insert({ ...row, status: "failed", error_message: String((e as Error).message).slice(0, 500) });
+        results.failed++;
+      }
     }
-  }
+  }));
   return results;
 }
 
+/** Pulls open/click events of reminder emails (last 30 days) from Brevo in a few aggregated calls. */
 async function syncOpens(sb: Admin) {
   const apiKey = Deno.env.get("BREVO_API_KEY");
   if (!apiKey) throw new Error("BREVO_API_KEY missing");
   const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
-  const { data: rows, error } = await sb.from("task_reminder_log").select("id, message_id")
-    .eq("status", "sent").not("message_id", "is", null).gte("created_at", since)
-    .order("created_at", { ascending: false }).limit(200);
-  if (error) throw error;
-  let synced = 0;
-  const list = (rows || []) as any[];
-  for (let i = 0; i < list.length; i += 5) {
-    await Promise.all(list.slice(i, i + 5).map(async (r) => {
+  const rows: any[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await sb.from("task_reminder_log").select("id, message_id, opened_at, open_count")
+      .eq("status", "sent").not("message_id", "is", null).gte("created_at", since)
+      .order("created_at", { ascending: false }).range(from, from + 999);
+    if (error) throw error;
+    rows.push(...(data || []));
+    if (!data || data.length < 1000) break;
+  }
+  if (!rows.length) return { synced: 0, total: 0 };
+  const wanted = new Set(rows.map((r) => r.message_id));
+
+  const opens = new Map<string, { first: string; count: number }>();
+  const fetchEvents = async (event: string, withTags: boolean) => {
+    for (let offset = 0; offset < 25_000; offset += 2500) {
       const url = new URL("https://api.brevo.com/v3/smtp/statistics/events");
-      url.searchParams.set("messageId", r.message_id);
-      url.searchParams.set("limit", "100");
+      url.searchParams.set("event", event);
       url.searchParams.set("days", "30");
+      url.searchParams.set("limit", "2500");
+      url.searchParams.set("offset", String(offset));
+      if (withTags) url.searchParams.set("tags", JSON.stringify(["task_overdue_reminder"]));
       const res = await fetch(url, { headers: { "api-key": apiKey, accept: "application/json" } });
-      if (!res.ok) { console.error(`Brevo events [${res.status}]: ${await res.text()}`); return; }
-      const events: any[] = (await res.json())?.events || [];
-      const opens = events.filter((e) => ["opened", "uniqueOpened", "clicks"].includes(e.event) && e.date)
-        .sort((a, b) => +new Date(a.date) - +new Date(b.date));
-      const patch: Record<string, unknown> = { last_synced_at: new Date().toISOString() };
-      if (opens.length) {
-        patch.opened_at = new Date(opens[0].date).toISOString();
-        patch.open_count = events.filter((e) => e.event === "opened" || e.event === "uniqueOpened").length || 1;
+      if (!res.ok) {
+        const body = await res.text();
+        if (withTags && res.status === 400) return false;
+        throw new Error(`Brevo events [${res.status}]: ${body}`);
       }
-      await sb.from("task_reminder_log").update(patch).eq("id", r.id);
+      const events: any[] = (await res.json())?.events || [];
+      for (const e of events) {
+        if (!e.messageId || !wanted.has(e.messageId) || !e.date) continue;
+        const iso = new Date(e.date).toISOString();
+        const cur = opens.get(e.messageId);
+        if (!cur) opens.set(e.messageId, { first: iso, count: event === "opened" ? 1 : 0 });
+        else {
+          if (iso < cur.first) cur.first = iso;
+          if (event === "opened") cur.count++;
+        }
+      }
+      if (events.length < 2500) break;
+    }
+    return true;
+  };
+  for (const ev of ["opened", "clicks"]) {
+    if (!(await fetchEvents(ev, true))) await fetchEvents(ev, false);
+  }
+
+  const nowIso = new Date().toISOString();
+  let synced = 0;
+  const changed = rows.filter((r) => {
+    const o = opens.get(r.message_id);
+    return o && (r.opened_at !== o.first || r.open_count !== Math.max(1, o.count));
+  });
+  for (let i = 0; i < changed.length; i += 10) {
+    await Promise.all(changed.slice(i, i + 10).map(async (r) => {
+      const o = opens.get(r.message_id)!;
+      await sb.from("task_reminder_log").update({ opened_at: o.first, open_count: Math.max(1, o.count), last_synced_at: nowIso }).eq("id", r.id);
       synced++;
     }));
   }
-  return { synced, total: list.length };
+  return { synced, total: rows.length, opened: opens.size };
 }
 
 Deno.serve(async (req) => {
@@ -158,7 +224,7 @@ Deno.serve(async (req) => {
     if (authenticateCronRequest(req) === null) {
       const weekday = reunionWeekday();
       if (weekday === "Sat" || weekday === "Sun") return json({ success: true, skipped: "weekend" });
-      return json({ success: true, ...(await sendDigests(sb, "auto", null)) });
+      return json({ success: true, ...(await sendReminders(sb, "auto", null)) });
     }
 
     // Signed-in team member
@@ -174,7 +240,7 @@ Deno.serve(async (req) => {
       if (!has("admin")) return json({ error: "Réservé aux administrateurs" }, 403);
       const assignee = typeof body.assignee_id === "string" && UUID_RE.test(body.assignee_id) ? body.assignee_id : undefined;
       if (body.assignee_id && !assignee) return json({ error: "Identifiant de membre invalide" }, 400);
-      return json({ success: true, ...(await sendDigests(sb, "manual", user.id, assignee)) });
+      return json({ success: true, ...(await sendReminders(sb, "manual", user.id, assignee)) });
     }
     if (action === "sync") {
       if (!has("admin") && !has("agent_master") && !has("agent_support")) return json({ error: "Accès refusé" }, 403);

@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AgentTrackingTable } from "@/components/team/AgentTrackingTable";
-import { Navigate } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
+import { AssignmentsBoard } from "@/components/team/AssignmentsBoard";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -68,12 +70,14 @@ const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { st
 const item = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { duration: 0.3 } } };
 
 export default function Performance() {
-  const { hasRole } = useAuth();
+  const { hasRole, loading: authLoading, user, profile } = useAuth();
   const isAllowed = hasRole("admin") || hasRole("agent_master");
   const [period, setPeriod] = useState("30");
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [sortBy, setSortBy] = useState<keyof MemberStats>("score");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const vue = searchParams.get("vue") === "attributions" ? "attributions" : "performance";
 
   const since = useMemo(() => {
     if (period === "all") return null;
@@ -232,6 +236,10 @@ export default function Performance() {
     URL.revokeObjectURL(url);
   };
 
+  // Roles arrive just after the session: wait for them so a direct link is not bounced to the dashboard.
+  if (authLoading || (user && !profile)) {
+    return <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  }
   if (!isAllowed) return <Navigate to="/" replace />;
 
   return (
@@ -251,6 +259,14 @@ export default function Performance() {
         </Button>
       </motion.div>
 
+      <Tabs value={vue} onValueChange={(v) => setSearchParams(v === "attributions" ? { vue: v } : {}, { replace: true })}>
+        <TabsList>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="attributions">Qui gère quoi</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      {vue === "attributions" ? <AssignmentsBoard /> : (<>
       {/* Filters */}
       <motion.div variants={item} className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px]">
@@ -448,6 +464,7 @@ export default function Performance() {
           </motion.div>
         </>
       )}
+      </>)}
     </motion.div>
   );
 }

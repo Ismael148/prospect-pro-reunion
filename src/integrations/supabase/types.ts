@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      assignment_history: {
+        Row: {
+          changed_by: string | null
+          client_id: string | null
+          created_at: string
+          entity_id: string
+          entity_label: string | null
+          entity_type: string
+          id: string
+          new_assignee: string | null
+          old_assignee: string | null
+        }
+        Insert: {
+          changed_by?: string | null
+          client_id?: string | null
+          created_at?: string
+          entity_id: string
+          entity_label?: string | null
+          entity_type: string
+          id?: string
+          new_assignee?: string | null
+          old_assignee?: string | null
+        }
+        Update: {
+          changed_by?: string | null
+          client_id?: string | null
+          created_at?: string
+          entity_id?: string
+          entity_label?: string | null
+          entity_type?: string
+          id?: string
+          new_assignee?: string | null
+          old_assignee?: string | null
+        }
+        Relationships: []
+      }
       calendar_events: {
         Row: {
           all_day: boolean
@@ -3194,6 +3230,7 @@ export type Database = {
       task_reminder_log: {
         Row: {
           assignee_id: string
+          client_name: string | null
           created_at: string
           error_message: string | null
           id: string
@@ -3202,17 +3239,23 @@ export type Database = {
           oldest_due_date: string | null
           open_count: number
           opened_at: string | null
+          project_id: string | null
+          project_name: string | null
           recipient_email: string | null
           recipient_name: string | null
           reminder_day: string
           status: string
           task_count: number
+          task_due_date: string | null
+          task_id: string | null
           task_ids: string[]
+          task_title: string | null
           trigger: string
           triggered_by: string | null
         }
         Insert: {
           assignee_id: string
+          client_name?: string | null
           created_at?: string
           error_message?: string | null
           id?: string
@@ -3221,17 +3264,23 @@ export type Database = {
           oldest_due_date?: string | null
           open_count?: number
           opened_at?: string | null
+          project_id?: string | null
+          project_name?: string | null
           recipient_email?: string | null
           recipient_name?: string | null
           reminder_day?: string
           status?: string
           task_count?: number
+          task_due_date?: string | null
+          task_id?: string | null
           task_ids?: string[]
+          task_title?: string | null
           trigger?: string
           triggered_by?: string | null
         }
         Update: {
           assignee_id?: string
+          client_name?: string | null
           created_at?: string
           error_message?: string | null
           id?: string
@@ -3240,14 +3289,40 @@ export type Database = {
           oldest_due_date?: string | null
           open_count?: number
           opened_at?: string | null
+          project_id?: string | null
+          project_name?: string | null
           recipient_email?: string | null
           recipient_name?: string | null
           reminder_day?: string
           status?: string
           task_count?: number
+          task_due_date?: string | null
+          task_id?: string | null
           task_ids?: string[]
+          task_title?: string | null
           trigger?: string
           triggered_by?: string | null
+        }
+        Relationships: []
+      }
+      team_notification_emails: {
+        Row: {
+          email: string
+          updated_at: string
+          updated_by: string | null
+          user_id: string
+        }
+        Insert: {
+          email: string
+          updated_at?: string
+          updated_by?: string | null
+          user_id: string
+        }
+        Update: {
+          email?: string
+          updated_at?: string
+          updated_by?: string | null
+          user_id?: string
         }
         Relationships: []
       }

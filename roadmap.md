@@ -1,11 +1,9 @@
 # Roadmap
 
-- [x] Page « Clients par statut » : tâches par date limite, tickets sans réponse, commentaires non lus
-- [x] Alerte sur la fiche client à l'arrivée d'un commentaire, avec le nom du membre de l'équipe
-- [x] Page « Agenda » : toutes les tâches à faire par date, bouton « Terminée »
-- [x] Suivi des tâches dans la fiche client : taux terminé, tâches en retard
-- [x] Test réel : commentaire d'équipe visible dans Commentaires équipe, la fiche et l'alerte
-- [x] Relance automatique par mail des tâches en retard à leur responsable, avec suivi dans Support
-- [x] Suivi par agent : taux de tâches terminées, tickets assignés, commentaires
-- [x] Page « Stats globales » : tâches terminées, tickets sans réponse, commentaires non lus, mails de présentation ouverts
-- [x] Fiche client : tâches par projet, lien vers l'Agenda, suivi des projets terminés
+- [x] Page « Clients par statut », alerte commentaire sur fiche, Agenda, suivi tâches fiche client
+- [x] Relances tâches en retard + suivi Support, suivi par agent, Stats globales, tâches par projet sur fiche client
+- [x] Suivi des relances matinales (statut, date d'envoi, ouverture) dans Support et Stats globales
+- [x] Relance individuelle par tâche en retard (un mail par tâche, avec son projet), plafonnée par membre et par matin
+- [x] Adresse email réelle de réception des relances par membre (distincte de l'identifiant de connexion)
+- [x] Page « Qui gère quoi » dans Suivi équipe : responsable par client et par projet + historique des changements
+- [ ] Relance matinale d'Anjara demain 8 h : statut visible dans Support et Stats globales (bloqué : l'adresse réelle d'Anjara doit être saisie, et l'envoi se constate demain à 8 h)

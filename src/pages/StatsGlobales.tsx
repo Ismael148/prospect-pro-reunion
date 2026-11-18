@@ -9,6 +9,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useGlobalStats, useSyncPresentationOpens } from "@/hooks/use-global-stats";
 import { useUnreadTeamCommentsCount } from "@/hooks/use-team-comments";
 import { AgentTrackingTable } from "@/components/team/AgentTrackingTable";
+import { MorningRemindersCard } from "@/components/support/MorningRemindersCard";
+import { useSyncReminderOpens } from "@/hooks/use-task-reminders";
 import { computeGlobalTaskRate } from "@/lib/agent-tracking";
 import { reunionToday } from "@/lib/task-tracking";
 import { getTicketTracking, RESPONSE_TARGET_HOURS } from "@/lib/support-tracking";
@@ -35,6 +37,7 @@ export default function StatsGlobales() {
     [data],
   );
   const sync = useSyncPresentationOpens(clientIds);
+  useSyncReminderOpens();
   const openedPct = presentations.sent ? Math.round((presentations.opened / presentations.sent) * 100) : 0;
 
   const tiles = [
@@ -82,6 +85,8 @@ export default function StatsGlobales() {
           </Card>
         ))}
       </div>
+
+      <MorningRemindersCard showLink />
 
       <AgentTrackingTable />
     </div>

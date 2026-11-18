@@ -25,7 +25,7 @@ export function TeamCommentsWatcher() {
       toast(`💬 ${who} · ${n.client?.company_name || "Client"}`, {
         description: text.length > 120 ? text.slice(0, 120) + "…" : text,
         duration: 10_000,
-        action: { label: "Voir", onClick: () => navigate("/commentaires-equipe") },
+        action: { label: "Ouvrir la fiche", onClick: () => navigate(`/clients/${n.client_id}`) },
       });
     });
   }, [notes, members, user?.id, hasRole, navigate]);

@@ -20,14 +20,20 @@ export function useTeamComments() {
     enabled,
     staleTime: 30_000,
     queryFn: async (): Promise<TeamCommentRow[]> => {
-      const { data, error } = await supabase
-        .from("client_activities")
-        .select("id, client_id, user_id, description, created_at, admin_seen, admin_seen_at, parent_id, client:clients(id, company_name, ndi, pack_type, manager_name)")
-        .eq("activity_type", "note")
-        .order("created_at", { ascending: false })
-        .limit(LIMIT);
-      if (error) throw error;
-      return (data || []) as unknown as TeamCommentRow[];
+      const cols = "id, client_id, user_id, description, created_at, admin_seen, admin_seen_at, parent_id, client:clients(id, company_name, ndi, pack_type, manager_name)";
+      // Latest notes for the history, plus every unread note however old, so nothing to read is ever missed.
+      const [recent, unread] = await Promise.all([
+        supabase.from("client_activities").select(cols).eq("activity_type", "note")
+          .order("created_at", { ascending: false }).limit(LIMIT),
+        supabase.from("client_activities").select(cols).eq("activity_type", "note")
+          .or("admin_seen.is.null,admin_seen.eq.false").neq("user_id", user!.id)
+          .order("created_at", { ascending: false }).limit(1000),
+      ]);
+      if (recent.error) throw recent.error;
+      if (unread.error) throw unread.error;
+      const byId = new Map<string, TeamCommentRow>();
+      [...(recent.data || []), ...(unread.data || [])].forEach((r: any) => byId.set(r.id, r));
+      return Array.from(byId.values()).sort((a, b) => b.created_at.localeCompare(a.created_at));
     },
   });
 }
@@ -84,7 +90,9 @@ export function useMarkTeamCommentsSeen() {
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ["team-comments"] });
+      qc.invalidateQueries({ queryKey: ["activities"] });
       qc.invalidateQueries({ queryKey: ["client-activities"] });
+      qc.invalidateQueries({ queryKey: ["clients-status"] });
     },
   });
 }

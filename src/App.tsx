@@ -8,6 +8,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
 import Auth from "./pages/Auth";
 import CommentairesEquipe from "./pages/CommentairesEquipe";
+import ClientsStatut from "./pages/ClientsStatut";
+import Agenda from "./pages/Agenda";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
 import ClientDetail from "./pages/ClientDetail";
@@ -222,6 +224,8 @@ const App = () => (
               path="/formation-seo"
               element={<ProtectedRoute><AppLayout><FormationSeo /></AppLayout></ProtectedRoute>}
             />
+            <Route path="/clients-statut" element={<ProtectedRoute><AppLayout><ClientsStatut /></AppLayout></ProtectedRoute>} />
+            <Route path="/agenda" element={<ProtectedRoute><AppLayout><Agenda /></AppLayout></ProtectedRoute>} />
             <Route path="/commentaires-equipe" element={<ProtectedRoute><AppLayout><CommentairesEquipe /></AppLayout></ProtectedRoute>} />
             <Route path="/devis" element={<ProtectedRoute><AppLayout><Devis /></AppLayout></ProtectedRoute>} />
             {/* Public tutorials */}

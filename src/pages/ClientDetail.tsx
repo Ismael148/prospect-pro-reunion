@@ -46,6 +46,8 @@ import ClientQuotesSection from "@/components/clients/ClientQuotesSection";
 import ConversionFormSection from "@/components/clients/ConversionFormSection";
 import GmbVideoGuideSection from "@/components/clients/GmbVideoGuideSection";
 import MeetInviteSection from "@/components/clients/MeetInviteSection";
+import ClientTaskStatsCard from "@/components/clients/ClientTaskStatsCard";
+import { ClientCommentAlert } from "@/components/team-comments/ClientCommentAlert";
 import { hasGmbVideoGuide } from "@/lib/gmb-video-guide";
 
 import ClientRemindersSection from "@/components/clients/ClientRemindersSection";
@@ -717,7 +719,8 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
         .update({ admin_seen: true, admin_seen_at: new Date().toISOString() } as any)
         .eq("id", activityId);
       toast.success("Note marquée comme vue ✓");
-      qClient.invalidateQueries({ queryKey: ["client-activities", clientId] });
+      qClient.invalidateQueries({ queryKey: ["activities", clientId] });
+      qClient.invalidateQueries({ queryKey: ["team-comments"] });
     } catch {
       toast.error("Erreur");
     }
@@ -876,7 +879,7 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
   const statusActivities = activities?.filter((a) => a.activity_type !== "note") || [];
 
   return (
-    <Card className="border-0 shadow-md shadow-primary/5">
+    <Card id="client-notes" className="border-0 shadow-md shadow-primary/5 scroll-mt-20">
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
           <MessageSquare className="w-5 h-5" /> Notes & Commentaires
@@ -1703,6 +1706,8 @@ export default function ClientDetail() {
         </div>
       </div>
 
+      <ClientCommentAlert clientId={client.id} activities={activities} />
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <ClientInfoSection client={client} salesTeam={salesTeam} />
@@ -1710,6 +1715,7 @@ export default function ClientDetail() {
           <ClientRemindersSection clientId={client.id} />
           <LogoTrackingCard client={client as any} />
           <ClientProjectsSection clientId={client.id} />
+          <ClientTaskStatsCard clientId={client.id} />
         </div>
         <Card className="border-0 shadow-md shadow-primary/5 h-fit">
           <CardHeader><CardTitle className="text-lg">Pipeline</CardTitle></CardHeader>

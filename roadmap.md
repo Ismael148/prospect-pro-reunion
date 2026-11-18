@@ -1,24 +1,7 @@
-- [x] Refaire la présentation PDF des devis et centrer les tarifs TTC.
-- [x] Ajouter le tutoriel de validation vidéo Google et sa section d’envoi sur les fiches Chip Tuning.
-- [x] Vérifier le tutoriel et l’aperçu du mail sur une fiche client autorisée.
-- [x] Moderniser le tutoriel sur fond blanc et vérifier le titre sur ordinateur et téléphone.
-- [x] Vérifier les vidéos officielles Google : aucune version avec voix française trouvée ; indiquer la langue réelle et les options de sous-titres.
-- [x] Retirer les numéros des descriptions et les mentions d'acompte de 50 %.
-- [x] Vérifier les PDF courts et multipages et les tests.
-- [x] Donner aux prestations des titres distincts et des descriptions aérées, puis vérifier toutes les pages.
-- [x] Afficher immédiatement le devis enregistré et actualiser le mail selon les cases cochées.
-- [x] Simplifier le mail sans tarifs des devis et préciser les renouvellements annuels.
-- [x] Vérifier l’enregistrement et l’aperçu sans envoyer d’email avec une session administrateur autorisée.
-- [x] Saluer les mails de suivi avec le nom du gérant, et « Bonjour, » sans nom quand il manque ; vérifier l’aperçu sur deux fiches.
-- [x] Modifier l’objet et le contenu du mail de facture, transmettre le message prévisualisé et vérifier sans envoyer de mail client.
-- [x] Retirer l’attribution automatique des nouvelles tâches et vérifier que les attributions existantes restent intactes.
-- [x] Ajouter une case RIB Adamkom à l’envoi des factures et vérifier les pièces jointes sans envoyer d’email.
-- [ ] Proposer le bloc support facultatif dans tous les envois manuels, avec aperçu et lien personnel cohérents.
-- [x] Ajouter les cadeaux et règles éventuelles du jeu à gratter au formulaire de conversion et vérifier leur transmission sans enregistrer de réponse de test.
-- [x] Proposer 4 modèles de facture design (logo Adamkom toujours présent) au choix à la création.
-- [x] Mémoriser un modèle de facture préféré par client et le proposer automatiquement à la création.
-- [x] Analyse d'une fiche Google à partir d'un lien, rapport envoyable au client, et suivi minutieux de chaque étape GMB (fait / pas fait).
-- [x] Section Clients Décollage : ajout de clients, mail de présentation modifiable (WhatsApp affiché), ticket support, projet et tâches du pack.
-- [x] Test réel Décollage : agence de test créée, 50 tâches générées, présentation envoyée à adamkom.co@gmail.com.
-- [x] Suivi des mails Décollage : ouvertures, clics, taux d'ouverture et de clic.
-- [x] Suivi complet des tickets support : statut, date d'ouverture, première réponse, délais, historique, dans la page Support.
+# Roadmap
+
+- [ ] Page « Clients par statut » : tâches par date limite, tickets sans réponse, commentaires non lus
+- [ ] Alerte sur la fiche client à l'arrivée d'un commentaire, avec le nom du membre de l'équipe
+- [ ] Page « Agenda » : toutes les tâches à faire par date, bouton « Terminée »
+- [ ] Suivi des tâches dans la fiche client : taux terminé, tâches en retard
+- [ ] Test réel : commentaire d'équipe visible dans Commentaires équipe, la fiche et l'alerte

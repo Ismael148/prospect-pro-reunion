@@ -65,7 +65,7 @@ const TABLES: Record<string, TableConfig> = {
     byId: (id) => [["client", id]],
   },
   projects: {
-    lists: [["projects"], ["logo-clients"], ["overdue-tasks-dashboard"], ["all_project_tasks_full"]],
+    lists: [["projects"], ["logo-clients"], ["overdue-tasks-dashboard"], ["all_project_tasks_full"], ["agenda-tasks"], ["clients-status"], ["client-task-stats"]],
     byId: (id, row) => {
       const k: string[][] = [["project", id], ["projects", id]];
       if (row?.client_id) k.push(["client", row.client_id]);
@@ -73,7 +73,7 @@ const TABLES: Record<string, TableConfig> = {
     },
   },
   project_tasks: {
-    lists: [["overdue-tasks-dashboard"], ["all_project_tasks_full"]],
+    lists: [["overdue-tasks-dashboard"], ["all_project_tasks_full"], ["agenda-tasks"], ["clients-status"], ["client-task-stats"]],
     byId: (_id, row) => {
       const k: string[][] = [];
       if (row?.project_id) {
@@ -97,7 +97,7 @@ const TABLES: Record<string, TableConfig> = {
     },
   },
   support_tickets: {
-    lists: [["support-tickets"], ["support"]],
+    lists: [["support-tickets"], ["support"], ["clients-status"]],
     byId: (id) => [["ticket", id]],
   },
   social_deliverables: {
@@ -122,7 +122,7 @@ const TABLES: Record<string, TableConfig> = {
   },
   client_activities: {
     lists: [["team-comments"]],
-    byId: (_id, row) => (row?.client_id ? [["client-activities", row.client_id], ["client", row.client_id]] : []),
+    byId: (_id, row) => (row?.client_id ? [["activities", row.client_id], ["client-activities", row.client_id], ["client", row.client_id]] : []),
   },
   commissions: {
     lists: [["commissions"]],

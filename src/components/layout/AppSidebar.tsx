@@ -30,6 +30,8 @@ import {
   FileSignature,
   Rocket,
   MessageSquare,
+  CalendarCheck,
+  ClipboardList,
 } from "lucide-react";
 import logo from "@/assets/logo.webp";
 import {
@@ -49,18 +51,20 @@ import { useMemo } from "react";
 import { useUnreadTeamCommentsCount } from "@/hooks/use-team-comments";
 
 const ROLE_ACCESS: Record<string, string[]> = {
-  admin: ["/", "/commentaires-equipe", "/suivi-tuning", "/suivi-disponibilites", "/devis", "/taches-equipe", "/historique", "/performance", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/comptabilite", "/facturation", "/renouvellements-ndd", "/support", "/campagnes", "/emails", "/paiements", "/equipe", "/parametres", "/cartes-nfc", "/clients-tuning", "/clients-decollage", "/corbeille", "/acces-partenaire", "/gmb", "/onboarding-fb", "/calendrier", "/formation-seo"],
-  agent_master: ["/", "/suivi-tuning", "/suivi-disponibilites", "/devis", "/taches-equipe", "/historique", "/performance", "/agent-master", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/clients-tuning", "/clients-decollage", "/acces-partenaire", "/gmb", "/onboarding-fb", "/calendrier", "/formation-seo"],
-  agent_telephonique: ["/", "/devis", "/historique", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/clients-tuning", "/clients-decollage", "/onboarding-fb", "/calendrier"],
-  agent_support: ["/", "/suivi-tuning", "/suivi-disponibilites", "/historique", "/clients", "/support", "/projets", "/cartes-nfc", "/clients-tuning", "/clients-decollage", "/onboarding-fb", "/calendrier"],
-  commercial_terrain: ["/", "/devis", "/historique", "/projets", "/commissions", "/calendrier"],
-  webmaster: ["/", "/suivi-tuning", "/taches-equipe", "/historique", "/clients", "/clients-tuning", "/clients-decollage", "/cartes-nfc", "/projets", "/webmaster", "/support", "/acces-partenaire", "/gmb", "/onboarding-fb", "/onboarding-clients", "/calendrier", "/formation-seo"],
-  designer: ["/", "/taches-equipe", "/historique", "/projets", "/webmaster", "/support", "/calendrier", "/formation-seo"],
+  admin: ["/", "/commentaires-equipe", "/clients-statut", "/agenda", "/suivi-tuning", "/suivi-disponibilites", "/devis", "/taches-equipe", "/historique", "/performance", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/comptabilite", "/facturation", "/renouvellements-ndd", "/support", "/campagnes", "/emails", "/paiements", "/equipe", "/parametres", "/cartes-nfc", "/clients-tuning", "/clients-decollage", "/corbeille", "/acces-partenaire", "/gmb", "/onboarding-fb", "/calendrier", "/formation-seo"],
+  agent_master: ["/", "/agenda", "/suivi-tuning", "/suivi-disponibilites", "/devis", "/taches-equipe", "/historique", "/performance", "/agent-master", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/clients-tuning", "/clients-decollage", "/acces-partenaire", "/gmb", "/onboarding-fb", "/calendrier", "/formation-seo"],
+  agent_telephonique: ["/", "/agenda", "/devis", "/historique", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/clients-tuning", "/clients-decollage", "/onboarding-fb", "/calendrier"],
+  agent_support: ["/", "/agenda", "/suivi-tuning", "/suivi-disponibilites", "/historique", "/clients", "/support", "/projets", "/cartes-nfc", "/clients-tuning", "/clients-decollage", "/onboarding-fb", "/calendrier"],
+  commercial_terrain: ["/", "/agenda", "/devis", "/historique", "/projets", "/commissions", "/calendrier"],
+  webmaster: ["/", "/agenda", "/suivi-tuning", "/taches-equipe", "/historique", "/clients", "/clients-tuning", "/clients-decollage", "/cartes-nfc", "/projets", "/webmaster", "/support", "/acces-partenaire", "/gmb", "/onboarding-fb", "/onboarding-clients", "/calendrier", "/formation-seo"],
+  designer: ["/", "/agenda", "/taches-equipe", "/historique", "/projets", "/webmaster", "/support", "/calendrier", "/formation-seo"],
 };
 
 const allMenuItems = [
   { title: "Dashboard", icon: LayoutDashboard, path: "/" },
   { title: "Commentaires équipe", icon: MessageSquare, path: "/commentaires-equipe" },
+  { title: "Clients par statut", icon: ClipboardList, path: "/clients-statut" },
+  { title: "Agenda", icon: CalendarCheck, path: "/agenda" },
   { title: "Agent Master", icon: Users, path: "/agent-master" },
   { title: "Clients 2.0", icon: Users, path: "/clients" },
   { title: "Clients 1.0", icon: CreditCard, path: "/cartes-nfc" },

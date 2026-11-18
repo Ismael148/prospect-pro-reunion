@@ -5,9 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/contexts/AuthContext";
 import { useGlobalStats, useSyncPresentationOpens } from "@/hooks/use-global-stats";
-import { useUnreadTeamCommentsCount } from "@/hooks/use-team-comments";
+import { useCanReadTeamComments, useUnreadTeamCommentsCount } from "@/hooks/use-team-comments";
 import { AgentTrackingTable } from "@/components/team/AgentTrackingTable";
 import { MorningRemindersCard } from "@/components/support/MorningRemindersCard";
 import { useSyncReminderOpens } from "@/hooks/use-task-reminders";
@@ -17,8 +16,7 @@ import { getTicketTracking, RESPONSE_TARGET_HOURS } from "@/lib/support-tracking
 import { summarizeTracking } from "@/lib/email-tracking";
 
 export default function StatsGlobales() {
-  const { hasRole } = useAuth();
-  const isAdmin = hasRole("admin");
+  const showComments = useCanReadTeamComments();
   const { data, isLoading } = useGlobalStats();
   const unreadComments = useUnreadTeamCommentsCount();
   const today = reunionToday();
@@ -49,7 +47,7 @@ export default function StatsGlobales() {
       icon: LifeBuoy, label: "Tickets sans réponse", value: String(tickets.waiting + tickets.late),
       sub: `${tickets.late} au-delà de ${RESPONSE_TARGET_HOURS} h`, to: "/support", cta: "Ouvrir Support", danger: tickets.late > 0,
     },
-    ...(isAdmin ? [{
+    ...(showComments ? [{
       icon: MessageSquare, label: "Commentaires non lus", value: String(unreadComments),
       sub: "Commentaires de l'équipe sur les fiches clients", to: "/commentaires-equipe", cta: "Lire les commentaires",
     }] : []),
@@ -71,7 +69,7 @@ export default function StatsGlobales() {
         </Button>
       </div>
 
-      <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${isAdmin ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
+      <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${showComments ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
         {tiles.map((t) => (
           <Card key={t.label} className="border-0 shadow-md shadow-primary/5">
             <CardContent className="flex h-full flex-col gap-2 p-5">

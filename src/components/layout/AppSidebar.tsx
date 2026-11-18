@@ -57,7 +57,7 @@ const ROLE_ACCESS: Record<string, string[]> = {
   agent_telephonique: ["/", "/agenda", "/devis", "/historique", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/clients-tuning", "/clients-decollage", "/onboarding-fb", "/calendrier"],
   agent_support: ["/", "/agenda", "/suivi-tuning", "/suivi-disponibilites", "/historique", "/clients", "/support", "/projets", "/cartes-nfc", "/clients-tuning", "/clients-decollage", "/onboarding-fb", "/calendrier"],
   commercial_terrain: ["/", "/agenda", "/devis", "/historique", "/projets", "/commissions", "/calendrier"],
-  webmaster: ["/", "/agenda", "/suivi-tuning", "/taches-equipe", "/historique", "/clients", "/clients-tuning", "/clients-decollage", "/cartes-nfc", "/projets", "/webmaster", "/support", "/acces-partenaire", "/gmb", "/onboarding-fb", "/onboarding-clients", "/calendrier", "/formation-seo"],
+  webmaster: ["/", "/stats-globales", "/commentaires-equipe", "/clients-statut", "/agenda", "/suivi-tuning", "/taches-equipe", "/historique", "/clients", "/clients-tuning", "/clients-decollage", "/cartes-nfc", "/projets", "/webmaster", "/support", "/acces-partenaire", "/gmb", "/onboarding-fb", "/onboarding-clients", "/calendrier", "/formation-seo"],
   designer: ["/", "/agenda", "/taches-equipe", "/historique", "/projets", "/webmaster", "/support", "/calendrier", "/formation-seo"],
 };
 

@@ -141,6 +141,13 @@
       "when": 1794986333037,
       "tag": "0019_task_reminders_per_task_and_assignments",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1794987328498,
+      "tag": "0020_webmaster_access_team_pages",
+      "breakpoints": true
     }
   ]
 }

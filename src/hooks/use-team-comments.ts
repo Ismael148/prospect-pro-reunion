@@ -12,15 +12,43 @@ export type TeamMember = { user_id: string; full_name: string | null; roles: str
 
 const LIMIT = 600;
 
+/** Roles that can open the team comments inbox. */
+export const TEAM_COMMENT_ROLES = ["admin", "webmaster"] as const;
+/** For non-admin readers, notes older than this count as already read so their inbox starts clean. */
+const MEMBER_UNREAD_WINDOW_DAYS = 30;
+
+export function useCanReadTeamComments() {
+  const { hasRole } = useAuth();
+  return TEAM_COMMENT_ROLES.some((r) => hasRole(r));
+}
+
+/**
+ * Team comments with a viewer-specific read state in `admin_seen`:
+ * the admin uses the shared admin flag, other readers (webmasters) their own seen marks.
+ */
 export function useTeamComments() {
   const { user, hasRole } = useAuth();
-  const enabled = !!user && hasRole("admin");
+  const isAdmin = hasRole("admin");
+  const canRead = useCanReadTeamComments();
+  const enabled = !!user && canRead;
   return useQuery({
     queryKey: ["team-comments"],
     enabled,
     staleTime: 30_000,
     queryFn: async (): Promise<TeamCommentRow[]> => {
       const cols = "id, client_id, user_id, description, created_at, admin_seen, admin_seen_at, parent_id, client:clients(id, company_name, ndi, pack_type, manager_name)";
+      if (!isAdmin) {
+        const [recent, marks] = await Promise.all([
+          supabase.from("client_activities").select(cols).eq("activity_type", "note")
+            .order("created_at", { ascending: false }).limit(LIMIT),
+          supabase.from("seen_marks").select("item_id").eq("item_type", "team_comment").eq("user_id", user!.id).limit(5000),
+        ]);
+        if (recent.error) throw recent.error;
+        if (marks.error) throw marks.error;
+        const seen = new Set((marks.data || []).map((m) => m.item_id));
+        const since = new Date(Date.now() - MEMBER_UNREAD_WINDOW_DAYS * 86_400_000).toISOString();
+        return ((recent.data || []) as any[]).map((r) => ({ ...r, admin_seen: seen.has(r.id) || r.created_at < since }));
+      }
       // Latest notes for the history, plus every unread note however old, so nothing to read is ever missed.
       const [recent, unread] = await Promise.all([
         supabase.from("client_activities").select(cols).eq("activity_type", "note")
@@ -64,9 +92,22 @@ export function useUnreadTeamCommentsCount() {
 
 export function useMarkTeamCommentsSeen() {
   const qc = useQueryClient();
+  const { user, hasRole } = useAuth();
+  const isAdmin = hasRole("admin");
   return useMutation({
     mutationFn: async (ids: string[]) => {
       if (ids.length === 0) return;
+      if (!isAdmin) {
+        // Other readers keep their own read state; the admin's flag is untouched.
+        for (let i = 0; i < ids.length; i += 100) {
+          const { error } = await supabase.from("seen_marks").upsert(
+            ids.slice(i, i + 100).map((id) => ({ item_type: "team_comment", item_id: id, user_id: user!.id })),
+            { onConflict: "item_type,item_id,user_id", ignoreDuplicates: true },
+          );
+          if (error) throw error;
+        }
+        return;
+      }
       const now = new Date().toISOString();
       for (let i = 0; i < ids.length; i += 100) {
         const { error } = await supabase

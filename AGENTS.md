@@ -19,3 +19,4 @@
 - Pack Décollage presentation and support-link emails come from one shared builder per email for preview and send, delivered through the single-client email service; a full-HTML override is sent as edited.
 - Email opens/clicks are pulled from the email provider into a staff-readable `email_tracking` snapshot (one row per message, refreshed on demand); the sent-email log stays unchanged and the last snapshot is kept when provider events expire.
 - Support ticket tracking (first response, resolution dates, event history) is written by database triggers into `support_tickets` and the read-only `support_ticket_events` table; the UI only reads it through the shared `support-tracking` helpers so every view computes delays the same way.
+- Team client comments are read through the shared `team-comments` helpers (threads + unread = written by someone else and not `admin_seen`); the inbox page, menu badge and on-screen alert all use them so counts stay identical.

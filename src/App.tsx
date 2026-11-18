@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
 import Auth from "./pages/Auth";
+import CommentairesEquipe from "./pages/CommentairesEquipe";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
 import ClientDetail from "./pages/ClientDetail";
@@ -221,6 +222,7 @@ const App = () => (
               path="/formation-seo"
               element={<ProtectedRoute><AppLayout><FormationSeo /></AppLayout></ProtectedRoute>}
             />
+            <Route path="/commentaires-equipe" element={<ProtectedRoute><AppLayout><CommentairesEquipe /></AppLayout></ProtectedRoute>} />
             <Route path="/devis" element={<ProtectedRoute><AppLayout><Devis /></AppLayout></ProtectedRoute>} />
             {/* Public tutorials */}
             <Route path="/tuto/facebook" element={<TutoFacebook />} />

@@ -121,7 +121,7 @@ const TABLES: Record<string, TableConfig> = {
     byId: (id) => [["prospect", id]],
   },
   client_activities: {
-    lists: [],
+    lists: [["team-comments"]],
     byId: (_id, row) => (row?.client_id ? [["client-activities", row.client_id], ["client", row.client_id]] : []),
   },
   commissions: {

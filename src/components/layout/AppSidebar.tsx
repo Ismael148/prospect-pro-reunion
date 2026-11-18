@@ -29,6 +29,7 @@ import {
   ListChecks,
   FileSignature,
   Rocket,
+  MessageSquare,
 } from "lucide-react";
 import logo from "@/assets/logo.webp";
 import {
@@ -45,9 +46,10 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useMemo } from "react";
+import { useUnreadTeamCommentsCount } from "@/hooks/use-team-comments";
 
 const ROLE_ACCESS: Record<string, string[]> = {
-  admin: ["/", "/suivi-tuning", "/suivi-disponibilites", "/devis", "/taches-equipe", "/historique", "/performance", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/comptabilite", "/facturation", "/renouvellements-ndd", "/support", "/campagnes", "/emails", "/paiements", "/equipe", "/parametres", "/cartes-nfc", "/clients-tuning", "/clients-decollage", "/corbeille", "/acces-partenaire", "/gmb", "/onboarding-fb", "/calendrier", "/formation-seo"],
+  admin: ["/", "/commentaires-equipe", "/suivi-tuning", "/suivi-disponibilites", "/devis", "/taches-equipe", "/historique", "/performance", "/clients", "/prospection", "/pipeline", "/projets", "/webmaster", "/commissions", "/comptabilite", "/facturation", "/renouvellements-ndd", "/support", "/campagnes", "/emails", "/paiements", "/equipe", "/parametres", "/cartes-nfc", "/clients-tuning", "/clients-decollage", "/corbeille", "/acces-partenaire", "/gmb", "/onboarding-fb", "/calendrier", "/formation-seo"],
   agent_master: ["/", "/suivi-tuning", "/suivi-disponibilites", "/devis", "/taches-equipe", "/historique", "/performance", "/agent-master", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/clients-tuning", "/clients-decollage", "/acces-partenaire", "/gmb", "/onboarding-fb", "/calendrier", "/formation-seo"],
   agent_telephonique: ["/", "/devis", "/historique", "/prospection", "/clients", "/pipeline", "/projets", "/commissions", "/support", "/cartes-nfc", "/clients-tuning", "/clients-decollage", "/onboarding-fb", "/calendrier"],
   agent_support: ["/", "/suivi-tuning", "/suivi-disponibilites", "/historique", "/clients", "/support", "/projets", "/cartes-nfc", "/clients-tuning", "/clients-decollage", "/onboarding-fb", "/calendrier"],
@@ -58,6 +60,7 @@ const ROLE_ACCESS: Record<string, string[]> = {
 
 const allMenuItems = [
   { title: "Dashboard", icon: LayoutDashboard, path: "/" },
+  { title: "Commentaires équipe", icon: MessageSquare, path: "/commentaires-equipe" },
   { title: "Agent Master", icon: Users, path: "/agent-master" },
   { title: "Clients 2.0", icon: Users, path: "/clients" },
   { title: "Clients 1.0", icon: CreditCard, path: "/cartes-nfc" },
@@ -98,6 +101,7 @@ const adminItems = [
 export function AppSidebar() {
   const { profile, roles, signOut, hasRole } = useAuth();
   const navigate = useNavigate();
+  const unreadComments = useUnreadTeamCommentsCount();
   const location = useLocation();
 
   const initials = profile?.full_name
@@ -162,6 +166,11 @@ export function AppSidebar() {
                   >
                     <item.icon className="w-4 h-4" />
                     <span className="text-[13px]">{item.title}</span>
+                    {item.path === "/commentaires-equipe" && unreadComments > 0 && (
+                      <span className="ml-auto min-w-5 rounded-full bg-primary px-1.5 text-center text-[10px] font-bold leading-5 text-primary-foreground">
+                        {unreadComments > 99 ? "99+" : unreadComments}
+                      </span>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

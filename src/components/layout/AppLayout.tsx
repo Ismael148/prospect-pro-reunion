@@ -4,11 +4,13 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useGlobalRealtime } from "@/hooks/use-global-realtime";
 import { RealtimeBadge } from "@/components/RealtimeBadge";
+import { TeamCommentsWatcher } from "@/components/team-comments/TeamCommentsWatcher";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   useGlobalRealtime();
   return (
     <SidebarProvider>
+      <TeamCommentsWatcher />
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <main className="flex-1 flex flex-col min-w-0">

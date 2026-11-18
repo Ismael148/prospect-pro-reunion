@@ -1,6 +1,9 @@
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { TicketComments } from "@/components/support/TicketComments";
+import { TicketTracking, ResponseBadge } from "@/components/support/TicketTracking";
+import { SupportTrackingSummary } from "@/components/support/SupportTrackingSummary";
+import { getTicketTracking } from "@/lib/support-tracking";
 import { useSupportTickets, useUpdateTicket } from "@/hooks/use-support";
 import { useClients } from "@/hooks/use-clients";
 import { useAuth } from "@/contexts/AuthContext";
@@ -77,6 +80,7 @@ export default function Support() {
   const updateTicket = useUpdateTicket();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [filterResponse, setFilterResponse] = useState("all");
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const [adminNotes, setAdminNotes] = useState("");
   const [teamMembers, setTeamMembers] = useState<{ user_id: string; full_name: string; role: string }[]>([]);
@@ -107,6 +111,15 @@ export default function Support() {
       })();
     }
   }, [deepLinkTicketId, tickets, isLoading, setSearchParams]);
+
+  // Garde le ticket ouvert à jour (statut, réponse, résolution) quand la liste se rafraîchit
+  useEffect(() => {
+    if (!selectedTicket || !tickets) return;
+    const fresh = tickets.find((t) => t.id === selectedTicket.id);
+    if (fresh && fresh.updated_at !== selectedTicket.updated_at) {
+      setSelectedTicket((prev: any) => (prev && prev.id === fresh.id ? { ...prev, ...fresh } : prev));
+    }
+  }, [tickets, selectedTicket]);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -174,9 +187,13 @@ export default function Support() {
         t.ticket_number.toLowerCase().includes(search.toLowerCase()) ||
         getClientName(t.client_id).toLowerCase().includes(search.toLowerCase());
       const matchStatus = filterStatus === "all" || t.status === filterStatus;
-      return matchSearch && matchStatus;
+      const state = getTicketTracking(t).responseState;
+      const matchResponse =
+        filterResponse === "all" ||
+        (filterResponse === "sans_reponse" ? state === "en_attente" || state === "en_retard" : state === filterResponse);
+      return matchSearch && matchStatus && matchResponse;
     });
-  }, [visibleTickets, search, filterStatus, clients]);
+  }, [visibleTickets, search, filterStatus, filterResponse, clients]);
 
   const stats = useMemo(() => {
     if (!visibleTickets.length) return { ouvert: 0, en_cours: 0, resolu: 0, ferme: 0 };
@@ -196,6 +213,7 @@ export default function Support() {
         updates.resolved_by = user!.id;
       }
       await updateTicket.mutateAsync(updates);
+      setSelectedTicket((prev: any) => (prev && prev.id === id ? { ...prev, status } : prev));
       toast.success(`Ticket ${STATUS_LABELS[status].toLowerCase()}`);
     } catch {
       toast.error("Erreur");
@@ -371,6 +389,12 @@ export default function Support() {
         })}
       </div>
 
+      <SupportTrackingSummary
+        tickets={visibleTickets}
+        onShowAwaiting={() => { setFilterStatus("all"); setFilterResponse("sans_reponse"); }}
+        onShowLate={() => { setFilterStatus("all"); setFilterResponse("en_retard"); }}
+      />
+
       {/* Client Support Links — admin only */}
       {isAdmin && clients && clients.length > 0 && (
         <Card className="border-0 shadow-soft">
@@ -416,6 +440,15 @@ export default function Support() {
             ))}
           </SelectContent>
         </Select>
+        <Select value={filterResponse} onValueChange={setFilterResponse}>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Réponse" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Toutes les réponses</SelectItem>
+            <SelectItem value="repondu">Répondu</SelectItem>
+            <SelectItem value="sans_reponse">Sans réponse</SelectItem>
+            <SelectItem value="en_retard">En retard (+24 h)</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Tickets List */}
@@ -426,7 +459,7 @@ export default function Support() {
           <CardContent className="flex flex-col items-center justify-center py-16">
             <LifeBuoy className="w-10 h-10 text-muted-foreground/30 mb-3" />
             <p className="text-muted-foreground text-sm">
-              {search || filterStatus !== "all" ? "Aucun résultat" : isWebmaster ? "Aucun ticket assigné" : "Aucun ticket de support"}
+              {search || filterStatus !== "all" || filterResponse !== "all" ? "Aucun résultat" : isWebmaster ? "Aucun ticket assigné" : "Aucun ticket de support"}
             </p>
           </CardContent>
         </Card>
@@ -465,13 +498,16 @@ export default function Support() {
                       </div>
                       <p className="font-medium text-sm truncate mt-0.5">{ticket.subject}</p>
                       <p className="text-[11px] text-muted-foreground mt-0.5">
-                        {getClientName(ticket.client_id)} • {new Date(ticket.created_at).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                        {getClientName(ticket.client_id)} • Ouvert le {new Date(ticket.created_at).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                         {ticket.assigned_to && ` • 👤 ${getAssigneeName(ticket.assigned_to)}`}
                       </p>
                     </div>
-                    <Badge variant="outline" className={`text-[10px] shrink-0 ${STATUS_COLORS[ticket.status]}`}>
-                      {STATUS_LABELS[ticket.status]}
-                    </Badge>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <Badge variant="outline" className={`text-[10px] ${STATUS_COLORS[ticket.status]}`}>
+                        {STATUS_LABELS[ticket.status]}
+                      </Badge>
+                      <ResponseBadge ticket={ticket} />
+                    </div>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -482,7 +518,7 @@ export default function Support() {
 
       {/* Ticket Detail Dialog */}
       <Dialog open={!!selectedTicket} onOpenChange={(open) => !open && setSelectedTicket(null)}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           {selectedTicket && (
             <>
               <DialogHeader>
@@ -555,13 +591,8 @@ export default function Support() {
                   </div>
                 )}
 
-                <div>
-                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Date</p>
-                  <p className="text-sm">
-                    {new Date(selectedTicket.created_at).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion",
-                      day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
-                    })}
-                  </p>
+                <div className="border-t pt-4">
+                  <TicketTracking ticket={selectedTicket} />
                 </div>
 
                 {/* Assigned to */}

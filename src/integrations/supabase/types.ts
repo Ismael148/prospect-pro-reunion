@@ -3085,6 +3085,44 @@ export type Database = {
           },
         ]
       }
+      support_ticket_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          event_type: string
+          from_value: string | null
+          id: string
+          ticket_id: string
+          to_value: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          event_type: string
+          from_value?: string | null
+          id?: string
+          ticket_id: string
+          to_value?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          event_type?: string
+          from_value?: string | null
+          id?: string
+          ticket_id?: string
+          to_value?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_ticket_events_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_tickets: {
         Row: {
           admin_notes: string | null
@@ -3093,6 +3131,8 @@ export type Database = {
           category: Database["public"]["Enums"]["support_category"]
           client_id: string
           created_at: string
+          first_response_at: string | null
+          first_response_by: string | null
           id: string
           message: string
           priority: string
@@ -3110,6 +3150,8 @@ export type Database = {
           category?: Database["public"]["Enums"]["support_category"]
           client_id: string
           created_at?: string
+          first_response_at?: string | null
+          first_response_by?: string | null
           id?: string
           message: string
           priority?: string
@@ -3127,6 +3169,8 @@ export type Database = {
           category?: Database["public"]["Enums"]["support_category"]
           client_id?: string
           created_at?: string
+          first_response_at?: string | null
+          first_response_by?: string | null
           id?: string
           message?: string
           priority?: string

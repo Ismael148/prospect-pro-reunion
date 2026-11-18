@@ -15,6 +15,8 @@ export interface SupportTicket {
   priority: string;
   resolved_at: string | null;
   resolved_by: string | null;
+  first_response_at: string | null;
+  first_response_by: string | null;
   assigned_to: string | null;
   admin_notes: string | null;
   created_at: string;
@@ -45,6 +47,33 @@ export function useSupportTickets(options?: UseSupportTicketsOptions) {
       const { data, error } = await query.order("created_at", { ascending: false });
       if (error) throw error;
       return data as SupportTicket[];
+    },
+  });
+}
+
+export interface SupportTicketEvent {
+  id: string;
+  ticket_id: string;
+  event_type: "ouverture" | "statut" | "assignation" | "priorite" | "reponse";
+  from_value: string | null;
+  to_value: string | null;
+  actor_id: string | null;
+  created_at: string;
+}
+
+/** Historique d'un ticket (ouverture, statuts, assignations, priorités, réponses). */
+export function useSupportTicketEvents(ticketId: string | null) {
+  return useQuery({
+    queryKey: ["support-tickets", "events", ticketId],
+    enabled: !!ticketId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("support_ticket_events")
+        .select("*")
+        .eq("ticket_id", ticketId!)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data as SupportTicketEvent[];
     },
   });
 }

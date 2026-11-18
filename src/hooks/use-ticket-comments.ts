@@ -52,6 +52,8 @@ export function useAddTicketComment() {
     },
     onSuccess: (_d, vars) => {
       queryClient.invalidateQueries({ queryKey: ["ticket-comments", vars.ticket_id] });
+      // Le premier commentaire enregistre la première réponse du ticket
+      queryClient.invalidateQueries({ queryKey: ["support-tickets"] });
     },
   });
 }

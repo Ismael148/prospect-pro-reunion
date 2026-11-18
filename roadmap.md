@@ -21,3 +21,4 @@
 - [x] Section Clients Décollage : ajout de clients, mail de présentation modifiable (WhatsApp affiché), ticket support, projet et tâches du pack.
 - [x] Test réel Décollage : agence de test créée, 50 tâches générées, présentation envoyée à adamkom.co@gmail.com.
 - [x] Suivi des mails Décollage : ouvertures, clics, taux d'ouverture et de clic.
+- [x] Suivi complet des tickets support : statut, date d'ouverture, première réponse, délais, historique, dans la page Support.

@@ -162,3 +162,40 @@ export function useValidateForm() {
     },
   });
 }
+
+export function useResetClientForm() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (formId: string) => {
+      const { error } = await (supabase as any).rpc("reset_client_form", { p_form_id: formId });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["client-forms"] });
+      queryClient.invalidateQueries({ queryKey: ["client-form-archives"] });
+    },
+  });
+}
+
+export function useClientFormArchives(clientId: string) {
+  return useQuery({
+    queryKey: ["client-form-archives", clientId],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("client_form_archives")
+        .select("*")
+        .eq("client_id", clientId)
+        .order("archived_at", { ascending: false });
+      if (error) throw error;
+      return (data || []) as {
+        id: string;
+        form_type: string;
+        form_data: ClientFormData | null;
+        status: string | null;
+        submitted_at: string | null;
+        archived_at: string;
+      }[];
+    },
+    enabled: !!clientId,
+  });
+}

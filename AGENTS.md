@@ -25,3 +25,4 @@
 - Reminders go only to the member's real address in `team_notification_emails` (admin- or owner-editable), never the login email, because login ids are not real inboxes.
 - Client and project responsibles live in their `assigned_to` columns; every change is written by a trigger into the read-only `assignment_history` table, shown in Suivi équipe → Qui gère quoi.
 - Per-agent and global statistics are computed by the shared `agent-tracking` helpers on top of `task-tracking` and `support-tracking`, so the Stats globales page and Suivi équipe always agree.
+- Resetting a client form goes through the staff-only `reset_client_form` function, which copies prior answers into read-only `client_form_archives` first; client submissions are never discarded.

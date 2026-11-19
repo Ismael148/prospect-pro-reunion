@@ -263,6 +263,45 @@ export type Database = {
           },
         ]
       }
+      client_form_archives: {
+        Row: {
+          archived_at: string
+          archived_by: string | null
+          client_id: string
+          form_data: Json | null
+          form_id: string
+          form_type: Database["public"]["Enums"]["client_form_type"]
+          id: string
+          status: Database["public"]["Enums"]["client_form_status"] | null
+          submitted_at: string | null
+          validated_at: string | null
+        }
+        Insert: {
+          archived_at?: string
+          archived_by?: string | null
+          client_id: string
+          form_data?: Json | null
+          form_id: string
+          form_type: Database["public"]["Enums"]["client_form_type"]
+          id?: string
+          status?: Database["public"]["Enums"]["client_form_status"] | null
+          submitted_at?: string | null
+          validated_at?: string | null
+        }
+        Update: {
+          archived_at?: string
+          archived_by?: string | null
+          client_id?: string
+          form_data?: Json | null
+          form_id?: string
+          form_type?: Database["public"]["Enums"]["client_form_type"]
+          id?: string
+          status?: Database["public"]["Enums"]["client_form_status"] | null
+          submitted_at?: string | null
+          validated_at?: string | null
+        }
+        Relationships: []
+      }
       client_forms: {
         Row: {
           client_id: string
@@ -3535,6 +3574,7 @@ export type Database = {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: string
       }
+      reset_client_form: { Args: { p_form_id: string }; Returns: undefined }
       submit_client_form_public: {
         Args: {
           p_form_data: Json

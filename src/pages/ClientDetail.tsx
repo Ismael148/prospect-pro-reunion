@@ -26,7 +26,7 @@ import {
   ArrowLeft, Plus, User, Phone, Mail, Briefcase, Building2, Loader2, Clock,
   Globe, MapPin, CreditCard, FileText, MessageSquare, Send, FolderKanban, Hash, UserCheck,
   ClipboardCopy, CheckCircle2, Eye, Download, Pencil, CreditCard as NfcIcon, Ticket, Trash2,
-  LifeBuoy, MessageCircle,
+  LifeBuoy, MessageCircle, RotateCcw, Archive,
 } from "lucide-react";
 import { exportClientPDF } from "@/lib/export-client-pdf";
 import { useState } from "react";
@@ -52,7 +52,7 @@ import { hasGmbVideoGuide } from "@/lib/gmb-video-guide";
 
 import ClientRemindersSection from "@/components/clients/ClientRemindersSection";
 import RelanceFlagsSection from "@/components/clients/RelanceFlagsSection";
-import { useClientForms, useValidateForm, ClientFormData } from "@/hooks/use-client-forms";
+import { useClientForms, useValidateForm, useResetClientForm, useClientFormArchives, ClientFormData } from "@/hooks/use-client-forms";
 import { triggerN8nWebhook } from "@/lib/n8n-webhook";
 import { exportClientFormZip } from "@/lib/export-client-form";
 import { logDataAccess } from "@/lib/audit";
@@ -1200,7 +1200,10 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName, cli
   const { user, hasRole } = useAuth();
   const { data: forms, isLoading } = useClientForms(clientId);
   const validateForm = useValidateForm();
+  const resetForm = useResetClientForm();
+  const { data: archives } = useClientFormArchives(clientId);
   const [viewingForm, setViewingForm] = useState<any>(null);
+  const [viewingArchive, setViewingArchive] = useState<string | null>(null);
   const [mentionOpen, setMentionOpen] = useState<string | null>(null);
 
   const { data: webmasters } = useQuery({
@@ -1278,6 +1281,16 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName, cli
       await validateForm.mutateAsync({ formId, userId: user!.id });
       toast.success("Formulaire validé");
     } catch { toast.error("Erreur"); }
+  };
+
+  const handleReset = async (formId: string) => {
+    try {
+      await resetForm.mutateAsync(formId);
+      if (viewingForm?.id === formId) setViewingForm(null);
+      toast.success("Formulaire réinitialisé : le client peut le remplir de nouveau");
+    } catch (e: any) {
+      toast.error(e?.message || "Impossible de réinitialiser le formulaire");
+    }
   };
 
   const submittedCount = forms?.filter((f) => f.status === "soumis").length || 0;
@@ -1421,6 +1434,27 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName, cli
                           <Download className="w-4 h-4" />
                         </Button>
                       )}
+                      {form.status !== "en_attente" && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="sm" variant="ghost" title="Réinitialiser le formulaire" aria-label="Réinitialiser le formulaire">
+                              <RotateCcw className="w-4 h-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Réinitialiser ce formulaire ?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Le client pourra le remplir de nouveau avec le même lien. Les réponses actuelles sont conservées dans « Réponses archivées ».
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Annuler</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleReset(form.id)}>Réinitialiser</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
                       {form.status === "soumis" && hasRole("admin") && (
                         <>
                           <div className="relative">
@@ -1504,6 +1538,56 @@ function ClientFormsSection({ clientId, supportToken, packType, companyName, cli
                           ))}
                         </div>
                       )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {!!archives?.length && (
+          <div className="space-y-2 pt-2 border-t border-border">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+              <Archive className="w-3.5 h-3.5" /> Réponses archivées ({archives.length})
+            </p>
+            {archives.map((a) => {
+              const afd = (a.form_data || {}) as Record<string, any>;
+              const open = viewingArchive === a.id;
+              return (
+                <div key={a.id} className="p-3 rounded-lg border border-border bg-muted/20 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-xs">
+                      <span className="font-medium">{FORM_TYPE_LABELS[a.form_type]?.icon} {FORM_TYPE_LABELS[a.form_type]?.label || a.form_type}</span>
+                      <span className="text-muted-foreground">
+                        {a.submitted_at ? ` · envoyé le ${new Date(a.submitted_at).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion" })}` : ""}
+                        {` · archivé le ${new Date(a.archived_at).toLocaleDateString("fr-FR", { timeZone: "Indian/Reunion" })}`}
+                      </span>
+                    </div>
+                    <Button size="sm" variant="ghost" aria-label="Voir la réponse archivée" onClick={() => setViewingArchive(open ? null : a.id)}>
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  {open && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {Object.entries(afd)
+                        .filter(([k, v]) => v && k !== "extra_cards" && typeof v !== "object")
+                        .map(([key, value]) => (
+                          <div key={key} className="text-xs">
+                            <span className="text-[10px] text-muted-foreground uppercase tracking-wider block">{key.replace(/_/g, " ")}</span>
+                            {String(value).startsWith("http") ? (
+                              <a href={String(value)} target="_blank" rel="noopener noreferrer" className="font-medium text-primary break-all">{String(value)}</a>
+                            ) : (
+                              <span className="font-medium break-words">{String(value)}</span>
+                            )}
+                          </div>
+                        ))}
+                      {Array.isArray(afd.extra_cards) && afd.extra_cards.map((card: any, i: number) => (
+                        <div key={`card-${i}`} className="text-xs sm:col-span-2">
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-wider block">Carte {i + 2}</span>
+                          <span className="font-medium">{[card.full_name, card.position, card.phone, card.email, card.address].filter(Boolean).join(" · ")}</span>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>

@@ -94,6 +94,7 @@ export default function ClientForm() {
   const [submitted, setSubmitted] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [extraCards, setExtraCards] = useState<CardEntry[]>([]);
+  const [reopened, setReopened] = useState(false);
 
   const nfcQuantity = (data?.client as any)?.nfc_quantity || 1;
   const totalSteps = formType === "nfc" && nfcQuantity > 1 ? nfcQuantity : 1;
@@ -146,7 +147,7 @@ export default function ClientForm() {
     );
   }
 
-  if (submitted || alreadySubmitted) {
+  if (submitted || (alreadySubmitted && !reopened)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="max-w-md w-full text-center">
@@ -157,6 +158,16 @@ export default function ClientForm() {
               Merci {data.client.company_name} ! Vos informations ont bien été transmises à notre équipe.
               Nous reviendrons vers vous rapidement.
             </p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSubmitted(false);
+                setReopened(true);
+                setCurrentStep(0);
+              }}
+            >
+              Modifier ou renvoyer mes informations
+            </Button>
           </CardContent>
         </Card>
       </div>

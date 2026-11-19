@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { MentionTextarea } from "@/components/MentionTextarea";
+import { MentionTextarea, buildMentionOptions } from "@/components/MentionTextarea";
 import { Progress } from "@/components/ui/progress";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
@@ -648,6 +648,7 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
   });
 
   const teamMembers = teamWithRoles;
+  const mentionOptions = buildMentionOptions(teamWithRoles as any);
 
   const openTicketFromNote = (noteContent: string, authorName: string) => {
     const cleanContent = noteContent.replace(/#(ticket|resolu|en_cours)/gi, "").replace(/@\[[^\]]+\]/g, "").trim();
@@ -893,7 +894,7 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
           <MentionTextarea
             value={note}
             onChange={setNote}
-            members={teamMembers || []}
+            members={mentionOptions}
             placeholder="Ajouter une note... (tapez @ pour mentionner, #resolu #en_cours #ticket)"
             rows={3}
           />
@@ -1026,7 +1027,7 @@ function NotesSection({ clientId, activities }: { clientId: string; activities: 
                         <MentionTextarea
                           value={replyContent}
                           onChange={setReplyContent}
-                          members={teamMembers || []}
+                          members={mentionOptions}
                           placeholder={`Répondre à ${authorName}... (tapez @ pour mentionner)`}
                           rows={2}
                           className="text-sm"

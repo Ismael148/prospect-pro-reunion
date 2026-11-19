@@ -8,7 +8,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -20,6 +19,7 @@ import {
 } from "@/hooks/use-team-comments";
 import { buildTeamThreads, isUnreadTeamNote, type TeamThread } from "@/lib/team-comments";
 import { NoteText } from "@/components/team-comments/NoteText";
+import { MentionTextarea, buildMentionOptions } from "@/components/MentionTextarea";
 
 const initials = (name?: string | null) =>
   (name || "?").split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
@@ -38,6 +38,7 @@ export default function CommentairesEquipe() {
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
 
+  const mentionOptions = useMemo(() => buildMentionOptions(members, user?.id), [members, user?.id]);
   const memberById = useMemo(() => new Map((members || []).map((m) => [m.user_id, m])), [members]);
   const threads = useMemo(() => buildTeamThreads<TeamCommentRow>(notes || [], user?.id), [notes, user?.id]);
   const unreadTotal = threads.reduce((s, t) => s + t.unreadIds.length, 0);
@@ -194,7 +195,7 @@ export default function CommentairesEquipe() {
                 {t.replies.map((r) => renderNote(r, true))}
                 {replyTo === t.root.id && (
                   <div className="ml-10 space-y-2">
-                    <Textarea autoFocus rows={2} value={replyText} onChange={(e) => setReplyText(e.target.value)} placeholder="Votre réponse… (visible sur la fiche client)" />
+                    <MentionTextarea autoFocus rows={2} value={replyText} onChange={setReplyText} members={mentionOptions} placeholder="Votre réponse… Tapez @ pour mentionner un agent, un webmaster ou un groupe (visible sur la fiche client)" />
                     <div className="flex justify-end gap-2">
                       <Button size="sm" variant="ghost" onClick={() => setReplyTo(null)}>Annuler</Button>
                       <Button size="sm" onClick={() => handleReply(t)} disabled={!replyText.trim() || createActivity.isPending}>

@@ -155,6 +155,13 @@
       "when": 1795071751012,
       "tag": "0021_client_form_reset_archive",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1795084525986,
+      "tag": "0022_group_mentions_in_notes",
+      "breakpoints": true
     }
   ]
 }

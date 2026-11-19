@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, KeyboardEvent, ChangeEvent } from "react";
 import { Textarea } from "@/components/ui/textarea";
-import { AtSign } from "lucide-react";
+import { AtSign, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface MentionMember {
@@ -19,6 +19,21 @@ interface Props {
   autoFocus?: boolean;
 }
 
+/** Group mentions understood by the client-note mention trigger (names must match it). */
+export const GROUP_MENTIONS: MentionMember[] = [
+  { user_id: "group:agents", full_name: "Tous les agents", roles: ["groupe"] },
+  { user_id: "group:webmasters", full_name: "Tous les webmasters", roles: ["groupe"] },
+  { user_id: "group:all", full_name: "Toute l'équipe", roles: ["groupe"] },
+];
+
+/** Team members with at least one role, plus group mentions first; the current user is excluded. */
+export function buildMentionOptions(members: MentionMember[] | undefined, currentUserId?: string): MentionMember[] {
+  const people = (members || [])
+    .filter((m) => m.user_id !== currentUserId && (m.roles?.length ?? 0) > 0 && m.full_name)
+    .sort((a, b) => (a.full_name || "").localeCompare(b.full_name || ""));
+  return [...GROUP_MENTIONS, ...people];
+}
+
 const ROLE_LABELS: Record<string, string> = {
   admin: "Admin",
   agent_master: "Agent Master",
@@ -27,6 +42,7 @@ const ROLE_LABELS: Record<string, string> = {
   webmaster: "Webmaster",
   designer: "Designer",
   commercial_terrain: "Commercial",
+  groupe: "Groupe · notifie chaque membre",
 };
 
 export function MentionTextarea({
@@ -46,7 +62,7 @@ export function MentionTextarea({
 
   const filtered = members
     .filter((m) => (m.full_name || "").toLowerCase().includes(query.toLowerCase()))
-    .slice(0, 6);
+    .slice(0, 10);
 
   useEffect(() => {
     setActiveIdx(0);
@@ -169,7 +185,7 @@ export function MentionTextarea({
                 )}
               >
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/60 text-primary-foreground flex items-center justify-center text-xs font-bold shrink-0">
-                  {initials(m.full_name)}
+                  {m.user_id.startsWith("group:") ? <Users className="w-4 h-4" /> : initials(m.full_name)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium truncate">

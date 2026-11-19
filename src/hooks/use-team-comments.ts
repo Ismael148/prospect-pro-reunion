@@ -13,7 +13,7 @@ export type TeamMember = { user_id: string; full_name: string | null; roles: str
 const LIMIT = 600;
 
 /** Roles that can open the team comments inbox. */
-export const TEAM_COMMENT_ROLES = ["admin", "webmaster"] as const;
+export const TEAM_COMMENT_ROLES = ["admin", "webmaster", "agent_master", "agent_support", "agent_telephonique"] as const;
 /** For non-admin readers, notes older than this count as already read so their inbox starts clean. */
 const MEMBER_UNREAD_WINDOW_DAYS = 30;
 

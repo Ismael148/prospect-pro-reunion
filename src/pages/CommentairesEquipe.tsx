@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow, format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { CheckCheck, Check, ExternalLink, MessageSquare, Reply, Search, Inbox, Send } from "lucide-react";
+import { CheckCheck, Check, ExternalLink, MessageSquare, Reply, Search, Inbox, Send, AtSign } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import { useCreateActivity } from "@/hooks/use-clients";
 import {
   useTeamComments, useTeamMembers, useMarkTeamCommentsSeen, ROLE_LABELS, type TeamCommentRow,
 } from "@/hooks/use-team-comments";
-import { buildTeamThreads, isUnreadTeamNote, type TeamThread } from "@/lib/team-comments";
+import { buildTeamThreads, isUnreadTeamNote, mentionsViewer, type TeamThread } from "@/lib/team-comments";
 import { NoteText } from "@/components/team-comments/NoteText";
 import { MentionTextarea, buildMentionOptions } from "@/components/MentionTextarea";
 
@@ -25,14 +25,14 @@ const initials = (name?: string | null) =>
   (name || "?").split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 
 export default function CommentairesEquipe() {
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
   const navigate = useNavigate();
   const { data: notes, isLoading } = useTeamComments();
   const { data: members } = useTeamMembers();
   const markSeen = useMarkTeamCommentsSeen();
   const createActivity = useCreateActivity();
 
-  const [tab, setTab] = useState<"unread" | "all">("unread");
+  const [tab, setTab] = useState<"unread" | "mentions" | "all">(hasRole("admin") ? "unread" : "mentions");
   const [author, setAuthor] = useState("all");
   const [search, setSearch] = useState("");
   const [replyTo, setReplyTo] = useState<string | null>(null);
@@ -42,6 +42,11 @@ export default function CommentairesEquipe() {
   const memberById = useMemo(() => new Map((members || []).map((m) => [m.user_id, m])), [members]);
   const threads = useMemo(() => buildTeamThreads<TeamCommentRow>(notes || [], user?.id), [notes, user?.id]);
   const unreadTotal = threads.reduce((s, t) => s + t.unreadIds.length, 0);
+  const viewer = user ? memberById.get(user.id) : undefined;
+  const isMentionThread = (t: TeamThread<TeamCommentRow>) =>
+    [t.root, ...t.replies].some((n) => n.user_id !== user?.id && mentionsViewer(n.description, viewer));
+  const mentionThreads = threads.filter(isMentionThread);
+  const unreadMentions = mentionThreads.reduce((s, t) => s + t.unreadIds.length, 0);
 
   const authors = useMemo(() => {
     const ids = new Set((notes || []).filter((n) => n.user_id !== user?.id).map((n) => n.user_id));
@@ -53,6 +58,7 @@ export default function CommentairesEquipe() {
     const q = search.trim().toLowerCase();
     return threads.filter((t) => {
       if (tab === "unread" && t.unreadIds.length === 0) return false;
+      if (tab === "mentions" && !isMentionThread(t)) return false;
       const items = [t.root, ...t.replies];
       if (author !== "all" && !items.some((n) => n.user_id === author)) return false;
       if (q) {
@@ -62,7 +68,7 @@ export default function CommentairesEquipe() {
       }
       return true;
     });
-  }, [threads, tab, author, search]);
+  }, [threads, tab, author, search, viewer, user?.id]);
 
   const visibleUnreadIds = visible.flatMap((t) => t.unreadIds);
 
@@ -133,6 +139,10 @@ export default function CommentairesEquipe() {
         <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
           <TabsList>
             <TabsTrigger value="unread">À lire {unreadTotal > 0 && <Badge className="ml-2 h-5 px-1.5 text-[10px]">{unreadTotal}</Badge>}</TabsTrigger>
+            <TabsTrigger value="mentions">
+              <AtSign className="mr-1 h-3.5 w-3.5" /> Mes mentions
+              {unreadMentions > 0 && <Badge className="ml-2 h-5 px-1.5 text-[10px]">{unreadMentions}</Badge>}
+            </TabsTrigger>
             <TabsTrigger value="all">Tous</TabsTrigger>
           </TabsList>
         </Tabs>
@@ -155,9 +165,9 @@ export default function CommentairesEquipe() {
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center gap-2 py-12 text-center">
             <Inbox className="h-10 w-10 text-muted-foreground" />
-            <p className="font-medium">{tab === "unread" ? "Vous êtes à jour 🎉" : "Aucun commentaire trouvé"}</p>
+            <p className="font-medium">{tab === "unread" ? "Vous êtes à jour 🎉" : tab === "mentions" ? "Personne ne vous a mentionné" : "Aucun commentaire trouvé"}</p>
             <p className="text-sm text-muted-foreground">
-              {tab === "unread" ? "Aucun nouveau commentaire de l'équipe à lire." : "Essayez une autre recherche ou un autre auteur."}
+              {tab === "unread" ? "Aucun nouveau commentaire de l'équipe à lire." : tab === "mentions" ? "Les commentaires où l'on vous tague, vous ou votre équipe, apparaîtront ici." : "Essayez une autre recherche ou un autre auteur."}
             </p>
           </CardContent>
         </Card>

@@ -63,3 +63,36 @@ export function buildTeamThreads<T extends TeamNote>(notes: T[], viewerId: strin
 export function countUnreadTeamNotes(notes: TeamNote[], viewerId: string | null | undefined): number {
   return notes.filter((n) => isUnreadTeamNote(n, viewerId)).length;
 }
+
+/**
+ * Group mentions understood by the note-mention trigger, with the roles they reach
+ * (`null` = every team member). Names must match `notify_note_mentions`.
+ */
+export const MENTION_GROUP_ROLES: Record<string, string[] | null> = {
+  "Tous les agents": ["agent_master", "agent_support", "agent_telephonique"],
+  "Tous les webmasters": ["webmaster"],
+  "Toute l'équipe": null,
+};
+
+/** Names mentioned as @[Name] in a note. */
+export function extractMentions(text: string | null | undefined): string[] {
+  if (!text) return [];
+  return Array.from(text.matchAll(/@\[([^\]]+)\]/g), (m) => m[1].trim());
+}
+
+/** True when the note mentions the viewer by name or through a group they belong to. */
+export function mentionsViewer(
+  text: string | null | undefined,
+  viewer: { full_name?: string | null; roles?: string[] } | null | undefined,
+): boolean {
+  if (!viewer) return false;
+  const name = (viewer.full_name || "").trim().toLowerCase();
+  const roles = viewer.roles || [];
+  return extractMentions(text).some((m) => {
+    if (m in MENTION_GROUP_ROLES) {
+      const groupRoles = MENTION_GROUP_ROLES[m];
+      return groupRoles === null ? roles.length > 0 : roles.some((r) => groupRoles.includes(r));
+    }
+    return !!name && m.toLowerCase() === name;
+  });
+}

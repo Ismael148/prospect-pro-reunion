@@ -26,4 +26,5 @@
 - Client and project responsibles live in their `assigned_to` columns; every change is written by a trigger into the read-only `assignment_history` table, shown in Suivi équipe → Qui gère quoi.
 - Per-agent and global statistics are computed by the shared `agent-tracking` helpers on top of `task-tracking` and `support-tracking`, so the Stats globales page and Suivi équipe always agree.
 - Resetting a client form goes through the staff-only `reset_client_form` function, which copies prior answers into read-only `client_form_archives` first; client submissions are never discarded.
-- Group mentions in client notes (@[Tous les agents], @[Tous les webmasters], @[Toute l'équipe]) are defined once in `GROUP_MENTIONS` and expanded to role members by the `notify_note_mentions` trigger; both names must stay identical.
+- Group mentions in client notes (@[Tous les agents], @[Tous les webmasters], @[Toute l'équipe]) are defined once in `MENTION_GROUP_ROLES` (team-comments helpers) and expanded to role members by the `notify_note_mentions` trigger; both names must stay identical.
+- Mention alerts (on-screen toast until closed, system notification when the tab is hidden) come from `MentionAlertsWatcher` listening to the member's own `mention`/`note_reply` notifications; "Mes mentions" uses the shared `mentionsViewer` helper.

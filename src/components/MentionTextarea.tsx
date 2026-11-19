@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, KeyboardEvent, ChangeEvent } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { AtSign, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MENTION_GROUP_ROLES } from "@/lib/team-comments";
 
 export interface MentionMember {
   user_id: string;
@@ -19,12 +20,12 @@ interface Props {
   autoFocus?: boolean;
 }
 
-/** Group mentions understood by the client-note mention trigger (names must match it). */
-export const GROUP_MENTIONS: MentionMember[] = [
-  { user_id: "group:agents", full_name: "Tous les agents", roles: ["groupe"] },
-  { user_id: "group:webmasters", full_name: "Tous les webmasters", roles: ["groupe"] },
-  { user_id: "group:all", full_name: "Toute l'équipe", roles: ["groupe"] },
-];
+/** Group mentions understood by the client-note mention trigger. */
+export const GROUP_MENTIONS: MentionMember[] = Object.keys(MENTION_GROUP_ROLES).map((name, i) => ({
+  user_id: `group:${i}`,
+  full_name: name,
+  roles: ["groupe"],
+}));
 
 /** Team members with at least one role, plus group mentions first; the current user is excluded. */
 export function buildMentionOptions(members: MentionMember[] | undefined, currentUserId?: string): MentionMember[] {

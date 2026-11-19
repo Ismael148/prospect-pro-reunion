@@ -5,10 +5,11 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
-const ALERT_TYPES = new Set(["mention", "note_reply"]);
+/** Notifications that pop an on-screen alert: team mentions/replies and client form submissions. */
+const ALERT_TYPES = new Set(["mention", "note_reply", "form_submission", "fb_onboarding", "gmb_onboarding", "payment_credentials"]);
 
 /**
- * Alerts the signed-in member as soon as someone mentions them (or answers their note):
+ * Alerts the signed-in member as soon as someone mentions them, answers their note, or a client fills a form:
  * a toast that stays until it is closed, plus a system notification when the app tab is in the background.
  */
 export function MentionAlertsWatcher() {
@@ -35,6 +36,7 @@ export function MentionAlertsWatcher() {
           const n = payload.new as { id: string; title: string; message: string | null; type: string; link: string | null };
           if (!ALERT_TYPES.has(n.type)) return;
           qc.invalidateQueries({ queryKey: ["team-comments"] });
+          if (n.type !== "mention" && n.type !== "note_reply") qc.invalidateQueries({ queryKey: ["client-forms"] });
 
           const open = async () => {
             await supabase.from("notifications").update({ read: true }).eq("id", n.id);

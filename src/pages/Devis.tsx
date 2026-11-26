@@ -7,6 +7,7 @@ import { useClients } from "@/hooks/use-clients";
 import { ClientCombobox } from "@/components/ClientCombobox";
 import { QUOTE_TEMPLATES, cleanQuoteDescription, cleanQuoteNotes, computeQuoteTotals, quoteRenewalNote, quoteRemaining, type QuoteItem } from "@/lib/quote-templates";
 import { buildQuoteEmail, getQuoteEmailDraft } from "@/lib/quote-email";
+import { buildQuoteAttachments } from "@/lib/quote-attachments";
 import { exportQuotePDF } from "@/lib/export-quote-pdf";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,6 +49,7 @@ export default function Devis() {
   const [preview, setPreview] = useState<any[] | null>(null);
   const [emailSubject, setEmailSubject] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
+  const [includeRib, setIncludeRib] = useState(false);
   const [invoiceQuote, setInvoiceQuote] = useState<any | null>(null);
 
   const { data: quotes = [] } = useQuery({
@@ -160,21 +162,31 @@ export default function Devis() {
     return { ...mail, html: applySupport(mail.html, token ? `${PUBLISHED_URL}/s/${token}` : undefined) };
   };
 
-  const sendQuotes = async (list: any[]) => {
-    if (!list.length) return;
+  const sendQuotes = async (list: any[]): Promise<boolean> => {
+    if (!list.length) return false;
     const email = list[0].email;
-    if (!email) { toast.error("Ajoutez l'email du client"); return; }
-    if (list.some((q) => (q.email || "").toLowerCase() !== email.toLowerCase())) { toast.error("Les devis sélectionnés doivent concerner le même client (même email)"); return; }
+    if (!email) { toast.error("Ajoutez l'email du client"); return false; }
+    if (list.some((q) => (q.email || "").toLowerCase() !== email.toLowerCase())) { toast.error("Les devis sélectionnés doivent concerner le même client (même email)"); return false; }
     const { html, subject, name } = buildEmail(list, { subject: emailSubject, message: emailMessage });
-    const attachment = list.map((q) => ({ name: `Devis_${q.quote_number}.pdf`, content: exportQuotePDF(pdfData(q), { returnBase64: true }) }));
+    let attachment;
+    try {
+      attachment = await buildQuoteAttachments(list.map((q) => ({
+        quote_number: q.quote_number,
+        pdfBase64: exportQuotePDF(pdfData(q), { returnBase64: true }),
+      })), includeRib);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Impossible de préparer les pièces jointes");
+      return false;
+    }
     const { data, error } = await supabase.functions.invoke("send-brevo-campaign", {
       body: { action: "send_client_email", recipientEmail: email, recipientName: name, subject, htmlContent: html, trigger: "quote_sent", client_id: list[0].client_id, attachment },
     });
-    if (error || (data as any)?.error) { toast.error((data as any)?.error || "Échec de l'envoi"); return; }
+    if (error || (data as any)?.error) { toast.error((data as any)?.error || "Échec de l'envoi"); return false; }
     await supabase.from("quotes").update({ status: "envoye", sent_at: new Date().toISOString() }).in("id", list.map((q) => q.id));
     qc.invalidateQueries({ queryKey: ["quotes"] });
     setSelected([]);
     toast.success(`${list.length > 1 ? `${list.length} devis envoyés` : "Devis envoyé"} à ${email}`);
+    return true;
   };
   const sendQuote = (q: any) => openPreview([q]);
   const openPreview = (list: any[]) => {
@@ -183,6 +195,7 @@ export default function Devis() {
     const draft = getQuoteEmailDraft(list);
     setEmailSubject(draft.subject);
     setEmailMessage(draft.message);
+    setIncludeRib(false);
     setPreview(list);
   };
   const viewPdf = (q: any) => {
@@ -195,9 +208,9 @@ export default function Devis() {
     if (!preview) return;
     if (!emailSubject.trim() || !emailMessage.trim()) { toast.error("Renseignez l’objet et le message du mail"); return; }
     setBusy("send");
-    await sendQuotes(preview.map((q) => quotes.find((current) => current.id === q.id) || q));
+    const sent = await sendQuotes(preview.map((q) => quotes.find((current) => current.id === q.id) || q));
     setBusy(null);
-    setPreview(null);
+    if (sent) setPreview(null);
   };
   const sendSelected = () => openPreview(quotes.filter((q: any) => selected.includes(q.id)));
   const updatePayment = async (id: string, patch: Record<string, any>) => {
@@ -385,6 +398,15 @@ export default function Devis() {
                 <p className="text-xs text-muted-foreground">Vous pouvez modifier la salutation, les devis listés, les renouvellements, le texte d’acceptation et la signature.</p>
               </div>
               <EmailSupportOption checked={includeSupport} onChange={setIncludeSupport} />
+              <div className="space-y-2 rounded-lg border border-border p-3">
+                <div className="flex items-center gap-2">
+                  <Checkbox id="quote-attach-rib" checked={includeRib} onCheckedChange={(checked) => setIncludeRib(checked === true)} disabled={busy === "send"} />
+                  <Label htmlFor="quote-attach-rib" className="cursor-pointer">Joindre le RIB Adamkom</Label>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Pièces jointes : {previewQuotes.length > 1 ? `${previewQuotes.length} devis PDF` : `Devis_${previewQuotes[0].quote_number}.pdf`}{includeRib ? " + RIB_Adamkom_by_JJP.pdf" : ""}
+                </p>
+              </div>
               <div className="flex flex-wrap gap-2">
                 {previewQuotes.map((q) => (
                   <Button key={q.id} size="sm" variant="outline" onClick={() => viewPdf(q)}><FileText className="w-4 h-4 mr-1" />Devis_{q.quote_number}.pdf</Button>

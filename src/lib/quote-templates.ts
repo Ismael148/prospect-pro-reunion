@@ -43,7 +43,7 @@ export const QUOTE_TEMPLATES: QuoteTemplate[] = [
     label: "Pack Chip Tuning",
     subtitle: "8 prestations incluses — 790 €",
     renewal: true,
-    notes: "Devis valable 30 jours. Paiement en 4 fois sans frais possible.",
+    notes: "Devis valable 30 jours.",
     items: [
       line("Pack Chip Tuning Adamkom by JJP - 8 prestations incluses", 790),
       line("Optimisation complète de votre fiche Google - Donnez à votre fiche l'impact qu'elle mérite pour attirer les regards et donner envie de vous choisir", 0),
@@ -62,7 +62,7 @@ export const QUOTE_TEMPLATES: QuoteTemplate[] = [
     label: "Pack Chip Tuning Plus",
     subtitle: "Pack Tuning (8 prestations) + création site internet — 1 780 €",
     renewal: true,
-    notes: "Devis valable 30 jours. Paiement en 4 fois sans frais possible.",
+    notes: "Devis valable 30 jours.",
     items: [
       line("Pack Chip Tuning Adamkom by JJP - 8 prestations incluses", 790),
       line("Optimisation complète de votre fiche Google - Donnez à votre fiche l'impact qu'elle mérite pour attirer les regards et donner envie de vous choisir", 0),
@@ -81,7 +81,7 @@ export const QUOTE_TEMPLATES: QuoteTemplate[] = [
     key: "nfc",
     label: "Cartes Bizness NFC",
     subtitle: "Carte NFC personnalisée + page digitale — 279,90 €",
-    notes: "Devis valable 30 jours. Paiement en 4 fois sans frais possible. Paiement à la commande. Délai de fabrication : 7 à 10 jours ouvrés.",
+    notes: "Devis valable 30 jours. Paiement à la commande. Délai de fabrication : 7 à 10 jours ouvrés.",
     items: [
       line("Carte Bizness NFC intelligente - L'outil par excellence pour parler de votre entreprise, partager vos services et rester connecté à vos clients", 279.9),
       line("Page digitale de contact connectée à la carte", 0),
@@ -92,7 +92,7 @@ export const QUOTE_TEMPLATES: QuoteTemplate[] = [
     key: "numerik",
     label: "Star Bizness Numerik",
     subtitle: "Site internet + présence digitale — 1 490 €",
-    notes: "Devis valable 30 jours. Paiement en 4 fois sans frais possible. Délai de livraison : 15 jours.",
+    notes: "Devis valable 30 jours. Délai de livraison : 15 jours.",
     items: [
       line("Pack Star Bizness Numerik - Création site internet", 1490),
       line("Fiche Google My Business", 0),
@@ -100,7 +100,7 @@ export const QUOTE_TEMPLATES: QuoteTemplate[] = [
       line("Visuels réseaux sociaux", 0),
     ],
   },
-  { key: "custom", label: "Devis libre", subtitle: "Partir d'une page blanche", notes: "Devis valable 30 jours. Paiement en 4 fois sans frais possible.", items: [line("Prestation", 0)] },
+  { key: "custom", label: "Devis libre", subtitle: "Partir d'une page blanche", notes: "Devis valable 30 jours.", items: [line("Prestation", 0)] },
 ];
 
 /** Les prix saisis sont TTC. La TVA éventuelle est incluse (affichée « dont TVA »). */
@@ -122,5 +122,11 @@ export function cleanQuoteDescription(description: string) {
 }
 
 export function cleanQuoteNotes(notes?: string | null) {
-  return (notes || "").replace(/[^.!?\n]*acompte\s*(?:de\s*)?50\s*%[^.!?\n]*[.!?]?/gi, "").replace(/ {2,}/g, " ").trim();
+  return (notes || "")
+    .replace(/[^.!?\n]*(?:paiement|payer|payable)\s+(?:en\s+)?(?:4|quatre)\s*(?:fois|x)\s+sans\s+frais(?:\s+possible)?[^.!?\n]*[.!?]?/gi, "")
+    .replace(/[^.!?\n]*acompte\s*(?:de\s*)?50\s*%[^.!?\n]*[.!?]?/gi, "")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/ +\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }

@@ -29,7 +29,6 @@ export function buildQuoteEmail(list: EmailQuote[]) {
 <p>Vous trouverez en pièces jointes ${multi ? "les devis suivants" : "votre devis"} :</p>
 <ul style="padding-left:20px">${rows}</ul>
 ${notes.length ? `<div style="margin:20px 0;padding:12px 16px;background:#fff0f6;border-left:3px solid #ff006e;font-size:13px">${notes.map((note) => `<p style="margin:6px 0">${note}</p>`).join("")}</div>` : ""}
-<p>Paiement en 4 fois sans frais possible.</p>
 <p>Pour accepter ${multi ? "le devis de votre choix" : "ce devis"}, retournez-le signé avec la mention « Bon pour accord ». Nous restons disponibles pour toute question.</p>
 <p>Bien cordialement,<br/><strong>L’équipe Adamkom by JJP</strong><br/>0262 66 68 76 · <a href="mailto:contact@adamkom.com" style="color:#ff006e">contact@adamkom.com</a></p>
 </div></div></div>`;

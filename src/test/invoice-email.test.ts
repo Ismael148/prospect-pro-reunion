@@ -16,4 +16,13 @@ describe("editable invoice email", () => {
     expect(buildInvoiceEmail(invoice, client, getInvoiceEmailDraft(invoice, client)))
       .toEqual(buildInvoiceEmail(invoice, client));
   });
+
+  it("removes four-installment mentions from an edited invoice email", () => {
+    const result = buildInvoiceEmail(invoice, client, {
+      subject: "Votre facture",
+      message: "Bonjour Raissa,\n\nPaiement en 4 fois sans frais possible.\n\nMerci de votre confiance.",
+    });
+    expect(result.html).not.toMatch(/(?:4|quatre)\s*(?:fois|x)\s+sans\s+frais/i);
+    expect(result.html).toContain("Merci de votre confiance.");
+  });
 });

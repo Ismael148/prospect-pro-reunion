@@ -10,6 +10,7 @@ import { InvoiceTemplatePicker } from "@/components/invoices/InvoiceTemplatePick
 import { DEFAULT_INVOICE_TEMPLATE, INVOICE_TEMPLATES, clientPreferredTemplate, shouldSaveClientTemplate, type InvoiceTemplateId } from "@/lib/invoice-templates";
 import { useSetClientInvoiceTemplate } from "@/hooks/use-client-invoice-template";
 import { PACK_LABELS, PACK_PRICES, PACK_RENEWAL_PRICES, PACK_RENEWAL_NOTE, TUNING_WEBSITE_ADDON_PRICE } from "@/lib/constants";
+import { cleanQuoteNotes } from "@/lib/quote-templates";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -199,7 +200,7 @@ export default function Invoices() {
         total_amount: total,
         discount_amount: discountAmount,
         items: items as any,
-        notes: notes || null,
+        notes: cleanQuoteNotes(notes) || null,
         due_date: dueDate || null,
         created_by: user!.id,
         status: "brouillon",
@@ -289,7 +290,7 @@ export default function Invoices() {
       tax_amount: tax,
       total_amount: total,
       discount_amount: discountAmount,
-      notes: notes || null,
+      notes: cleanQuoteNotes(notes) || null,
       items,
       payment_methods: paymentMethods.length > 0 ? paymentMethods : null,
       design_template: designTemplate,

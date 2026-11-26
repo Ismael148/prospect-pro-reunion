@@ -3,6 +3,7 @@ import autoTable from "jspdf-autotable";
 import type { InvoiceItem } from "@/hooks/use-invoices";
 import { INVOICE_LOGO_PNG } from "@/lib/invoice-logo";
 import { resolveInvoiceTemplate, type InvoiceTemplateId } from "@/lib/invoice-templates";
+import { cleanQuoteNotes } from "@/lib/quote-templates";
 
 interface InvoicePDFData {
   invoice_number: string;
@@ -747,7 +748,7 @@ const RENDERERS: Record<InvoiceTemplateId, (doc: jsPDF, data: InvoicePDFData) =>
 
 export function exportInvoicePDF(data: InvoicePDFData, options?: { returnBase64?: boolean }): string | undefined {
   const doc = new jsPDF();
-  RENDERERS[resolveInvoiceTemplate(data.design_template)](doc, data);
+  RENDERERS[resolveInvoiceTemplate(data.design_template)](doc, { ...data, notes: cleanQuoteNotes(data.notes) || null });
 
   if (options?.returnBase64) {
     return doc.output("datauristring").split(",")[1];

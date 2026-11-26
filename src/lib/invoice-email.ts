@@ -4,6 +4,7 @@
 
 import { wrapInBrandedTemplate } from "./email-template";
 import { PUBLISHED_URL, PACK_LABELS } from "./constants";
+import { cleanQuoteNotes } from "./quote-templates";
 
 const escape = (value: string) =>
   value.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] || c));
@@ -54,6 +55,7 @@ export function getInvoiceEmailDraft(inv: InvoiceEmailInvoice, client: InvoiceEm
 
 export function buildInvoiceEmail(inv: InvoiceEmailInvoice, client: InvoiceEmailClient, draft?: InvoiceEmailDraft) {
   const defaults = getInvoiceEmailDraft(inv, client);
+  const message = cleanQuoteNotes(draft?.message ?? defaults.message);
   const isPaid = inv.status === "payee";
   const name = client.manager_name?.trim();
   const greeting = name ? `Bonjour ${escape(name)},` : "Bonjour,";
@@ -92,8 +94,8 @@ export function buildInvoiceEmail(inv: InvoiceEmailInvoice, client: InvoiceEmail
   return {
     subject: draft?.subject.trim() ?? defaults.subject,
     html: wrapInBrandedTemplate(
-      draft && draft.message !== defaults.message
-        ? draft.message.split(/\n\s*\n/).map((paragraph) => `<p style="margin:0 0 16px;overflow-wrap:anywhere">${escape(paragraph).replace(/\n/g, "<br/>")}</p>`).join("")
+      draft && message !== defaults.message
+        ? message.split(/\n\s*\n/).map((paragraph) => `<p style="margin:0 0 16px;overflow-wrap:anywhere">${escape(paragraph).replace(/\n/g, "<br/>")}</p>`).join("")
         : body,
       draft?.includeSupport === false ? undefined : supportLink,
     ),

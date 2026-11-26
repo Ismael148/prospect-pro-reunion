@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { computeQuoteTotals, QUOTE_TEMPLATES, quoteRemaining, quoteAnnualRenewals } from "@/lib/quote-templates";
+import { computeQuoteTotals, QUOTE_TEMPLATES, quoteRemaining, quoteAnnualRenewals, cleanQuoteNotes } from "@/lib/quote-templates";
+import { buildQuoteEmail } from "@/lib/quote-email";
 
 describe("Quote payment rules", () => {
   it("sets the Chip Tuning Plus annual subscription at 149 euros", () => {
@@ -23,6 +24,18 @@ describe("Quote payment rules", () => {
   });
   it("still deducts a freely entered deposit", () => {
     expect(quoteRemaining({ total_amount: 790, deposit_amount: 100 })).toBe(690);
+  });
+  it("removes four-installment mentions while preserving other conditions", () => {
+    expect(cleanQuoteNotes("Devis valable 30 jours. Paiement en 4 fois sans frais possible. Paiement à la commande."))
+      .toBe("Devis valable 30 jours. Paiement à la commande.");
+    expect(cleanQuoteNotes("Payable en quatre fois sans frais. Délai : 15 jours."))
+      .toBe("Délai : 15 jours.");
+  });
+  it("omits four-installment mentions from every template and quote email", () => {
+    const forbidden = /(?:4|quatre)\s*(?:fois|x)\s+sans\s+frais/i;
+    expect(QUOTE_TEMPLATES.map((template) => template.notes).join("\n")).not.toMatch(forbidden);
+    const email = buildQuoteEmail([{ quote_number: "DEV-2026-0001", template_key: "tuning", company_name: "Client" }]);
+    expect(email.html).not.toMatch(forbidden);
   });
 });
 import { quoteRenewalNote } from "@/lib/quote-templates";

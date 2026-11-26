@@ -7,7 +7,7 @@ export const GOOGLE_VERIFICATION_VIDEOS = {
   storefront: "gXOKDkUotns",
   service: "WJWNHwLWWkI",
 };
-export const hasGmbVideoGuide = (pack?: string | null) => pack === "star_bizness_tuning";
+export const hasGmbVideoGuide = (pack?: string | null) => pack !== "star_bizness_nfc" && pack !== "pack_decollage";
 export const gmbVideoGuideUrl = (company: string) => `${PUBLISHED_URL}/tuto/gmb-video?${new URLSearchParams({ entreprise: company })}`;
 
 function escapeHtml(value: string) {

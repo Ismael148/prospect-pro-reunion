@@ -2,11 +2,11 @@ import { describe, it, expect } from "vitest";
 import { hasGmbVideoGuide, GOOGLE_VIDEO_RULES, gmbVideoGuideUrl } from "@/lib/gmb-video-guide";
 
 describe("GMB video guide rules", () => {
-  it("is available only for Chip Tuning clients", () => {
+  it("is available for Chip Tuning and Clients 2.0", () => {
     expect(hasGmbVideoGuide("star_bizness_tuning")).toBe(true);
     expect(hasGmbVideoGuide("star_bizness_nfc")).toBe(false);
-    expect(hasGmbVideoGuide("star_bizness_numerik")).toBe(false);
-    expect(hasGmbVideoGuide(null)).toBe(false);
+    expect(hasGmbVideoGuide("star_bizness_numerik")).toBe(true);
+    expect(hasGmbVideoGuide("pack_decollage")).toBe(false);
   });
   it("uses Google's minimum 30-second recording requirement", () => {
     expect(GOOGLE_VIDEO_RULES.minimumSeconds).toBe(30);

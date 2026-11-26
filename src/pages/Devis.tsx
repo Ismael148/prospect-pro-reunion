@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useClients } from "@/hooks/use-clients";
 import { ClientCombobox } from "@/components/ClientCombobox";
 import { QUOTE_TEMPLATES, cleanQuoteDescription, cleanQuoteNotes, computeQuoteTotals, quoteRenewalNote, quoteRemaining, type QuoteItem } from "@/lib/quote-templates";
-import { buildQuoteEmail } from "@/lib/quote-email";
+import { buildQuoteEmail, getQuoteEmailDraft } from "@/lib/quote-email";
 import { exportQuotePDF } from "@/lib/export-quote-pdf";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,6 +46,8 @@ export default function Devis() {
   const [deposit, setDeposit] = useState("0");
   const [dueDate, setDueDate] = useState("");
   const [preview, setPreview] = useState<any[] | null>(null);
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailMessage, setEmailMessage] = useState("");
   const [invoiceQuote, setInvoiceQuote] = useState<any | null>(null);
 
   const { data: quotes = [] } = useQuery({
@@ -152,8 +154,8 @@ export default function Devis() {
   } };
   const handleDownload = async () => { setBusy("save"); const q = await save(); setBusy(null); if (q) viewPdf(q); };
 
-  const buildEmail = (list: any[]) => {
-    const mail = buildQuoteEmail(list);
+  const buildEmail = (list: any[], draft?: { subject: string; message: string }) => {
+    const mail = buildQuoteEmail(list, draft);
     const token = clients.find((c) => c.id === list[0]?.client_id)?.support_token;
     return { ...mail, html: applySupport(mail.html, token ? `${PUBLISHED_URL}/s/${token}` : undefined) };
   };
@@ -163,7 +165,7 @@ export default function Devis() {
     const email = list[0].email;
     if (!email) { toast.error("Ajoutez l'email du client"); return; }
     if (list.some((q) => (q.email || "").toLowerCase() !== email.toLowerCase())) { toast.error("Les devis sélectionnés doivent concerner le même client (même email)"); return; }
-    const { html, subject, name } = buildEmail(list);
+    const { html, subject, name } = buildEmail(list, { subject: emailSubject, message: emailMessage });
     const attachment = list.map((q) => ({ name: `Devis_${q.quote_number}.pdf`, content: exportQuotePDF(pdfData(q), { returnBase64: true }) }));
     const { data, error } = await supabase.functions.invoke("send-brevo-campaign", {
       body: { action: "send_client_email", recipientEmail: email, recipientName: name, subject, htmlContent: html, trigger: "quote_sent", client_id: list[0].client_id, attachment },
@@ -178,6 +180,9 @@ export default function Devis() {
   const openPreview = (list: any[]) => {
     if (!list.length) return;
     if (!list[0].email) { toast.error("Ajoutez l'email du client"); return; }
+    const draft = getQuoteEmailDraft(list);
+    setEmailSubject(draft.subject);
+    setEmailMessage(draft.message);
     setPreview(list);
   };
   const viewPdf = (q: any) => {
@@ -186,7 +191,14 @@ export default function Devis() {
     const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
     window.open(URL.createObjectURL(new Blob([bytes], { type: "application/pdf" })), "_blank");
   };
-  const confirmSend = async () => { if (!preview) return; setBusy("send"); await sendQuotes(preview.map((q) => quotes.find((current) => current.id === q.id) || q)); setBusy(null); setPreview(null); };
+  const confirmSend = async () => {
+    if (!preview) return;
+    if (!emailSubject.trim() || !emailMessage.trim()) { toast.error("Renseignez l’objet et le message du mail"); return; }
+    setBusy("send");
+    await sendQuotes(preview.map((q) => quotes.find((current) => current.id === q.id) || q));
+    setBusy(null);
+    setPreview(null);
+  };
   const sendSelected = () => openPreview(quotes.filter((q: any) => selected.includes(q.id)));
   const updatePayment = async (id: string, patch: Record<string, any>) => {
     const { error } = await supabase.from("quotes").update(patch as any).eq("id", id);
@@ -209,6 +221,9 @@ export default function Devis() {
   const selectedQuotes = quotes.filter((q) => selected.includes(q.id));
   const selectedMail = buildEmail(selectedQuotes);
   const previewQuotes = preview?.map((q) => quotes.find((current) => current.id === q.id) || q);
+  const previewMail = previewQuotes?.length
+    ? buildEmail(previewQuotes, { subject: emailSubject, message: emailMessage })
+    : null;
 
   const filtered = quotes.filter((q: any) => {
     const s = search.toLowerCase();
@@ -332,7 +347,7 @@ export default function Devis() {
               <Button size="sm" variant="outline" onClick={() => setInvoiceQuote(q)}><FileText className="w-4 h-4 mr-1" />Facturer</Button>
               <Button size="icon" variant="ghost" title="Aperçu PDF" onClick={() => viewPdf(q)}><Eye className="w-4 h-4" /></Button>
               <Button size="icon" variant="ghost" title="Télécharger" onClick={() => exportQuotePDF(pdfData(q))}><Download className="w-4 h-4" /></Button>
-              <Button size="icon" variant="ghost" onClick={() => sendQuote(q)}><Send className="w-4 h-4" /></Button>
+              <Button size="icon" variant="ghost" title="Modifier et envoyer le mail" aria-label={`Modifier et envoyer le mail ${q.quote_number}`} onClick={() => sendQuote(q)}><Send className="w-4 h-4" /></Button>
               <Button size="icon" variant="ghost" onClick={() => remove(q.id)}><Trash2 className="w-4 h-4" /></Button>
             </div>
           ))}
@@ -349,22 +364,35 @@ export default function Devis() {
       </div>
       <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
         <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Aperçu avant envoi</DialogTitle></DialogHeader>
-          <EmailSupportOption checked={includeSupport} onChange={setIncludeSupport} />
-          {previewQuotes && (() => { const m = buildEmail(previewQuotes); return (
-            <div className="space-y-3">
-              <div className="text-sm space-y-1">
-                <p><span className="text-muted-foreground">À :</span> {m.name} &lt;{previewQuotes[0].email}&gt;</p>
-                <p><span className="text-muted-foreground">Objet :</span> <strong>{m.subject}</strong></p>
+          <DialogHeader><DialogTitle>Modifier et prévisualiser le mail</DialogTitle></DialogHeader>
+          {previewQuotes && previewMail && (
+            <div className="space-y-4">
+              <p className="text-sm"><span className="text-muted-foreground">À :</span> {previewMail.name} &lt;{previewQuotes[0].email}&gt;</p>
+              <div className="space-y-2">
+                <Label htmlFor="quote-email-subject">Objet du mail</Label>
+                <Input id="quote-email-subject" value={emailSubject} onChange={(event) => setEmailSubject(event.target.value)} />
               </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-3">
+                  <Label htmlFor="quote-email-message">Contenu complet du mail</Label>
+                  <Button type="button" size="sm" variant="ghost" onClick={() => {
+                    const draft = getQuoteEmailDraft(previewQuotes);
+                    setEmailSubject(draft.subject);
+                    setEmailMessage(draft.message);
+                  }}>Restaurer le texte initial</Button>
+                </div>
+                <Textarea id="quote-email-message" rows={12} className="resize-y text-sm leading-6" value={emailMessage} onChange={(event) => setEmailMessage(event.target.value)} />
+                <p className="text-xs text-muted-foreground">Vous pouvez modifier la salutation, les devis listés, les renouvellements, le texte d’acceptation et la signature.</p>
+              </div>
+              <EmailSupportOption checked={includeSupport} onChange={setIncludeSupport} />
               <div className="flex flex-wrap gap-2">
                 {previewQuotes.map((q) => (
                   <Button key={q.id} size="sm" variant="outline" onClick={() => viewPdf(q)}><FileText className="w-4 h-4 mr-1" />Devis_{q.quote_number}.pdf</Button>
                 ))}
               </div>
-              <iframe title="Aperçu email" srcDoc={m.html} className="w-full h-[55vh] rounded-lg border border-border bg-background" />
+              <iframe title="Aperçu email" srcDoc={previewMail.html} className="w-full h-[55vh] rounded-lg border border-border bg-background" />
             </div>
-          ); })()}
+          )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setPreview(null)}>Annuler</Button>
             <Button onClick={confirmSend} disabled={busy === "send"}>{busy === "send" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Send className="w-4 h-4 mr-1" />}Confirmer l'envoi</Button>

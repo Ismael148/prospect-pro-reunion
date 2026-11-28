@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { getPackModules, TASK_PRIORITY_LABELS } from "@/lib/constants";
+import { withExtraTaskModule } from "@/lib/project-task-modules";
 import { ChevronDown, ChevronRight, Clock, AlertTriangle, ExternalLink, Link2, Plus, UserCircle, Check, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -67,9 +68,12 @@ export default function ProjectModules({ packType, tasks, projectId, startDate, 
     return map;
   }, [tasks]);
 
+  // Tasks added by hand (no [module] tag) get their own section so they stay visible
+  const displayModules = useMemo(() => withExtraTaskModule(modules, tasks), [modules, tasks]);
+
   const handleAddTask = async (moduleId: string) => {
     if (!onAddTask || !newTaskTitle.trim()) return;
-    const module = modules.find((m) => m.id === moduleId);
+    const module = displayModules.find((m) => m.id === moduleId);
     const dueDate = startDate && module
       ? new Date(new Date(startDate).getTime() + module.deadlineDays * 86400000).toISOString().split("T")[0]
       : null;
@@ -154,7 +158,7 @@ export default function ProjectModules({ packType, tasks, projectId, startDate, 
       </Card>
 
       {/* Modules */}
-      {modules.map((mod, gi) => {
+      {displayModules.map((mod, gi) => {
         const moduleTasks = tasksByModule[mod.id] || [];
         const done = moduleTasks.filter((t) => t.status === "termine").length;
         const total = moduleTasks.length;

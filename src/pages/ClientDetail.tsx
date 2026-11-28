@@ -1899,7 +1899,7 @@ export default function ClientDetail() {
       <ClientEmailHistory clientId={id!} clientEmail={client.email} />
       <MeetInviteSection clientId={client.id} companyName={client.company_name} managerName={client.manager_name} email={client.email} supportToken={(client as any).support_token} />
       {hasGmbVideoGuide(client.pack_type) && (
-        <GmbVideoGuideSection clientId={client.id} companyName={client.company_name} managerName={client.manager_name} email={client.email} />
+        <GmbVideoGuideSection clientId={client.id} companyName={client.company_name} managerName={client.manager_name} email={client.email} supportToken={(client as any).support_token} />
       )}
       {client.pack_type === "star_bizness_tuning" && (
         <ConversionFormSection
